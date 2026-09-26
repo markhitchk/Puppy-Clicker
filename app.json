@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Puppy Clicker",
+    "slug": "puppy-clicker",
+    "scheme": "puppyclicker",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "plugins": ["expo-router"],
+    "ios": {
+      "bundleIdentifier": "com.harleytg.puppyclicker",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.harleytg.puppyclicker",
+      "versionCode": 29
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
