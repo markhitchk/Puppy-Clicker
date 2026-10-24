@@ -221,3 +221,31 @@ export function handValue(cards){
   for(const card of cards){if(card===1){aces++;score+=11;}else score+=Math.min(card,10);}
   while(score>21&&aces){score-=10;aces--;}return score;
 }
+
+
+export const prestigePointsAvailable=g=>g.lifetimeTreats<50000?0:Math.min(8,1+Math.floor((g.lifetimeTreats-50000)/100000));
+export const skillCost=(g,skill)=>1+Math.floor((g.prestigeSkills[skill]||0)/2);
+export function prestige(g){
+  const points=prestigePointsAvailable(g);
+  if(points<=0)return false;
+  g.treats=0;g.lifetimeTreats=0;g.bones=0;g.clickPower=1;g.activeBonus=0;g.autoPerSecond=0;
+  g.legitimateTaps=0;g.upgrades=Object.fromEntries(UPGRADES.map(u=>[u.id,0]));
+  g.totalShopPurchases=0;g.ticketInventory=Object.fromEntries(RARITIES.map(r=>[r,0]));
+  g.lastTicketDrop=null;
+  for(const field of ['happiness','fullness','energy','cleanliness'])g[field]=100;
+  g.careProfiles[g.puppyStyle]={happiness:100,fullness:100,energy:100,cleanliness:100,bond:g.bond};
+  g.careActions=0;g.totalTaps=0;g.combo=0;g.bestCombo=0;g.lastTapMs=0;
+  g.parkActive=false;g.parkReadyAtMs=0;g.lastDailyClaimDay=null;g.dailyStreak=0;
+  g.dailyTapStart=0;g.dailyCareStart=0;g.dailyShopStart=0;g.claimedDailyTasks=[];
+  g.prestigeCount++;g.skillPoints=cap(g.skillPoints+points);
+  g.totalPrestigePointsEarned=cap(g.totalPrestigePointsEarned+points);
+  // Pup Coins, Casino Chips, accessories, unlocked puppies and permanent skills survive.
+  return true;
+}
+export function buyPrestigeSkill(g,skill){
+  if(!PRESTIGE_SKILLS.includes(skill))return false;
+  const current=g.prestigeSkills[skill]||0,price=skillCost(g,skill);
+  if(current>=5||g.skillPoints<price)return false;
+  g.skillPoints-=price;g.prestigeSkills[skill]=current+1;
+  return true;
+}
