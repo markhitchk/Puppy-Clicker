@@ -4,10 +4,11 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "start": "expo start",
-    "android": "expo run:android",
-    "export:android": "expo export --platform android --output-dir dist",
-    "apk": "eas build --platform android --profile preview"
+    "postinstall": "node ../scripts/prepare-puppy-art.mjs",
+    "start": "node ../scripts/prepare-puppy-art.mjs && expo start",
+    "android": "node ../scripts/prepare-puppy-art.mjs && expo run:android",
+    "export:android": "node ../scripts/prepare-puppy-art.mjs && expo export --platform android --output-dir dist",
+    "apk": "node ../scripts/prepare-puppy-art.mjs && eas build --platform android --profile preview"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
