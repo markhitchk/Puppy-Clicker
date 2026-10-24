@@ -1,7 +1,7 @@
 name: React Android and Web Validation
 on:
   push:
-    branches: [main]
+    branches: [main, react-native]
   pull_request:
   workflow_dispatch:
 permissions:
