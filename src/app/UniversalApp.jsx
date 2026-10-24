@@ -5,6 +5,7 @@ import {
   Pressable,
   Text,
   Image,
+  ImageBackground,
   useColorScheme,
   useWindowDimensions,
   AppState,
@@ -171,16 +172,7 @@ export default function UniversalApp({ platform }) {
   const content = () => {
     const props = { account, notify, go, schedule, clock };
     if (route === "play") return <Play {...props} height={contentHeight || Math.max(400, height - 150)} />;
-    if (route === "care")
-      return (
-        <>
-          <Row>
-            <Button selected>💖 Care</Button>
-            <Button onPress={() => go("rewards")}>🎁 Rewards</Button>
-          </Row>
-          <Care {...props} />
-        </>
-      );
+    if (route === "care") return <Care {...props} height={contentHeight || Math.max(400, height - 150)} />;
     if (route === "shop")
       return (
         <>
@@ -227,60 +219,79 @@ export default function UniversalApp({ platform }) {
         </>
       );
   };
-  // The five destinations mirror Kotlin's bottom NavigationBar.
-  // Secondary screens (including Settings and notifications) open from the header.
+  // Generated Kotlin shell: patch_roster_navigation.py / PuppyFixedAppBar.
+  // Material 3 density from Theme.kt: COMPACT=0.94, DEFAULT=1, LARGE=1.08.
+  const k = prefs.scale === "COMPACT" ? 0.94 : prefs.scale === "LARGE" ? 1.08 : 1;
+  const isPrimary = NAV.some(([destination]) => destination === route);
   const nav = (
     <View testID="game-nav" accessibilityLabel="Game navigation" style={{
       flexDirection: expanded ? "column" : "row",
-      backgroundColor: colors.panel,
-      borderTopWidth: expanded ? 0 : 1,
-      borderRightWidth: expanded ? 1 : 0,
-      borderColor: colors.edge,
-      paddingHorizontal: expanded ? 8 : 6,
-      paddingVertical: 5,
-      width: expanded ? 100 : "100%",
+      height: expanded ? undefined : 80 * k,
+      backgroundColor: colors.panel, borderTopWidth: expanded ? 0 : 1,
+      borderRightWidth: expanded ? 1 : 0, borderColor: colors.edge,
+      width: expanded ? 96 * k : "100%",
     }}>
       {NAV.map(([id, emoji, label]) => (
         <Pressable key={id} accessibilityRole="button" accessibilityLabel={label}
           accessibilityState={{ selected: route === id }}
           onPress={() => go(id)}
-          style={{ flex: expanded ? undefined : 1, minHeight: expanded ? 70 : 62,
-            alignItems: "center", justifyContent: "center", gap: 3 }}>
-          <View style={{ minWidth: expanded ? 70 : 62, height: 36,
-            paddingHorizontal: 12, borderRadius: 28,
+          style={{
+            flex: expanded ? undefined : 1, minHeight: expanded ? 72 * k : 0,
             alignItems: "center", justifyContent: "center",
-            backgroundColor: route === id ? (colors.dark ? "#494358" : "#E0D7F1") : "transparent" }}>
-            <Text style={{ fontSize: 23 }}>{emoji}</Text>
+          }}>
+          <View style={{
+            width: 64 * k, height: 32 * k,
+            borderRadius: 20 * k, alignItems: "center", justifyContent: "center",
+            backgroundColor: route === id ? (colors.dark ? "#494358" : "#E7DFF1") : "transparent",
+          }}>
+            <Text style={{
+              fontSize: (id === "puppies" ? 26 : 19),
+              transform: [{ translateY: id === "puppies" ? -5 * k : 0 }],
+            }}>{emoji}</Text>
           </View>
-          <Text style={{ fontSize: 11, fontWeight: route === id ? "700" : "500",
-            color: route === id ? colors.text : colors.sub }}>{label}</Text>
+          <Text style={{ fontSize: 10, fontWeight: "500",
+            marginTop: 3 * k, color: route === id ? colors.text : colors.sub }}>
+            {label}
+          </Text>
         </Pressable>
       ))}
     </View>
   );
   const header = (
-    <View style={{ height: 68, flexDirection: "row", alignItems: "center",
-      paddingHorizontal: 14, gap: 11, backgroundColor: colors.panel,
-      borderBottomWidth: 1, borderBottomColor: colors.edge }}>
+    <View testID="kotlin-fixed-app-bar" style={{
+      height: 48 * k, flexDirection: "row", alignItems: "center",
+      paddingHorizontal: 10 * k, backgroundColor: colors.panel,
+      borderBottomWidth: 0,
+    }}>
       <Image source={platform.asset(logo)} accessibilityLabel="Puppy Clicker logo"
-        resizeMode="contain" style={{ width: 34, height: 40 }} />
+        resizeMode="contain" style={{ width: 32 * k, height: 32 * k }} />
+      <View style={{ width: 9 * k }} />
       <Text accessibilityRole="header" numberOfLines={1}
-        style={{ flex: 1, color: colors.text, fontSize: 21, fontWeight: "800" }}>
+        style={{ flex: 1, color: colors.text, fontSize: 16,
+          fontWeight: "900", includeFontPadding: false }}>
         Puppy Clicker
       </Text>
       <Pressable accessibilityRole="button" accessibilityLabel="Notification history"
-        onPress={() => go("inbox")} style={{ height: 45, width: 45,
-          borderRadius: 26, borderWidth: 1, borderColor: colors.text,
-          alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ fontSize: 25 }}>🔔</Text>
-        {unread > 0 && <View style={{ position: "absolute", top: 3, right: 3,
-          width: 10, height: 10, borderRadius: 5, backgroundColor: "#F3A4AE" }} />}
+        onPress={() => go("inbox")} style={{
+          height: 40 * k, width: 40 * k,
+          borderRadius: 22 * k, borderWidth: 1, borderColor: colors.text,
+          alignItems: "center", justifyContent: "center",
+        }}>
+        <Text style={{ fontSize: 18 }}>🔔</Text>
+        {unread > 0 && <View style={{
+          position: "absolute", top: 0, right: 0,
+          width: 10 * k, height: 10 * k, borderRadius: 5 * k,
+          backgroundColor: "#F3A4AE",
+        }} />}
       </Pressable>
+      <View style={{ width: 7 * k }} />
       <Pressable accessibilityRole="button" accessibilityLabel="Settings"
-        onPress={() => go("settings")} style={{ height: 45, width: 45,
-          borderRadius: 26, borderWidth: 1, borderColor: colors.text,
-          alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ fontSize: 25 }}>⚙️</Text>
+        onPress={() => go("settings")} style={{
+          height: 40 * k, width: 40 * k,
+          borderRadius: 22 * k, borderWidth: 1, borderColor: colors.text,
+          alignItems: "center", justifyContent: "center",
+        }}>
+        <Text style={{ fontSize: 18 }}>⚙️</Text>
       </Pressable>
     </View>
   );
@@ -294,8 +305,8 @@ export default function UniversalApp({ platform }) {
           minHeight: 0,
         }}
       >
-        {expanded && nav}
-        <View style={{ flex: 1, minHeight: 0 }}>
+        {expanded && isPrimary && nav}
+        <ImageBackground source={platform.asset("/assets/transparent/ui/" + (colors.dark ? "dark" : "light") + ".png")} resizeMode="stretch" style={{ flex: 1, minHeight: 0 }}>
           {!ready ? (
             <View style={{ padding: 24 }}>
               <Txt>Loading Puppy Clicker…</Txt>
@@ -328,16 +339,16 @@ export default function UniversalApp({ platform }) {
                   maxWidth: expanded ? 760 : 640,
                   width: "100%",
                   alignSelf: "center",
-                  paddingHorizontal: prefs.scale === "LARGE" ? 18 : 14,
-                  paddingTop: 8,
-                  paddingBottom: 14,
-                  gap: prefs.scale === "COMPACT" ? 8 : 12,
+                  paddingHorizontal: (route === "play" || route === "care") ? 0 : prefs.scale === "LARGE" ? 18 : 14,
+                  paddingTop: (route === "play" || route === "care") ? 0 : 8,
+                  paddingBottom: (route === "play" || route === "care") ? 0 : 14,
+                  gap: (route === "play" || route === "care") ? 0 : prefs.scale === "COMPACT" ? 8 : 12,
                 }}
               >
                 {!NAV.some((x) => x[0] === route) && (
                   <Button
-                    label="Back to Settings"
-                    onPress={() => go("settings")}
+                    label="Back"
+                    onPress={() => go("play")}
                     style={{ alignSelf: "flex-start" }}
                   >
                     ‹ Back
@@ -404,8 +415,8 @@ export default function UniversalApp({ platform }) {
               </ScrollView>
             </>
           )}
-        </View>
-        {!expanded && prefs.setupComplete && nav}
+        </ImageBackground>
+        {!expanded && prefs.setupComplete && isPrimary && nav}
         {!!toast && (
           <Pressable
             accessibilityRole="alert"
