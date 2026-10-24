@@ -93,7 +93,8 @@ const files = [];
 async function walk(dir) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     const file = path.join(dir, entry.name);
-    if (entry.isDirectory()) await walk(file);
+    // Derived transparent variants are generated at build time, never source artwork.
+    if (entry.isDirectory() && entry.name !== "transparent") await walk(file);
     else if (/\.(png|svg)$/.test(file)) files.push(file);
   }
 }
