@@ -11,3 +11,7 @@ mobile/.expo/
 test-results/
 playwright-report/
 .superpowers/
+
+# Kotlin-style transparent puppy portraits (generated for bundling)
+public/assets/transparent/
+mobile/transparent-assets.js

@@ -13,6 +13,7 @@ import {
   AccessibilityInfo,
 } from "react-native";
 import { Ui, Txt, Card, Button, Heading, Row, Puppy, Field } from "./ui.jsx";
+import { logo } from "../game.js";
 import { DEFAULT_PREFS, sanitizePrefs, palette } from "./preferences.js";
 import { useAccount } from "./useAccount.js";
 import { Play, Care } from "./PlayCare.jsx";
@@ -30,9 +31,9 @@ import catalog from "../data/redeem-codes.json";
 const NAV = [
   ["play", "🐾", "Play"],
   ["care", "💖", "Care"],
+  ["puppies", "🐶", "Roster"],
   ["shop", "🛍️", "Shop"],
-  ["prestige", "⭐", "Prestige"],
-  ["settings", "⚙️", "Settings"],
+  ["rewards", "🎁", "Rewards"],
 ];
 export default function UniversalApp({ platform }) {
   const account = useAccount(platform),
@@ -48,6 +49,7 @@ export default function UniversalApp({ platform }) {
     [schedule, setSchedule] = useState(null),
     [codeOpen, setCodeOpen] = useState(false),
     [code, setCode] = useState(""),
+    [contentHeight, setContentHeight] = useState(0),
     [checking, setChecking] = useState(false);
   const Container = platform.Container || View;
   const inboxKey = account.user?.id || "guest";
@@ -168,7 +170,7 @@ export default function UniversalApp({ platform }) {
   const context = { platform, colors, prefs, setPrefs };
   const content = () => {
     const props = { account, notify, go, schedule, clock };
-    if (route === "play") return <Play {...props} height={height} />;
+    if (route === "play") return <Play {...props} height={contentHeight || Math.max(400, height - 150)} />;
     if (route === "care")
       return (
         <>
@@ -225,50 +227,61 @@ export default function UniversalApp({ platform }) {
         </>
       );
   };
+  // The five destinations mirror Kotlin's bottom NavigationBar.
+  // Secondary screens (including Settings and notifications) open from the header.
   const nav = (
-    <View
-      accessibilityLabel="Game navigation"
-      style={{
-        flexDirection: expanded ? "column" : "row",
-        backgroundColor: colors.panel,
-        borderTopWidth: expanded ? 0 : 1,
-        borderRightWidth: expanded ? 1 : 0,
-        borderColor: colors.edge,
-        padding: expanded ? 10 : 6,
-        gap: 4,
-        width: expanded ? 96 : "100%",
-      }}
-    >
+    <View testID="game-nav" accessibilityLabel="Game navigation" style={{
+      flexDirection: expanded ? "column" : "row",
+      backgroundColor: colors.panel,
+      borderTopWidth: expanded ? 0 : 1,
+      borderRightWidth: expanded ? 1 : 0,
+      borderColor: colors.edge,
+      paddingHorizontal: expanded ? 8 : 6,
+      paddingVertical: 5,
+      width: expanded ? 100 : "100%",
+    }}>
       {NAV.map(([id, emoji, label]) => (
-        <Pressable
-          key={id}
-          accessibilityRole="button"
-          accessibilityLabel={label}
+        <Pressable key={id} accessibilityRole="button" accessibilityLabel={label}
           accessibilityState={{ selected: route === id }}
           onPress={() => go(id)}
-          style={{
-            flex: expanded ? undefined : 1,
-            minHeight: expanded ? 68 : 60,
-            padding: 5,
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 3,
-            borderRadius: 18,
-            backgroundColor: route === id ? colors.tint : "transparent",
-          }}
-        >
-          <Text style={{ fontSize: 20 }}>{emoji}</Text>
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: route === id ? "800" : "500",
-              color: route === id ? colors.accent : colors.sub,
-            }}
-          >
-            {label}
-          </Text>
+          style={{ flex: expanded ? undefined : 1, minHeight: expanded ? 70 : 62,
+            alignItems: "center", justifyContent: "center", gap: 3 }}>
+          <View style={{ minWidth: expanded ? 70 : 62, height: 36,
+            paddingHorizontal: 12, borderRadius: 28,
+            alignItems: "center", justifyContent: "center",
+            backgroundColor: route === id ? (colors.dark ? "#494358" : "#E0D7F1") : "transparent" }}>
+            <Text style={{ fontSize: 23 }}>{emoji}</Text>
+          </View>
+          <Text style={{ fontSize: 11, fontWeight: route === id ? "700" : "500",
+            color: route === id ? colors.text : colors.sub }}>{label}</Text>
         </Pressable>
       ))}
+    </View>
+  );
+  const header = (
+    <View style={{ height: 68, flexDirection: "row", alignItems: "center",
+      paddingHorizontal: 14, gap: 11, backgroundColor: colors.panel,
+      borderBottomWidth: 1, borderBottomColor: colors.edge }}>
+      <Image source={platform.asset(logo)} accessibilityLabel="Puppy Clicker logo"
+        resizeMode="contain" style={{ width: 34, height: 40 }} />
+      <Text accessibilityRole="header" numberOfLines={1}
+        style={{ flex: 1, color: colors.text, fontSize: 21, fontWeight: "800" }}>
+        Puppy Clicker
+      </Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Notification history"
+        onPress={() => go("inbox")} style={{ height: 45, width: 45,
+          borderRadius: 26, borderWidth: 1, borderColor: colors.text,
+          alignItems: "center", justifyContent: "center" }}>
+        <Text style={{ fontSize: 25 }}>🔔</Text>
+        {unread > 0 && <View style={{ position: "absolute", top: 3, right: 3,
+          width: 10, height: 10, borderRadius: 5, backgroundColor: "#F3A4AE" }} />}
+      </Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel="Settings"
+        onPress={() => go("settings")} style={{ height: 45, width: 45,
+          borderRadius: 26, borderWidth: 1, borderColor: colors.text,
+          alignItems: "center", justifyContent: "center" }}>
+        <Text style={{ fontSize: 25 }}>⚙️</Text>
+      </Pressable>
     </View>
   );
   return (
@@ -301,24 +314,15 @@ export default function UniversalApp({ platform }) {
             </ScrollView>
           ) : (
             <>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Notification history"
-                onPress={() => go("inbox")}
-                style={{
-                  position: "absolute",
-                  right: 16,
-                  top: 12,
-                  zIndex: 3,
-                  padding: 8,
-                }}
-              >
-                <Text style={{ fontSize: 20 }}>🔔{unread ? ` ${unread}` : ""}</Text>
-              </Pressable>
+              {header}
               <ScrollView
                 ref={scroll}
                 key={route}
                 style={{ flex: 1 }}
+                onLayout={(e) => {
+                  const measured = Math.round(e.nativeEvent.layout.height);
+                  setContentHeight((previous) => previous === measured ? previous : measured);
+                }}
                 contentContainerStyle={{
                   flexGrow: 1,
                   maxWidth: expanded ? 760 : 640,

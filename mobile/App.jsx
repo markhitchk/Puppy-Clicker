@@ -7,8 +7,8 @@ import { platform } from "./platform.js";
 function Container({ children, style }) {
   const { colors } = useUi();
   return (
-    <SafeAreaView style={style}>
-      <StatusBar style={colors.dark ? "light" : "dark"} />
+    <SafeAreaView edges={["top", "bottom", "left", "right"]} style={[style, { backgroundColor: colors.bg }]}>
+      <StatusBar style={colors.dark ? "light" : "dark"} backgroundColor={colors.bg} translucent={false} />
       {children}
     </SafeAreaView>
   );

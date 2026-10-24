@@ -16,6 +16,7 @@ if (!globalThis.crypto)
     },
   };
 import { assets } from "./assets.js";
+import { transparentAssets } from "./transparent-assets.js";
 WebBrowser.maybeCompleteAuthSession();
 const client = createClient(
   process.env.EXPO_PUBLIC_SUPABASE_URL ||
@@ -38,7 +39,7 @@ const handleCallback = createCallbackHandler(redirectTo, (code) =>
 );
 export const platform = {
   client,
-  asset: (path) => assets[path] || assets["/assets/v1/v1_classic.png"],
+  asset: (path) => transparentAssets[path] || assets[path] || assets["/assets/v1/v1_classic.png"],
   loadPrefs: async () => {
     try {
       return JSON.parse(
