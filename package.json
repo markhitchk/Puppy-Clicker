@@ -1,0 +1,29 @@
+{
+  "name": "puppy-clicker-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.js",
+    "test:e2e": "playwright test",
+    "android:export": "npm --prefix mobile run export:android",
+    "android": "npm --prefix mobile run android"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.117.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-native-web": "0.21.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@vitejs/plugin-react": "6.1.2",
+    "vite": "8.3.4"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

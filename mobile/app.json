@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Puppy Clicker",
+    "slug": "puppy-clicker",
+    "scheme": "puppyclicker",
+    "version": "2.0.0",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "android": { "package": "com.harleytg.puppyclicker", "versionCode": 34 },
+    "plugins": ["expo-web-browser"],
+    "assetBundlePatterns": ["../public/assets/**/*"],
+    "ios": {
+      "bundleIdentifier": "com.harleytg.puppyclicker",
+      "supportsTablet": true
+    }
+  }
+}

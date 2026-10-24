@@ -1,0 +1,72 @@
+name: React Android and Web Validation
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+# Retain only validation for the newest revision of a PR/branch.
+concurrency:
+  group: react-parity-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: react-browser-results
+          path: test-results/
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo install --check
+      - run: npm run export:android
+      - run: npx expo prebuild --platform android --no-install
+        env:
+          APP_VARIANT: preview
+      - name: Build standalone React preview APK
+        run: ./gradlew :app:assembleRelease --no-daemon
+        working-directory: mobile/android
+      - name: Verify release contains the JS bundle
+        run: |
+          python3 - <<'PY'
+          import glob, zipfile
+          apk=glob.glob('android/app/build/outputs/apk/release/*.apk')[0]
+          with zipfile.ZipFile(apk) as z:
+              assert 'assets/index.android.bundle' in z.namelist(), 'Release is missing its embedded JS bundle'
+          print('Standalone APK contains its embedded bundle')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: puppy-clicker-react-preview-apk
+          path: mobile/android/app/build/outputs/apk/release/*.apk

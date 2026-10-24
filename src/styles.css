@@ -1,0 +1,39 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overscroll-behavior: none;
+}
+body {
+  background: #fffbff;
+}
+* {
+  box-sizing: border-box;
+}
+button,
+input {
+  font: inherit;
+}
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible {
+  outline: 3px solid #00b8f0;
+  outline-offset: 2px;
+}
+#root {
+  display: flex;
+  flex-direction: column;
+}
+input {
+  min-width: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *:before,
+  *:after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
