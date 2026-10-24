@@ -98,3 +98,7 @@
 ## Release definition
 
 1:1 may be claimed only when **every** active Android screen and gameplay action has a matching functional browser behavior or clearly documented platform-specific equivalent, golden tests and screenshot diffs pass, and the same secured account progression works across Android and Web without bypassing PupEye.
+
+## Android + web continuation (October 23)
+
+The owner confirmed both platforms. The latest implementation, exact source/asset coverage, verification and remaining blockers are recorded in `docs/parity/2026-10-23-parity-audit.md`. Both entrypoints now use `src/app` React Native components, rather than maintaining separate browser/native UI and economies. Original global constraints remain in effect; this does not mark the full migration complete.

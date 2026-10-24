@@ -1,0 +1,277 @@
+{
+  "sourceCommit": "4d01e469aecf62e927aa7674ebf7a75c258f66e1",
+  "assets": [
+    {
+      "path": "casino/puppy_blackjack_table.png",
+      "sha256": "0486fcca75dcd8f97a944b2a96c2a797a7c77c44303422528fd580bf67fe944b"
+    },
+    {
+      "path": "casino/puppy_gacha_capsule_closed.png",
+      "sha256": "809d566608a2e72e27588825caa70a239759025bcbab6efd9fe951a6f49ee152"
+    },
+    {
+      "path": "casino/puppy_gacha_capsule_open.png",
+      "sha256": "701f86016019a0d222b61988fecc764b3370de083d4a614770326e868ee9c55a"
+    },
+    {
+      "path": "casino/puppy_gacha_capsule_open_tilt.png",
+      "sha256": "68319c81a95406fbd6f52abc9594d1dc3e452e61d10241f7f26322ea8c75b538"
+    },
+    {
+      "path": "casino/puppy_gacha_knob.png",
+      "sha256": "055e7d6b12f622692d0f069fbe85451f12c622a5403560e5fc6e114ffb75a50a"
+    },
+    {
+      "path": "casino/puppy_gacha_machine.png",
+      "sha256": "dba9a070f00e568e278ad6132cc85a2c34ba1f8813829b012b5408f1f6f82525"
+    },
+    {
+      "path": "casino/puppy_lucky_wheel_disc.png",
+      "sha256": "e996168d8c11547c72b7abc9f410acc26127b4bff71b2d5bb5ba74304c270d2f"
+    },
+    {
+      "path": "casino/puppy_lucky_wheel_frame.png",
+      "sha256": "9bfb6c020b49ba57316b647dc0d4c197082d724717657b3fb452bfbd84b23ddd"
+    },
+    {
+      "path": "casino/puppy_lucky_wheel_pointer.png",
+      "sha256": "993fbf951d2cd11f4daafddd4611ebf2edb874b7d35a270a8b8583e0a1ff26e1"
+    },
+    {
+      "path": "casino/puppy_plinko_ball.png",
+      "sha256": "296d4a2a972fc8efcc98ce14fac6b99d76295aa86a64dce2c1158970637770f0"
+    },
+    {
+      "path": "casino/puppy_plinko_bins.png",
+      "sha256": "dcf9b4bbcbcc5927ec49ce08659778a5bb72742b26c1894f66e1f253cd99d707"
+    },
+    {
+      "path": "casino/puppy_plinko_drop_button.png",
+      "sha256": "074daa66c28da3d757ea61e3ba863e0a9158c21a75208fbe91aff6ae1db8aafc"
+    },
+    {
+      "path": "casino/puppy_plinko_frame.png",
+      "sha256": "e858404604dbfc0bcb053d049039acf4d8be0cbf2c9c8b61d8f9d30f6eb46773"
+    },
+    {
+      "path": "casino/puppy_plinko_glass.png",
+      "sha256": "f9f4827f302589c9803ffa344d61780ac1d64249fdb4c7aa5acfb0005069115e"
+    },
+    {
+      "path": "casino/puppy_plinko_header.png",
+      "sha256": "4ec205e20d25d1ba7a2c536297e16b94a564d0786cfe13532ed7f88c05ac1a15"
+    },
+    {
+      "path": "casino/puppy_plinko_pegs.png",
+      "sha256": "c66d4121926b7e9fb67963df8dd257e422e27421ce875fa487b47e9e3e2f199f"
+    },
+    {
+      "path": "casino/puppy_roulette_ball.png",
+      "sha256": "a3f870b836fb35022c33082d213e5a5997079500c93e446a705c36c48a49ecec"
+    },
+    {
+      "path": "casino/puppy_roulette_rotor.png",
+      "sha256": "4713f75d2e55247495fbd5dfbc6bd9165cf6bf83cf6dfb48efe2056d6f00d3a5"
+    },
+    {
+      "path": "casino/puppy_roulette_table.png",
+      "sha256": "c4799b6dc005f208fa9781252fcb06245e12ebc2bd5da7591d920ee49b46a917"
+    },
+    {
+      "path": "casino/puppy_roulette_wheel_base.png",
+      "sha256": "d2a3c6a17c1838af96895d84b05efeb4deccc78221084491cb2b6bce09d4f8d2"
+    },
+    {
+      "path": "casino/puppy_slots_lever_base.png",
+      "sha256": "ceea367996011f68a36554f6e78116c05e7c750939f91ccd804bb9d937466d6b"
+    },
+    {
+      "path": "casino/puppy_slots_lever_handle.png",
+      "sha256": "031f9c089e4444df54922bd8719ac3c67680fad59c2e4dbe65f1dcb300d217cc"
+    },
+    {
+      "path": "casino/puppy_slots_machine.png",
+      "sha256": "f436716ca20fb1751e5af6c8e4a1ee7cb757f120d523577a0f3f2b9c5208e4b7"
+    },
+    {
+      "path": "casino/puppy_slots_mascot.png",
+      "sha256": "00412bc9ff085155d87dfe9cb207daa1389a40f61a18fffb02f3121a7045f3a7"
+    },
+    {
+      "path": "cursors/paw_casino.svg",
+      "sha256": "1219b7f3dad4466751210e132ac60625cb38f4fea6a5997a73e843c408eb41fd"
+    },
+    {
+      "path": "cursors/paw_click.svg",
+      "sha256": "c5f6ef7dfd7ce23bd555b05d86f0e777fdba89e5661edfc6ec6f8ad918558792"
+    },
+    {
+      "path": "cursors/paw_default.svg",
+      "sha256": "b94bd01987f668a83cf3c3dc0690c9ca7a25ad73c249a04d6bf499c635028a3e"
+    },
+    {
+      "path": "cursors/paw_disabled.svg",
+      "sha256": "95d34cad5d475f1d7daee9af8dbb4635cac5b9495a02003e553c6ba356cb5f92"
+    },
+    {
+      "path": "cursors/paw_drag.svg",
+      "sha256": "77504aa362a64f073355ef340d529142165fc3d1f04ede9453a0999153700cf3"
+    },
+    {
+      "path": "cursors/paw_hover.svg",
+      "sha256": "0c9192a982f4921be48876bf5bd0298f1a3c922425b6cc4a5e4fb0d1a639a22d"
+    },
+    {
+      "path": "cursors/paw_link.svg",
+      "sha256": "83fd45a96c940d17da80dc48dc24c139ef623419389357b806ef4b8584f90acb"
+    },
+    {
+      "path": "cursors/paw_text.svg",
+      "sha256": "1ecfbb68d2deb05478d0f80d3e2f50b2b098b57fcc1ab9827e8a3b548f9daee4"
+    },
+    {
+      "path": "discord_rewards/v2_discord_pup.png",
+      "sha256": "a09701d297f4b5e0a75fd5d471fe26db294a2f5c7f5f2276646af7ba9b390c4d"
+    },
+    {
+      "path": "logos/PupEye.png",
+      "sha256": "769059e8be090d120bd2ba0d6e9f7bcad368a93ef33c25263dde33497f41fb7f"
+    },
+    {
+      "path": "logos/harleys_studios.png",
+      "sha256": "936cdc7bf05727904c606f96c1754dadd5765e7f4efdd84e2180b918dd8bac16"
+    },
+    {
+      "path": "logos/puppy_clicker.png",
+      "sha256": "36eb6baa636e23920d7d949a15ac2d02cd2301d0626db0636fb44b6fdd009003"
+    },
+    {
+      "path": "pup_coin.png",
+      "sha256": "9ba4b7ef0eba555d48ba60cd89cd497e1d0651afc8eff77accbe9ce802ff5a81"
+    },
+    {
+      "path": "test/v1_test_crash_dummy.png",
+      "sha256": "47eb8e6d075b7f491939e29c5ffd47f8a20e3c3b51c9fc4126cbeb1946bba4fd"
+    },
+    {
+      "path": "test/v2_test_crash_dummy.png",
+      "sha256": "80e5165df83cda5cbdbef2cf4af9c0911b0491eea9683c955cccd23afc793d0e"
+    },
+    {
+      "path": "v1/v1_aurora.png",
+      "sha256": "3078fa32a5a5b0b4558af2c4562d8d46c22898993aea6a115716949e2c61e7a7"
+    },
+    {
+      "path": "v1/v1_birthday.png",
+      "sha256": "48f21f4dfdcbaef74ea77664a1901de06e3e0a66e725a8c1a440c29071c1e58b"
+    },
+    {
+      "path": "v1/v1_classic.png",
+      "sha256": "2786ffe25fb4cbc4c9474514494699cf4b8dcb8670490e33cc7a6f47d883edf2"
+    },
+    {
+      "path": "v1/v1_classic_forever.png",
+      "sha256": "b2d1c491763066be94c030a6a6873fda62677707cb1e2acd252a7383507c43fd"
+    },
+    {
+      "path": "v1/v1_cloud.png",
+      "sha256": "e4c121750d53717125cc79d3b00667c2d745574c67b638ebea84435e6601cb8b"
+    },
+    {
+      "path": "v1/v1_cocoa.png",
+      "sha256": "41b79d1a809c5480c87fc71d95d25a9f872032b55ab0887e72a0025808dbe7ba"
+    },
+    {
+      "path": "v1/v1_dev_pup.png",
+      "sha256": "290e97968dfae6d5b270584812da1a09ad6d15e1030ae9901cb07de7ff72da1b"
+    },
+    {
+      "path": "v1/v1_galaxy.png",
+      "sha256": "2174491a1695c03cf6e7787a274d13c21d6918484b4bc6a483309c908ac0036e"
+    },
+    {
+      "path": "v1/v1_golden.png",
+      "sha256": "50217249abb065312e41c266b01ebf8f16b24253b9a81a7f64337a88263f66fc"
+    },
+    {
+      "path": "v1/v1_golden_night.png",
+      "sha256": "b86c3ef4be93c6b5325f5746f3828efde9d00aa30c4c77d724520a3f19c29fb1"
+    },
+    {
+      "path": "v1/v1_halloween.png",
+      "sha256": "01ef8cd3e93382801fd5b585e0d85f2bd527293b6e0c5bed41cd5133743de7da"
+    },
+    {
+      "path": "v1/v1_midnight.png",
+      "sha256": "5818775cc6dac6686b01253009699ee5277989a4987298764e2f95738bdc131f"
+    },
+    {
+      "path": "v1/v1_neon_buddy.png",
+      "sha256": "eae0d1be4a1840bd82e54e9704147f5a608be6e0f9a8aaf8e51f2f86aafc8bfd"
+    },
+    {
+      "path": "v1/v1_poodle.png",
+      "sha256": "a3c3593de9310e1ae536dba69ca28f249b5d6059423db00be844a287fa44787a"
+    },
+    {
+      "path": "v1/v1_santa.png",
+      "sha256": "ea78475452c7df649998031d17f07322bba8462ec02b2b58f66df62f0f69b003"
+    },
+    {
+      "path": "v1/v1_secret_snoot.png",
+      "sha256": "48a38c3e1b44ba80a44790d300431921fe8a8dbe66e072bbde39d146bfa9560d"
+    },
+    {
+      "path": "v1/v1_snowball.png",
+      "sha256": "053f0efac478e8c2b89fc77a9f52951861cf4c4b18afc6348857fe7729e60103"
+    },
+    {
+      "path": "v1/v1_spotty.png",
+      "sha256": "eb415e6deb8d2138581b3871656cae63af7269843500d6132fe7b5a1a6da15c4"
+    },
+    {
+      "path": "v2/v2_biscuit.png",
+      "sha256": "9c3eb8dc92fee3c260e60567bbaf9ecebda4381d15aaa8442de1bd9cb4702259"
+    },
+    {
+      "path": "v2/v2_chestnut.png",
+      "sha256": "8e771e5fb80859c0ea6ffe214cc39d4aaa680f5152197f99f1c6a6fd3ef242bd"
+    },
+    {
+      "path": "v2/v2_dev_pup.png",
+      "sha256": "1651bcd7181351d38a5d15b7becf03e086b8431fa79c3fe7f9633c59ee5756e3"
+    },
+    {
+      "path": "v2/v2_domino.png",
+      "sha256": "531a23e78c6c39c77641f1bd41bf4959754f108f508b46a113fef9f5b205116a"
+    },
+    {
+      "path": "v2/v2_flurry.png",
+      "sha256": "f1647b04681b1fe25bd76652113f7f73cebf6d6b53114613d7f47577e315e43e"
+    },
+    {
+      "path": "v2/v2_frost.png",
+      "sha256": "31c003fa02552f7534b7217e9a1d0ac41c4dd9766c87e12aaceeb455d69eb40b"
+    },
+    {
+      "path": "v2/v2_harleytg.png",
+      "sha256": "e139db1627eadcd01adafa8ecda22131b585e1aef04b1a24fdf29c4f397d8735"
+    },
+    {
+      "path": "v2/v2_honey.png",
+      "sha256": "7cbc48ca60dbd6860dd0e2f603a00a393b74a2807938cfe5ace47005d00b3aef"
+    },
+    {
+      "path": "v2/v2_onyx.png",
+      "sha256": "c50b76ebd9bc8f6c86fd54319afe0687595b46cd702c2ef3cf20761a43e92a23"
+    },
+    {
+      "path": "v2/v2_prism.png",
+      "sha256": "49a4e7949695cf4a761485c570d4bd46394b5dca16bf86480eb8ff5dcd3137dc"
+    },
+    {
+      "path": "v2/v2_rory.png",
+      "sha256": "922dc4dfe3e9ed7c3940c42bcd380c8ea653a1cfbe006caab0664abdcdcf6ec6"
+    }
+  ]
+}

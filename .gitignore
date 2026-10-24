@@ -4,3 +4,10 @@ dist/
 .env.local
 .vercel/
 .DS_Store
+
+mobile/android/
+mobile/ios/
+mobile/.expo/
+test-results/
+playwright-report/
+.superpowers/
