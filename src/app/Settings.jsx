@@ -42,7 +42,7 @@ export default function Settings({ account, go, notify }) {
       "Appearance",
       "Theme, accent color, scale, contrast and motion",
     ],
-    ["notifications", "🔔", "Notifications", "In-game history"],
+    ["notifications", "🔔", "Notifications", "Saved notification inbox"],
     ["privacy", "🛡️", "Privacy & Data", "Cloud save and PupEye"],
     ["puppies", "🐶", "Puppy Roster", "Change, rename and favorite puppies"],
     ["rewards", "🎁", "Rewards", "Daily goals, adventures and gifts"],
