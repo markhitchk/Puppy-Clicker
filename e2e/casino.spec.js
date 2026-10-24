@@ -11,7 +11,20 @@ test('all six casino screens stay playable and Blackjack survives navigation',as
  for(const name of ['🎰 Puppy Slots','🎡 Pup Roulette','🔵 Pup Plinko','🐾 Lucky Pup Wheel','🎟️ Pup Scratchers']){
   await page.getByRole('button',{name:'Open '+name,exact:true}).click();
   await page.getByRole('button',{name:name.includes('Plinko')?'Drop ball · 20 Chips':name.includes('Scratchers')?'New scratch card · 20 Chips':'Spin · 20 Chips',exact:true}).click();
-  if(name.includes('Scratchers'))await page.getByRole('button',{name:'Reveal scratch card'}).click();
+  if(name.includes('Scratchers')){
+   const stage=page.getByTestId('scratch-surface');
+   await expect(stage).toBeVisible();
+   const rect=await stage.boundingBox();
+   for(let row=0;row<10;row++){
+    if(await stage.count()===0)break;
+    const y=rect.y+(row+0.5)*rect.height/10;
+    await page.mouse.move(rect.x+3,y);
+    await page.mouse.down();
+    await page.mouse.move(rect.x+rect.width-3,y,{steps:15});
+    await page.mouse.up();
+   }
+   await expect(stage).toHaveCount(0);
+  }
   await page.getByRole('button',{name:'‹ Casino',exact:true}).click();
  }
  await page.getByRole('button',{name:'Open ♠️ Puppy Blackjack',exact:true}).click();
