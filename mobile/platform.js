@@ -50,6 +50,16 @@ export const platform = {
   },
   savePrefs: (prefs) =>
     AsyncStorage.setItem("puppy_ui_preferences", JSON.stringify(prefs)),
+  loadInbox: async (key) => {
+    try { return JSON.parse((await AsyncStorage.getItem("puppy_inbox_v1:" + key)) || "[]"); }
+    catch { return []; }
+  },
+  saveInbox: (key, items) => AsyncStorage.setItem("puppy_inbox_v1:" + key, JSON.stringify(items)),
+  loadSchedule: async (month) => {
+    try { return JSON.parse((await AsyncStorage.getItem("puppy_schedule_v1:" + month)) || "null"); }
+    catch { return null; }
+  },
+  saveSchedule: (month, schedule) => AsyncStorage.setItem("puppy_schedule_v1:" + month, JSON.stringify(schedule)),
   haptic: () => Vibration.vibrate(12),
   sha256: (text) =>
     Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, text),
