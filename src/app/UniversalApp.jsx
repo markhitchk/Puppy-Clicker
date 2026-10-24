@@ -22,6 +22,7 @@ import { Rewards, Gacha } from "./Rewards.jsx";
 import Settings from "./Settings.jsx";
 import Prestige from "./Prestige.jsx";
 import Casino from "./Casino.jsx";
+import Onboarding from "./Onboarding.jsx";
 import { parseSchedule, monthKey } from "../parity.js";
 import { CODE_SALT, redeem } from "../redeem.js";
 import { appendMessage, markHistoryRead, normalizeHistory, unreadCount } from "./inbox.js";
@@ -296,32 +297,7 @@ export default function UniversalApp({ platform }) {
                 alignSelf: "center",
               }}
             >
-              <Image
-                source={platform.asset("/assets/logos/puppy_clicker.png")}
-                resizeMode="contain"
-                style={{ width: "100%", height: 120 }}
-              />
-              <Heading
-                title="Welcome to Puppy Clicker"
-                subtitle="Tap, care, collect and grow with your puppy."
-              />
-              <Puppy id="classic" size={185} />
-              <Card>
-                <Txt>
-                  Earn Treats by tapping, keep each puppy happy and healthy, and
-                  unlock upgrades and rewards.
-                </Txt>
-                <Txt muted size={12}>
-                  Play as a guest to try the game. Connect Discord in Settings
-                  to save your React progress.
-                </Txt>
-              </Card>
-              <Button
-                primary
-                onPress={() => setPrefs((p) => ({ ...p, setupComplete: true }))}
-              >
-                Start playing
-              </Button>
+              <Onboarding account={account} />
             </ScrollView>
           ) : (
             <>
