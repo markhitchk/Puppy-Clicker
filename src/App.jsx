@@ -1,10 +1,10 @@
 import React, {useCallback,useEffect,useRef,useState} from 'react';
 import {client} from './supabase.js';
-import {SOURCE,logo,ROSTER,UPGRADES,RARITIES,freshGame,sanitizeGame,format,level,wellness,mood,careTapBonus,cost,boneCost,ticketCost,withGain,tap,purchase,care,switchPuppy,convertTreatsToChips,casinoSpend,casinoPayout,claimDailyReward,startPark,claimPark,ticketShopCost,buyUpgradeTicket,accessoryPrices,buyAccessory,drawCard,handValue} from './game.js';
+import {SOURCE,logo,ROSTER,UPGRADES,RARITIES,freshGame,sanitizeGame,format,level,wellness,mood,careTapBonus,cost,boneCost,ticketCost,withGain,tap,purchase,care,switchPuppy,convertTreatsToChips,casinoSpend,casinoPayout,claimDailyReward,startPark,claimPark,ticketShopCost,buyUpgradeTicket,accessoryPrices,buyAccessory,prestigePointsAvailable,prestige,buyPrestigeSkill,skillCost,PRESTIGE_SKILLS,drawCard,handValue} from './game.js';
 import {SCRATCHERS,plinkoOutcome,wheelOutcome,slotsOutcome,rouletteOutcome,scratcherOutcome} from './casinoV7.js';
 import './styles.css';
 
-const NAV=[['play','🐾','Play'],['care','💖','Care'],['puppies','🐶','Roster'],['shop','🛍️','Shop'],['rewards','🎁','Rewards']];
+const NAV=[['play','🐾','Play'],['care','💖','Care'],['shop','🛍️','Shop'],['prestige','⭐','Prestige'],['settings','⚙️','Settings']];
 const recoverImage=e=>{e.currentTarget.onerror=null;e.currentTarget.src=logo;};
 const scoreCards=cards=>cards.map(n=>n===1?'A':n>10?['J','Q','K'][n-11]:String(n));
 function Stat({label,value,icon}){return <div className="stat"><span>{icon} {label}</span><strong>{value}</strong></div>;}
@@ -210,9 +210,9 @@ export default function App(){
     </header>
     <main>
       <div className="utility-tabs" aria-label="Additional game screens">
+        <button onClick={()=>setTab('puppies')} className={tab==='puppies'?'selected':''}>🐶 Roster</button>
+        <button onClick={()=>setTab('rewards')} className={tab==='rewards'?'selected':''}>🎁 Rewards</button>
         <button onClick={()=>setTab('casino')} className={tab==='casino'?'selected':''}>🎰 Casino</button>
-        <button onClick={()=>setTab('settings')} className={tab==='settings'?'selected':''}>⚙️ Settings</button>
-        <button onClick={()=>{setTab('rewards');}}>⭐ Achievements</button>
       </div>
       {!user&&<div className="banner"><strong>Guest preview</strong> — you can play, but progress will not be saved. <button onClick={login} disabled={!client}>Connect Discord</button></div>}
       {busy&&<div className="banner">⏳ Checking cloud save…</div>}
@@ -378,6 +378,31 @@ export default function App(){
           </div>
           <p className="smallprint">Blackjack split/double and crash-recovery parity remain in progress. Round-start server attestation is not yet implemented.</p>
         </section>
+      </>}
+      {tab==='prestige'&&<>
+        <div className="section-header"><div><p className="eyebrow">PERMANENT PROGRESSION</p><h1>Prestige Center ⭐</h1></div><span className="tag">PRESTIGE {game.prestigeCount}</span></div>
+        <div className="care-layout">
+          <Card title="⭐ Prestige Center" aside={<strong>{format(game.skillPoints)} SP</strong>}>
+            <p className="muted">{prestigePointsAvailable(game)>0?'You can Prestige for +'+prestigePointsAvailable(game)+' Skill Point(s).':format(Math.max(0,50000-game.lifetimeTreats))+' more lifetime Treats needed to unlock Prestige.'}</p>
+            <progress value={Math.min(50000,game.lifetimeTreats)} max="50000" className="prestige-progress"/>
+            <button className="primary wide" disabled={busy||conflict||prestigePointsAvailable(game)<1} onClick={()=>{
+              if(window.confirm('Prestige your current run? Treats, Bones, tickets, upgrades and run progress reset. Puppies, Pup Coins, Casino Chips, accessories and permanent skills stay.')){
+                if(mutate(g=>prestige(g)))notify('⭐ Prestige complete!');}
+            }}>{prestigePointsAvailable(game)>0?'Prestige for +'+prestigePointsAvailable(game)+' SP':'Prestige locked'}</button>
+          </Card>
+          <Card title="🌟 Permanent Skill Tree">
+            <p className="muted">Skills improve Shop purchases. They do not give free tap power on their own.</p>
+            {[
+              ['TAP_TRAINING','👆 Tap Training','Extra tap power per CLICK upgrade'],
+              ['AUTO_TRAINING','⚡ Active Training','Extra bonus per ACTIVE upgrade'],
+              ['SMART_SHOPPER','🛍️ Smart Shopper','5% lower Treat costs per level'],
+              ['TICKET_SENSE','🎟️ Ticket Sense','Reduced matching-ticket requirements']
+            ].map(([key,title,desc])=><div className="skill-row" key={key}><div><strong>{title}</strong><p className="muted">{desc} · {game.prestigeSkills[key]||0}/5</p></div>
+              <button disabled={busy||conflict||game.skillPoints<skillCost(game,key)||(game.prestigeSkills[key]||0)>=5} onClick={()=>{if(mutate(g=>buyPrestigeSkill(g,key)))notify('Skill upgraded');}}>
+                {(game.prestigeSkills[key]||0)>=5?'MAX':skillCost(game,key)+' SP'}
+              </button></div>)}
+          </Card>
+        </div>
       </>}
       {tab==='settings'&&<>
         <div className="section-header"><div><p className="eyebrow">PASSWORDLESS ACCOUNT</p><h1>Account & Cloud Save</h1></div><span className="tag">Rev {revision}</span></div>
