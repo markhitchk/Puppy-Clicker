@@ -1,0 +1,22 @@
+name: React Web CI
+on:
+  push:
+    branches: [main, feat/react-web-supabase]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Test game mechanics
+        run: npm run test
+      - name: Build Vite
+        run: npm run build
