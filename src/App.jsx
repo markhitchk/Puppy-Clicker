@@ -17,6 +17,22 @@ const platform = {
       localStorage.setItem("puppy_ui_preferences", JSON.stringify(prefs));
     } catch {}
   },
+  loadInbox: async (key) => {
+    try { return JSON.parse(localStorage.getItem("puppy_inbox_v1:" + key) || "[]"); }
+    catch { return []; }
+  },
+  saveInbox: async (key, items) => {
+    try { localStorage.setItem("puppy_inbox_v1:" + key, JSON.stringify(items)); }
+    catch {}
+  },
+  loadSchedule: async (month) => {
+    try { return JSON.parse(localStorage.getItem("puppy_schedule_v1:" + month) || "null"); }
+    catch { return null; }
+  },
+  saveSchedule: async (month, schedule) => {
+    try { localStorage.setItem("puppy_schedule_v1:" + month, JSON.stringify(schedule)); }
+    catch {}
+  },
   login: async () => {
     const { error } = await client.auth.signInWithOAuth({
       provider: "discord",
