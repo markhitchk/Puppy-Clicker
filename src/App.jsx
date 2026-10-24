@@ -205,41 +205,66 @@ export default function App(){
       </button>
     </header>
     <main>
+      <div className="utility-tabs" aria-label="Additional game screens">
+        <button onClick={()=>setTab('casino')} className={tab==='casino'?'selected':''}>🎰 Casino</button>
+        <button onClick={()=>setTab('settings')} className={tab==='settings'?'selected':''}>⚙️ Settings</button>
+        <button onClick={()=>{setTab('rewards');}}>⭐ Achievements</button>
+      </div>
       {!user&&<div className="banner"><strong>Guest preview</strong> — you can play, but progress will not be saved. <button onClick={login} disabled={!client}>Connect Discord</button></div>}
       {busy&&<div className="banner">⏳ Checking cloud save…</div>}
       {conflict&&<div className="banner danger"><strong>Save conflict:</strong> another browser changed your save. <button onClick={()=>{if(window.confirm('Discard unsaved web changes and load cloud progress?'))void loadCloud(user);}}>Reload cloud save</button></div>}
       {notice&&<div className="toast" role="status" onClick={()=>setNotice('')}>{notice} <button onClick={()=>setNotice('')}>×</button></div>}
       {tab==='play'&&<>
-        <div className="section-header"><div><p className="eyebrow">Welcome to your kennel</p><h1>Give your pup some love 🐾</h1></div><span className="tag">LEVEL {level(game)}</span></div>
-        <div className="stats-grid">
-          <Stat icon="🦴" label="Treats" value={format(game.treats)}/>
-          <Stat icon="👆" label="Per tap" value={format(game.clickPower)}/>
-          <Stat icon="⏱️" label="Per second" value={format(game.autoPerSecond)}/>
-          <Stat icon="🎟️" label="Tickets" value={format(Object.values(game.ticketInventory).reduce((a,b)=>a+b,0))}/>
+        <div className="section-header"><div><p className="eyebrow">PUPPY CLICKER V7 · PLAY</p><h1>Tap your puppy and earn Treats!</h1></div><span className="tag">LEVEL {level(game)}</span></div>
+        <div className="stats-grid wallet">
+          <Stat icon="🍪" label="Treats" value={format(game.treats)}/>
+          <Stat icon="🦴" label="Bones" value={format(game.bones)}/>
+          <Stat icon="🪙" label="Pup Coins" value={format(game.pupCoins)}/>
+          <Stat icon="🐾" label="Casino Chips" value={format(game.casinoChips)}/>
         </div>
         <div className="play-grid">
           <section className="stage">
-            <div className="stage-top"><div><p className="eyebrow">YOUR BEST FRIEND</p><h2>{game.puppyName}</h2></div><span className="tag mood">{mood(game)}</span></div>
-            <button className="puppy-tap" onClick={treat} disabled={busy||conflict} aria-label="Tap puppy to earn Treats"><img src={puppy.image} alt={puppy.name} onError={recoverImage}/></button>
-            <button className="primary big-treat" onClick={treat} disabled={busy||conflict}>🦴 GIVE TREAT <span>+{format(game.clickPower)}</span></button>
-            <p className="hint">Tap to earn Treats and discover rare Upgrade Tickets.</p>
+            <div className="stage-top"><div><p className="eyebrow">CURRENT PUPPY</p><h2>{game.puppyName}</h2></div><span className="tag mood">{mood(game)}</span></div>
+            <button className="puppy-tap" onClick={treat} disabled={busy||conflict||game.energy<=10} aria-label="Tap puppy to earn Treats"><img src={puppy.image} alt={puppy.name} onError={recoverImage}/></button>
+            <p className="hint">⚡ Energy {game.energy}% · Care bonus +{careTapBonus(game)} 🍪/tap</p>
+            <button className="primary big-treat" onClick={treat} disabled={busy||conflict||game.energy<=10}>{game.energy<=10?'😴 Puppy is tired · Rest in Care':'🐾 TAP '+game.puppyName.toUpperCase()} <span>+{format(game.clickPower+careTapBonus(game))}</span></button>
+            <p className="hint">Active upgrade bonus +{format(game.activeBonus)} 🍪 every 10 accepted taps. No passive Treat production.</p>
             <div className="stage-meta"><span>🐾 {format(game.totalTaps)} taps</span><span>🔥 Best combo {format(game.bestCombo)}</span></div>
           </section>
           <div className="side-column">
-            <Card title="💗 Puppy Care" aside={<strong>{wellness(game)}%</strong>}>
-              <p className="muted">Keep your puppy healthy and happy.</p>
-              {['happiness','fullness','energy','cleanliness'].map((k,i)=><div className="meter" key={k}><div><span>{['😊 Happiness','🍖 Fullness','⚡ Energy','🫧 Cleanliness'][i]}</span><strong>{game[k]}%</strong></div><progress value={game[k]} max="100"/></div>)}
-              <div className="care-grid">
-                {[['feed','🍖','Feed'],['play','🎾','Play'],['wash','🫧','Wash'],['rest','💤','Rest']].map(([k,e,label])=><button key={k} onClick={()=>doCare(k)} disabled={busy||conflict}>{e} {label}</button>)}
-              </div>
+            <Card title="🏆 Current Progress" aside={<span className="tag">LEVEL {level(game)}</span>}>
+              <div className="fact"><span>🍪 Treats per tap</span><strong>{format(game.clickPower+careTapBonus(game))}</strong></div>
+              <div className="fact"><span>⚡ 10-tap bonus</span><strong>{format(game.activeBonus)}</strong></div>
+              <div className="fact"><span>🦴 Next Bone</span><strong>{20-game.legitimateTaps%20} taps</strong></div>
+              <div className="fact"><span>🪙 Next Pup Coin</span><strong>{250-game.legitimateTaps%250} taps</strong></div>
+              <div className="fact"><span>🎟️ Tickets found</span><strong>{format(game.totalTicketsFound)}</strong></div>
+              <button className="outline wide" onClick={()=>setTab('shop')}>🛍️ Open Shop</button>
             </Card>
-            <Card title="🏆 Your Progress">
-              <div className="fact"><span>Lifetime Treats</span><strong>{format(game.lifetimeTreats)}</strong></div>
-              <div className="fact"><span>Upgrades purchased</span><strong>{format(game.totalShopPurchases)}</strong></div>
-              <div className="fact"><span>Tickets found</span><strong>{format(game.totalTicketsFound)}</strong></div>
-              <button onClick={()=>setTab('shop')} className="outline wide">Visit Upgrade Shop →</button>
+            <Card title="💖 Active Puppy Care" aside={<strong>{wellness(game)}%</strong>}>
+              <div className="meter"><div><span>⚡ Energy</span><strong>{game.energy}%</strong></div><progress value={game.energy} max="100"/></div>
+              <div className="meter"><div><span>💗 Wellness</span><strong>{wellness(game)}%</strong></div><progress value={wellness(game)} max="100"/></div>
+              <button className="outline wide" onClick={()=>setTab('care')}>Care for {game.puppyName} →</button>
+              <button className="outline wide" onClick={()=>setTab('puppies')}>Change Puppy →</button>
             </Card>
           </div>
+        </div>
+      </>}
+      {tab==='care'&&<>
+        <div className="section-header"><div><p className="eyebrow">PUPPY CARE · PER-PUPPY PROGRESS</p><h1>Care for {game.puppyName} 💖</h1></div><span className="tag">{wellness(game)}% WELLNESS</span></div>
+        <div className="care-layout">
+          <Card title="💖 Daily care" aside={<span className="tag">{mood(game)}</span>}>
+            {['happiness','fullness','energy','cleanliness','bond'].map((k,i)=><div className="meter" key={k}><div><span>{['😊 Happiness','🍖 Fullness','⚡ Energy','🫧 Cleanliness','💞 Bond'][i]}</span><strong>{game[k]}%</strong></div><progress value={game[k]} max="100"/></div>)}
+            <div className="care-grid">
+              {[['feed','🍖 Feed · 20 Treats'],['play','🎾 Play · 1 Bone'],['rest','💤 Rest · Free'],['wash','🫧 Groom · 10 Treats'],['cuddle','💞 Cuddle · Free']].map(([kind,label])=><button key={kind} onClick={()=>doCare(kind)} disabled={busy||conflict}>{label}</button>)}
+            </div>
+          </Card>
+          <Card title="🌳 Park Adventure">
+            <p className="muted">Send your puppy to the park for 60 seconds, then claim a Treat reward.</p>
+            <div className="fact"><span>State</span><strong>{!game.parkActive?'Ready':clock<game.parkReadyAtMs?'Exploring':'Reward ready'}</strong></div>
+            <button className="primary wide" disabled={busy||conflict||(game.parkActive&&clock<game.parkReadyAtMs)} onClick={showPark}>
+              {game.parkActive?'Claim park reward':'Start adventure · 20 energy'}
+            </button>
+          </Card>
         </div>
       </>}
       {tab==='puppies'&&<>
@@ -250,22 +275,52 @@ export default function App(){
           return <article className={'roster-card '+(!unlocked?'locked ':'')+(selected?'selected':'')} key={p.id}>
             <img src={p.image} loading="lazy" alt={p.name} onError={recoverImage}/>
             <h3>#{p.number} {p.name}</h3><p>{unlocked?'Unlocked':'🔒 Locked reward'}</p>
-            <button disabled={!unlocked||selected||busy||conflict} onClick={()=>mutate(g=>{g.puppyStyle=p.id;g.puppyName=p.name.split(' / ')[0];})}>{selected?'✓ Selected':unlocked?'Use puppy':'Locked'}</button>
+            <button disabled={!unlocked||selected||busy||conflict} onClick={()=>mutate(g=>switchPuppy(g,p.id))}>{selected?'✓ Selected':unlocked?'Use puppy':'Locked'}</button>
           </article>;
         })}</div>
       </>}
       {tab==='shop'&&<>
-        <div className="section-header"><div><p className="eyebrow">PLAY, COLLECT, UPGRADE</p><h1>Puppy Shop</h1></div><span className="tag">🦴 {format(game.treats)} Treats</span></div>
-        <div className="ticket-strip">{RARITIES.map(r=><span key={r}>{r[0]}: {format(game.ticketInventory[r])}</span>)}</div>
+        <div className="section-header"><div><p className="eyebrow">UPGRADES · V7 ECONOMY</p><h1>Puppy Shop 🛍️</h1></div><span className="tag">🍪 {format(game.treats)} · 🦴 {format(game.bones)}</span></div>
+        <div className="ticket-strip">{RARITIES.map(r=><span key={r}>{r}: {format(game.ticketInventory[r])}</span>)}</div>
         <div className="shop-grid">{UPGRADES.map(u=>{
-          const price=cost(game,u),tickets=ticketCost(game,u);
-          const possible=game.treats>=price&&(!u.rarity||game.ticketInventory[u.rarity]>=tickets);
+          const price=cost(game,u),bones=boneCost(u),tickets=ticketCost(game,u);
+          const possible=game.treats>=price&&game.bones>=bones&&(!u.rarity||game.ticketInventory[u.rarity]>=tickets);
           return <article className="shop-card" key={u.id}>
             <span className="shop-icon">{u.emoji}</span><div><h3>{u.name}</h3><p>{u.description}</p></div>
             <div className="fact"><span>Owned</span><strong>{game.upgrades[u.id]}</strong></div>
-            <button disabled={!possible||busy||conflict} onClick={()=>buy(u)}>Buy · {format(price)} 🦴{u.rarity?' + '+tickets+' '+u.rarity+' 🎟️':''}</button>
+            <button disabled={!possible||busy||conflict} onClick={()=>buy(u)}>Buy · {format(price)} 🍪 + {bones} 🦴{u.rarity?' + '+tickets+' '+u.rarity+' 🎟️':''}</button>
           </article>;
         })}</div>
+        <div className="care-layout shop-secondary">
+          <Card title="🎟️ Upgrade Tickets (Pup Coins)">
+            {RARITIES.map(r=><div className="fact" key={r}><span>{r}</span><button disabled={busy||conflict||game.pupCoins<ticketShopCost(r,game.ticketShopPurchases[r])} onClick={()=>{if(mutate(g=>buyUpgradeTicket(g,r)))notify(r+' ticket purchased');}}>🪙 {format(ticketShopCost(r,game.ticketShopPurchases[r]))}</button></div>)}
+          </Card>
+          <Card title="🎀 Puppy Accessories (Pup Coins)">
+            {Object.entries(accessoryPrices).map(([name,price])=><div className="fact" key={name}><span>{name}</span>{game.ownedAccessories.includes(name)?<button onClick={()=>mutate(g=>{g.accessory=name;})} disabled={busy||conflict}>{game.accessory===name?'Equipped':'Equip'}</button>:<button onClick={()=>{if(mutate(g=>buyAccessory(g,name)))notify(name+' unlocked');}} disabled={busy||conflict||game.pupCoins<price}>🪙 {price}</button>}</div>)}
+          </Card>
+        </div>
+      </>}
+      {tab==='rewards'&&<>
+        <div className="section-header"><div><p className="eyebrow">PUPPY REWARDS</p><h1>Daily Rewards & Achievements 🎁</h1></div><span className="tag">STREAK {game.dailyStreak}</span></div>
+        <div className="care-layout">
+          <Card title="🎁 Daily Login Reward">
+            <p className="muted">Claim once per day. Earn Treats, 2 Bones and 3 Pup Coins. Your streak boosts Treat rewards.</p>
+            <button className="primary wide" onClick={showDaily} disabled={busy||conflict||game.lastDailyClaimDay===dayOfToday()}>{game.lastDailyClaimDay===dayOfToday()?'✓ Claimed today':'Claim daily reward'}</button>
+          </Card>
+          <Card title="🏆 Achievements · Progress">
+            {[
+              ['🐾 First Treat',game.lifetimeTreats,1],
+              ['🍪 Snack Stash',game.lifetimeTreats,100],
+              ['🏆 Puppy Pro',game.lifetimeTreats,1000],
+              ['🔥 Combo Hero',game.bestCombo,20],
+              ['🎟️ Ticket Hunter',game.totalTicketsFound,1],
+              ['💪 Big Taps',game.clickPower,25],
+              ['🦴 Bone Collector',game.bones,50],
+              ['💜 Best Friend',level(game),10]
+            ].map(([label,value,target])=><div className="fact" key={label}><span>{label}</span><strong>{value>=target?'✓':format(value)+' / '+target}</strong></div>)}
+            <p className="smallprint">Achievement XP claims are not enabled until the native reward ledger is ported.</p>
+          </Card>
+        </div>
       </>}
       {tab==='casino'&&<>
         <div className="section-header"><div><p className="eyebrow">FUN WITH TREATS</p><h1>Puppy Casino 🎰</h1></div><span className="tag">🦴 {format(game.treats)}</span></div>
