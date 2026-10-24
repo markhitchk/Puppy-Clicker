@@ -10,7 +10,7 @@ for (const width of [360, 768, 1280])
     await page.goto("/");
     await completeOnboarding(page);
     await expect(
-      page.getByText(/^(Tap your puppy and earn treats\\.|Tap, earn treats, and have fun with your puppy!)$/),
+      page.getByText(/^(Tap your puppy and earn treats\.|Tap, earn treats, and have fun with your puppy!)$/),
     ).toBeVisible();
     await page
       .getByRole("button", { name: "Tap puppy to earn Treats", exact: true })
