@@ -40,7 +40,7 @@ for (const width of [360, 768, 1280]) {
     expect(surface.width).toBeGreaterThan(250);
     if (width < 840) {
       expect(Math.abs(navBox.height - 80 * 0.94)).toBeLessThan(3);
-      expect(Math.abs(w.x - 14 * 0.94)).toBeLessThan(4);
+      expect(Math.abs(w.x - (Math.max(0, (width - 640) / 2) + 14 * 0.94))).toBeLessThan(4);
     }
     await expect(page.getByText("Pup Coins", { exact: true })).toBeVisible();
     await expect(page.getByText("Casino Chips", { exact: true })).toBeVisible();
