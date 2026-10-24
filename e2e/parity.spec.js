@@ -36,6 +36,15 @@ for (const width of [360, 768, 1280])
       .getByRole("button", { name: "Claim Healthy Pup", exact: true })
       .click();
     await expect(page.getByText("Healthy Pup · Claimed")).toBeVisible();
+    // Inbox history survives a browser restart for the local guest profile.
+    await page.getByRole("button", { name: "Notification history" }).click();
+    await expect(page.getByText("Daily Puppy Gift claimed", { exact: true }).first()).toBeVisible();
+    await page.reload();
+    await page.getByRole("button", { name: "Notification history" }).click();
+    await expect(page.getByText("Daily Puppy Gift claimed", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Mark all read" }).click();
+    await expect(page.getByText("New", { exact: true })).toHaveCount(0);
+
     await page.getByRole("button", { name: "Settings", exact: true }).click();
     await page.getByRole("button", { name: "Appearance", exact: true }).click();
     await page.getByRole("button", { name: "DARK", exact: true }).click();
