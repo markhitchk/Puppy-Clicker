@@ -33,3 +33,27 @@
   .wallet .stat strong{font-size:1.12rem}
   .play-grid .stage{min-height:0}
 }
+
+
+/* Canonical Material3 dark colors from Android ui/theme/Theme.kt */
+:root {
+  --bg:#0c0f12;
+  --panel:#151a1f;
+  --panel2:#1c232a;
+  --edge:#313941;
+  --bright:#00b8f0;
+  --text:#f2f5f7;
+  --sub:#b8c1c8;
+  --green:#80d7ae;
+}
+body{background:radial-gradient(circle at 50% -20%,#263039 0%,#0c0f12 51%,#0c0f12 100%)}
+.topbar,.bottom-nav{background:#151a1ff2}
+.stage,.panel,.roster-card,.shop-card{background:linear-gradient(155deg,#1c232a,#151a1f);border-color:#313941}
+.stat{background:linear-gradient(135deg,#1c232a,#151a1f);border-color:#313941}
+.primary{background:linear-gradient(125deg,#00b8f0,#61d6f8);border-color:#46c5f1;color:#071014}
+.tag{background:#1c303b;color:#e1f4fd;border-color:#3d6576}
+.skill-row{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-top:1px solid #313941;align-items:center}
+.skill-row strong{font-size:.85rem}.skill-row p{font-size:.74rem;margin:4px 0 0}
+.skill-row button{flex:none;min-width:72px}
+.prestige-progress{width:100%;height:10px;margin:15px 0}
+.felt{background-size:cover;background-position:center}
