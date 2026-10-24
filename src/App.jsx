@@ -1,6 +1,7 @@
 import React, {useCallback,useEffect,useRef,useState} from 'react';
 import {client} from './supabase.js';
 import {SOURCE,logo,ROSTER,UPGRADES,RARITIES,freshGame,sanitizeGame,format,level,wellness,mood,careTapBonus,cost,boneCost,ticketCost,withGain,tap,purchase,care,switchPuppy,convertTreatsToChips,casinoSpend,casinoPayout,claimDailyReward,startPark,claimPark,ticketShopCost,buyUpgradeTicket,accessoryPrices,buyAccessory,drawCard,handValue} from './game.js';
+import {SCRATCHERS,plinkoOutcome,wheelOutcome,slotsOutcome,rouletteOutcome,scratcherOutcome} from './casinoV7.js';
 import './styles.css';
 
 const NAV=[['play','🐾','Play'],['care','💖','Care'],['puppies','🐶','Roster'],['shop','🛍️','Shop'],['rewards','🎁','Rewards']];
@@ -28,7 +29,7 @@ export default function App(){
   const editCount=useRef(0);
   const loggedInId=useRef('not-initialized');
   const [notice,setNotice]=useState('');
-  const [wager,setWager]=useState(50);
+  const [wager,setWager]=useState(20);
   const [reels,setReels]=useState(['🐾','🦴','🐶']);
   const [casinoText,setCasinoText]=useState('');
   const [blackjack,setBlackjack]=useState(null);
@@ -152,42 +153,45 @@ export default function App(){
     return result;
   };
   const scratch=()=>gamble(wager,()=>{
-    const r=Math.random(),multi=r<.40?0:r<.64?.5:r<.84?1:r<.96?2:5;
-    const payout=Math.floor(wager*multi);
-    return {payout,description:payout?'🎟️ Scratcher: +'+format(payout)+' Chips':'🎟️ No prize'};
+    const out=scratcherOutcome(wager,Math.floor(Math.random()*100));
+    return {payout:out.payout,description:out.symbols.join(' ')+' · '+out.prize+' · '+(out.payout?'+'+format(out.payout)+' Chips':'No win')};
   });
-  const spin=()=>gamble(5,()=>{
-    const syms=['🐾','🦴','🐶','🎟️','⭐'];
-    const symbols=[0,0,0].map(()=>syms[Math.floor(Math.random()*syms.length)]);
-    setReels(symbols);
-    const same=symbols[0]===symbols[1]&&symbols[1]===symbols[2];
-    const pair=symbols[0]===symbols[1]||symbols[1]===symbols[2]||symbols[0]===symbols[2];
-    const payout=same?5*(symbols[0]==='⭐'?12:6):pair?10:0;
-    return {payout,description:payout?'🎰 Slots: +'+payout+' Chips':'🎰 No win'};
+  const spin=()=>gamble(20,()=>{
+    const out=slotsOutcome(20,[0,0,0].map(()=>Math.floor(Math.random()*100)));
+    setReels(out.symbols);
+    return {payout:out.payout,description:out.winKind+' · '+(out.payout?'+'+format(out.payout)+' Chips':'No win')};
   });
-  const roulette=color=>gamble(5,()=>{
-    const number=Math.floor(Math.random()*37),landed=number===0?'green':number%2===0?'black':'red';
-    const payout=landed===color?5*(landed==='green'?14:2):0;
-    return {payout,description:'🎡 '+number+' · '+landed.toUpperCase()+' · '+(payout?'+'+payout+' Chips':'no win')};
+  const roulette=color=>gamble(20,()=>{
+    const out=rouletteOutcome(20,color.toUpperCase(),Math.floor(Math.random()*37));
+    return {payout:out.payout,description:'🎡 '+out.number+' · '+out.color+' · '+(out.payout?'+'+out.payout+' Chips':'No win')};
+  });
+  const plinko=()=>gamble(20,()=>{
+    const out=plinkoOutcome(20,Array.from({length:8},()=>Math.random()<0.5));
+    return {payout:out.payout,description:'🔵 Plinko · pocket '+(out.binIndex+1)+'/9 · '+out.multiplierHundredths/100+'× · +'+out.payout+' Chips'};
+  });
+  const wheel=()=>gamble(20,()=>{
+    // Android unlock rewards require an authenticated reward ledger; disabled here.
+    const out=wheelOutcome(20,Math.floor(Math.random()*100),false);
+    return {payout:out.payout,description:out.emoji+' Lucky Wheel · '+out.prize+' · +'+out.payout+' Chips'};
   });
   const startBlackjack=()=>{
-    if(gameRef.current.casinoChips<10){notify('Need 10 Casino Chips for Blackjack');return;}
-    if(!mutate(g=>casinoSpend(g,10)))return;
+    if(gameRef.current.casinoChips<20){notify('Need 20 Casino Chips for Blackjack');return;}
+    if(!mutate(g=>casinoSpend(g,20)))return;
     setBlackjack({player:[drawCard(),drawCard()],dealer:[drawCard(),drawCard()],phase:'playing',result:''});
     setCasinoText('');
   };
   const blackjackHit=()=>{
     if(!blackjack||blackjack.phase!=='playing')return;
     const player=[...blackjack.player,drawCard()];
-    setBlackjack({...blackjack,player,phase:handValue(player)>21?'done':'playing',result:handValue(player)>21?'Bust · lost 10 Chips':''});
+    setBlackjack({...blackjack,player,phase:handValue(player)>21?'done':'playing',result:handValue(player)>21?'Bust · lost 20 Chips':''});
   };
   const blackjackStand=()=>{
     if(!blackjack||blackjack.phase!=='playing')return;
     const dealer=[...blackjack.dealer];while(handValue(dealer)<17)dealer.push(drawCard());
     const p=handValue(blackjack.player),d=handValue(dealer);
-    const payout=p>21?0:d>21||p>d?(p===21&&blackjack.player.length===2?25:20):p===d?10:0;
+    const payout=p>21?0:d>21||p>d?(p===21&&blackjack.player.length===2?50:40):p===d?20:0;
     mutate(g=>casinoPayout(g,payout));
-    setBlackjack({...blackjack,dealer,phase:'done',result:payout>10?'You win · +'+payout+' Chips':payout===10?'Push · 10 Chips returned':'Dealer wins'});
+    setBlackjack({...blackjack,dealer,phase:'done',result:payout>20?'You win · +'+payout+' Chips':payout===20?'Push · 20 Chips returned':'Dealer wins'});
   };
   const dayOfToday=()=>{const n=new Date();return Math.floor(Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())/86400000);};
   const showDaily=()=>{if(mutate(g=>claimDailyReward(g,dayOfToday())))notify('Daily reward claimed!');else notify('Daily reward already claimed today');};
@@ -323,36 +327,56 @@ export default function App(){
         </div>
       </>}
       {tab==='casino'&&<>
-        <div className="section-header"><div><p className="eyebrow">FUN WITH TREATS</p><h1>Puppy Casino 🎰</h1></div><span className="tag">🦴 {format(game.treats)}</span></div>
-        <div className="notice">All minigames use fictional Treats only. No real-money stakes, purchases, prizes, or cash-out.</div>
+        <div className="section-header"><div><p className="eyebrow">PUPPY CASINO · SIX GAMES</p><h1>Puppy Casino 🎰</h1></div><span className="tag">🐾 {format(game.casinoChips)} Chips</span></div>
+        <div className="notice">Casino wagers use fictional Casino Chips only. Treats convert at 10 🍪 = 1 🐾 Chip. No real-money purchases, cash-out or prizes.</div>
+        <Card title="🐾 Casino Chip Exchange">
+          <p className="muted">Convert Treats to Casino Chips. The Android game does not allow reverse conversion.</p>
+          <div className="button-row"><select className="convert-select" value={chipConvert} onChange={e=>setChipConvert(Number(e.target.value))}>{[100,200,500,1000,2500,5000,10000].map(n=><option value={n} key={n}>{n} Treats → {n/10} Chips</option>)}</select><button className="primary" disabled={busy||conflict||game.treats<chipConvert} onClick={convert}>Convert Treats</button></div>
+        </Card>
         {casinoText&&<div className="result" role="status">{casinoText}</div>}
         <div className="casino-grid">
           <Card title="🎟️ Pup Scratchers">
-            <p className="muted">Reveal your instant Treat reward.</p>
-            <label className="field">Treat wager <select value={wager} onChange={e=>setWager(Number(e.target.value))}>{[25,50,100,250].map(n=><option key={n}>{n}</option>)}</select></label>
-            <button className="primary wide" disabled={busy||conflict} onClick={scratch}>Scratch card</button>
+            <p className="muted">Choose one of the six source-game scratch cards.</p>
+            <label className="field">Card type / Chip wager
+              <select value={wager} onChange={e=>setWager(Number(e.target.value))}>
+                {SCRATCHERS.map(card=><option value={card.wager} key={card.id}>{card.emoji} {card.name} · {format(card.wager)} Chips</option>)}
+              </select>
+            </label>
+            <button className="primary wide" disabled={busy||conflict||game.casinoChips<wager} onClick={scratch}>Scratch card</button>
           </Card>
-          <Card title="🎰 Pup Slots">
+          <Card title="🎰 Puppy Slots">
+            <img className="casino-asset" src="https://raw.githubusercontent.com/markhitchk/pup-clinker/main/App/app/src/main/res/drawable/puppy_slots_machine.png" alt="Original Puppy Slots machine" loading="lazy"/>
             <div className="slot-reels">{reels.map((r,i)=><span key={i}>{r}</span>)}</div>
-            <button className="primary wide" disabled={busy||conflict} onClick={spin}>Spin · 25 Treats</button>
+            <button className="primary wide" disabled={busy||conflict||game.casinoChips<20} onClick={spin}>Spin · 20 Chips</button>
           </Card>
           <Card title="🎡 Pup Roulette">
-            <p className="muted">Pick your color · 25 Treats per spin.</p>
-            <div className="roulette-row">{['red','black','green'].map(c=><button className={'roulette '+c} key={c} disabled={busy||conflict} onClick={()=>roulette(c)}>{c.toUpperCase()}</button>)}</div>
+            <p className="muted">European single-zero wheel · color wager · 20 Chips.</p>
+            <div className="roulette-row">{['red','black'].map(color=><button className={'roulette '+color} key={color} disabled={busy||conflict||game.casinoChips<20} onClick={()=>roulette(color)}>{color.toUpperCase()}</button>)}</div>
+          </Card>
+          <Card title="🔵 Pup Plinko">
+            <img className="casino-asset" src="https://raw.githubusercontent.com/markhitchk/pup-clinker/main/App/app/src/main/res/drawable/puppy_plinko_frame.png" alt="Original Puppy Plinko frame" loading="lazy"/>
+            <p className="muted">8 rows · 9 payout pockets · native 97.3% payout table.</p>
+            <button className="primary wide" disabled={busy||conflict||game.casinoChips<20} onClick={plinko}>Drop · 20 Chips</button>
+          </Card>
+          <Card title="🎡 Lucky Pup Wheel">
+            <img className="casino-asset" src="https://raw.githubusercontent.com/markhitchk/pup-clinker/main/App/app/src/main/res/drawable/puppy_lucky_wheel_disc.png" alt="Original Lucky Pup Wheel disc" loading="lazy"/>
+            <p className="muted">Original wheel prize weights. Puppy unlocks require a protected reward ledger and refund until implemented.</p>
+            <button className="primary wide" disabled={busy||conflict||game.casinoChips<20} onClick={wheel}>Spin · 20 Chips</button>
           </Card>
         </div>
         <section className="blackjack panel">
-          <div className="panel-heading"><h2>♠️ Puppy Blackjack</h2><span className="tag">50 🦴 / hand</span></div>
-          <div className="felt" style={{backgroundImage:'linear-gradient(145deg,rgba(1,33,22,.78),rgba(3,54,27,.75)),url('+SOURCE+'/../App/app/src/main/res/drawable/puppy_blackjack_table.png)'}}>
-            <div className="hand"><span>DEALER</span><div className="cards">{blackjack?scoreCards(blackjack.phase==='playing'?blackjack.dealer.slice(0,1):blackjack.dealer).map((c,i)=><i key={i}>{c}</i>):<i>?</i>}{blackjack?.phase==='playing'&&<i className="hidden-card">?</i>}</div><strong>{blackjack?.phase==='done'?handValue(blackjack.dealer):'?'}</strong></div>
-            <div className="hand"><span>YOUR HAND</span><div className="cards">{blackjack?scoreCards(blackjack.player).map((c,i)=><i key={i}>{c}</i>):<i>?</i>}</div><strong>{blackjack?handValue(blackjack.player):0}</strong></div>
+          <div className="panel-heading"><h2>♠️ Puppy Blackjack</h2><span className="tag">20 🐾 / hand</span></div>
+          <div className="felt" style={{backgroundImage:'linear-gradient(145deg,rgba(1,33,22,.68),rgba(3,54,27,.65)),url(https://raw.githubusercontent.com/markhitchk/pup-clinker/main/App/app/src/main/res/drawable/puppy_blackjack_table.png)'}}>
+            <div className="hand"><span>DEALER</span><div className="cards">{blackjack?scoreCards(blackjack.phase==='playing'?blackjack.dealer.slice(0,1):blackjack.dealer).map((s,i)=><i key={i}>{s}</i>):<i>?</i>}{blackjack?.phase==='playing'&&<i className="hidden-card">?</i>}</div><strong>{blackjack?.phase==='done'?handValue(blackjack.dealer):'?'}</strong></div>
+            <div className="hand"><span>YOUR HAND</span><div className="cards">{blackjack?scoreCards(blackjack.player).map((s,i)=><i key={i}>{s}</i>):<i>?</i>}</div><strong>{blackjack?handValue(blackjack.player):0}</strong></div>
             {blackjack?.result&&<p className="blackjack-result">{blackjack.result}</p>}
           </div>
           <div className="blackjack-actions">
-            <button onClick={startBlackjack} disabled={busy||conflict||blackjack?.phase==='playing'} className="primary">{blackjack?.phase==='done'?'New hand':'Deal · 50 Treats'}</button>
+            <button onClick={startBlackjack} disabled={busy||conflict||blackjack?.phase==='playing'||game.casinoChips<20} className="primary">{blackjack?.phase==='done'?'New hand':'Deal · 20 Chips'}</button>
             <button onClick={blackjackHit} disabled={busy||conflict||blackjack?.phase!=='playing'}>Hit</button>
             <button onClick={blackjackStand} disabled={busy||conflict||blackjack?.phase!=='playing'}>Stand</button>
           </div>
+          <p className="smallprint">Blackjack split/double and crash-recovery parity remain in progress. Round-start server attestation is not yet implemented.</p>
         </section>
       </>}
       {tab==='settings'&&<>
