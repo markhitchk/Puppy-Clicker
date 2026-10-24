@@ -27,17 +27,20 @@ The fix uses **one shared React Native screen tree** (`src/app`) and game module
 | Slots / Roulette / Plinko / Wheel / Scratchers | Casino + casinoV7 | Dedicated screens and original art, published tables, wagers, roulette bet variants, result settlement |
 | Theme / UiPreferences / Settings | ui + preferences + Settings | Light/dark/system, accent palette, contrast, motion toggles, compact numbers, settings search/sections |
 | Discord signup / React web save | platform adapters + useAccount | Same isolated React cloud schema on both clients, native PKCE cold/warm callbacks and duplicate handling; no protected Kotlin save writes |
+| Onboarding model, personalizing, privacy, notifications and ready screens | Onboarding + onboarding + preferences | Six Kotlin-ordered setup stages, persisted step, local/Discord choice, appearance, optional validated birthday, privacy review, alert preferences and final review. Importing protected Kotlin progress, birthday payout and native notification permission are NOT implemented. |
+| Notification history | inbox + UniversalApp + platform storage | Bounded, read/unread, clearable history persisted by account key on the local device; no push or server inbox. |
+| Monthly reward schedule cache | UniversalApp + platform storage | Raw monthly schedules are cached across launches and revalidated on load; outdated or invalid records cannot override fallback daily goals. |
 
 All 68 copied image assets retain their source SHA-256. `node scripts/sync-assets.mjs /path/to/pup-clinker` reproducibly refreshes portraits, manifests, casino artwork, native requires and hash inventory.
 
 ## Release and acceptance constraints still open
 
 - **PupEye and Kotlin progress are not migrated.** Android signed installation sessions, one-device policy, bans, authoritative wagers/rewards and account transfer require a secure backend bridge. The React save table remains isolated. No RLS weakening or data reset was performed.
-- **Not ported:** admin/moderation, player-to-player Puppy Exchange, server role grants, full support/report workflows, push/local scheduled notifications, seasonal/birthday claim flows, advanced motion/performance settings and exact original onboarding/privacy flows.
-- Session notification history is local UI state, not the Kotlin persistent notification/reward center.
+- **Not ported:** admin/moderation, player-to-player Puppy Exchange, server role grants, full support/report workflows, push/local scheduled notifications, seasonal/birthday claim flows, advanced motion/performance settings, and exact original system-level onboarding/privacy integrations. The six-stage React onboarding is an interface and preference port, not a verified Android permission or PupEye migration.
+- The notification inbox persists locally by account (or guest profile), with read/unread and clear operations. This is **not** the Kotlin/server persistent notification/reward center and will not sync across devices.
 - Casino visuals are functional ports, **not pixel-verified native equivalents**. Scratch currently reveals by tapping; native scratch-mask gesture coverage, exact wheel alignment, full Plinko artwork/physics and interrupted-round server recovery remain incomplete. Wheel puppy slices refund until verified reward settlement exists.
 - UI scale currently changes spacing; full native density/font-scale equivalence remains unverified. Accessibility/device screenshot comparison needs native execution.
-- Monthly schedules use validated network/fallback data but do not yet persist the downloaded month cache between launches.
+- Monthly schedules are validated before local caching and revalidated when loaded offline. Cache and inbox are device-local; system reminders and synchronized server notification history remain outstanding.
 - Android OAuth requires the Supabase redirect allowlist to include `puppyclicker-reactpreview://auth/callback` (preview) and `puppyclicker://auth/callback` (production). Live sign-in/role/cloud end-to-end behavior has not been verified with a real account.
 - Actual APK install, physical device launch, native process recreation during OAuth, Play signing/version migration and Kotlin reference screenshot diffs are **not verified by an Expo export**.
 
@@ -50,7 +53,7 @@ EAS preview is a standalone APK with `developmentClient: false`; production is A
 ## Verification record
 
 - Gameplay/native lifecycle unit suite: source Blackjack fixtures, economy/care/rewards/roster/XP/code claims, PKCE callback dedup/retry, original asset hashes and preview packaging contracts.
-- Browser journey verified at 360×800, 768×800 and 1280×800: onboarding, taps/next reward, puppy change, care, daily gift/goal claims, theme persistence and horizontal overflow. These tests do not establish visual equivalence or real-account sync.
+- Original browser journey verified at 360×800, 768×800 and 1280×800: onboarding, taps/next reward, puppy change, care, daily gift/goal claims, theme persistence and horizontal overflow. This follow-on commit extends it to six-step onboarding and local inbox reload persistence. New CI results must be checked separately; these tests still do not establish visual equivalence or real-account sync.
 - Vite production build, Expo package compatibility check, Android prebuild and Android Hermes/asset export run locally.
 - Independent code review found foreground/background care, slow-save sign-out and cold-start OAuth bugs; regression tests and fixes were applied. Saved-round recovery validation was also hardened.
 - Browser runtime in this container required a local Chromium binary; CI uses Playwright’s supported browser download.
