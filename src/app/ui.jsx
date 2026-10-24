@@ -196,6 +196,8 @@ export function Puppy({
 }) {
   const { platform, prefs } = useUi();
   const scale = useRef(new Animated.Value(1)).current;
+  const original = ROSTER.find((p) => p.id === id)?.image || "/assets/v1/v1_classic.png";
+  const artPath = original.replace(/^\/assets\/(v1|v2)\//, "/assets/transparent/$1/");
   const image = (
     <View
       style={{
@@ -207,9 +209,7 @@ export function Puppy({
     >
       <Image
         accessibilityLabel={id}
-        source={platform.asset(
-          ROSTER.find((p) => p.id === id)?.image || "/assets/v1/v1_classic.png",
-        )}
+        source={platform.asset(artPath)}
         resizeMode="contain"
         style={{ width: "100%", height: "100%" }}
       />
