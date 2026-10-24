@@ -24,6 +24,7 @@ import Prestige from "./Prestige.jsx";
 import Casino from "./Casino.jsx";
 import { parseSchedule, monthKey } from "../parity.js";
 import { CODE_SALT, redeem } from "../redeem.js";
+import { appendMessage, markHistoryRead, normalizeHistory, unreadCount } from "./inbox.js";
 import catalog from "../data/redeem-codes.json";
 const NAV = [
   ["play", "🐾", "Play"],
@@ -41,12 +42,15 @@ export default function UniversalApp({ platform }) {
     [route, setRoute] = useState("play"),
     [toast, setToast] = useState(""),
     [history, setHistory] = useState([]),
+    [inboxLoadedKey, setInboxLoadedKey] = useState(null),
     [clock, setClock] = useState(Date.now()),
     [schedule, setSchedule] = useState(null),
     [codeOpen, setCodeOpen] = useState(false),
     [code, setCode] = useState(""),
     [checking, setChecking] = useState(false);
   const Container = platform.Container || View;
+  const inboxKey = account.user?.id || "guest";
+  const unread = unreadCount(history);
   const scroll = useRef(null),
     colors = palette(prefs, system),
     expanded = width >= 840;
@@ -70,6 +74,24 @@ export default function UniversalApp({ platform }) {
   useEffect(() => {
     if (ready) void platform.savePrefs(prefs).catch(() => {});
   }, [prefs, ready, platform]);
+  useEffect(() => {
+    let active = true;
+    setInboxLoadedKey(null);
+    void platform.loadInbox(inboxKey).then((stored) => {
+      if (!active) return;
+      setHistory(normalizeHistory(stored));
+      setInboxLoadedKey(inboxKey);
+    }).catch(() => {
+      if (!active) return;
+      setHistory([]);
+      setInboxLoadedKey(inboxKey);
+    });
+    return () => { active = false; };
+  }, [platform, inboxKey]);
+  useEffect(() => {
+    if (inboxLoadedKey !== inboxKey) return;
+    void platform.saveInbox(inboxKey, history).catch(() => {});
+  }, [platform, inboxKey, inboxLoadedKey, history]);
   useEffect(() => {
     const id = setInterval(() => setClock(Date.now()), 1000);
     return () => clearInterval(id);
@@ -96,9 +118,18 @@ export default function UniversalApp({ platform }) {
   }, [route, codeOpen]);
   useEffect(() => {
     let active = true;
+    let loadedMonth = null;
     const controller = new AbortController();
     const refresh = async () => {
       const month = monthKey(new Date());
+      if (loadedMonth !== month) {
+        loadedMonth = month;
+        if (active) setSchedule(null);
+        try {
+          const cached = parseSchedule(await platform.loadSchedule(month), month);
+          if (active && loadedMonth === month && cached) setSchedule(cached);
+        } catch {}
+      }
       try {
         const response = await fetch(
           `https://raw.githubusercontent.com/markhitchk/pup-clinker/main/assets/rewards/${month}.json`,
@@ -107,8 +138,12 @@ export default function UniversalApp({ platform }) {
         if (!response.ok) return;
         const data = await response.text();
         if (data.length > 524288) return;
-        const parsed = parseSchedule(JSON.parse(data), month);
-        if (active && parsed) setSchedule(parsed);
+        const raw = JSON.parse(data);
+        const parsed = parseSchedule(raw, month);
+        if (active && loadedMonth === month && parsed) {
+          setSchedule(parsed);
+          void platform.saveSchedule(month, raw).catch(() => {});
+        }
       } catch {}
     };
     void refresh();
@@ -118,7 +153,7 @@ export default function UniversalApp({ platform }) {
       controller.abort();
       clearInterval(id);
     };
-  }, []);
+  }, [platform]);
   const go = (next) => {
     setRoute(next);
     setCodeOpen(false);
@@ -126,7 +161,8 @@ export default function UniversalApp({ platform }) {
   };
   const notify = (text) => {
     setToast(text);
-    setHistory((items) => [{ id: Date.now(), text }, ...items].slice(0, 50));
+    if (inboxLoadedKey === inboxKey)
+      setHistory((items) => appendMessage(items, text));
   };
   const context = { platform, colors, prefs, setPrefs };
   const content = () => {
@@ -160,14 +196,28 @@ export default function UniversalApp({ platform }) {
         <>
           <Heading
             title="Notifications"
-            subtitle="This session’s gameplay messages."
+            subtitle="Saved gameplay messages on this device."
           />
-          {history.length ? (
-            history.map((item) => (
-              <Card key={item.id}>
-                <Txt>{item.text}</Txt>
-              </Card>
-            ))
+          {inboxLoadedKey !== inboxKey ? (
+            <Txt muted>Loading messages…</Txt>
+          ) : history.length ? (
+            <>
+              <Row>
+                <Button onPress={() => setHistory((items) => markHistoryRead(items))}>
+                  Mark all read
+                </Button>
+                <Button onPress={() => setHistory([])}>Clear history</Button>
+              </Row>
+              {history.map((item) => (
+                <Card key={item.id}>
+                  <Txt bold={!item.read}>{item.text}</Txt>
+                  <Txt muted size={11}>
+                    {new Date(item.createdAt).toLocaleString()}
+                    {!item.read ? " · New" : ""}
+                  </Txt>
+                </Card>
+              ))}
+            </>
           ) : (
             <Txt muted>No messages yet.</Txt>
           )}
@@ -287,7 +337,7 @@ export default function UniversalApp({ platform }) {
                   padding: 8,
                 }}
               >
-                <Text style={{ fontSize: 20 }}>🔔</Text>
+                <Text style={{ fontSize: 20 }}>🔔{unread ? ` ${unread}` : ""}</Text>
               </Pressable>
               <ScrollView
                 ref={scroll}
