@@ -125,3 +125,24 @@ test('Classic scratcher uses source published prize odds',()=>{
  assert.equal(scratcherOutcome(20,60).payout,20);
  assert.equal(scratcherOutcome(20,82).payout,40);
 });
+
+
+import {prestigePointsAvailable,prestige,buyPrestigeSkill} from '../src/game.js';
+test('Android Prestige begins at 50k lifetime Treats and keeps collection',()=>{
+ const g=freshGame();g.lifetimeTreats=50_000;g.treats=123;g.bones=25;g.pupCoins=17;
+ g.unlockedPuppies.push('v2_honey');
+ assert.equal(prestigePointsAvailable(g),1);
+ assert.equal(prestige(g),true);
+ assert.equal(g.prestigeCount,1);assert.equal(g.skillPoints,1);
+ assert.equal(g.treats,0);assert.equal(g.bones,0);
+ assert.equal(g.pupCoins,17);assert.ok(g.unlockedPuppies.includes('v2_honey'));
+});
+test('prestige permanent skills cost 1 point, then 1, then 2',()=>{
+ const g=freshGame();g.skillPoints=5;
+ assert.equal(buyPrestigeSkill(g,'TAP_TRAINING'),true);
+ assert.equal(g.skillPoints,4);
+ assert.equal(buyPrestigeSkill(g,'TAP_TRAINING'),true);
+ assert.equal(g.skillPoints,3);
+ assert.equal(buyPrestigeSkill(g,'TAP_TRAINING'),true);
+ assert.equal(g.skillPoints,1);
+});
