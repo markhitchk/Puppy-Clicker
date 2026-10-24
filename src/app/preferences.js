@@ -1,3 +1,4 @@
+import { validBirthday } from "./onboarding.js";
 export const DEFAULT_PREFS = {
   theme: "SYSTEM",
   accent: "#00B8F0",
@@ -8,9 +9,18 @@ export const DEFAULT_PREFS = {
   haptics: true,
   compactNumbers: true,
   setupComplete: false,
+  setupStep: 0,
+  setupMethod: "LOCAL",
+  playerDisplayName: "Puppy Player",
+  birthdayMonth: 0,
+  birthdayDay: 0,
+  privacyReviewed: false,
+  dailyRewardNotifications: true,
+  gameEventNotifications: true,
+  updateNotifications: true,
 };
 export function sanitizePrefs(input) {
-  return {
+  const safe = {
     ...DEFAULT_PREFS,
     ...Object.fromEntries(
       Object.entries(input || {}).filter(
@@ -27,6 +37,16 @@ export function sanitizePrefs(input) {
       ),
     ),
   };
+  if (!Number.isInteger(safe.setupStep) || safe.setupStep < 0 || safe.setupStep > 5)
+    safe.setupStep = 0;
+  if (!["LOCAL", "DISCORD"].includes(safe.setupMethod))
+    safe.setupMethod = "LOCAL";
+  safe.playerDisplayName = safe.playerDisplayName.trim().slice(0, 24) || "Puppy Player";
+  if (!validBirthday(safe.birthdayMonth, safe.birthdayDay)) {
+    safe.birthdayMonth = 0;
+    safe.birthdayDay = 0;
+  }
+  return safe;
 }
 export function palette(prefs, system) {
   const dark =
