@@ -1,3 +1,4 @@
+import { completeOnboarding } from "./onboarding.js";
 import { test, expect } from "@playwright/test";
 for (const width of [360, 768, 1280])
   test(`Kotlin launcher, rewards, roster and theme at ${width}px`, async ({
@@ -7,7 +8,7 @@ for (const width of [360, 768, 1280])
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/");
-    await page.getByRole("button", { name: "Start playing" }).click();
+    await completeOnboarding(page);
     await expect(
       page.getByText("Tap, earn treats, and have fun with your puppy!"),
     ).toBeVisible();
