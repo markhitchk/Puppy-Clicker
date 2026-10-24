@@ -95,3 +95,33 @@ test('invalid saves cannot unlock invented puppies',()=>{
   const g=sanitizeGame({treats:-1,clickPower:-4,unlockedPuppies:['fake']});
   assert.equal(g.treats,0);assert.equal(g.clickPower,1);assert.deepEqual(g.unlockedPuppies,['classic']);
 });
+
+
+import {plinkoOutcome,wheelOutcome,slotsOutcome,rouletteOutcome,scratcherOutcome} from '../src/casinoV7.js';
+
+test('Plinko has 8 bounce rows and the published V7 edge payout',()=>{
+ const result=plinkoOutcome(20,Array(8).fill(false));
+ assert.equal(result.binIndex,0);
+ assert.equal(result.multiplierHundredths,5);
+ assert.equal(result.payout,1);
+});
+test('Lucky Wheel refunds the puppy slice when an unlock is not possible',()=>{
+ const result=wheelOutcome(20,99,false);
+ assert.equal(result.prize,'REFUND');
+ assert.equal(result.payout,20);
+});
+test('Puppy Slots use the native weighted symbols and 7x Treat triple',()=>{
+ const result=slotsOutcome(20,[0,0,0]);
+ assert.deepEqual(result.symbols,['🍪','🍪','🍪']);
+ assert.equal(result.payout,140);
+});
+test('Roulette uses the correct European red set, not odd/even parity',()=>{
+ assert.equal(rouletteOutcome(20,'RED',1).payout,40);
+ assert.equal(rouletteOutcome(20,'RED',2).payout,0);
+ assert.equal(rouletteOutcome(20,'RED',12).payout,40);
+});
+test('Classic scratcher uses source published prize odds',()=>{
+ assert.equal(scratcherOutcome(20,0).payout,0);
+ assert.equal(scratcherOutcome(20,60).payout,20);
+ assert.equal(scratcherOutcome(20,82).payout,40);
+});
