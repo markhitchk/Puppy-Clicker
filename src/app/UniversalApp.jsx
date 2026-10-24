@@ -5,6 +5,7 @@ import {
   Pressable,
   Text,
   Image,
+  ImageBackground,
   useColorScheme,
   useWindowDimensions,
   AppState,
@@ -305,7 +306,7 @@ export default function UniversalApp({ platform }) {
         }}
       >
         {expanded && isPrimary && nav}
-        <View style={{ flex: 1, minHeight: 0 }}>
+        <ImageBackground source={platform.asset("/assets/transparent/ui/" + (colors.dark ? "dark" : "light") + ".png")} resizeMode="stretch" style={{ flex: 1, minHeight: 0 }}>
           {!ready ? (
             <View style={{ padding: 24 }}>
               <Txt>Loading Puppy Clicker…</Txt>
@@ -414,7 +415,7 @@ export default function UniversalApp({ platform }) {
               </ScrollView>
             </>
           )}
-        </View>
+        </ImageBackground>
         {!expanded && prefs.setupComplete && isPrimary && nav}
         {!!toast && (
           <Pressable
