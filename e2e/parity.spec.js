@@ -27,7 +27,9 @@ for (const width of [360, 768, 1280])
       page.getByText("Sunny", { exact: true }).first(),
     ).toBeVisible();
     await page.getByRole("button", { name: "Settings", exact: true }).click();
-    // The generated Kotlin shell hides bottom navigation on internal Settings.\n    await page.getByRole("button", { name: "Back", exact: true }).click();\n    await page.getByTestId("game-nav").getByRole("button", { name: "Rewards", exact: true }).click();
+    // The generated Kotlin shell hides bottom navigation on internal Settings.
+    await page.getByRole("button", { name: "Back", exact: true }).click();
+    await page.getByTestId("game-nav").getByRole("button", { name: "Rewards", exact: true }).click();
     await page
       .getByRole("button", { name: "Claim Daily Puppy Gift", exact: true })
       .click();
