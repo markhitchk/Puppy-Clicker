@@ -26,12 +26,13 @@ import {
   PLINKO_MULTIPLIERS,
   WHEEL_PRIZES,
   slotsOutcome,
-  scratcherOutcome,
   rouletteOutcome,
   plinkoOutcome,
   wheelOutcome,
 } from "../casinoV7.js";
 import * as blackjack from "../blackjack.js";
+import { startScratchRound, settleScratchRound } from "../scratch.js";
+import ScratchCard from "./ScratchCard.jsx";
 const games = [
   ["scratch", "🎟️ Pup Scratchers", "Match symbols and win Chips"],
   ["slots", "🎰 Puppy Slots", "Three reels · puppy-themed symbols"],
@@ -48,9 +49,10 @@ export default function Casino({ account, notify }) {
     [convert, setConvert] = useState("100"),
     [bet, setBet] = useState("RED"),
     [number, setNumber] = useState("0"),
-    [animating, setAnimating] = useState(false),
-    [revealed, setRevealed] = useState(false);
+    [animating, setAnimating] = useState(false);
   const round = g.lastCasinoResult?.game === screen ? g.lastCasinoResult : null;
+  const scratchPending = g.lastCasinoResult?.game === "scratch" &&
+    g.lastCasinoResult?.scratchPending === true;
   const rotation = useRef(new Animated.Value(0)).current,
     ball = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const animation = useRef(null);
@@ -58,11 +60,21 @@ export default function Casino({ account, notify }) {
   const choose = (id) => {
     if (animating) return;
     setScreen(id);
-    setRevealed(false);
     setWager(20);
   };
   const play = () => {
     if (animating) return;
+    if (scratchPending) {
+      notify("Finish your pending scratch card before placing another wager.");
+      return;
+    }
+    if (screen === "scratch") {
+      const ok = mutate((next) => startScratchRound(
+        next, wager, Math.floor(Math.random() * 100),
+      ));
+      if (!ok) notify("Unable to buy this card. Check your Casino Chips.");
+      return;
+    }
     let result;
     const ok = mutate((next) => {
       if (!casinoSpend(next, wager)) return false;
@@ -71,8 +83,6 @@ export default function Casino({ account, notify }) {
           wager,
           Array.from({ length: 3 }, () => Math.floor(Math.random() * 100)),
         );
-      if (screen === "scratch")
-        result = scratcherOutcome(wager, Math.floor(Math.random() * 100));
       if (screen === "roulette")
         result = rouletteOutcome(
           wager,
@@ -93,8 +103,7 @@ export default function Casino({ account, notify }) {
       notify("Not enough Casino Chips.");
       return;
     }
-    setRevealed(screen !== "scratch");
-    if (prefs.animations && !prefs.reducedMotion && screen !== "scratch") {
+    if (prefs.animations && !prefs.reducedMotion) {
       setAnimating(true);
       rotation.setValue(0);
       ball.setValue({ x: 0, y: 0 });
@@ -126,6 +135,10 @@ export default function Casino({ account, notify }) {
       animation.current.start(() => setAnimating(false));
     }
   };
+  const revealScratch = () => {
+    if (!mutate((next) => settleScratchRound(next)))
+      notify("Scratch prize could not be validated. No payout was applied.");
+  };
   const amount = +convert;
   if (screen === "hub")
     return (
@@ -135,6 +148,13 @@ export default function Casino({ account, notify }) {
           subtitle="Play with earned Casino Chips."
         />
         <Wallet game={g} />
+        {scratchPending && (
+          <Card>
+            <Txt bold>🎟️ Your scratch card is still in progress</Txt>
+            <Txt muted size={12}>Finish scratching to collect your committed prize before starting another casino round.</Txt>
+            <Button primary onPress={() => choose("scratch")}>Resume scratch card</Button>
+          </Card>
+        )}
         <Card>
           <Txt muted size={12}>
             Casino Chips are fictional game currency. No purchases, cash-out or
@@ -372,43 +392,24 @@ export default function Casino({ account, notify }) {
       )}
       {screen === "scratch" && round && (
         <Card title={SCRATCHERS.find((c) => c.wager === round.wager)?.name}>
-          <Row style={{ justifyContent: "center" }}>
-            {round.symbols.map((x, i) => (
-              <View
-                key={i}
-                style={{
-                  padding: 16,
-                  backgroundColor: "#FFF1C9",
-                  borderRadius: 12,
-                }}
-              >
-                <Text style={{ fontSize: 30 }}>{x}</Text>
-              </View>
-            ))}
-          </Row>
-          {!revealed && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Reveal scratch card"
-              onPress={() => setRevealed(true)}
-              style={{
-                position: "absolute",
-                top: 45,
-                bottom: 10,
-                left: 12,
-                right: 12,
-                borderRadius: 16,
-                backgroundColor: "#80929A",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Txt bold>🐾 Tap to scratch & reveal</Txt>
-            </Pressable>
+          {round.scratchPending ? (
+            <ScratchCard
+              key={String(round.startedAtMs || round.wager)}
+              round={round}
+              onReveal={revealScratch}
+            />
+          ) : (
+            <Row style={{ justifyContent: "center" }}>
+              {round.symbols.map((symbol, index) => (
+                <View key={index} style={{ padding: 16, backgroundColor: "#FFF1C9", borderRadius: 12 }}>
+                  <Text style={{ fontSize: 30 }}>{symbol}</Text>
+                </View>
+              ))}
+            </Row>
           )}
         </Card>
       )}
-      {round && (revealed || screen !== "scratch") && !animating && (
+      {round && (screen !== "scratch" || !round.scratchPending) && !animating && (
         <Card>
           <Txt bold>
             {round.number !== undefined
@@ -426,6 +427,7 @@ export default function Casino({ account, notify }) {
         disabled={
           locked ||
           animating ||
+          scratchPending ||
           g.casinoChips < wager ||
           (screen === "roulette" &&
             bet === "STRAIGHT" &&
