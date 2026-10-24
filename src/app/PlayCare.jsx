@@ -30,12 +30,15 @@ export function Play({ account, schedule, clock, notify, height }) {
     if (ok && prefs.haptics) platform.haptic();
     if (found) notify(`🎟️ ${found} Upgrade Ticket found!`);
   };
-  const portrait = height < 590 ? 122 : height < 700 ? 150 : 185;
+  // Kotlin derives portrait breakpoints from the available Play content height.
+  const tiny = height < 590;
+  const compact = height < 700;
+  const portrait = tiny ? 122 : compact ? 150 : 185;
   return (
     <View style={{ flex: 1, gap: 8, minHeight: 430 }}>
       <Heading
         title="Play"
-        subtitle="Tap, earn treats, and have fun with your puppy!"
+        subtitle={compact ? "Tap your puppy and earn treats." : "Tap, earn treats, and have fun with your puppy!"}
       />
       <Wallet game={g} />
       <View
@@ -47,7 +50,7 @@ export function Play({ account, schedule, clock, notify, height }) {
           borderWidth: 1,
           borderRadius: 22,
           paddingHorizontal: 12,
-          paddingVertical: 12,
+          paddingVertical: 8,
           alignItems: "center",
           justifyContent: "center",
           gap: 5,
@@ -77,7 +80,7 @@ export function Play({ account, schedule, clock, notify, height }) {
           primary
           disabled={locked}
           onPress={hit}
-          style={{ width: "100%", marginTop: 3, borderRadius: 18 }}
+          style={{ width: "100%", minHeight: tiny ? 44 : 50, marginTop: 3, borderRadius: 18 }}
         >
           {g.energy <= 10
             ? `😴 ${g.puppyName} is tired · Care needed`
