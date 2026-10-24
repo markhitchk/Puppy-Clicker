@@ -1,1 +1,3 @@
-// UI parity entry points. The Kotlin-generated Compose screens are translated separately.\nexport { default as Play } from "./KotlinPlayScreen.jsx";\nexport { default as Care } from "./KotlinCareScreen.jsx";\n
+// UI parity entry points translated from generated Kotlin Compose sources.
+export { default as Play } from "./KotlinPlayScreen.jsx";
+export { default as Care } from "./KotlinCareScreen.jsx";
