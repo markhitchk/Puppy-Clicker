@@ -1,72 +1,64 @@
-# Puppy Clicker — Android Parity Web Port 🐾
+# Puppy Clicker — shared React Android and web
 
-React + Vite web implementation based on the **actual Android launcher**
-`App/app/src/main/AndroidManifest.xml` → `PuppyClickerV6Activity.kt` and its
-`PuppyClickerV6ViewModel.kt`, `PuppyEconomyV7.kt`, care, progression, roster and casino sources in
-[markhitchk/pup-clinker](https://github.com/markhitchk/pup-clinker).
+The Android and browser versions now use **the same React Native screens and JavaScript game engines**. Expo renders native Android views; React Native Web renders the existing Vite website. The Kotlin repository remains the reference.
 
-> **Status: staged parity port, NOT a verified 1:1 release.** Do not label it as full Android parity or put its client-authoritative rewards into the protected Android cloud account.
+**This is still a parity migration, not a verified 100% replacement.** Protected Kotlin/PupEye save linking, admin, player exchange, push notifications and remaining native interactions are open. See the [source coverage and remaining work](docs/parity/2026-10-23-parity-audit.md).
 
-## Android-to-web progress
+## What changed
 
-| System | Status | Details |
-|---|---|---|
-| Launcher navigation | Partially ported | Native five bottom tabs: Play, Care, Shop, Prestige, Settings; quick access to Roster, Rewards, Casino |
-| Economy V7 | Ported and tested | Treats, Bones, Pup Coins, Casino Chips; no passive Treats; 10-tap active bonus, 20-tap Bones, 250-tap Pup Coins; integer upgrade scaling |
-| Tap, energy and care | Core ported | Healthy-care bonus, tired gate, care costs, energy drain, per-puppy care profiles |
-| Shop | Core ported | Matching upgrade tickets, Bone costs, Pup Coin tickets/accessories, prestige skill discounts |
-| Puppy roster | Partial | V1/V2 source PNGs, default unlocks, Discord Pup, profile selection; dynamic V3+ streamed art and reward unlocks pending |
-| Daily / park | Partial | Daily claim, streak, Bones/Pup Coins, 60s park reward; monthly calendar/task schedule and XP ledger pending |
-| Prestige | Core ported | 50k threshold, permanent skill tree, 1–8 points, reset economy, retain collection/Pup Coins/Chips |
-| Casino | Engine parity progressing | Source payout tables for Slots, European Roulette, Scratchers, 8-row Plinko and Lucky Wheel; basic Blackjack; source art. Full animation, gameplay state recovery, card-specific reward unlock, Blackjack split/double not yet done |
-| Supabase | Web-only secure scope | Discord OAuth, RLS-protected web save and revision checks |
-| PupEye / Android cross-save | **NOT PORTED** | Android signed installation sessions, one-device authority and anti-cheat are not interoperable with web yet; the web client never writes PupEye account tables |
-| Advanced systems | Pending | Notifications, achievement XP settlement, onboarding, gacha, puppy exchange, redeem codes, admin, feature flag parity, accessibility/theming |
-| Visual 1:1 | Pending screenshots | Layout follows Android sections but Compose-vs-CSS screenshots and interaction tests are still required |
+- Native five-tab navigation and responsive Play/Care layout, four currencies, original puppy artwork and live next-goal progress.
+- Per-puppy care/timestamps/names, native daily goals/rewards, XP/achievements, roster filters/favorites, shop, accessories, prestige, capsule gacha and supported Puppy Codes.
+- Dedicated casino screens; source payout tables; Blackjack single-deck hit/stand/double/split and saved-hand recovery.
+- Light/dark/system theme, accents, contrast, motion preferences, profile and settings sections.
+- Bundled original assets: 32 manifest puppies and 68 images verified against source SHA-256.
+- Standalone Android preview configuration with embedded JS; no Metro connection is required for a release preview APK.
 
-The reference audit and task-by-task Superpowers plan live in
-`docs/superpowers/specs/2026-10-23-android-web-parity.md` and
-`docs/superpowers/plans/2026-10-23-android-web-parity.md`.
+## Web
 
-## Run and verify
-
-Node.js 22+ required:
+Node 22+:
 
 ```bash
 npm ci
 npm test
 npm run build
 npm run dev
+npx playwright install chromium
+npm run test:e2e
 ```
 
-`npm test` uses Node's built-in test runner and verifies Android-derived economy and casino rules.
-GitHub Actions runs tests and builds for every PR. A green build is not proof of visual parity.
+The Vercel root/build output remains `.` / `dist`. Avoid unnecessary deployments; keep migration previews separate from production. The connected Vercel scope `harleytghq-8739` returned 403 during this change, so direct deployment/inspection is not available until team access is authorized. No duplicate project was created.
 
-## Supabase
+## Android
 
-Current code uses publishable Supabase configuration only.
-Override `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in an uncommitted `.env.local` if needed.
-**Never** put service-role keys or Discord provider secrets in browser-side variables.
+```bash
+cd mobile
+npm ci
+npx expo install --check
+npm run export:android
+npm run android
+# Standalone APK through an authorized EAS account:
+npm run apk
+```
 
-Auth providers: enable Discord under [Supabase](https://supabase.com/dashboard/project/damcmyqusdxucwozkoeh/auth/providers).
-Provider callback (Discord Developer Portal): `https://damcmyqusdxucwozkoeh.supabase.co/auth/v1/callback`.
-Allow the Vercel preview/production URL under [Supabase URL Configuration](https://supabase.com/dashboard/project/damcmyqusdxucwozkoeh/auth/url-configuration).
-Anonymous guest gameplay is not saved.
+The preview package is `com.harleytg.puppyclicker.reactpreview`; it installs alongside the Kotlin app. `APP_VARIANT=production` preserves the final production package `com.harleytg.puppyclicker`, but production cutover is not approved while parity/secure save transfer remains incomplete.
 
-`public.puppy_web_saves` is isolated from `public.pup_account_saves`. Existing Android signed PupEye saves cannot safely be read/written by a generic Supabase Auth browser token. Do not weaken RLS to enable cross-save. Proper 1:1 needs a separately reviewed identity-binding and server-authoritative transaction design.
+GitHub Actions builds a release-mode preview APK, verifies the embedded JS bundle and uploads it as `puppy-clicker-react-preview-apk`. This preview uses a debug signing key, not your Google Play upload key. An Expo export proves bundling, not a successful device installation.
 
-## Vercel
+## Accounts and saves
 
-The repo is configured for Vercel's Vite preset. Use `npm run build` and output directory `dist`.
-Use a **preview deployment** from this feature branch until Android parity is verified.
-Do not promote the current PR to a 1:1 production release.
+Both React platforms use the existing `puppy_web_saves` table, owner RLS and revision-checked `puppy_web_save_commit` RPC. Guest sessions are intentionally not saved. Supabase publishable URL/key configuration is in `.env.example` (web) and `mobile/.env.example` (Android).
 
-A Vercel project named `puppy-clicker` exists under team scope `harleytghq-8739`, but the current connected account returned **403 forbidden** when inspecting its settings and deployments on October 23, 2026. The team scope requires authorized access before automated deployment/verification; do not create a duplicate Vercel project in an unrelated scope.
+Native Discord OAuth uses PKCE and `puppyclicker-reactpreview://auth/callback` (preview) and `puppyclicker://auth/callback` (production), including cold-start and warm callbacks. Add that redirect to the existing Supabase project’s allowlist before testing native sign-in. Browser sign-in returns to the current origin/path. No server secrets belong in either public environment.
 
-## Fair play and limitations
+**Kotlin `pup_account_saves` and signed PupEye installations remain separate.** Do not weaken RLS, transfer React-generated currency into protected accounts, reset live progress, or claim existing Kotlin accounts are already migrated. Proper authority, identity and single-device enforcement remain required.
 
-Because the React game economy currently runs in the browser, a user can manipulate **their own web save** even when ownership is protected by RLS. Browser reward generation cannot be treated as tamper-proof, and must never feed native Android, global leaderboards, or account-wide rewards until server-side validation / PupEye web parity has passed a security review.
+## Source artwork
 
-Source character images load from the owner's original Android repository, rather than unlicensed replicas. Production should ship a versioned, optimized asset bundle when the full art manifests are ported.
+```bash
+node scripts/sync-assets.mjs /path/to/pup-clinker
+npm test
+```
 
-© Harley's Studios. All rights to original Puppy Clicker code and artwork remain with their owner.
+This copies original bytes, regenerates the roster/native static image registry, and records the Kotlin source commit and image hashes. No replacement/generated puppy artwork is used.
+
+© Harley’s Studios.
