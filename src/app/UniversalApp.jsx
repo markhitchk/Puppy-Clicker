@@ -230,7 +230,7 @@ export default function UniversalApp({ platform }) {
   // The five destinations mirror Kotlin's bottom NavigationBar.
   // Secondary screens (including Settings and notifications) open from the header.
   const nav = (
-    <View accessibilityLabel="Game navigation" style={{
+    <View testID="game-nav" accessibilityLabel="Game navigation" style={{
       flexDirection: expanded ? "column" : "row",
       backgroundColor: colors.panel,
       borderTopWidth: expanded ? 0 : 1,
