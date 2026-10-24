@@ -243,9 +243,9 @@ export default function Settings({ account, go, notify }) {
                 {id === "notifications" && (
                   <>
                     <Txt muted>
-                      Gameplay messages appear in the bell’s session history.
-                      Android push notifications and native reward announcements
-                      are still being migrated.
+                      Gameplay messages are saved locally per account on this
+                      device. Android push notifications and native reward
+                      announcements are still being migrated.
                     </Txt>
                     <Button onPress={() => go("inbox")}>
                       Open notification history
