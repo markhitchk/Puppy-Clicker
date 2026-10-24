@@ -171,16 +171,7 @@ export default function UniversalApp({ platform }) {
   const content = () => {
     const props = { account, notify, go, schedule, clock };
     if (route === "play") return <Play {...props} height={contentHeight || Math.max(400, height - 150)} />;
-    if (route === "care")
-      return (
-        <>
-          <Row>
-            <Button selected>💖 Care</Button>
-            <Button onPress={() => go("rewards")}>🎁 Rewards</Button>
-          </Row>
-          <Care {...props} />
-        </>
-      );
+    if (route === "care") return <Care {...props} height={contentHeight || Math.max(400, height - 150)} />;
     if (route === "shop")
       return (
         <>
@@ -347,10 +338,10 @@ export default function UniversalApp({ platform }) {
                   maxWidth: expanded ? 760 : 640,
                   width: "100%",
                   alignSelf: "center",
-                  paddingHorizontal: route === "play" ? 0 : prefs.scale === "LARGE" ? 18 : 14,
-                  paddingTop: route === "play" ? 0 : 8,
-                  paddingBottom: route === "play" ? 0 : 14,
-                  gap: route === "play" ? 0 : prefs.scale === "COMPACT" ? 8 : 12,
+                  paddingHorizontal: (route === "play" || route === "care") ? 0 : prefs.scale === "LARGE" ? 18 : 14,
+                  paddingTop: (route === "play" || route === "care") ? 0 : 8,
+                  paddingBottom: (route === "play" || route === "care") ? 0 : 14,
+                  gap: (route === "play" || route === "care") ? 0 : prefs.scale === "COMPACT" ? 8 : 12,
                 }}
               >
                 {!NAV.some((x) => x[0] === route) && (
