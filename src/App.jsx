@@ -1,9 +1,9 @@
 import React, {useCallback,useEffect,useRef,useState} from 'react';
 import {client} from './supabase.js';
-import {SOURCE,logo,ROSTER,UPGRADES,RARITIES,freshGame,sanitizeGame,format,level,wellness,mood,cost,ticketCost,withGain,tap,passive,purchase,care,drawCard,handValue} from './game.js';
+import {SOURCE,logo,ROSTER,UPGRADES,RARITIES,freshGame,sanitizeGame,format,level,wellness,mood,careTapBonus,cost,boneCost,ticketCost,withGain,tap,purchase,care,switchPuppy,convertTreatsToChips,casinoSpend,casinoPayout,claimDailyReward,startPark,claimPark,ticketShopCost,buyUpgradeTicket,accessoryPrices,buyAccessory,drawCard,handValue} from './game.js';
 import './styles.css';
 
-const NAV=[['play','🐾','Play'],['puppies','🐶','Puppies'],['shop','🛍️','Shop'],['casino','🎰','Casino'],['settings','⚙️','Settings']];
+const NAV=[['play','🐾','Play'],['care','💖','Care'],['puppies','🐶','Roster'],['shop','🛍️','Shop'],['rewards','🎁','Rewards']];
 const recoverImage=e=>{e.currentTarget.onerror=null;e.currentTarget.src=logo;};
 const scoreCards=cards=>cards.map(n=>n===1?'A':n>10?['J','Q','K'][n-11]:String(n));
 function Stat({label,value,icon}){return <div className="stat"><span>{icon} {label}</span><strong>{value}</strong></div>;}
@@ -32,6 +32,8 @@ export default function App(){
   const [reels,setReels]=useState(['🐾','🦴','🐶']);
   const [casinoText,setCasinoText]=useState('');
   const [blackjack,setBlackjack]=useState(null);
+  const [clock,setClock]=useState(Date.now());
+  const [chipConvert,setChipConvert]=useState(100);
   const puppy=ROSTER.find(p=>p.id===game.puppyStyle)||ROSTER[0];
   const notify=useCallback(t=>{setNotice(t);},[]);
 
@@ -46,14 +48,13 @@ export default function App(){
       // Discard outdated responses if the account changed during the request.
       if(userRef.current?.id!==currentUser.id)return;
       const restored=sanitizeGame(data?.save_data?.game);
-      const seconds=data&&withOffline?Math.max(0,Math.min(14400,Math.floor((Date.now()-new Date(data.updated_at).getTime())/1000))):0;
-      const earned=seconds*restored.autoPerSecond;
-      if(seconds>0)passive(restored,seconds);
+      // The Android V7 game has no passive generation, online or offline.
+      const earned=0;
       gameRef.current=restored;setGame(restored);
       revRef.current=Number(data?.revision||0);setRevision(revRef.current);
       editCount.current=0;dirtyRef.current=earned>0;setDirty(earned>0);
       conflictRef.current=false;setConflict(false);
-      setMessage(data?'Cloud save loaded'+(earned>0?' · offline Treats earned':''):'New web account · cloud save ready');
+      setMessage(data?'Cloud save loaded':'New web account · cloud save ready');
     }catch(error){
       failed=true;
       setMessage('Cloud load failed: '+error.message+' · gameplay locked until retry');
@@ -123,11 +124,7 @@ export default function App(){
     }finally{saveInFlight.current=false;}
   },[]);
 
-  useEffect(()=>{
-    const id=setInterval(()=>{if(!busyRef.current&&!conflictRef.current&&gameRef.current.autoPerSecond>0)
-      mutate(g=>passive(g,1));},1000);
-    return ()=>clearInterval(id);
-  },[mutate]);
+  useEffect(()=>{const id=setInterval(()=>setClock(Date.now()),1000);return ()=>clearInterval(id);},[]);
 
   useEffect(()=>{
     const id=setInterval(()=>{void save();},8000);
@@ -142,60 +139,63 @@ export default function App(){
     if(error)notify('Discord sign-in unavailable: '+error.message);
   };
   const logout=async()=>{if(client){await save();await client.auth.signOut();}};
-  const treat=()=>{let found=null;const ok=mutate(g=>{found=tap(g);});if(ok&&found)notify('🎟️ '+found+' Upgrade Ticket found!');};
-  const doCare=kind=>{mutate(g=>care(g,kind));notify('Puppy care complete');};
-  const buy=u=>{if(!mutate(g=>purchase(g,u)))notify('Not enough Treats or Upgrade Tickets');else notify(u.name+' upgraded!');};
+  const treat=()=>{if(gameRef.current.energy<=10){notify('Your puppy is tired. Rest in Care.');return;}let found=null;const ok=mutate(g=>{found=tap(g);});if(ok&&found)notify('🎟️ '+found+' Upgrade Ticket found!');};
+  const doCare=kind=>{if(mutate(g=>care(g,kind)))notify('Puppy care complete');else notify('This care action is not available yet');};
+  const buy=u=>{if(!mutate(g=>purchase(g,u)))notify('Need more Treats, Bones or matching Tickets');else notify(u.name+' upgraded!');};
 
   const gamble=(bet,roll)=>{
     if(busyRef.current||conflictRef.current)return;
-    if(gameRef.current.treats<bet){notify('Not enough Treats');return;}
+    if(gameRef.current.casinoChips<bet){notify('Not enough Casino Chips · convert Treats first');return;}
     const result=roll();
-    mutate(g=>{g.treats-=bet;withGain(g,result.payout);});
+    mutate(g=>{if(!casinoSpend(g,bet))return false;casinoPayout(g,result.payout);});
     setCasinoText(result.description);
     return result;
   };
   const scratch=()=>gamble(wager,()=>{
     const r=Math.random(),multi=r<.40?0:r<.64?.5:r<.84?1:r<.96?2:5;
     const payout=Math.floor(wager*multi);
-    return {payout,description:payout?'🎟️ Scratch card: +'+format(payout)+' Treats':'🎟️ No scratch-card prize'};
+    return {payout,description:payout?'🎟️ Scratcher: +'+format(payout)+' Chips':'🎟️ No prize'};
   });
-  const spin=()=>{
+  const spin=()=>gamble(5,()=>{
     const syms=['🐾','🦴','🐶','🎟️','⭐'];
-    gamble(25,()=>{
-      const result=[0,0,0].map(()=>syms[Math.floor(Math.random()*syms.length)]);
-      setReels(result);
-      const same=result[0]===result[1]&&result[1]===result[2];
-      const pair=result[0]===result[1]||result[1]===result[2]||result[0]===result[2];
-      const payout=same?25*(result[0]==='⭐'?12:6):pair?50:0;
-      return {payout,description:payout?'🎰 Slots: +'+payout+' Treats':'🎰 No win this spin'};
-    });
-  };
-  const roulette=color=>gamble(25,()=>{
-    const number=Math.floor(Math.random()*37);
-    const landed=number===0?'green':number%2===0?'black':'red';
-    const payout=landed===color?25*(landed==='green'?14:2):0;
-    return {payout,description:'🎡 '+number+' · '+landed.toUpperCase()+' · '+(payout?'+'+payout:'no win')};
+    const symbols=[0,0,0].map(()=>syms[Math.floor(Math.random()*syms.length)]);
+    setReels(symbols);
+    const same=symbols[0]===symbols[1]&&symbols[1]===symbols[2];
+    const pair=symbols[0]===symbols[1]||symbols[1]===symbols[2]||symbols[0]===symbols[2];
+    const payout=same?5*(symbols[0]==='⭐'?12:6):pair?10:0;
+    return {payout,description:payout?'🎰 Slots: +'+payout+' Chips':'🎰 No win'};
+  });
+  const roulette=color=>gamble(5,()=>{
+    const number=Math.floor(Math.random()*37),landed=number===0?'green':number%2===0?'black':'red';
+    const payout=landed===color?5*(landed==='green'?14:2):0;
+    return {payout,description:'🎡 '+number+' · '+landed.toUpperCase()+' · '+(payout?'+'+payout+' Chips':'no win')};
   });
   const startBlackjack=()=>{
-    if(gameRef.current.treats<50){notify('Need 50 Treats for Blackjack');return;}
-    if(!mutate(g=>{g.treats-=50;}))return;
+    if(gameRef.current.casinoChips<10){notify('Need 10 Casino Chips for Blackjack');return;}
+    if(!mutate(g=>casinoSpend(g,10)))return;
     setBlackjack({player:[drawCard(),drawCard()],dealer:[drawCard(),drawCard()],phase:'playing',result:''});
     setCasinoText('');
   };
   const blackjackHit=()=>{
     if(!blackjack||blackjack.phase!=='playing')return;
     const player=[...blackjack.player,drawCard()];
-    setBlackjack({...blackjack,player,phase:handValue(player)>21?'done':'playing',result:handValue(player)>21?'Bust · lost 50 Treats':''});
+    setBlackjack({...blackjack,player,phase:handValue(player)>21?'done':'playing',result:handValue(player)>21?'Bust · lost 10 Chips':''});
   };
   const blackjackStand=()=>{
     if(!blackjack||blackjack.phase!=='playing')return;
-    const dealer=[...blackjack.dealer];
-    while(handValue(dealer)<17)dealer.push(drawCard());
+    const dealer=[...blackjack.dealer];while(handValue(dealer)<17)dealer.push(drawCard());
     const p=handValue(blackjack.player),d=handValue(dealer);
-    const payout=p>21?0:d>21||p>d?(p===21&&blackjack.player.length===2?125:100):p===d?50:0;
-    mutate(g=>withGain(g,payout));
-    setBlackjack({...blackjack,dealer,phase:'done',result:payout>50?'You win · +'+payout+' Treats':payout===50?'Push · 50 Treats returned':'Dealer wins'});
+    const payout=p>21?0:d>21||p>d?(p===21&&blackjack.player.length===2?25:20):p===d?10:0;
+    mutate(g=>casinoPayout(g,payout));
+    setBlackjack({...blackjack,dealer,phase:'done',result:payout>10?'You win · +'+payout+' Chips':payout===10?'Push · 10 Chips returned':'Dealer wins'});
   };
+  const dayOfToday=()=>{const n=new Date();return Math.floor(Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())/86400000);};
+  const showDaily=()=>{if(mutate(g=>claimDailyReward(g,dayOfToday())))notify('Daily reward claimed!');else notify('Daily reward already claimed today');};
+  const showPark=()=>{
+    const go=gameRef.current.parkActive?mutate(g=>claimPark(g,Date.now())):mutate(g=>startPark(g,Date.now()));
+    if(go)notify(gameRef.current.parkActive?'Puppy is exploring the park':'Park reward claimed!');
+  };
+  const convert=()=>{if(mutate(g=>convertTreatsToChips(g,chipConvert)))notify('Converted to '+chipConvert/10+' Casino Chips');else notify('Conversion requires enough Treats in exact multiples of 10');};
 
   return <div className="app-shell">
     <header className="topbar">
