@@ -57,7 +57,7 @@ export default function Settings({ account, go, notify }) {
           <Puppy id={g.puppyStyle} accessory={g.accessory} size={64} />
           <View style={{ flex: 1 }}>
             <Txt bold size={20}>
-              {user?.user_metadata?.full_name || "Puppy Player"}
+              {user?.user_metadata?.full_name || prefs.playerDisplayName}
             </Txt>
             <Txt muted size={12}>
               Level {level(g)} · {g.puppyName}
@@ -109,6 +109,17 @@ export default function Settings({ account, go, notify }) {
                     <Txt>
                       {g.puppyName} · {bondMilestone(g.bond)} · Bond {g.bond}%
                     </Txt>
+                    <Txt bold>Birthday & personalization</Txt>
+                    <Txt muted size={12}>
+                      {prefs.birthdayMonth
+                        ? `${prefs.birthdayMonth}/${prefs.birthdayDay}`
+                        : "Birthday not set"} · Preview only
+                    </Txt>
+                    <Button onPress={() => setPrefs((p) => ({
+                      ...p,
+                      setupStep: 2,
+                      setupComplete: false,
+                    }))}>Edit birthday and setup</Button>
                     <Txt bold>Achievements</Txt>
                     {ACHIEVEMENTS.map((a) => (
                       <View key={a.id} style={{ gap: 5 }}>
@@ -247,6 +258,13 @@ export default function Settings({ account, go, notify }) {
                       device. Android push notifications and native reward
                       announcements are still being migrated.
                     </Txt>
+                    <Toggle title="Daily rewards" value={prefs.dailyRewardNotifications}
+                      description="Saved preference; system reminders are pending"
+                      onValueChange={(x) => change("dailyRewardNotifications", x)} />
+                    <Toggle title="Game events" value={prefs.gameEventNotifications}
+                      onValueChange={(x) => change("gameEventNotifications", x)} />
+                    <Toggle title="App updates" value={prefs.updateNotifications}
+                      onValueChange={(x) => change("updateNotifications", x)} />
                     <Button onPress={() => go("inbox")}>
                       Open notification history
                     </Button>
