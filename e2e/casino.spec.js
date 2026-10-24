@@ -4,7 +4,7 @@ test('all six casino screens stay playable and Blackjack survives navigation',as
  await page.addInitScript(()=>{Math.random=()=>0.5;});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('/');await completeOnboarding(page);
- await page.getByRole('button',{name:'Care',exact:true}).click();await page.getByRole('button',{name:'🎁 Rewards',exact:true}).click();
+ await page.getByTestId('game-nav').getByRole('button',{name:'Rewards',exact:true}).click();
  await page.getByRole('button',{name:'Claim Daily Puppy Gift'}).click();await page.getByRole('button',{name:'Claim Healthy Pup'}).click();
  await page.getByRole('button',{name:'Settings',exact:true}).click();await page.getByRole('button',{name:'Puppy Casino',exact:true}).click();
  await page.getByRole('textbox',{name:'Treats to convert'}).fill('600');await page.getByRole('button',{name:'Convert 60 Chips'}).click();
