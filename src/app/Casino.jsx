@@ -59,6 +59,11 @@ export default function Casino({ account, notify }) {
   useEffect(() => () => animation.current?.stop(), []);
   const choose = (id) => {
     if (animating) return;
+    if (scratchPending && id !== "scratch" && id !== "hub") {
+      notify("Finish your pending scratch card before entering another casino game.");
+      setScreen("scratch");
+      return;
+    }
     setScreen(id);
     setWager(20);
   };
