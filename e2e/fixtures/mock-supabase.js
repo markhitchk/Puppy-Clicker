@@ -41,7 +41,7 @@ export const client={
    const intent=body.intent||{};
    if(intent.type==="tap"){
     if(v.energy<=10)return{data:null,error:new Error("PUP_NEEDS_REST")};
-    v.treats+=1;v.lifetime_treats+=1;v.total_taps+=1;v.legitimate_taps_v7+=1;v.player_xp_v1+=1;
+    v.treats+=2;v.lifetime_treats+=2;v.total_taps+=1;v.legitimate_taps_v7+=1;v.player_xp_v1+=1;
    }else if(intent.type==="care"&&intent.kind==="rest"){
     v.energy=Math.min(100,v.energy+30);
    }else return{data:null,error:new Error("PUP_GAMEPLAY_REJECTED")};
