@@ -61,12 +61,18 @@ function AccountDashboard(){
  const [status,setStatus]=useState("");
  const [cloud,setCloud]=useState({loading:true,exists:null,updatedAt:null});
  const [refreshing,setRefreshing]=useState(false);
+ const [credentialUsername,setCredentialUsername]=useState(pupAccount.username||"");
+ const [credentialPassword,setCredentialPassword]=useState("");
+ const [credentialConfirmation,setCredentialConfirmation]=useState("");
+ const [credentialBusy,setCredentialBusy]=useState(false);
+ const [credentialMessage,setCredentialMessage]=useState("");
  const refresh=async()=>{
   setRefreshing(true);setStatus("");
   try{
    const account=await verifyPuppySession(client);
    setProfile(account);
    if(!editing)setDisplayName(account.displayName||account.username||"");
+   if(!credentialBusy)setCredentialUsername(account.username||"");
   }catch{
    setStatus("Could not refresh your account details. Please sign in again if the problem continues.");
    setRefreshing(false);
@@ -100,6 +106,46 @@ function AccountDashboard(){
    setStatus("Display name saved to your Pup Account.");
   }catch{setStatus("Unable to save your display name. Please try again.");}
   finally{setSaving(false);}
+ };
+
+ const saveCredentials=async event=>{
+  event.preventDefault();
+  if(credentialBusy)return;
+  const username=credentialUsername.trim();
+  const password=credentialPassword;
+  if(!/^[A-Za-z0-9_-]{3,20}$/.test(username)){
+   setCredentialMessage("Username must be 3–20 letters, numbers, underscores or hyphens.");return;
+  }
+  if(password.length<8||password.length>128){
+   setCredentialMessage("Password must be between 8 and 128 characters.");return;
+  }
+  if(password!==credentialConfirmation){
+   setCredentialMessage("Passwords do not match.");return;
+  }
+  setCredentialBusy(true);setCredentialMessage("");
+  try{
+   // Confirm the session owns this account and the username is available
+   // before Supabase Auth changes the signed-in user's own password.
+   const check=await client.functions.invoke("pup-web-auth",{
+    body:{action:"credential-check",username}
+   });
+   if(check.error||check.data?.available!==true)
+    throw Error(check.data?.error||"CREDENTIAL_CHECK_FAILED");
+   const updated=await client.auth.updateUser({password});
+   if(updated.error)throw Error("PASSWORD_UPDATE_FAILED");
+   const linked=await client.functions.invoke("pup-web-auth",{
+    body:{action:"credential-link",username}
+   });
+   if(linked.error||linked.data?.updated!==true)
+    throw Error(linked.data?.error||"CREDENTIAL_LINK_FAILED");
+   setProfile(old=>({...old,username,passwordLoginEnabled:true}));
+   setCredentialMessage("Username and password login are now enabled for this Pup Account.");
+   setStatus("");
+  }catch{
+   setCredentialMessage("Could not complete password login setup. Your existing account remains accessible through Discord. Verify your connection and retry.");
+  }finally{
+   setCredentialPassword("");setCredentialConfirmation("");setCredentialBusy(false);
+  }
  };
  const shareFriendCode=async()=>{
   const code=profile.friendCode;
@@ -152,7 +198,32 @@ function AccountDashboard(){
      {cloud.updatedAt?<p className="cloud-updated">Last cloud update: {new Date(cloud.updatedAt).toLocaleString()}</p>:null}
      <a href="/play" className="cta cta-primary stretch">🐾 Continue playing</a>
     </section>
-    <section className="portal-card"><h3>🔐 Account management</h3><p>Manage your profile here and review your account connection. Contact and recovery changes may require the Android app or support.</p><button type="button" className="small-action" onClick={()=>void refresh()} disabled={refreshing}>{refreshing?"Refreshing…":"Refresh account details"}</button><button className="cta cta-secondary stretch" type="button" onClick={()=>void signOut()}>Sign out</button></section>
+
+    <section className="portal-card">
+     <h3>🔐 Username &amp; password login</h3>
+     <p>{profile.passwordLoginEnabled===true?"Password login is enabled for your Pup Account. You can change your password here.":"Add a username and password to the Pup Account you're already signed into with Discord. Your cloud progress, Friend Code, and game ownership are preserved."}</p>
+     <form className="profile-form account-credentials" onSubmit={saveCredentials} autoComplete="off">
+      <label htmlFor="pupCredentialUsername">Pup Account username</label>
+      <input id="pupCredentialUsername" type="text" minLength={3} maxLength={20}
+       spellCheck="false" autoCapitalize="none" autoCorrect="off" required
+       value={credentialUsername} onChange={e=>setCredentialUsername(e.target.value)}
+       autoComplete="off"/>
+      <label htmlFor="pupCredentialPassword">{profile.passwordLoginEnabled?"New password":"Password"}</label>
+      <input id="pupCredentialPassword" type="password" minLength={8} maxLength={128}
+       required value={credentialPassword} onChange={e=>setCredentialPassword(e.target.value)}
+       autoComplete="new-password"/>
+      <label htmlFor="pupCredentialConfirm">Confirm password</label>
+      <input id="pupCredentialConfirm" type="password" minLength={8} maxLength={128}
+       required value={credentialConfirmation} onChange={e=>setCredentialConfirmation(e.target.value)}
+       autoComplete="new-password"/>
+      <button className="cta cta-primary stretch" type="submit" disabled={credentialBusy}>
+       {credentialBusy?"Securing account…":profile.passwordLoginEnabled?"Update password login":"Enable password login"}
+      </button>
+     </form>
+     {credentialMessage?<p className="portal-message" role="status">{credentialMessage}</p>:null}
+     <p className="account-security-note">Use a unique password. Sign-in details are sent to Supabase Auth over HTTPS and are not stored in the website's source code or local preferences.</p>
+    </section>
+    <section className="portal-card"><h3>Account management</h3><p>Refresh your verified account connection or sign out. Recovery and support contact changes may require the Android app or support.</p><button type="button" className="small-action" onClick={()=>void refresh()} disabled={refreshing}>{refreshing?"Refreshing…":"Refresh account details"}</button><button className="cta cta-secondary stretch" type="button" onClick={()=>void signOut()}>Sign out</button></section>
    </div>
   </div>
  </div>;
