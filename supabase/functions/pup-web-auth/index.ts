@@ -4,7 +4,7 @@ import {createClient} from "npm:@supabase/supabase-js@2.117.1";
 // the Android DiscordSignupAuth). Do not use shared Supabase Discord OAuth.
 export const PUPPY_DISCORD_CLIENT_ID = "1547982688898777118";
 export const PUPPY_WEB_REDIRECT_URI =
-  "https://puppy-clicker.vercel.app/auth/discord/callback";
+  "discord-1547982688898777118:/authorize/callback";
 const SAFE_ORIGINS = new Set(["https://puppy-clicker.vercel.app",
   "http://127.0.0.1:4173","http://localhost:5173"]);
 const json=(status,body,origin)=>new Response(JSON.stringify(body),{
@@ -155,7 +155,7 @@ Deno.serve(async req=>{
     refresh_token:signed.session.refresh_token},origin);
   }
   if(body.action!=="discord-exchange")throw new PublicError(400,"PUP_ACTION_INVALID");
-  required(body.redirectUri,/^https:\/\/puppy-clicker\.vercel\.app\/auth\/discord\/callback$/,
+  required(body.redirectUri,/^discord-1547982688898777118:\/authorize\/callback$/,
     "DISCORD_REDIRECT_INVALID");
   const code=required(body.code,/^[\w-]{8,2048}$/,"DISCORD_CODE_INVALID");
   const verifier=required(body.verifier,/^[A-Za-z0-9_.~-]{43,128}$/,"DISCORD_PKCE_INVALID");
