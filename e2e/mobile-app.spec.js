@@ -12,9 +12,9 @@ for(const width of [360,768,1280]){
   await begin(page,width);
   await expect(page.getByRole("button",{name:"Tap Buddy to earn Treats"})).toBeVisible();
   await page.getByRole("button",{name:"Tap Buddy to earn Treats"}).first().click();
-  await expect(page.getByText("1",{exact:true}).first()).toBeVisible();
+  await expect(page.getByRole("button",{name:"Treats exact balance: 2",exact:true})).toBeVisible();
   if(width>=1000){
-   await expect(page.getByRole("button",{name:"Casino"})).toBeVisible();
+   await expect(page.getByRole("button",{name:"Casino",exact:true})).toBeVisible();
    await expect(page.getByRole("button",{name:"Exchange"})).toBeVisible();
    await expect(page.getByText("Player overview")).toBeVisible();
   }else{
@@ -26,13 +26,13 @@ for(const width of [360,768,1280]){
 }
 test("casino, roster, care and settings use the native screens",async({page})=>{
  await begin(page,1280);
- await page.getByRole("button",{name:"Casino"}).click();
+ await page.getByRole("button",{name:"Casino",exact:true}).click();
  await expect(page.getByText("Puppy Casino").first()).toBeVisible();
- await page.getByRole("button",{name:"Roster"}).click();
+ await page.getByRole("button",{name:"Roster",exact:true}).click();
  await expect(page.getByText("Puppy Roster").first()).toBeVisible();
- await page.getByRole("button",{name:"Care"}).click();
+ await page.getByRole("button",{name:"Care",exact:true}).click();
  await expect(page.getByText("Pup Care").first()).toBeVisible();
- await page.getByRole("button",{name:"Settings"}).click();
+ await page.getByRole("button",{name:"Settings",exact:true}).click();
  await expect(page.getByText("Settings").first()).toBeVisible();
 });
 test("website requires authentication; never opens guest gameplay",async({page})=>{
