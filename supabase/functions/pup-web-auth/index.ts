@@ -4,7 +4,15 @@ import {createClient} from "npm:@supabase/supabase-js@2.117.1";
 // the Android DiscordSignupAuth). Do not use shared Supabase Discord OAuth.
 export const PUPPY_DISCORD_CLIENT_ID = "1547982688898777118";
 export const PUPPY_WEB_REDIRECT_URI =
-  "discord-1547982688898777118:/authorize/callback";
+  "https://puppy-clicker.vercel.app/auth/discord/callback";
+// Preserve the Android relay callback for any already-started sessions.
+// Only exact, preapproved website origins may supply browser OAuth codes.
+const ALLOWED_DISCORD_REDIRECTS = new Set([
+  PUPPY_WEB_REDIRECT_URI,
+  "discord-1547982688898777118:/authorize/callback",
+  "http://localhost:5173/auth/discord/callback",
+  "http://127.0.0.1:4173/auth/discord/callback"
+]);
 const SAFE_ORIGINS = new Set(["https://puppy-clicker.vercel.app",
   "http://127.0.0.1:4173","http://localhost:5173"]);
 const json=(status,body,origin)=>new Response(JSON.stringify(body),{
@@ -155,13 +163,14 @@ Deno.serve(async req=>{
     refresh_token:signed.session.refresh_token},origin);
   }
   if(body.action!=="discord-exchange")throw new PublicError(400,"PUP_ACTION_INVALID");
-  required(body.redirectUri,/^discord-1547982688898777118:\/authorize\/callback$/,
-    "DISCORD_REDIRECT_INVALID");
+  const redirectUri=body.redirectUri;
+  if(typeof redirectUri!=="string"||!ALLOWED_DISCORD_REDIRECTS.has(redirectUri))
+    throw new PublicError(400,"DISCORD_REDIRECT_INVALID");
   const code=required(body.code,/^[\w-]{8,2048}$/,"DISCORD_CODE_INVALID");
   const verifier=required(body.verifier,/^[A-Za-z0-9_.~-]{43,128}$/,"DISCORD_PKCE_INVALID");
   const form=new URLSearchParams({
    client_id:PUPPY_DISCORD_CLIENT_ID,grant_type:"authorization_code",
-   code,redirect_uri:PUPPY_WEB_REDIRECT_URI,code_verifier:verifier
+   code,redirect_uri:redirectUri,code_verifier:verifier
   });
   const exchanged=await fetch("https://discord.com/api/oauth2/token",{
    method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},
