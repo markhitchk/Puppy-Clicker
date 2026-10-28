@@ -43,6 +43,7 @@ export const client={
    pup.displayName=body.displayName;return{data:{updated:true,displayName:pup.displayName},error:null};
   }
   if(body.action==="gameplay"){
+   if(new URLSearchParams(window.location.search).has('slowgameplay'))await new Promise(resolve=>setTimeout(resolve,1000));
    const r=record();
    if(body.expectedRevision!==r.revision)return{data:null,error:new Error("CLOUD_SAVE_CONFLICT")};
    const v=r.saveData.stores.puppy_clicker_save.values;

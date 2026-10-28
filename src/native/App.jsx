@@ -15,14 +15,13 @@ import {MAIN_TABS,revampedPlayLayout,nextPlayReward} from './src/engine/playReva
 import {SafeAreaProvider,useSafeAreaInsets} from 'react-native-safe-area-context';
 import {applyAppearance,interaction} from './src/theme.js';
 import {DEFAULT_PREFERENCES,effectiveMotion} from './src/engine/settings.js';
-import SettingsScreen from './src/components/SettingsScreen.jsx';
+import SettingsScreen from './web/WebSettings.jsx';
 import AccountDetailsScreen from './src/components/AccountDetailsScreen.jsx';
 import NotificationInbox from './src/components/NotificationInbox.jsx';
 import PuppyDetailsDialog from './src/components/PuppyDetailsDialog.jsx';
 import PuppyExchangeScreen from './src/components/PuppyExchangeScreen.jsx';
 import PuppyPointer from './src/components/PuppyPointer.jsx';
 import {useNotifications} from './src/state/useNotifications.js';
-import {useLocalDiagnostics} from './src/state/useLocalDiagnostics.js';
 import {themedStyles} from './src/theme.js';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {Alert,Animated,Easing,Image,ImageBackground,Modal,NativeModules,Pressable,ScrollView,StatusBar,Text,TextInput,Vibration,View,BackHandler,useColorScheme,useWindowDimensions} from 'react-native';
@@ -140,9 +139,11 @@ function QuickAction({emoji,title,subtitle,onPress,disabled=false}){
   <Txt style={styles.quickActionIcon}>{emoji}</Txt><Txt numberOfLines={1} style={styles.quickActionTitle}>{title}</Txt><Txt numberOfLines={1} style={styles.quickActionDescription}>{subtitle}</Txt>
  </Pressable>;
 }
-function DailyGoalCard({g,goal,act,clock,readOnly=false}){
+function DailyGoalCard({g,goal,act,clock,readOnly=false,compact=false}){
  const date=new Date(clock),today=localEpochDay(date),claimed=g.dailyDay===today&&g.claimedDailyTasks.includes(goal.id);
  const progress=Math.max(0,progressForGoal(g,goal,date)),complete=progress>=goal.target;
+ if(compact)return <article className="compact-goal"><div><div className="compact-goal-heading"><strong title={goal.description}>{goal.emoji} {goal.title}</strong><span>{Math.min(progress,goal.target)}/{goal.target}</span></div><div className="cyber-progress" role="progressbar" aria-label={goal.title} aria-valuemin={0} aria-valuemax={goal.target} aria-valuenow={Math.min(progress,goal.target)}><span style={{width:Math.min(100,100*progress/goal.target)+'%'}}/></div><p>{format(goal.rewardTreats)} 🍪 + 1 🦴 + 1 🪙</p></div>{claimed?<span className="claimed">✓ Claimed</span>:<button className="cyber-button primary" disabled={readOnly||!complete} onClick={()=>act({type:'claimDailyGoal',goalId:goal.id,now:clock})}>Claim</button>}</article>;
+
  return <View style={styles.dailyGoalCard}>
   <Txt style={{fontSize:28}}>{goal.emoji}</Txt>
   <View style={{flex:1,gap:6}}>
@@ -157,7 +158,7 @@ function DailyGoalCard({g,goal,act,clock,readOnly=false}){
 }
 function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen}){
  const pup=ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
- const layout={...revampedPlayLayout(viewportHeight),portrait:desktop?300:Math.max(150,Math.min(230,viewportHeight-500))};
+ const layout={...revampedPlayLayout(viewportHeight),portrait:desktop?260:220};
  const next=nextPlayReward(g,schedule,clock),cooldown=v6CooldownSeconds(g,clock),bonus=careTapBonus(g);
  const animate=g.animatedUi!==false&&g.tapAnimationsEnabled!==false;
  const tapScale=useRef(new Animated.Value(1)).current;
@@ -217,8 +218,8 @@ function DesktopPlayScreen({g,act,clock,schedule,viewportHeight,onOpen}){
   <PlayScreen g={g} act={act} clock={clock} schedule={schedule} viewportHeight={viewportHeight} onOpen={onOpen} desktop/>
   <aside className="dashboard-panels">
    <section className="cyber-panel"><h2>Your Resources</h2><Wallet game={g}/></section>
-   <section className="cyber-panel daily-goals-panel"><div className="panel-heading"><h2>Today’s goals</h2><span>{monthKey(new Date(clock))}</span></div>{goalsForDay(schedule,new Date(clock)).map(goal=><DailyGoalCard key={goal.id} g={g} goal={goal} act={act} clock={clock}/>)}</section>
-   <section className="cyber-panel care-summary"><div className="panel-heading"><h2>Pup Care Status</h2><button className="cyber-button secondary small" onClick={()=>onOpen('care')}>Go to Care →</button></div><div className="care-summary-identity"><Portrait puppy={pup} size={76} accessory={g.accessory}/><div><strong>{g.puppyName}</strong><p>{mood(g)} · Wellness {wellness(g)}%</p></div></div>{[['💖','Happiness',g.happiness],['🍗','Fullness',g.fullness],['⚡','Energy',g.energy],['🫧','Cleanliness',g.cleanliness],['🤝','Bond',g.bond]].map(([icon,label,value])=><Meter key={label} label={label} value={value} icon={icon}/>)}<p className="care-bonus-note">✨ Care bonus: +{careTapBonus(g)} Treats on every normal puppy tap.</p></section>
+   <section className="cyber-panel daily-goals-panel compact-goals"><div className="panel-heading"><h2>Today’s goals</h2><span>{monthKey(new Date(clock))}</span></div>{goalsForDay(schedule,new Date(clock)).slice(0,2).map(goal=><DailyGoalCard key={goal.id} g={g} goal={goal} act={act} clock={clock} compact/>)}</section>
+   <section className="cyber-panel care-summary compact-care"><div className="panel-heading"><h2>Pup Care Status</h2><button className="cyber-button secondary small" onClick={()=>onOpen('care')}>Go to Care →</button></div><div className="care-summary-identity"><Portrait puppy={pup} size={76} accessory={g.accessory}/><div><strong>{g.puppyName}</strong><p>{mood(g)} · Wellness {wellness(g)}%</p></div></div>{[['💖','Happiness',g.happiness],['🍗','Fullness',g.fullness],['⚡','Energy',g.energy],['🫧','Cleanliness',g.cleanliness],['🤝','Bond',g.bond]].map(([icon,label,value])=><div className="web-care-row" key={label}><span>{icon} {label}</span><div className="cyber-progress" role="progressbar" aria-label={label+' need'} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(value)}><span style={{width:Math.max(0,Math.min(100,value))+'%'}}/></div><strong>{Math.round(value)}%</strong></div>)}<p className="care-bonus-note">✨ Care bonus: +{careTapBonus(g)} Treats on every normal puppy tap.</p></section>
    <button className="cyber-button secondary" onClick={()=>onOpen('rewards')}>🎁 Rewards &amp; daily goals</button>
   </aside>
  </div>;
@@ -1018,7 +1019,7 @@ export default function App(){return <SafeAreaProvider><PuppyErrorBoundary><WebA
 export function PuppyApp({betaMode=false}){
  const insets=useSafeAreaInsets();
  const systemDark=useColorScheme()==='dark';
- const {state,gameForDisplay,act:gameAct,account,cloudState,startupError,syncStatus,refreshAccount,updateAccountName}=useGame({mode:betaMode?'beta':'guest'});
+ const {state,gameForDisplay,act:gameAct,account,cloudState,startupError,syncStatus,gameplayBusy,refreshAccount,updateAccountName}=useGame({mode:betaMode?'beta':'guest'});
  const onboarding=useAccountOnboarding({enabled:betaMode,account,activateAccount:refreshAccount});
  const act=useCallback(action=>{
   gameAct(action);
@@ -1080,12 +1081,11 @@ export function PuppyApp({betaMode=false}){
  const g={...saved,animationsEnabled:motion.casino,tapAnimationsEnabled:motion.tap,idleAnimationsEnabled:motion.decorative&&saved.animationsEnabled,buttonMotionEnabled:motion.buttons};
  const [inboxOpen,setInboxOpen]=useState(false);
  const notifications=useNotifications({game:saved,ready:betaMode?(onboarding.ready&&onboarding.setup.setupComplete&&account?.status==='VERIFIED'&&account?.legalAccepted===true):(state.ready&&saved.onboardingComplete),act,onOpen:()=>setInboxOpen(true)});
- const diagnostics=useLocalDiagnostics(saved,secondary||tab,state.ready);
  const openScreen=id=>{if(id==='notifications'){notifications.check();setInboxOpen(true);}else if(TABS.some(tab=>tab[0]===id)){setTab(id);setSecondary(null);}else setSecondary(id);};
  const usePuppy=id=>{if(!saved.unlockedPuppies.includes(id))return;act({type:'switch',id,now:Date.now()});setTab('play');setSecondary(null);};
  const main=()=>{
   if(secondary==='achievements')return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} readOnly={betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
-  if(secondary==='settings')return <SettingsScreen g={saved} act={act} onOpen={openScreen} registry={registry} notifications={notifications} diagnostics={diagnostics} betaMode={betaMode} webMode account={account} onConnectAccount={()=>void webClient.auth.signOut()} onUpdateAccountName={updateAccountName} onUpdateBirthday={onboarding.update} cloudState={cloudState} syncStatus={syncStatus} onRefreshAccount={refreshAccount}/>;
+  if(secondary==='settings')return <SettingsScreen g={saved} act={act} onOpen={openScreen} registry={registry} notifications={notifications} betaMode={betaMode} webMode account={account} onConnectAccount={()=>webClient.auth.signOut()} onUpdateAccountName={updateAccountName} onUpdateBirthday={onboarding.update} cloudState={cloudState} syncStatus={syncStatus} gameplayBusy={gameplayBusy} onRefreshAccount={refreshAccount}/>;
   if(secondary==='account-details')return <AccountDetailsScreen account={account} cloudState={cloudState}
    onBack={()=>setSecondary('settings')} onManage={()=>openAccount('signin')} onRefresh={refreshAccount}/>;
   if(secondary==='prestige')return <PrestigeScreen g={g} act={act} activeCasinoRound={Boolean(state.blackjack||g.pendingScratch||g.pendingSlots||g.pendingRoulette||g.pendingPlinko||g.pendingWheel)}/>;
@@ -1125,7 +1125,7 @@ export function PuppyApp({betaMode=false}){
  return <PuppyPointer enabled={saved.puppyPointerEnabled} style={[styles.root,{paddingTop:insets.top,paddingBottom:insets.bottom}]}>
   <StatusBar barStyle={C.dark?'light-content':'dark-content'} backgroundColor={C.bg}/>
   <View style={{flex:1,flexDirection:desktop?'row':'column',minWidth:0,minHeight:0}}>
-   {desktop?<View style={{width:214,backgroundColor:C.surface,borderRightWidth:1,borderColor:C.line,padding:15,gap:9}}>
+   {desktop?<View testID="game-sidebar" style={{width:214,backgroundColor:C.surface,borderRightWidth:1,borderColor:C.line,padding:15,gap:9}}>
      <Image source={{uri:'/assets/logos/puppy_clicker.png'}} resizeMode="contain" style={{width:92,height:92,alignSelf:'center'}}/>
      <Txt style={{fontSize:19,fontWeight:'900',textAlign:'center',marginBottom:12}}>Puppy Clicker</Txt>
      {[...TABS,['casino','🎰','Casino'],['exchange','🎁','Exchange'],['settings','⚙️','Settings']].map(([id,icon,label])=>{
@@ -1149,11 +1149,13 @@ export function PuppyApp({betaMode=false}){
   </View>:null}
 
 {state.notice?<Pressable accessibilityRole="button" onPress={()=>act({type:'dismiss'})} style={styles.notice}><Txt style={styles.small}>{state.notice}  ✕</Txt></Pressable>:null}
+  {state.ready&&g.onboardingComplete&&!secondary&&tab==='play'?<View testID="play-viewport" onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={{flex:1,minHeight:0,minWidth:0,padding:8}}>{main()}</View>:<>
   <ScrollView key={secondary||tab} onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={styles.scroll} contentContainerStyle={[styles.content,(secondary==='settings'||['play','care','roster'].includes(tab)&&!secondary)&&{paddingTop:2,paddingBottom:0,paddingHorizontal:secondary==='settings'?16:tab==='roster'?12:14,gap:0},{maxWidth:desktop?1800:width>650?700:undefined,paddingHorizontal:desktop?24:14,paddingVertical:desktop?18:12}]} keyboardShouldPersistTaps="handled">
    {secondary&&secondary!=='exchange'&&secondary!=='account-details'?<View style={styles.back}><Button compact secondary onPress={()=>setSecondary(null)}>← Back to {TABS.find(x=>x[0]===tab)?.[2]}</Button><Txt style={styles.heading}>{secondary.toUpperCase()}</Txt></View>:null}
    {!state.ready?<Card title={betaMode?'Loading Pup Account…':'Loading local guest data…'}><Txt muted>{betaMode?'Checking signed cloud progress.':'Reading device cache.'}</Txt></Card>:!g.onboardingComplete?<OnboardingScreen g={saved} act={act} notifications={notifications}/>:<>{secondary==='casino'?<Wallet game={g}/>:null}{main()}</>}
   </ScrollView>
-  {!desktop&&state.ready&&g.onboardingComplete&&!secondary?<View style={styles.bottomBar}>
+  </>}
+  {!desktop&&state.ready&&g.onboardingComplete&&!secondary?<View testID="game-bottom-bar" style={styles.bottomBar}>
    {TABS.map(([id,icon,label])=><Pressable key={id} accessibilityRole="tab" accessibilityState={{selected:tab===id&&!secondary}} onPress={()=>{setTab(id);setSecondary(null);}} style={[styles.tab,(tab===id&&!secondary)&&styles.tabSelected]}>
     <Txt style={styles.tabEmoji}>{icon}</Txt><Txt style={[styles.tabLabel,(tab===id&&!secondary)&&{color:C.accentInk}]}>{label}</Txt>
    </Pressable>)}

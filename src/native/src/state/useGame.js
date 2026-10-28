@@ -1,3 +1,4 @@
+import {loadWebPreferences,saveWebPreferences,updateWebPreference,withWebPreferences,WEB_PREFERENCE_DEFAULTS} from '../../web/preferences.js';
 import {useCallback,useEffect,useReducer,useRef,useState} from "react";
 import {initialState,transition} from "./reducer.js";
 import {freshGame} from "../engine/game.js";
@@ -44,6 +45,9 @@ export function useGame(){
  const [state,dispatch]=useReducer(transition,undefined,()=>({...initialState(),ready:false,notice:""}));
  const [syncStatus,setSyncStatus]=useState({state:"LOADING",revision:null,errorCode:null});
  const [cloudState,setCloudState]=useState("LOADING");
+ const [pendingActions,setPendingActions]=useState(0);
+ const preferences=useRef(null);
+ if(!preferences.current)preferences.current=loadWebPreferences();
  const revision=useRef(0),loaded=useRef(false),generation=useRef(0);
  const pending=useRef(0),queue=useRef(Promise.resolve());
  const latest=useRef(state);latest.current=state;
@@ -59,7 +63,7 @@ export function useGame(){
    if(!data.cloud?.exists){
     // Never seed a blank website save over a pre-existing Kotlin player.
     loaded.current=false;revision.current=0;
-    dispatch({type:"hydrate",game:freshView(data.account.displayName),now:Date.now(),readOnly:true});
+    dispatch({type:"hydrate",game:withWebPreferences(freshView(data.account.displayName),preferences.current),now:Date.now(),readOnly:true});
     setCloudState("NO_CLOUD_SAVE");
     setSyncStatus({state:"BLOCKED",revision:0,errorCode:"CLOUD_SAVE_REQUIRED"});
     return false;
@@ -67,7 +71,7 @@ export function useGame(){
    const game=projectKotlinCloudSave(data.cloud.saveJson,data.account.displayName);
    revision.current=data.cloud.revision;
    loaded.current=true;
-   dispatch({type:"hydrate",game,now:Date.now(),readOnly:true});
+   dispatch({type:"hydrate",game:withWebPreferences(game,preferences.current),now:Date.now(),readOnly:true});
    dispatch({type:"dismiss"});
    setCloudState("LIVE_SYNCED");
    setSyncStatus({state:"READY",revision:revision.current,errorCode:null});
@@ -87,6 +91,17 @@ export function useGame(){
  },[reload]);
  const act=useCallback(action=>{
   if(!action?.type)return;
+  if(action.type==='setPreference'){
+   const next=updateWebPreference(preferences.current,action.name,action.value);
+   if(next===preferences.current)return;
+   preferences.current=next;saveWebPreferences(next);dispatch(action);return;
+  }
+  if(action.type==='resetSettings'){
+   preferences.current={...WEB_PREFERENCE_DEFAULTS};saveWebPreferences(preferences.current);
+   dispatch(action);
+   for(const [name,value] of Object.entries(preferences.current))dispatch({type:'setPreference',name,value});
+   return;
+  }
   if(LOCAL_ACTIONS.has(action.type)){dispatch(action);return;}
   if(action.type==="resume"||action.type==="rollDailyDay"){
    if(pending.current===0)void reload();
@@ -103,7 +118,7 @@ export function useGame(){
   }
   const intent=normalizeIntent(action);
   const captured=generation.current;
-  pending.current++;
+  pending.current++;setPendingActions(pending.current);
   setSyncStatus(old=>({...old,state:"SAVING",errorCode:null}));
   queue.current=queue.current.catch(()=>{}).then(async()=>{
    if(!loaded.current||captured!==generation.current)return;
@@ -120,7 +135,7 @@ export function useGame(){
    setSyncStatus({state:"SAVED",revision:revision.current,errorCode:null});
    try{
     const game=projectKotlinCloudSave(data.cloud.saveJson,pupAccount?.displayName||pupAccount?.username);
-    dispatch({type:"hydrate",game,now:Date.now(),readOnly:true});
+    dispatch({type:"hydrate",game:withWebPreferences(game,preferences.current),now:Date.now(),readOnly:true});
     setCloudState("LIVE_SYNCED");
    }catch{
     setSyncStatus({state:"SAVED_DISPLAY_ERROR",revision:revision.current,errorCode:"SAVED_BUT_DISPLAY_REFRESH_FAILED"});
@@ -135,7 +150,7 @@ export function useGame(){
    }
    setSyncStatus({state:"BLOCKED",revision:revision.current,errorCode:code});
   }).finally(()=>{
-   pending.current=Math.max(0,pending.current-1);
+   pending.current=Math.max(0,pending.current-1);setPendingActions(pending.current);
    if(pending.current===0&&!loaded.current)void reload();
   });
  },[client,reload,pupAccount?.displayName,pupAccount?.username]);
@@ -169,7 +184,7 @@ export function useGame(){
   if(displayName.length<2)throw Error("Display name must be at least 2 characters");
   const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"account-update",displayName}});
   if(error||!data?.updated)throw Error("PUP_ACCOUNT_UPDATE_FAILED");
-  dispatch({type:"hydrate",game:{...latest.current.game,guestName:data.displayName},now:Date.now(),readOnly:true});
+  dispatch({type:"hydrate",game:withWebPreferences({...latest.current.game,guestName:data.displayName},preferences.current),now:Date.now(),readOnly:true});
   return true;
  },[client]);
  const account={status:"VERIFIED",username:pupAccount?.username,
@@ -177,6 +192,7 @@ export function useGame(){
   discordUserId:pupAccount?.discordUserId||null,
   id:pupAccount?.id,authUserId:user.id,gameplayWritable:loaded.current};
  return {state,gameForDisplay:state.game,act,account,cloudState,
+  gameplayBusy:pendingActions>0,
   startupError:syncStatus.errorCode?{code:syncStatus.errorCode}:null,syncStatus,
   refreshAccount:reload,updateAccountName};
 }
