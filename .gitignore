@@ -14,4 +14,6 @@ playwright-report/
 
 # Kotlin-style transparent puppy portraits (generated for bundling)
 public/assets/transparent/
+public/assets/portraits/
+src/native/web/portraitManifest.json
 mobile/transparent-assets.js

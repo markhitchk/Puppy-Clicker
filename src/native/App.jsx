@@ -1,3 +1,4 @@
+import PuppyArtwork from './web/PuppyArtwork.jsx';
 import {GameProgressHeader,PuppyPlatform,CasinoIntroDialog} from './web/WebsiteDesign.jsx';
 import WebAccountGate from "./web/AccountGate.jsx";
 import {client as webClient} from "../supabase.js";
@@ -84,17 +85,12 @@ function Meter({label,value,icon}){
   </View>
  </View>;
 }
-function Portrait({puppy,size=228,unlocked=true,accessory='None'}){
- const [broken,setBroken]=useState(false);
- useEffect(()=>setBroken(false),[puppy.id,puppy.image]);
- const v2=puppy.id.startsWith('v2_');
+function Portrait({puppy,size=228,unlocked=true,accessory='None',lazy=false}){
  const ratio=0.96;
  const originalAsset=PUPPY_IMAGES[puppy.id]||(puppy.image?{uri:puppy.image}:null);
  const asset=originalAsset?.uri?.match(/^\/assets\/(v1|v2)\//)?{uri:originalAsset.uri.replace('/assets/','/assets/transparent/')}:originalAsset;
  return <View style={[styles.portrait,{width:size,height:size}]}>
-  {broken||!asset?<Txt style={{fontSize:size*0.36}}>🐶</Txt>:
-   <Image accessibilityLabel={puppy.name} source={asset} resizeMode="contain"
-    onError={()=>setBroken(true)} style={{width:size*ratio,height:size*ratio}}/>}
+  <PuppyArtwork key={puppy.id+':'+asset?.uri} id={puppy.id} name={puppy.name} uri={asset?.uri} size={size*ratio} lazy={lazy}/>
   {puppy.emoji?<View pointerEvents="none" style={[styles.portraitBadge,{top:size*0.05,right:size*0.05}]}>
    <Txt style={{fontSize:Math.max(9,size*0.13)}}>{puppy.emoji}</Txt>
   </View>:null}
@@ -414,7 +410,7 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
  const sections=legacyRosterSections(registry.items);
  useEffect(()=>setEditing(g.puppyName),[g.puppyName]);
 
- const selected=available.find(p=>p.id===inspected)||available.find(p=>p.id===g.puppyStyle)||available[0];
+ const selected=available.find(p=>p.id===g.puppyStyle)||available[0];
  const details=available.find(p=>p.id===detailsId);
  const detailsOwned=details?g.unlockedPuppies.includes(details.id):false;
  const detailsCurrent=details?.id===g.puppyStyle;
@@ -440,7 +436,7 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
      accessibilityLabel={p.name+(owned?', unlocked':', locked')}
      onPress={()=>onUse?onUse(p.id):act({type:'switch',id:p.id,now:Date.now()})}
      style={[styles.rosterCollectionRow,selected&&styles.rosterSelected]}>
-     <Portrait puppy={p} size={86} unlocked={owned}
+     <Portrait puppy={p} size={86} unlocked={owned} lazy
       accessory={selected?g.accessory:'None'}/>
      <View style={{flex:1,gap:5}}>
       <Txt style={styles.itemName}>{p.name}</Txt>
@@ -515,7 +511,7 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
    const owned=g.unlockedPuppies.includes(p.id),fav=g.favoritePuppies.includes(p.id);
    return <View key={p.id} style={[styles.restoredRosterTile,inspected===p.id&&{borderColor:C.accent}]}>
     <Pressable accessibilityRole="button" accessibilityLabel={'Inspect '+puppyName(p)} onPress={()=>{setInspected(p.id);setDetailsId(p.id);}} style={{width:'100%',alignItems:'center',gap:6}}>
-    <Portrait key={p.id+':'+(retries[p.id]||0)} puppy={p} size={rosterViewport<400?104:116} unlocked={owned}/>
+    <Portrait key={p.id+':'+(retries[p.id]||0)} puppy={p} size={rosterViewport<400?104:116} unlocked={owned} lazy/>
     <Txt numberOfLines={1} style={styles.rosterTileName}>{displayName(p)}</Txt><Txt numberOfLines={1} style={styles.rosterMeta}>{nativeId(p)}</Txt><View style={styles.rosterGroupBadge}><Txt numberOfLines={1} style={styles.rosterMeta}>{p.groupTitle}</Txt></View><Txt style={styles.rosterMeta}>{p.id===g.puppyStyle?'Current':owned?'Unlocked':'🔒 Locked'}</Txt>
     </Pressable>
     <Pressable accessibilityRole="button" accessibilityLabel={(fav?'Remove ':'Add ')+displayName(p)+(fav?' from favorites':' to favorites')} disabled={!owned} onPress={e=>{e.stopPropagation?.();act({type:'favorite',id:p.id});}} style={[styles.rosterHeart,{position:'absolute',right:0,top:0}]}><Txt style={[styles.rosterHeartText,fav&&{color:'#FF5C9D'}]}>{fav?'♥':'♡'}</Txt></Pressable>

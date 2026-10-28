@@ -49,7 +49,7 @@ test('long puppy names, custom accents and reduced motion remain usable',async({
  await expect(page.locator('.platform-name h2')).toHaveText('WWWWWWWWWWWWWWWWWW');
  await expect(page.locator('.platform-name')).toHaveCSS('overflow-wrap','anywhere');
  expect(await page.locator('.cyber-tap').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
- await expect(page.locator('.platform-portrait img').first()).toHaveAttribute('src',/\/assets\/transparent\/v1\/v1_classic.png/);
+ await expect(page.locator('.platform-portrait img').first()).toHaveAttribute('src',/\/assets\/portraits\/classic-.*-256.webp/);
  await page.getByRole('button',{name:'Open settings',exact:true}).click();
  await page.getByRole('button',{name:'Appearance',exact:true}).click();
  await page.getByRole('button',{name:'Custom Color',exact:true}).click();
