@@ -40,3 +40,12 @@ test("account display name is editable with authenticated Pup Account",async({pa
  await expect(page.getByText("Display name saved to your Pup Account.")).toBeVisible();
  await expect(page.getByRole("heading",{name:"Puppy Tester"})).toBeVisible();
 });
+
+test("verified web Pup Account opens Puppy Exchange without Android native signing",async({page})=>{
+ await page.setViewportSize({width:1280,height:850});
+ await page.goto("/play");
+ await page.getByRole("button",{name:"Exchange",exact:true}).click();
+ await expect(page.getByText("🎁 Puppy Exchange")).toBeVisible();
+ await expect(page.getByText("PUP-TEST-WEBB-GAME")).toBeVisible();
+ await expect(page.getByText("Verify or reconnect your Pup Account before using Puppy Exchange.")).toHaveCount(0);
+});
