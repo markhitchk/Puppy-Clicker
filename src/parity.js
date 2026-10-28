@@ -1,3 +1,4 @@
+import { addBoundedXp, xpLevel, MAX_PLAYER_XP } from "./mobile/engine/balancedProgression.js";
 // Contracts: Kotlin PuppyCareSystem, PuppyMonthlyRewards, PuppyProgression,
 // PuppyAchievementsV6, PuppyRosterModel and PuppyGachaEngine. Isolated React saves only.
 import { ROSTER, wellness, level, withGain } from "./game.js";
@@ -223,12 +224,15 @@ export function addXp(g, event, settlementId = null) {
   if (!XP_EVENTS[event]) return false;
   g.xpSettlements ??= [];
   if (settlementId && g.xpSettlements.includes(settlementId)) return false;
-  g.playerXp = Math.min(MAX, (g.playerXp || 0) + XP_EVENTS[event]);
+  // Match Android's new XP ceiling without lowering existing historical saves.
+  const previousXp = Math.max(0, Number.isSafeInteger(g.playerXp) ? g.playerXp : 0);
+  g.playerXp = previousXp >= MAX_PLAYER_XP
+    ? previousXp
+    : addBoundedXp(previousXp, XP_EVENTS[event]);
   if (settlementId) g.xpSettlements.push(settlementId);
   return true;
 }
-export const playerLevel = (g) =>
-  1 + Math.floor(Math.sqrt((g.playerXp || 0) / 100));
+export const playerLevel = (g) => xpLevel(g.playerXp || 0);
 export const bondMilestone = (bond) =>
   bond >= 90
     ? "Forever Friend"

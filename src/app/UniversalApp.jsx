@@ -336,7 +336,7 @@ export default function UniversalApp({ platform }) {
                 }}
                 contentContainerStyle={{
                   flexGrow: 1,
-                  maxWidth: expanded ? 760 : 640,
+                  maxWidth: expanded ? ((route === "play" || route === "care") ? 880 : 1120) : 640,
                   width: "100%",
                   alignSelf: "center",
                   paddingHorizontal: (route === "play" || route === "care") ? 0 : prefs.scale === "LARGE" ? 18 : 14,
@@ -366,6 +366,13 @@ export default function UniversalApp({ platform }) {
                   </Card>
                 )}
                 {account.busy && <Txt muted>{account.message}</Txt>}
+                {!account.user && !account.busy && (
+                  <Card>
+                    <Txt bold>Sign in to Puppy Clicker</Txt>
+                    <Txt muted>Browser gameplay requires a signed-in website account. Android PupEye progress is separate and protected.</Txt>
+                    <Button primary onPress={() => void account.login()}>Sign in with Discord</Button>
+                  </Card>
+                )}
                 {content()}
                 {codeOpen && (
                   <Card title="🎫 Redeem Puppy Code">

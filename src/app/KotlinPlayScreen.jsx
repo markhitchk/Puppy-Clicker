@@ -1,3 +1,4 @@
+import { v6WalletFormat } from "../mobile/engine/playV6.js";
 // Direct React Native translation of the generated Kotlin UI contract:
 // pup-clinker/App/app/src/main/java/.../PuppyMainScreensRevamp.kt
 // Kotlin build pipeline: seasonal.gradle.kts -> patch_roster_navigation.py
@@ -44,10 +45,10 @@ function KotlinWalletCard({ game, colors, k }) {
         {stats.map(([emoji, label, count]) => (
           <View key={label} style={{ flex: 1, minWidth: 0, alignItems: "center" }}>
             <Text style={{ fontSize: 23, textAlign: "center", includeFontPadding: false }}>{emoji}</Text>
-            <Text style={{
+            <Text accessibilityLabel={`${label}: ${Number(count ?? 0).toLocaleString("en-US")}`} style={{
               ...headline(colors, 16), lineHeight: 22, width: "100%",
               textAlign: "center", flexShrink: 1,
-            }}>{String(count ?? 0)}</Text>
+            }}>{v6WalletFormat(count, true)}</Text>
             <Text style={{
               fontSize: 12, lineHeight: 17, color: colors.sub, textAlign: "center",
             }}>{label}</Text>

@@ -1,0 +1,44 @@
+name: Sync mobile game engine
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "22 10 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  propose-upstream-engine:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Pull reviewed browser-safe game modules
+        run: npm run sync:mobile-engine
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: npm test
+      - run: npm run build
+      - name: Open source update pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- src/mobile/engine; then
+            echo "Website engine already matches mobile source."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C sync/mobile-engine
+          git add src/mobile/engine
+          git commit -m "chore: sync mobile game engine to website"
+          git push --force-with-lease origin HEAD:sync/mobile-engine
+          gh pr create --base main --head sync/mobile-engine \
+            --title "chore: sync Android game rules to web" \
+            --body "The allowlisted engine modules are copied from pup-clinker/Mobile. Confirm parity and tests before merging." \
+            || echo "PR may already exist or Actions PR creation may be disabled; inspect the sync/mobile-engine branch."

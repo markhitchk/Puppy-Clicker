@@ -10,7 +10,7 @@ export default function Onboarding({ account }) {
   const step = prefs.setupStep;
   const change = (key, value) => setPrefs((p) => ({ ...p, [key]: value }));
   const move = (delta) => change("setupStep", nextOnboardingStep(step, delta));
-  const canContinue = step !== 2 || validBirthday(prefs.birthdayMonth, prefs.birthdayDay);
+  const canContinue = (step !== 1 || !!account.user) && (step !== 2 || validBirthday(prefs.birthdayMonth, prefs.birthdayDay));
   const birthdayInput = (key, max) => (value) => {
     const digits = value.replace(/\D/g, "").slice(0, 2);
     const number = digits ? Number(digits) : 0;
@@ -32,39 +32,26 @@ export default function Onboarding({ account }) {
           <Card>
             <Txt bold size={17}>Welcome to Puppy Clicker! 🐾</Txt>
             <Txt>Tap, care for your puppy, collect new puppies, and enjoy mini-games.</Txt>
-            <Txt muted size={12}>This is the React Android/web preview. Original Kotlin PupEye saves
-              are never imported, overwritten, or reset by this preview.</Txt>
+            <Txt muted size={12}>This website runs React Native Web. Original Android PupEye saves
+              are never imported, overwritten, or reset by browser gameplay.</Txt>
           </Card>
         </>
       )}
       {step === 1 && (
         <>
           <Card>
-            <Txt bold>Choose your player setup</Txt>
-            <Txt muted size={12}>Select how to play. You can link your account later in Settings.</Txt>
-            <Tabs items={[["LOCAL", "Guest"], ["DISCORD", "Discord"]]}
-              value={prefs.setupMethod} onChange={(value) => change("setupMethod", value)} />
-            {prefs.setupMethod === "LOCAL" ? (
-              <>
-                <Field label="Local display name" value={prefs.playerDisplayName}
-                  maxLength={24} onChangeText={(value) => change("playerDisplayName", value.slice(0, 24))} />
-                <Txt muted size={11}>This label is local. It does not claim an official PupEye username.</Txt>
-              </>
+            <Txt bold>Puppy Clicker Website Account</Txt>
+            <Txt muted size={12}>Sign in with Discord to use this website. No guest gameplay or unsaved local progress is enabled.</Txt>
+            {account.user ? (
+              <Txt>✓ Signed in · {account.user.user_metadata?.full_name || account.user.email || "Discord account"}</Txt>
             ) : (
-              <>
-                <Txt muted size={12}>{account.user
-                  ? "Discord connected to isolated React cloud save."
-                  : "Connect Discord to sync React preview progress between Android and web."}</Txt>
-                {!account.user && (
-                  <Button onPress={() => void account.login()} primary>Connect Discord</Button>
-                )}
-              </>
+              <Button onPress={() => void account.login()} primary>Sign in with Discord</Button>
             )}
+            {!account.user && <Txt muted size={12}>Sign-in is required to continue setup.</Txt>}
           </Card>
           <Card>
-            <Txt bold>Import existing Kotlin save</Txt>
-            <Txt muted size={12}>Not available in this preview. Importing protected progression
-              requires server verification and must never be simulated with a local file.</Txt>
+            <Txt bold>Android account migration</Txt>
+            <Txt muted size={12}>This browser login uses a separate website cloud save. Protected Android Pup Account and PupEye saves are not imported or overwritten.</Txt>
           </Card>
         </>
       )}
@@ -128,8 +115,8 @@ export default function Onboarding({ account }) {
       {step === 5 && (
         <Card>
           <Txt bold size={18}>Ready to play! 🎉</Txt>
-          <Txt>Player: {account.user?.user_metadata?.full_name || prefs.playerDisplayName}</Txt>
-          <Txt>Save: {account.user ? "React cloud save (separate from Kotlin)" : "Guest session"}</Txt>
+          <Txt>Player: {account.user?.user_metadata?.full_name || account.user?.email || "Sign-in required"}</Txt>
+          <Txt>Save: {account.user ? "Website cloud save (separate from Android)" : "Sign-in required"}</Txt>
           <Txt>Birthday: {prefs.birthdayMonth
             ? `${prefs.birthdayMonth}/${prefs.birthdayDay}` : "Skipped"}</Txt>
           <Txt muted size={12}>You can adjust profile, appearance, and notification choices in Settings.
@@ -145,7 +132,7 @@ export default function Onboarding({ account }) {
           <Button primary disabled={!canContinue || (step === 3 && !prefs.privacyReviewed)}
             onPress={() => move(1)}>{step === 4 ? "Ready to Play ›" : "Continue ›"}</Button>
         ) : (
-          <Button primary onPress={() => setPrefs((p) => ({ ...p, setupComplete: true }))}>
+          <Button primary disabled={!account.user} onPress={() => setPrefs((p) => ({ ...p, setupComplete: true }))}>
             Start Playing 🐾
           </Button>
         )}
