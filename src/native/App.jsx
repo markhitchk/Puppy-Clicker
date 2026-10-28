@@ -1,3 +1,4 @@
+import {GameProgressHeader,PuppyPlatform,CasinoIntroDialog} from './web/WebsiteDesign.jsx';
 import WebAccountGate from "./web/AccountGate.jsx";
 import {client as webClient} from "../supabase.js";
 import {requestWebPuppyExchange} from "./web/exchangeClient.js";
@@ -68,8 +69,8 @@ function Button({children,onPress,secondary=false,disabled=false,compact=false,d
  const scale=useRef(new Animated.Value(1)).current;
  useEffect(()=>{if(!interaction.buttons){scale.stopAnimation();scale.setValue(1);}},[interaction.buttons,scale]);
  const press=pressed=>{if(!interaction.buttons)return;Animated.spring(scale,{toValue:pressed?0.97:1,speed:50,bounciness:2,useNativeDriver:true}).start();};
- return <AnimatedPressable onPressIn={()=>press(true)} onPressOut={()=>press(false)} accessibilityRole="button" disabled={disabled} onPress={onPress} style={[styles.button,{transform:[{scale}]},secondary&&styles.buttonSecondary,disabled&&styles.buttonDisabled,compact&&styles.buttonCompact,danger&&styles.buttonDanger]}>
-  <Txt style={[styles.buttonText,secondary&&{color:C.text},disabled&&{color:C.muted}]}>{children}</Txt>
+ return <AnimatedPressable testID={secondary?"cyber-secondary-button":"cyber-primary-button"} onPressIn={()=>press(true)} onPressOut={()=>press(false)} accessibilityRole="button" disabled={disabled} onPress={onPress} style={[styles.button,{transform:[{scale}]},secondary&&styles.buttonSecondary,disabled&&styles.buttonDisabled,compact&&styles.buttonCompact,danger&&styles.buttonDanger]}>
+  <Txt style={[styles.buttonText,secondary&&{color:C.accentInk},disabled&&{color:C.muted}]}>{children}</Txt>
  </AnimatedPressable>;
 }
 function Pair({left,right}){return <View style={styles.pair}><Txt muted style={styles.small}>{left}</Txt><Txt style={styles.value}>{right}</Txt></View>;}
@@ -88,7 +89,8 @@ function Portrait({puppy,size=228,unlocked=true,accessory='None'}){
  useEffect(()=>setBroken(false),[puppy.id,puppy.image]);
  const v2=puppy.id.startsWith('v2_');
  const ratio=0.96;
- const asset=PUPPY_IMAGES[puppy.id]||(puppy.image?{uri:puppy.image}:null);
+ const originalAsset=PUPPY_IMAGES[puppy.id]||(puppy.image?{uri:puppy.image}:null);
+ const asset=originalAsset?.uri?.match(/^\/assets\/(v1|v2)\//)?{uri:originalAsset.uri.replace('/assets/','/assets/transparent/')}:originalAsset;
  return <View style={[styles.portrait,{width:size,height:size}]}>
   {broken||!asset?<Txt style={{fontSize:size*0.36}}>🐶</Txt>:
    <Image accessibilityLabel={puppy.name} source={asset} resizeMode="contain"
@@ -114,7 +116,7 @@ function PageHeader({title,subtitle,action,withLogo=false}){
   </View>{action||null}</View>;
 }
 function Wallet({game}){
- return <View style={styles.wallet}>
+ return <View testID="resource-strip" style={styles.wallet}>
   {[['🍪','Treats',game.treats],['🦴','Bones',game.bones],['🪙','Pup Coins',game.pupCoins],['🐾','Casino Chips',game.casinoChips]].map(([icon,label,value])=>
    <Pressable key={label} accessibilityRole="button"
     accessibilityLabel={label+' exact balance: '+Number(value).toLocaleString('en-US')}
@@ -157,9 +159,9 @@ function DailyGoalCard({g,goal,act,clock,readOnly=false}){
   </View>
  </View>;
 }
-function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false}){
+function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen}){
  const pup=ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
- const layout=desktop?{...revampedPlayLayout(viewportHeight),portrait:258,gap:13,tapHeight:58}:revampedPlayLayout(viewportHeight);
+ const layout={...revampedPlayLayout(viewportHeight),portrait:desktop?300:Math.max(150,Math.min(230,viewportHeight-500))};
  const next=nextPlayReward(g,schedule,clock),cooldown=v6CooldownSeconds(g,clock),bonus=careTapBonus(g);
  const animate=g.animatedUi!==false&&g.tapAnimationsEnabled!==false;
  const tapScale=useRef(new Animated.Value(1)).current;
@@ -188,49 +190,42 @@ function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false}){
    Animated.sequence([Animated.spring(lift,{toValue:-5,friction:5,tension:95,useNativeDriver:true}),Animated.spring(lift,{toValue:0,friction:6,tension:85,useNativeDriver:true})])
   ]).start();
  };
- const accent=g.accentHex||'#00B8F0',rgb=[1,3,5].map(i=>parseInt(accent.slice(i,i+2),16)).join(',');
- const label=cooldown?'🐶👁️ Fair-play cooldown · '+cooldown+'s':g.energy<=10?'😴 '+g.puppyName+' is tired · Care needed':'🐾 Tap '+g.puppyName+'  +'+(g.clickPower+bonus);
- return <View style={[styles.restoredPlay,{height:Math.max(desktop?625:420,viewportHeight),gap:layout.gap}]}>
-  <PageHeader title="Play" subtitle={layout.compact?'Tap your puppy and earn treats.':'Tap, earn treats, and have fun with your puppy!'}/>
-  <Wallet game={g}/>
-  <View style={[styles.restoredStage,{backgroundColor:`rgba(${rgb},0.065)`,borderColor:`rgba(${rgb},0.16)`}]}>
-   <Pressable accessibilityRole="button" accessibilityLabel={'Tap '+g.puppyName+' to earn Treats'} accessibilityState={{disabled:cooldown>0}} disabled={cooldown>0} onPress={doTap}>
-    <Animated.View style={{transform:[{scale:tapScale},{rotate:rotation.interpolate({inputRange:[-4,4],outputRange:['-4deg','4deg']})},{translateY:lift}]}}>
-     <Portrait puppy={pup} size={layout.portrait} accessory={g.accessory}/>
-    </Animated.View>
-   </Pressable>
-   <Txt style={[styles.restoredEnergy,g.energy<=10&&{color:C.danger}]}>{g.energy<=10?'⚡ Energy '+g.energy+'% · Rest in Pup Care to keep playing':'⚡ Energy '+g.energy+'% · Care bonus +'+bonus+' 🍪/tap'}</Txt>
-   <Pressable accessibilityRole="button" disabled={cooldown>0} onPress={doTap} style={[styles.restoredTap,{height:layout.tapHeight},cooldown>0&&styles.buttonDisabled]}><Txt style={{color:C.onAccent,fontWeight:'900'}}>{label}</Txt></Pressable>
-  </View>
-  <View style={styles.restoredNextReward}>
-   <Txt style={{fontSize:22}}>🎁</Txt><View style={{flex:1,gap:5}}><View style={styles.pair}><Txt numberOfLines={1} style={[styles.small,{fontWeight:'900',flex:1}]}>{next.title}</Txt><Txt style={styles.small}>{next.allClaimed?'✓':next.progress+'/'+next.target}</Txt></View><View accessibilityRole="progressbar" accessibilityLabel="Next reward progress" accessibilityValue={{min:0,max:next.target,now:next.progress}} style={[styles.track,{height:5}]}><View style={[styles.fill,{backgroundColor:C.accent,width:(100*next.progress/next.target)+'%',height:5}]}/></View></View><Txt style={styles.small}>{next.allClaimed?'All claimed':next.rewardTreats+' 🍪'}</Txt>
-  </View>
+ const label=cooldown?'Fair-play cooldown · '+cooldown+'s':g.energy<=10?g.puppyName+' is tired · Care needed':'Tap '+g.puppyName;
+ const cycle=direction=>{
+  const owned=ROSTER.filter(p=>g.unlockedPuppies.includes(p.id));
+  if(owned.length<2)return;
+  const index=owned.findIndex(p=>p.id===g.puppyStyle);
+  act({type:'switch',id:owned[(index+direction+owned.length)%owned.length].id,now:Date.now()});
+ };
+ return <section className={'cyber-play '+(desktop?'desktop-play':'mobile-play')} data-reduced-motion={!g.idleAnimationsEnabled}>
+  <div className="play-heading"><div><h1>Play</h1><p>Tap your puppy and earn treats.</p></div>{desktop?<button className="cyber-button secondary small" onClick={()=>onOpen('roster')}>⇄ Switch Puppy</button>:null}</div>
+  {!desktop?<Wallet game={g}/>:null}
+  <div className="cyber-play-stage">
+   <PuppyPlatform name={g.puppyName} onPrevious={()=>cycle(-1)} onNext={()=>cycle(1)}>
+    <Pressable accessibilityRole="button" accessibilityLabel={'Tap '+g.puppyName+' to earn Treats'} accessibilityState={{disabled:cooldown>0}} disabled={cooldown>0} onPress={doTap}>
+     <Animated.View style={{transform:[{scale:tapScale},{rotate:rotation.interpolate({inputRange:[-4,4],outputRange:['-4deg','4deg']})},{translateY:lift}]}}>
+      <Portrait puppy={pup} size={layout.portrait} accessory={g.accessory}/>
+     </Animated.View>
+    </Pressable>
+   </PuppyPlatform>
+   <div className="play-energy"><span>⚡ <strong>Energy {g.energy}%</strong></span><span>💖 Care bonus <strong>+{bonus} 🍪 / tap</strong></span><span className="tap-tip">ⓘ Tap to earn treats!</span></div>
+   <button disabled={cooldown>0} onClick={doTap} className="cyber-tap"><span aria-hidden="true">🐾</span><span><strong>{label}</strong>{!cooldown&&g.energy>10?<small>+{format(g.clickPower+bonus)} treats</small>:null}</span></button>
+  </div>
+  <div className="cyber-panel next-reward"><span className="reward-icon" aria-hidden="true">🎁</span><div className="flex-1 min-w-0"><div className="reward-heading"><strong>{next.title}</strong><strong>{next.allClaimed?'✓':next.progress+'/'+next.target}</strong></div><div className="cyber-progress" role="progressbar" aria-label="Next reward progress" aria-valuemin={0} aria-valuemax={next.target} aria-valuenow={next.progress}><span style={{width:(100*next.progress/next.target)+'%'}}/></div><p>{next.allClaimed?'All goals claimed. See you tomorrow!':'Keep playing to reach your next reward.'}</p></div><strong className="reward-value">{next.allClaimed?'All claimed':format(next.rewardTreats)+' 🍪'}</strong></div>
   {ticketVisible?<View pointerEvents="none" style={[styles.ticketOverlay,{top:2}]}><Txt style={styles.ticketOverlayTitle}>🎟️ {g.lastTicketDrop} UPGRADE TICKET</Txt></View>:null}
- </View>;
+ </section>;
 }
-// The desktop game is a dedicated multi-column experience using the same live
-// game state and authenticated actions as the original mobile play screen.
 function DesktopPlayScreen({g,act,clock,schedule,viewportHeight,onOpen}){
- const panelHeight=Math.max(625,Math.min(800,viewportHeight));
- return <View style={{flexDirection:'row',alignItems:'flex-start',gap:20,width:'100%',paddingTop:12,paddingBottom:18}}>
-  <View style={{flex:1.15,minWidth:0}}>
-   <PlayScreen g={g} act={act} clock={clock} schedule={schedule} viewportHeight={panelHeight} desktop/>
-  </View>
-  <View style={{flex:0.85,minWidth:0,gap:16}}>
-   <View style={{padding:17,borderRadius:22,borderWidth:1,borderColor:C.line,backgroundColor:C.surface}}>
-    <CareScreen g={g} act={act} viewportHeight={720}/>
-   </View>
-   <View style={{padding:16,borderRadius:20,borderWidth:1,borderColor:C.line,backgroundColor:C.surface,gap:12}}>
-    <Txt style={{fontWeight:'900',fontSize:17}}>🐾 Quick access</Txt>
-    <Txt muted style={{fontSize:13}}>Your full Puppy Clicker adventure is one click away.</Txt>
-    <View style={{flexDirection:'row',gap:8}}>
-     <View style={{flex:1}}><Button compact secondary onPress={()=>onOpen('roster')}>🐶 Roster</Button></View>
-     <View style={{flex:1}}><Button compact secondary onPress={()=>onOpen('shop')}>🛍️ Shop</Button></View>
-    </View>
-    <Button compact onPress={()=>onOpen('rewards')}>🎁 Rewards &amp; daily goals</Button>
-   </View>
-  </View>
- </View>;
+ const pup=ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
+ return <div className="desktop-dashboard">
+  <PlayScreen g={g} act={act} clock={clock} schedule={schedule} viewportHeight={viewportHeight} onOpen={onOpen} desktop/>
+  <aside className="dashboard-panels">
+   <section className="cyber-panel"><h2>Your Resources</h2><Wallet game={g}/></section>
+   <section className="cyber-panel daily-goals-panel"><div className="panel-heading"><h2>Today’s goals</h2><span>{monthKey(new Date(clock))}</span></div>{goalsForDay(schedule,new Date(clock)).map(goal=><DailyGoalCard key={goal.id} g={g} goal={goal} act={act} clock={clock}/>)}</section>
+   <section className="cyber-panel care-summary"><div className="panel-heading"><h2>Pup Care Status</h2><button className="cyber-button secondary small" onClick={()=>onOpen('care')}>Go to Care →</button></div><div className="care-summary-identity"><Portrait puppy={pup} size={76} accessory={g.accessory}/><div><strong>{g.puppyName}</strong><p>{mood(g)} · Wellness {wellness(g)}%</p></div></div>{[['💖','Happiness',g.happiness],['🍗','Fullness',g.fullness],['⚡','Energy',g.energy],['🫧','Cleanliness',g.cleanliness],['🤝','Bond',g.bond]].map(([icon,label,value])=><Meter key={label} label={label} value={value} icon={icon}/>)}<p className="care-bonus-note">✨ Care bonus: +{careTapBonus(g)} Treats on every normal puppy tap.</p></section>
+   <button className="cyber-button secondary" onClick={()=>onOpen('rewards')}>🎁 Rewards &amp; daily goals</button>
+  </aside>
+ </div>;
 }
 // Shipped PuppyRevampedCareScreen, preserving the existing care reducer effects.
 function CareScreen({g,act,viewportHeight}){
@@ -398,7 +393,7 @@ function PrestigeScreen({g,act,activeCasinoRound=false}){
  </View>;
 }
 function RosterScreen({g,act,registry,onUse,onOpenExchange}){
- const [gridWidth,setGridWidth]=useState(0);
+ const {width:rosterViewport}=useWindowDimensions();
  const [search,setSearch]=useState('');
  const [status,setStatus]=useState('all');
  const [favoritesOnly,setFavoritesOnly]=useState(false);
@@ -501,13 +496,13 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
   {sortOpen?<View style={styles.rosterOptions}>{sorts.map(([id,label])=><Pressable accessibilityRole="radio" accessibilityState={{checked:sort===id}} key={id} onPress={()=>{setSort(id);setSortOpen(false);}} style={styles.rosterOption}><Txt>{label}{sort===id?' ✓':''}</Txt></Pressable>)}</View>:null}
   <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:5}}>{[['all','All Categories'],...registry.categories.map(group=>[group.id,group.title])].map(([id,label])=><Pressable key={id} accessibilityRole="tab" accessibilityState={{selected:category===id}} onPress={()=>setCategory(id)} style={[styles.rosterCategory,category===id&&styles.rosterStatusSelected]}><Txt numberOfLines={1} style={[styles.rosterControlText,category===id&&styles.rosterSelectedText]}>{label}</Txt></Pressable>)}</ScrollView>
   <Txt muted style={styles.small}>{matches.length} shown · {available.filter(p=>g.unlockedPuppies.includes(p.id)).length} unlocked</Txt>
-  <View style={styles.restoredSelectedPanel}>
+  <View testID="current-puppy-hero" style={styles.restoredSelectedPanel}>
    <View style={styles.restoredSelectedRow}>
-    <Portrait key={selected.id+':'+(retries[selected.id]||0)} puppy={selected} size={52} unlocked={selectedOwned} accessory={selected.id===g.puppyStyle?g.accessory:'None'}/>
+    <Portrait key={selected.id+':'+(retries[selected.id]||0)} puppy={selected} size={112} unlocked={selectedOwned} accessory={selected.id===g.puppyStyle?g.accessory:'None'}/>
     <View style={{flex:1,gap:2,minWidth:0}}><Txt numberOfLines={1} style={styles.rosterSelectedName}>{displayName(selected)}</Txt><Txt numberOfLines={1} style={styles.rosterMeta}>{nativeId(selected)} · {selected.groupTitle}</Txt>
      {selected.id===g.puppyStyle?<Txt style={styles.rosterCurrent}>Current Puppy</Txt>:selectedOwned?<Pressable accessibilityRole="button" accessibilityLabel={'Use '+puppyName(selected)} onPress={()=>onUse?onUse(selected.id):act({type:'switch',id:selected.id,now:Date.now()})}><Txt style={styles.rosterCurrent}>Use Puppy</Txt></Pressable>:<Txt style={styles.rosterMeta}>Locked</Txt>}
     </View>
-    <Pressable accessibilityRole="button" accessibilityLabel={(selectedFavorite?'Remove ':'Add ')+displayName(selected)+(selectedFavorite?' from favorites':' to favorites')} disabled={!selectedOwned} onPress={()=>act({type:'favorite',id:selected.id})} style={styles.rosterHeart}><Txt style={[styles.rosterHeartText,selectedFavorite&&{color:'#FF646B'}]}>{selectedFavorite?'♥':'♡'}</Txt></Pressable>
+    <Pressable accessibilityRole="button" accessibilityLabel={(selectedFavorite?'Remove ':'Add ')+displayName(selected)+(selectedFavorite?' from favorites':' to favorites')} disabled={!selectedOwned} onPress={()=>act({type:'favorite',id:selected.id})} style={styles.rosterHeart}><Txt style={[styles.rosterHeartText,selectedFavorite&&{color:'#FF5C9D'}]}>{selectedFavorite?'♥':'♡'}</Txt></Pressable>
    </View>
    {selected.id===g.puppyStyle?<View style={styles.restoredRosterFilters}>
     <Pressable accessibilityRole="button" accessibilityLabel="Rename current puppy" onPress={()=>setRenameOpen(true)} style={[styles.rosterOutline,{minHeight:30,paddingVertical:3}]}><Txt style={styles.rosterActionText}>Rename</Txt></Pressable>
@@ -516,14 +511,16 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
    {accessoriesOpen&&selected.id===g.puppyStyle?<View style={styles.rosterOptions}>{['None','Bandana','Bow','Crown'].map(name=><Pressable accessibilityRole="button" accessibilityLabel={'Equip '+name} accessibilityState={{disabled:!g.ownedAccessories.includes(name),selected:g.accessory===name}} disabled={!g.ownedAccessories.includes(name)} key={name} onPress={()=>{act({type:'equip',name});setAccessoriesOpen(false);}} style={styles.rosterOption}><Txt>{name}{g.ownedAccessories.includes(name)?g.accessory===name?' ✓':'':' 🔒'}</Txt></Pressable>)}</View>:null}
    {renameOpen&&selected.id===g.puppyStyle?<View style={styles.rosterRename}><TextInput value={editing} onChangeText={setEditing} maxLength={18} accessibilityLabel="Rename puppy" placeholder="Puppy name" placeholderTextColor={C.muted} style={styles.input}/><View style={styles.actions}><Pressable accessibilityRole="button" accessibilityLabel="Save puppy name" disabled={!editing.trim()} onPress={()=>{act({type:'rename',name:editing});setRenameOpen(false);}} style={styles.rosterOutline}><Txt style={styles.rosterActionText}>Save</Txt></Pressable><Pressable accessibilityRole="button" onPress={()=>{setEditing(g.puppyName);setRenameOpen(false);}} style={styles.rosterOutline}><Txt style={styles.rosterActionText}>Cancel</Txt></Pressable></View></View>:null}
   </View>
-  {matches.length?<View style={styles.restoredRosterGrid} onLayout={event=>setGridWidth(event.nativeEvent.layout.width)}>{matches.map(p=>{
+  {matches.length?<View testID="puppy-roster-grid" style={styles.restoredRosterGrid}>{matches.map(p=>{
    const owned=g.unlockedPuppies.includes(p.id),fav=g.favoritePuppies.includes(p.id);
-   return <Pressable accessibilityRole="button" accessibilityLabel={'Inspect '+puppyName(p)} key={p.id} onPress={()=>{setInspected(p.id);setDetailsId(p.id);}} style={[styles.restoredRosterTile,{width:gridWidth>0?(gridWidth-14)/3:'31%'},inspected===p.id&&{borderColor:C.accent}]}>
-    <Portrait key={p.id+':'+(retries[p.id]||0)} puppy={p} size={66} unlocked={owned}/>
+   return <View key={p.id} style={[styles.restoredRosterTile,inspected===p.id&&{borderColor:C.accent}]}>
+    <Pressable accessibilityRole="button" accessibilityLabel={'Inspect '+puppyName(p)} onPress={()=>{setInspected(p.id);setDetailsId(p.id);}} style={{width:'100%',alignItems:'center',gap:6}}>
+    <Portrait key={p.id+':'+(retries[p.id]||0)} puppy={p} size={rosterViewport<400?104:116} unlocked={owned}/>
     <Txt numberOfLines={1} style={styles.rosterTileName}>{displayName(p)}</Txt><Txt numberOfLines={1} style={styles.rosterMeta}>{nativeId(p)}</Txt><View style={styles.rosterGroupBadge}><Txt numberOfLines={1} style={styles.rosterMeta}>{p.groupTitle}</Txt></View><Txt style={styles.rosterMeta}>{p.id===g.puppyStyle?'Current':owned?'Unlocked':'🔒 Locked'}</Txt>
-    <Pressable accessibilityRole="button" accessibilityLabel={(fav?'Remove ':'Add ')+displayName(p)+(fav?' from favorites':' to favorites')} disabled={!owned} onPress={e=>{e.stopPropagation?.();act({type:'favorite',id:p.id});}} style={[styles.rosterHeart,{position:'absolute',right:0,top:0}]}><Txt style={[styles.rosterHeartText,fav&&{color:'#FF646B'}]}>{fav?'♥':'♡'}</Txt></Pressable>
+    </Pressable>
+    <Pressable accessibilityRole="button" accessibilityLabel={(fav?'Remove ':'Add ')+displayName(p)+(fav?' from favorites':' to favorites')} disabled={!owned} onPress={e=>{e.stopPropagation?.();act({type:'favorite',id:p.id});}} style={[styles.rosterHeart,{position:'absolute',right:0,top:0}]}><Txt style={[styles.rosterHeartText,fav&&{color:'#FF5C9D'}]}>{fav?'♥':'♡'}</Txt></Pressable>
     <Pressable accessibilityRole="button" accessibilityLabel={'Retry artwork for '+puppyName(p)} onPress={e=>{e.stopPropagation?.();retry(p.id);}} style={styles.rosterRetry}><Txt style={styles.rosterMeta}>↻</Txt></Pressable>
-   </Pressable>;
+   </View>;
   })}</View>:<Card title="No puppies match these filters."><Button secondary onPress={reset}>Reset filters</Button></Card>}
   <Pressable accessibilityRole="button" onPress={()=>setView('collection')} style={styles.rosterOutline}><Txt style={styles.rosterActionText}>Puppy Collection</Txt></Pressable>
  </View>;
@@ -914,15 +911,11 @@ function CasinoScreen({g,act,state,bet,setBet,onBack}){
  const [page,setPage]=useState(g.pendingScratch?'scratchers':state.blackjack?'blackjack':g.pendingSlots?'slots':g.pendingRoulette?'roulette':g.pendingPlinko?'plinko':g.pendingWheel?'wheel':'hub');
  const [accepted,setAccepted]=useState(false);
  const {width}=useWindowDimensions();
- useEffect(()=>{
-  if(!accepted)Alert.alert('Puppy Casino — Simulated Gambling',
-   'Slots, roulette, blackjack, Plinko, scratchers and the Lucky Pup Wheel use game-only chips. No real money is used and no prizes have real-world cash value.',
-   [{text:'Go Back',style:'cancel',onPress:onBack},{text:'Continue',onPress:()=>setAccepted(true)}],{cancelable:false});
- },[accepted,onBack]);
  const casino=(gameType,extra={})=>act({type:'casino',gameType,wager:bet,...extra});
  const choices=[20,50,100,500,1000];
  const inBlackjack=Boolean(state.blackjack||g.pendingSlots||g.pendingRoulette||g.pendingPlinko||g.pendingScratch||g.pendingWheel);
  const visiblePage=CASINO_PAGES.find(p=>p[0]===page);
+ if(!accepted)return <CasinoIntroDialog onBack={onBack} onContinue={()=>setAccepted(true)}/>;
  return <View style={styles.gamePage}>
   {page!=='blackjack'&&page!=='slots'&&page!=='roulette'&&page!=='plinko'&&page!=='scratchers'&&page!=='wheel'?<><View style={styles.pair}>
    <Button compact secondary onPress={()=>page==='hub'?onBack():setPage('hub')}>{page==='hub'?'‹ Rewards':'‹ Casino'}</Button>
@@ -1079,8 +1072,15 @@ export function PuppyApp({betaMode=false}){
  useEffect(()=>{const sub=BackHandler.addEventListener('hardwareBackPress',()=>{if(!secondary)return false;setSecondary(null);return true;});return ()=>sub.remove();},[secondary]);
  useEffect(()=>{const timer=setInterval(()=>setClock(Date.now()),1000);return ()=>clearInterval(timer);},[]);
  const saved=betaMode?{...gameForDisplay,...Object.fromEntries(Object.keys(DEFAULT_PREFERENCES).map(name=>[name,onboarding.setup[name]??state.game[name]])),birthdayMonth:onboarding.setup.birthdayMonth,birthdayDay:onboarding.setup.birthdayDay}:state.game;
- applyAppearance(saved,systemDark);
+ const appearance=applyAppearance(saved,systemDark);
  const motion=effectiveMotion(saved);
+ useEffect(()=>{
+  const root=document.documentElement;
+  const values={'--bg-primary':appearance.bg,'--bg-secondary':appearance.surface,'--bg-elevated':appearance.card,'--bg-modal':appearance.dark?'#161A25':'#FFFFFF','--accent-cyan':appearance.accent,'--accent-cyan-soft':appearance.accent,'--accent-ink':appearance.accentInk,'--on-accent':appearance.onAccent,'--text-primary':appearance.text,'--text-secondary':appearance.muted,'--cyber-border':appearance.line};
+  Object.entries(values).forEach(([key,value])=>root.style.setProperty(key,value));
+  root.dataset.reducedMotion=String(!motion.decorative);
+  root.dataset.buttonMotion=String(motion.buttons);
+ },[appearance.bg,appearance.surface,appearance.card,appearance.dark,appearance.accent,appearance.accentInk,appearance.onAccent,appearance.text,appearance.muted,appearance.line,motion.decorative,motion.buttons]);
  const g={...saved,animationsEnabled:motion.casino,tapAnimationsEnabled:motion.tap,idleAnimationsEnabled:motion.decorative&&saved.animationsEnabled,buttonMotionEnabled:motion.buttons};
  const [inboxOpen,setInboxOpen]=useState(false);
  const notifications=useNotifications({game:saved,ready:betaMode?(onboarding.ready&&onboarding.setup.setupComplete&&account?.status==='VERIFIED'&&account?.legalAccepted===true):(state.ready&&saved.onboardingComplete),act,onOpen:()=>setInboxOpen(true)});
@@ -1094,11 +1094,14 @@ export function PuppyApp({betaMode=false}){
    onBack={()=>setSecondary('settings')} onManage={()=>openAccount('signin')} onRefresh={refreshAccount}/>;
   if(secondary==='prestige')return <PrestigeScreen g={g} act={act} activeCasinoRound={Boolean(state.blackjack||g.pendingScratch||g.pendingSlots||g.pendingRoulette||g.pendingPlinko||g.pendingWheel)}/>;
   if(secondary==='exchange')return <PuppyExchangeScreen game={g} registry={registry} account={account} onBack={()=>setSecondary(null)} onRefresh={refreshAccount} webRequest={webExchangeRequest}/>;
-  if(secondary==='roster'||tab==='roster'&&!secondary)return <RosterScreen g={g} act={act} registry={registry} onUse={usePuppy} onOpenExchange={()=>setSecondary('exchange')}/>;
+  if(secondary==='roster'||tab==='roster'&&!secondary){
+   const roster=<RosterScreen g={g} act={act} registry={registry} onUse={usePuppy} onOpenExchange={()=>setSecondary('exchange')}/>;
+   return desktop?<div className="desktop-roster-shop" data-testid="desktop-roster-shop"><section>{roster}</section><aside><ShopScreen g={g} act={act} onOpen={openScreen}/></aside></div>:roster;
+  }
   if(secondary==='rewards'||tab==='rewards'&&!secondary)return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} readOnly={betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
   if(secondary==='gacha')return <GachaScreen g={g} act={act} state={state} registry={registry} onBack={()=>openScreen('rewards')}/>;
   if(secondary==='casino')return <CasinoScreen g={g} act={act} bet={bet} setBet={setBet} state={state} onBack={()=>openScreen('rewards')}/>;
-  if(tab==='play')return desktop?<DesktopPlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>:<PlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6}/>
+  if(tab==='play')return desktop?<DesktopPlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>:<PlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>
   if(tab==='care')return <CareScreen g={g} act={act} viewportHeight={contentHeight-6}/>;
   if(tab==='shop')return <ShopScreen g={g} act={act} onOpen={openScreen}/>;
   return null;
@@ -1142,16 +1145,16 @@ export function PuppyApp({betaMode=false}){
      <Txt muted style={{fontSize:11,textAlign:'center'}}>Built by Harley's Studios</Txt>
     </View>:null}
     <View style={{flex:1,minWidth:0,minHeight:0}}>
-  {state.ready&&saved.onboardingComplete?<View style={styles.topBar}>
-   <Image source={({uri:"/assets/logos/puppy_clicker.png"})} resizeMode="contain" style={{width:32,height:32}}/>
-   <Txt style={[styles.brand,{flex:1,letterSpacing:0}]}>Puppy Clicker</Txt>
+  {state.ready&&saved.onboardingComplete?<View testID="game-top-bar" style={styles.topBar}>
+   {desktop?<GameProgressHeader game={g}/>:<Image source={({uri:"/assets/logos/puppy_clicker.png"})} resizeMode="contain" style={{width:38,height:38}}/>}
+   {!desktop?<Txt style={[styles.brand,{flex:1,letterSpacing:0}]}>Puppy Clicker</Txt>:null}
    <Pressable accessibilityRole="button" accessibilityLabel={'Notifications, '+saved.notificationInbox.filter(n=>!n.read).length+' unread'} onPress={()=>{notifications.check();setInboxOpen(true);}} style={styles.headerButton}><Txt style={{fontSize:23}}>🔔</Txt>{saved.notificationInbox.some(n=>!n.read)?<View style={styles.unreadDot}/>:null}</Pressable>
    <Pressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={()=>setSecondary('settings')} style={styles.headerButton}><Txt style={{fontSize:23}}>⚙️</Txt></Pressable>
   </View>:null}
 
 {state.notice?<Pressable accessibilityRole="button" onPress={()=>act({type:'dismiss'})} style={styles.notice}><Txt style={styles.small}>{state.notice}  ✕</Txt></Pressable>:null}
-  <ScrollView key={secondary||tab} onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={styles.scroll} contentContainerStyle={[styles.content,(secondary==='settings'||['play','care','roster'].includes(tab)&&!secondary)&&{paddingTop:2,paddingBottom:0,paddingHorizontal:secondary==='settings'?16:tab==='roster'?12:14,gap:0},{maxWidth:desktop?1540:width>650?670:undefined,paddingHorizontal:desktop?25:undefined}]} keyboardShouldPersistTaps="handled">
-   {secondary&&secondary!=='settings'&&secondary!=='exchange'&&secondary!=='account-details'?<View style={styles.back}><Button compact secondary onPress={()=>setSecondary(null)}>← Back to {TABS.find(x=>x[0]===tab)?.[2]}</Button><Txt style={styles.heading}>{secondary.toUpperCase()}</Txt></View>:null}
+  <ScrollView key={secondary||tab} onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={styles.scroll} contentContainerStyle={[styles.content,(secondary==='settings'||['play','care','roster'].includes(tab)&&!secondary)&&{paddingTop:2,paddingBottom:0,paddingHorizontal:secondary==='settings'?16:tab==='roster'?12:14,gap:0},{maxWidth:desktop?1800:width>650?700:undefined,paddingHorizontal:desktop?24:14,paddingVertical:desktop?18:12}]} keyboardShouldPersistTaps="handled">
+   {secondary&&secondary!=='exchange'&&secondary!=='account-details'?<View style={styles.back}><Button compact secondary onPress={()=>setSecondary(null)}>← Back to {TABS.find(x=>x[0]===tab)?.[2]}</Button><Txt style={styles.heading}>{secondary.toUpperCase()}</Txt></View>:null}
    {!state.ready?<Card title={betaMode?'Loading Pup Account…':'Loading local guest data…'}><Txt muted>{betaMode?'Checking signed cloud progress.':'Reading device cache.'}</Txt></Card>:!g.onboardingComplete?<OnboardingScreen g={saved} act={act} notifications={notifications}/>:<>{secondary==='casino'?<Wallet game={g}/>:null}{main()}</>}
   </ScrollView>
   {!desktop&&state.ready&&g.onboardingComplete&&!secondary?<View style={styles.bottomBar}>
@@ -1160,24 +1163,6 @@ export function PuppyApp({betaMode=false}){
    </Pressable>)}
   </View>:null}
     </View>
-    {desktop&&width>=1700?<View style={{width:270,backgroundColor:C.surface,borderLeftWidth:1,borderColor:C.line,padding:18,gap:14}}>
-     <Txt style={{fontSize:18,fontWeight:'900'}}>🐶 Player overview</Txt>
-     <View style={{backgroundColor:C.accentSoft,borderRadius:16,padding:12,gap:6}}>
-      <Txt style={{fontSize:14,fontWeight:'900'}}>{saved.guestName}</Txt>
-      <Txt muted style={{fontSize:12}}>Puppy: {saved.puppyName}</Txt>
-      <Txt muted style={{fontSize:12}}>Level {level(saved)} · {format(saved.xp)} XP</Txt>
-     </View>
-     <Txt style={{fontSize:15,fontWeight:'900'}}>Wallet</Txt>
-     {[['🍪','Treats',saved.treats],['🦴','Bones',saved.bones],['🪙','Pup Coins',saved.pupCoins],['🐾','Casino Chips',saved.casinoChips]].map(([symbol,title,value])=>
-      <View key={title} style={{flexDirection:'row',justifyContent:'space-between',gap:8,borderBottomWidth:1,borderColor:C.line,paddingBottom:8}}>
-       <Txt>{symbol} {title}</Txt><Txt style={{fontWeight:'900'}}>{v6WalletFormat(value,true)}</Txt>
-      </View>
-     )}
-     <Pressable accessibilityRole="button" onPress={()=>openScreen('rewards')} style={{backgroundColor:C.accentSoft,borderRadius:12,padding:12}}><Txt>🎁 Daily rewards</Txt></Pressable>
-     <Pressable accessibilityRole="button" onPress={()=>openScreen('notifications')} style={{backgroundColor:C.accentSoft,borderRadius:12,padding:12}}><Txt>🔔 Notifications</Txt></Pressable>
-     <Txt muted style={{fontSize:11}}>Pup Account cross-play: Android and website share the same protected cloud progress.</Txt>
-     <Pressable accessibilityRole="button" onPress={()=>void webClient.auth.signOut()} style={{padding:12,borderWidth:1,borderColor:C.line,borderRadius:12}}><Txt>Sign out</Txt></Pressable>
-    </View>:null}
    </View>
   <NotificationInbox visible={inboxOpen} g={saved} act={act} onClose={()=>setInboxOpen(false)} onNavigate={openScreen} serverBacked={betaMode}/>
   {betaMode?<BetaAccountEntry visible={accountOpen} initialMode={accountEntryMode} onVerified={refreshAccount} onClose={()=>setAccountOpen(false)}/>:null}
@@ -1185,7 +1170,7 @@ export function PuppyApp({betaMode=false}){
 }
 const styles=themedStyles(()=>({
  restoredRoster:{gap:5,width:'100%'},restoredRosterHeader:{flexDirection:'row',alignItems:'center',gap:6,marginBottom:5},restoredRosterFilters:{flexDirection:'row',gap:6},
- rosterOutline:{minHeight:34,borderRadius:18,borderWidth:1,borderColor:C.muted,paddingHorizontal:10,paddingVertical:5,alignItems:'center',justifyContent:'center'},rosterControlText:{fontSize:12,fontWeight:'700',color:C.muted},rosterActionText:{fontSize:12,fontWeight:'700',color:C.accentInk},rosterSelectedText:{color:C.text},rosterStatus:{flex:1,minHeight:34,borderRadius:7,borderWidth:1,borderColor:C.muted,paddingHorizontal:14,justifyContent:'center'},rosterStatusSelected:{backgroundColor:C.dark?'#494457':'#E7E1EF',borderColor:'transparent'},rosterCategory:{minHeight:34,paddingHorizontal:15,borderRadius:7,borderWidth:1,borderColor:C.muted,justifyContent:'center'},rosterSearch:{minHeight:56,borderRadius:22,borderWidth:1,borderColor:C.muted,color:C.text,paddingHorizontal:14,fontSize:16},
+ rosterOutline:{minHeight:34,borderRadius:18,borderWidth:1,borderColor:C.muted,paddingHorizontal:10,paddingVertical:5,alignItems:'center',justifyContent:'center'},rosterControlText:{fontSize:12,fontWeight:'700',color:C.muted},rosterActionText:{fontSize:12,fontWeight:'700',color:C.accentInk},rosterSelectedText:{color:C.text},rosterStatus:{flex:1,minHeight:34,borderRadius:7,borderWidth:1,borderColor:C.muted,paddingHorizontal:14,justifyContent:'center'},rosterStatusSelected:{backgroundColor:'#7B5CFF',borderColor:'#9B85FF'},rosterCategory:{minHeight:34,paddingHorizontal:15,borderRadius:7,borderWidth:1,borderColor:C.muted,justifyContent:'center'},rosterSearch:{minHeight:56,borderRadius:22,borderWidth:1,borderColor:C.muted,color:C.text,paddingHorizontal:14,fontSize:16},
  restoredSelectedPanel:{backgroundColor:C.accentSoft,borderRadius:14,padding:6,gap:3,marginVertical:3},restoredSelectedRow:{flexDirection:'row',gap:7,alignItems:'center'},rosterSelectedName:{fontSize:14,fontWeight:'900'},rosterMeta:{fontSize:11,color:C.text,fontWeight:'600'},rosterCurrent:{fontSize:11,color:C.accentInk,fontWeight:'900'},rosterHeart:{width:32,height:32,alignItems:'center',justifyContent:'center'},rosterHeartText:{fontSize:25,color:C.muted},rosterOptions:{backgroundColor:C.surface,borderRadius:12,borderColor:C.line,borderWidth:1},rosterOption:{minHeight:36,padding:8},
  restoredRosterGrid:{flexDirection:'row',flexWrap:'wrap',gap:7},restoredRosterTile:{width:'31.8%',minWidth:0,alignItems:'center',paddingHorizontal:5,paddingVertical:8,gap:3,borderRadius:18,borderWidth:2,borderColor:'transparent',backgroundColor:C.surface},rosterTileName:{fontSize:16,fontWeight:'900',textAlign:'center',maxWidth:'100%'},rosterGroupBadge:{maxWidth:'100%',borderRadius:14,backgroundColor:C.dark?'#494457':'#E7E1EF',paddingHorizontal:5,paddingVertical:2},rosterRetry:{position:'absolute',right:0,bottom:0,width:28,height:28,justifyContent:'center',alignItems:'center'},
 
@@ -1367,7 +1352,7 @@ const styles=themedStyles(()=>({
  tapCaption:{fontSize:13,color:C.accentInk,fontWeight:'800',letterSpacing:0.5},
  statsRow:{flexDirection:'row',justifyContent:'space-between'},
  meter:{gap:4},meters:{gap:10},
- track:{height:8,backgroundColor:C.line,borderRadius:8,overflow:'hidden'},fill:{height:'100%',borderRadius:8},
+ track:{height:8,backgroundColor:C.dark?'#2B3140':'#D5D9E2',borderRadius:8,overflow:'hidden'},fill:{height:'100%',borderRadius:8},
  pair:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',gap:9},actions:{flexDirection:'row',gap:7,flexWrap:'wrap',alignItems:'center'},
  actionGrid:{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',gap:12},half:{width:'47.5%',gap:4},
  button:{backgroundColor:C.accent,borderRadius:11,minHeight:40,paddingHorizontal:12,paddingVertical:10,alignItems:'center',justifyContent:'center',flexGrow:1},
@@ -1382,5 +1367,27 @@ const styles=themedStyles(()=>({
  tab:{flex:1,alignItems:'center',justifyContent:'center',paddingVertical:6,borderRadius:10,gap:3},
  tabSelected:{backgroundColor:C.accentSoft},tabEmoji:{fontSize:18},tabLabel:{fontSize:10,fontWeight:'800',color:C.muted},
  input:{borderWidth:1,borderColor:C.line,backgroundColor:C.card,borderRadius:10,padding:10,fontSize:15,color:C.text},
- back:{flexDirection:'row',alignItems:'center',gap:8,flexWrap:'wrap'}
+ back:{flexDirection:'row',alignItems:'center',gap:8,flexWrap:'wrap'},
+ restoredRoster:{gap:12,width:'100%'},
+ rosterOutline:{minHeight:40,borderRadius:999,borderWidth:1,borderColor:C.line,paddingHorizontal:14,paddingVertical:9,alignItems:'center',justifyContent:'center'},
+ rosterControlText:{fontSize:13,fontWeight:'600',color:C.muted},rosterActionText:{fontSize:13,fontWeight:'600',color:C.accentInk},
+ rosterStatus:{flex:1,minHeight:44,borderRadius:14,borderWidth:1,borderColor:C.line,paddingHorizontal:14,alignItems:'center',justifyContent:'center'},
+ rosterCategory:{minHeight:40,paddingHorizontal:16,borderRadius:14,borderWidth:1,borderColor:C.line,justifyContent:'center'},
+ rosterSearch:{minHeight:50,borderRadius:999,borderWidth:1,borderColor:C.line,color:C.text,paddingHorizontal:18,fontSize:15,backgroundColor:C.surface},
+ restoredSelectedPanel:{backgroundColor:C.accentSoft,borderRadius:24,borderWidth:1,borderColor:C.accent,padding:16,gap:12,marginVertical:4,boxShadow:'0 0 20px rgba(0,229,255,0.2)'},
+ restoredSelectedRow:{flexDirection:'row',gap:12,alignItems:'center'},rosterSelectedName:{fontSize:22,fontWeight:'700'},rosterMeta:{fontSize:12,color:C.muted,fontWeight:'500'},
+ rosterCurrent:{fontSize:12,color:C.accentInk,fontWeight:'600',marginTop:5},
+ restoredRosterTile:{minWidth:0,alignItems:'center',paddingHorizontal:10,paddingVertical:18,gap:6,borderRadius:22,borderWidth:1,borderColor:C.line,backgroundColor:C.surface},
+ rosterTileName:{fontSize:16,fontWeight:'700',textAlign:'center',maxWidth:'100%'},rosterGroupBadge:{maxWidth:'100%',borderRadius:999,backgroundColor:'#352E51',paddingHorizontal:12,paddingVertical:4},
+ pageTitle:{fontSize:30,fontWeight:'700',letterSpacing:-0.5,color:C.text},pageSubtitle:{fontSize:14,color:C.muted,marginTop:5},
+ topBar:{minHeight:76,paddingHorizontal:18,paddingVertical:12,flexDirection:'row',justifyContent:'space-between',alignItems:'center',gap:8,backgroundColor:C.bg,borderBottomWidth:1,borderColor:C.line},
+ brand:{fontSize:22,fontWeight:'700'},card:{backgroundColor:C.surface,borderWidth:1,borderColor:C.line,borderRadius:22,padding:18,gap:12},
+ button:{backgroundColor:C.accent,borderRadius:999,minHeight:46,paddingHorizontal:18,paddingVertical:12,alignItems:'center',justifyContent:'center',flexGrow:1},
+ buttonSecondary:{backgroundColor:C.surface,borderWidth:1,borderColor:C.line},buttonCompact:{minHeight:40,paddingHorizontal:14,paddingVertical:9,flexGrow:0},buttonText:{fontWeight:'600',fontSize:15,textAlign:'center',color:C.onAccent},
+ bottomBar:{flexDirection:'row',padding:8,backgroundColor:C.surface,borderTopWidth:1,borderTopColor:C.line,gap:4},tab:{flex:1,alignItems:'center',justifyContent:'center',paddingVertical:10,borderRadius:20,gap:6},tabEmoji:{fontSize:24},tabLabel:{fontSize:12,fontWeight:'600',color:C.muted},
+ wallet:{flexDirection:'row',backgroundColor:C.surface,borderColor:C.line,borderWidth:1,borderRadius:22,paddingHorizontal:8,paddingVertical:16,alignItems:'center'},walletEmoji:{fontSize:25},walletNumber:{fontSize:20,fontWeight:'700',color:C.text,textAlign:'center'},walletLabel:{fontSize:12,color:C.muted,textAlign:'center'},
+ shopUpgradeCard:{backgroundColor:C.surface,borderRadius:22,padding:16,gap:10,borderWidth:1,borderColor:C.line},gamePage:{gap:16},dailyGoalCard:{flexDirection:'row',gap:10,padding:14,borderRadius:18,backgroundColor:C.surface,borderWidth:1,borderColor:C.line,alignItems:'flex-start'},
+ shopDiscountLabel:{color:C.green,fontWeight:'600',fontSize:13,backgroundColor:'rgba(52,211,153,0.1)',padding:10,borderRadius:12},careMeter:{paddingVertical:5,gap:5},
+ filterChip:{flex:1,minWidth:0,borderRadius:14,borderWidth:1,borderColor:C.line,backgroundColor:C.surface,paddingHorizontal:6,paddingVertical:14,alignItems:'center',justifyContent:'center'},input:{borderWidth:1,borderColor:C.line,backgroundColor:C.card,borderRadius:18,padding:14,fontSize:15,color:C.text}
+
 }));

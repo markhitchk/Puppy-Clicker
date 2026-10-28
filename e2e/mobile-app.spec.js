@@ -16,7 +16,7 @@ for(const width of [360,768,1280,1920]){
   await expect(page.getByRole("button",{name:"Tap Buddy to earn Treats"})).toBeVisible();
   if(width>=1000){
    await expect(page.getByRole("button",{name:"Casino",exact:true})).toBeVisible();
-   await expect(page.getByText("Pup Care",{exact:true})).toBeVisible();
+   await expect(page.getByRole("heading",{name:"Pup Care Status",exact:true})).toBeVisible();
    await expect(page.getByRole("button",{name:"🎁 Rewards & daily goals"})).toBeVisible();
   }else{
    await expect(page.getByRole("tab",{name:"🐾 Play"})).toBeVisible();

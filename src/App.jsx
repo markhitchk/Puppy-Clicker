@@ -29,7 +29,7 @@ function Home(){
    </div>
    <div className="hero-art">
     <div className="art-glow"></div>
-    <div className="hero-pup"><img src="/assets/v1/v1_classic.png" alt="Classic Puppy Clicker puppy" /></div>
+    <div className="hero-pup"><img src="/assets/transparent/v1/v1_classic.png" alt="Classic Puppy Clicker puppy" /></div>
     <span className="art-tag tag-left">🍪 Earn Treats</span>
     <span className="art-tag tag-right">💖 Care for pups</span>
     <span className="hero-art-caption">One puppy world. Your progress.</span>
