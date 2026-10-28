@@ -123,7 +123,7 @@ async function currentSession(req){
 }
 Deno.serve(async req=>{
  const origin=req.headers.get("origin")||"";
- if(req.method==="OPTIONS")return json(204,{},origin);
+ if(req.method==="OPTIONS")return json(200,{},origin);
  if(req.method!=="POST")return json(405,{error:"METHOD_NOT_ALLOWED"},origin);
  if(!SAFE_ORIGINS.has(origin))return json(403,{error:"ORIGIN_NOT_ALLOWED"},origin);
  try{
