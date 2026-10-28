@@ -122,3 +122,20 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #40cc
 }
 @media(max-width:385px){.site-brand small{display:none}.site-nav a{font-size:11px;padding:9px 7px}.feature-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.cta{transition:none}.cta:hover{transform:none}}
+
+/* Android Account Details parity: readable two-column desktop layout and
+   compact single-column cards on phones. No internal identifiers are shown. */
+.profile-main{min-width:0}
+.account-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}
+.account-detail{min-width:0;padding:15px;border:1px solid #315466;border-radius:15px;background:#102a39}
+.account-detail dt{font-size:12px;letter-spacing:.02em;font-weight:800;color:#a3c6d8}
+.account-detail dd{font-size:16px;font-weight:800;overflow-wrap:anywhere;margin:8px 0 0;color:#f1fbff}
+.account-detail small{display:block;margin-top:7px;color:#92b8cb;font-size:12px;line-height:1.5}
+.account-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.account-actions .cta{min-width:190px}
+.cloud-updated{font-size:12px!important;color:#9fbecc!important;margin-top:6px}
+@media(max-width:680px){
+ .account-details{grid-template-columns:1fr}
+ .account-detail{padding:13px 15px}
+ .account-actions .cta{width:100%}
+}
