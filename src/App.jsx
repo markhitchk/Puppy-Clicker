@@ -1,5 +1,6 @@
 import React,{useEffect,useState} from "react";
 import NativeApp from "./native/App.jsx";
+import RecoveryPage from "./RecoveryPage.jsx";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
 import RecoveryPage from "./Recovery.jsx";
 import ManualRecovery from "./ManualRecovery.jsx";
@@ -50,7 +51,7 @@ function Home(){
    <div><p className="eyebrow">YOUR GAME · YOUR ACCOUNT</p><h2>Manage your Pup Account</h2><p>Sign in with a Pup username or the Puppy Clicker Discord login, check your account, and update your display name without opening the game.</p><a href="/account" className="cta cta-secondary">Open Account Management</a><a href="/recovery" className="recovery-home-link">Forgot your login? Recover your Pup Account</a></div>
    <div className="account-preview"><span>🐾</span><strong>Pup Account</strong><p>Verified login · Linked progress · Account settings</p></div>
   </section>
-  <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span>Made for puppy fans 🐶</span></footer>
+  <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span><a href="/recovery">Recover Pup Account</a> · Made for puppy fans 🐶</span></footer>
  </div>;
 }
 const accountRole=role=>({DEVELOPER:"Developer",ADMIN:"Administrator",PUP_MEMBER:"Pup Member"})[role]||"Player";
@@ -225,20 +226,28 @@ function AccountDashboard(){
      {credentialMessage?<p className="portal-message" role="status">{credentialMessage}</p>:null}
      <p className="account-security-note">Use a unique password. Sign-in details are sent to Supabase Auth over HTTPS and are not stored in the website's source code or local preferences.</p>
     </section>
-    <section className="portal-card"><h3>Account management</h3><p>Refresh your verified account connection or sign out. Recovery and support contact changes may require the Android app or support.</p><a href="/recovery" className="cta cta-primary stretch">🔑 Recover username or reset password</a><button type="button" className="small-action" onClick={()=>void refresh()} disabled={refreshing}>{refreshing?"Refreshing…":"Refresh account details"}</button><button className="cta cta-secondary stretch" type="button" onClick={()=>void signOut()}>Sign out</button></section>
+    <section className="portal-card"><h3>Account management</h3><p>Refresh your verified account connection, reset a forgotten password, or request account recovery.</p><a href="/recovery" className="cta cta-secondary stretch">🔐 Account recovery</a><a href="/recovery" className="cta cta-primary stretch">🔑 Recover username or reset password</a><button type="button" className="small-action" onClick={()=>void refresh()} disabled={refreshing}>{refreshing?"Refreshing…":"Refresh account details"}</button><button className="cta cta-secondary stretch" type="button" onClick={()=>void signOut()}>Sign out</button></section>
    </div>
   </div>
  </div>;
 }
 function AccountPortal(){return <WebAccountGate><AccountDashboard/></WebAccountGate>;}
-function RecoveryPortal(){return <div className="recovery-route"><WebAccountGate><RecoveryPage/></WebAccountGate><ManualRecovery/></div>;}
+function DiscordCallbackPage(){
+ // Process the browser PKCE callback using the verified website account gate;
+ // only exact preapproved return paths are restored after authentication.
+ return <WebAccountGate><div className="account-content"><p role="status">Completing secure Pup Account sign-in…</p></div></WebAccountGate>;
+}
 export default function App(){
  const path=typeof window!=="undefined"?window.location.pathname:"/";
- const page=path==="/account"?"account":path==="/recovery"?"recovery":path==="/play"||path.startsWith("/auth/discord/")?"play":"home";
+ const callback=path==="/auth/discord/callback";
+ const page=path==="/account"?"account":path==="/recovery"?"recovery":
+  callback?"callback":path==="/play"?"play":"home";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
-  <Header page={path.startsWith("/auth/")?"account":page}/>
+  <Header page={callback?"account":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
-   {page==="home"?<Home/>:page==="account"?<AccountPortal/>:page==="recovery"?<RecoveryPortal/>:<NativeApp/>}
+   {page==="home"?<Home/>:page==="account"?<AccountPortal/>:
+    page==="recovery"?<RecoveryPage/>:
+    page==="callback"?<DiscordCallbackPage/>:<NativeApp/>}
   </main>
  </div>;
 }
