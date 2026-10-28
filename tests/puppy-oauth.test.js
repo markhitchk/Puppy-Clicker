@@ -1,11 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {PUPPY_DISCORD_CLIENT_ID,PUPPY_DISCORD_REDIRECT_URI} from "../src/native/web/puppyOAuth.js";
+import {PUPPY_DISCORD_CLIENT_ID,PUPPY_DISCORD_REDIRECT_URI,PUPPY_ANDROID_DISCORD_REDIRECT_URI} from "../src/native/web/puppyOAuth.js";
 const source=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 test("Puppy Discord uses the Android application's client ID",()=>{
  assert.equal(PUPPY_DISCORD_CLIENT_ID,"1547982688898777118");
- assert.equal(PUPPY_DISCORD_REDIRECT_URI,"discord-1547982688898777118:/authorize/callback");
+ assert.equal(PUPPY_DISCORD_REDIRECT_URI,"https://puppy-clicker.vercel.app/auth/discord/callback");
+ assert.equal(PUPPY_ANDROID_DISCORD_REDIRECT_URI,"discord-1547982688898777118:/authorize/callback");
 });
 test("the website cannot silently use the ARC Raiders shared Discord provider",()=>{
  const gate=source("src/native/web/AccountGate.jsx");
@@ -28,7 +29,7 @@ test("private Pup Account link is RLS-protected and binds an authenticated user"
  assert.match(edge,/PUP_ACCOUNT_SESSION_REQUIRED/);
 });
 
-test("single redirect and private relay are enforced by backend",()=>{
+test("explicit web/mobile redirect allowlist and private legacy relay are enforced",()=>{
  const relay=source("supabase/functions/pup-web-discord-relay/index.ts");
  const auth=source("supabase/functions/pup-web-auth/index.ts");
  const sql=source("supabase/migrations/20261028095501_pup_web_discord_relay.sql");
