@@ -95,7 +95,6 @@ export default function WebAccountGate({children}){
    <Pressable accessibilityRole="button" disabled={busy||!client} onPress={loginPup} style={action}>
     <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Verifying…":"Sign in to Pup Account"}</Text>
    </Pressable>
-   <a href="/recovery" style={{color:"#8fddff",fontWeight:800,textAlign:"center",fontSize:14,padding:9,textDecoration:"underline"}}>Forgot username or password? Recover your account</a>
    {!!error&&<Text accessibilityRole="alert" style={{color:"#ffb4ad"}}>{error}</Text>}
    {recovery?<Text style={{...text,fontSize:12,color:"#bbccdc",lineHeight:20}}>
     No access to Discord or your password? Use the Android app’s Settings → Support or another official Puppy Clicker support channel. Support requires independent proof of ownership; an unverified email address is not enough.
