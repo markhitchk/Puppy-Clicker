@@ -1,5 +1,7 @@
 import {test,expect} from "@playwright/test";
 const begin=async(page,width)=>{
+ page.on("console",message=>{if(message.type()==="error")console.log("BROWSER_CONSOLE",message.text());});
+ page.on("pageerror",error=>console.log("BROWSER_PAGE_ERROR",error.stack||error.message));
  await page.setViewportSize({width,height:850});
  await page.goto("/");
  await expect(page.getByText("Puppy Clicker",{exact:true}).first()).toBeVisible();

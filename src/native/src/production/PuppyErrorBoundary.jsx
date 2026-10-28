@@ -8,7 +8,10 @@ import {publicStartupIssue} from './startupErrors.js';
 export default class PuppyErrorBoundary extends React.Component {
  constructor(props){super(props);this.state={failed:false,retryIndex:0};}
  static getDerivedStateFromError(){return {failed:true};}
- componentDidCatch(){
+ componentDidCatch(error){
+  // Diagnostic stack is exposed only when running the local Playwright fixture.
+  if(typeof window!=="undefined"&&window.location.hostname==="127.0.0.1")
+   console.error("PUPPY_E2E_RENDER_FAILURE",error?.stack||String(error));
   // A safe local marker, not a stack trace, is best effort; never block UI.
   try{Promise.resolve(NativeModules.PuppyBetaAccount?.recordStartupCrash?.('PUPPY-CRASH-902')).catch(()=>{});}catch{}
  }
