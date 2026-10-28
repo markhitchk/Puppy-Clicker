@@ -13,7 +13,8 @@ export const client =
           flowType: "pkce",
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: true,
+          // Discord returns a provider code handled by puppyOAuth, not an Auth PKCE code.
+          detectSessionInUrl: false,
         },
       })
     : null;
