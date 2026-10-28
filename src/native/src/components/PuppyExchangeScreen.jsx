@@ -1,5 +1,5 @@
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
-import {ActivityIndicator,Alert,NativeModules,Pressable,ScrollView,Share,StyleSheet,Text,TextInput,View} from 'react-native';
+import {ActivityIndicator,Alert,NativeModules,Platform,Pressable,ScrollView,Share,StyleSheet,Text,TextInput,View} from 'react-native';
 
 // Kotlin Exchange parity: Friends / Connect / Gifts / Trade / History.
 // Transfers are never applied by React state; a signed PupEye request must
@@ -27,7 +27,15 @@ const safeMessage=code=>{
  return 'Exchange could not be verified. Refresh before repeating an offer.';
 };
 const names=values=>values?.length?values.join(', '):'None';
-export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,account}){
+const confirmExchange=(title,message,onConfirm)=>{
+ if(Platform.OS==='web'){
+  if(globalThis.confirm?.(title+'\\n\\n'+message))void onConfirm();
+  return;
+ }
+ Alert.alert(title,message,[{text:'Cancel',style:'cancel'},
+  {text:'Confirm',onPress:()=>void onConfirm()}]);
+};
+export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,account,webRequest}){
  const [tab,setTab]=useState('friends'),[data,setData]=useState(empty);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
  const [error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -36,16 +44,23 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
  const [offerKind,setOfferKind]=useState('gift'),[selected,setSelected]=useState([]);
  const [counterIds,setCounterIds]=useState([]);
  const [recipientOfferId,setRecipientOfferId]=useState(null);
- const verified=account?.status==='VERIFIED'&&account?.legalAccepted===true;
+ // The website already passed the authoritative Pup Account gate. Legal
+ // consent and active-installation standing are rechecked by the server; web
+ // never pretends to have the Android signed native module.
+ const verified=account?.status==='VERIFIED'&&
+  (webRequest?Boolean(account?.id):account?.legalAccepted===true);
  const bridge=NativeModules.PuppyBetaAccount;
  const request=useCallback(async(operation,fields={})=>{
-  if(!verified||!bridge?.exchangeAction)
-   throw Object.assign(new Error('Exchange bridge unavailable'),{code:'EXCHANGE_LOGIN_REQUIRED'});
+  if(!verified)
+   throw Object.assign(new Error('Pup Account verification required'),{code:'EXCHANGE_LOGIN_REQUIRED'});
+  if(webRequest)return webRequest(operation,fields);
+  if(!bridge?.exchangeAction)
+   throw Object.assign(new Error('Exchange native bridge unavailable'),{code:'EXCHANGE_NATIVE_UNAVAILABLE'});
   const result=await bridge.exchangeAction(JSON.stringify({operation,...fields}),KEY);
   const parsed=JSON.parse(result?.json||'null');
   if(!parsed||typeof parsed!=='object')throw new Error('Invalid exchange response');
   return parsed;
- },[verified,bridge]);
+ },[verified,bridge,webRequest]);
  const refresh=useCallback(async(silent=false)=>{
   if(!silent)setLoading(true);
   try{
@@ -110,29 +125,27 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
   if(!friendCode||selected.length<1){
    setError('Choose an accepted friend and one or more eligible puppies.');return;
   }
-  Alert.alert(offerKind==='gift'?'Send puppy gift?':'Create trade offer?',
+  confirmExchange(offerKind==='gift'?'Send puppy gift?':'Create trade offer?',
    offerKind==='gift'
     ?'The recipient must accept your gift. The sender keeps their original copy.'
     :'The recipient selects their side; you must confirm before anything transfers.',
-   [{text:'Cancel',style:'cancel'},{text:'Continue',onPress:async()=>{
+   async()=>{
     if(await run('offer',{friendCode,kind:offerKind,offered:selected},
       offerKind==='gift'?'Gift offer sent.':'Trade proposal sent.'))setSelected([]);
-   }}]);
+   });
  };
  const answer=(c,choice)=>{
-  Alert.alert(choice==='block'?'Block player?':'Respond to friend request?',
+  confirmExchange(choice==='block'?'Block player?':'Respond to friend request?',
    choice==='block'?'Blocking prevents exchanges between your accounts.':
     choice==='accept'?'Accept this player as a friend?':'Decline this request?',
-   [{text:'Cancel',style:'cancel'},{text:'Confirm',onPress:()=>void run('respond',
-    {connectionId:c.id,answer:choice},'Friend connection updated.')}]);
+   ()=>void run('respond',{connectionId:c.id,answer:choice},'Friend connection updated.'));
  };
  const finishOffer=(offer,op)=>{
   const message=op==='confirm'
    ?'Confirm this exchange? The server will atomically update both Pup Accounts. Never retry after an uncertain response without refreshing.'
    :op==='cancel'?'Cancel your pending offer?':'Decline this incoming offer?';
-  Alert.alert('Puppy Exchange',message,[{text:'Back',style:'cancel'},
-   {text:'Confirm',onPress:()=>void run(op,{offerId:offer.id},
-     op==='confirm'?'Exchange confirmed. Cloud rosters will synchronize.':'Offer updated.')}]);
+  confirmExchange('Puppy Exchange',message,()=>void run(op,{offerId:offer.id},
+   op==='confirm'?'Exchange confirmed. Cloud rosters will synchronize.':'Offer updated.'));
  };
  const panel=(children)=><View style={styles.card}>{children}</View>;
  const button=(label,callback,disabled=false,secondary=false)=>
@@ -190,7 +203,19 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
    <Text style={styles.muted}>YOUR FRIEND CODE</Text>
    <Text selectable style={styles.friendCode}>{data.profile?.friendCode||'Checking…'}</Text>
    <View style={styles.actions}>
-    {button('Share code',()=>void Share.share({message:data.profile?.friendCode||''}),!data.profile?.friendCode,true)}
+    {button('Share code',async()=>{
+     const friendCode=data.profile?.friendCode;
+     if(!friendCode)return;
+     try{
+      if(Platform.OS==='web'){
+       if(globalThis.navigator?.share)await globalThis.navigator.share({text:friendCode});
+       else if(globalThis.navigator?.clipboard?.writeText){
+        await globalThis.navigator.clipboard.writeText(friendCode);
+        setNotice('Friend Code copied.');
+       }else setNotice('Select your Friend Code above to copy it.');
+      }else await Share.share({message:friendCode});
+     }catch(e){if(e?.name!=='AbortError')setError('Could not share your Friend Code.');}
+    },!data.profile?.friendCode,true)}
     {button('Refresh',()=>void refresh(),loading,true)}
    </View>
    <Text style={styles.muted}>Verified account · server-protected ownership · no local or guest trades</Text>
@@ -283,12 +308,12 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
      if(!/^(?:PUP-[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}|PUP-HARLEYTG-DEV)$/.test(recipientCode)||selected.length===0){
       setError('Enter a valid recipient Friend Code and select a puppy.');return;
      }
-     Alert.alert(kind==='gift'?'Send gift?':'Propose trade?',
+     confirmExchange(kind==='gift'?'Send gift?':'Propose trade?',
       kind==='gift'?'Your friend must accept the puppy copy.':
        'Your friend must counter, and you must approve the final trade.',
-      [{text:'Cancel',style:'cancel'},{text:'Send',onPress:async()=>{
+      async()=>{
        if(await run('offer',{friendCode:recipientCode,kind,offered:selected},'Offer sent.'))setSelected([]);
-      }}]);
+      });
     },(friends.length===0&&!canGiftDirect)||selected.length===0||!friendCode)}
    </>)}
    {panel(<><Text style={styles.heading}>{tab==='gifts'?'Gift offers':'Trade offers'}</Text>
