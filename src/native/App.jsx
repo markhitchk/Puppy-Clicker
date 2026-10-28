@@ -514,7 +514,6 @@ function GachaScreen({g,act,state,registry,onBack}){
  const revealTimer=useRef(null);
  const result=state.gachaResult;
  const {width}=useWindowDimensions();
- const desktop=width>=1000;
  const frame=gachaMachineFrame(Math.max(0,Math.min(width-44,560)));
  const selected=registry.items.find(p=>p.id===result?.puppyId)
   ||ROSTER.find(p=>p.id===result?.puppyId);
@@ -1045,6 +1044,7 @@ export function PuppyApp({betaMode=false}){
  const openAccount=mode=>{setAccountEntryMode(mode||'signin');setAccountOpen(true);};
  const registry=useRoster();
  const {width}=useWindowDimensions();
+ const desktop=width>=1000;
  const [tab,setTab]=useState('play');
  const [secondary,setSecondary]=useState(null);
  const [bet,setBet]=useState(20);
