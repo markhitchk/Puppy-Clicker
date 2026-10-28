@@ -4,7 +4,7 @@ The browser app uses **React Native Web** and the existing Vite/Vercel setup wit
 
 The website now imports **actual mobile source files** for balanced XP and Kotlin V6 wallet formatting from [pup-clinker/Mobile](https://github.com/markhitchk/pup-clinker/tree/main/Mobile). Their copied source and upstream commit are recorded in `src/mobile/engine/SOURCE.json`.
 
-**Security boundary:** Browser sign-in saves to `puppy_web_saves`, **not** the Android signed PupEye/Pup Account cloud-save format. Web and Android progress do not yet synchronize. Unauthenticated visitors cannot mutate gameplay. Native UI, secure account migration, player exchange, device permissions, push notifications and remaining systems still require a browser-safe port. See [the coverage audit](docs/parity/2026-10-23-parity-audit.md).
+**Cross-play:** The browser now reads verified Pup Account progress from the authoritative `pup_account_saves` table via the account-verified `pup-web-auth` Edge Function. Browser actions are server-calculated using the same Kotlin-compatible gameplay reducers as React Native beta, and use revision-checked compare-and-set writes. No browser sends balances, prizes, RNG, or raw save replacements. The previous `puppy_web_saves` data is retained as a legacy backup but is not imported or granted economic authority. If an Android cloud save is absent, web gameplay is disabled until the original app uploads its account save. Web gameplay requires an active PupEye owner installation, a verified account, and legal consent. Native-only features and remaining design parity still need validation. See [the coverage audit](docs/parity/2026-10-23-parity-audit.md).
 
 ## What changed
 
@@ -48,13 +48,13 @@ GitHub Actions builds a release-mode preview APK, verifies the embedded JS bundl
 
 ## Accounts and saves
 
-Both React platforms use the existing `puppy_web_saves` table, owner RLS and revision-checked `puppy_web_save_commit` RPC. Guest sessions are intentionally not saved. Supabase publishable URL/key configuration is in `.env.example` (web) and `mobile/.env.example` (Android).
+The website now uses the same authoritative `pup_account_saves` row as Android. The browser no longer uses the web-only `puppy_web_save_commit` RPC. Guest sessions are intentionally not saved. Supabase publishable URL/key configuration is in `.env.example` (web) and `mobile/.env.example` (Android).
 
 **Website Discord authentication:** The independent Puppy Clicker Discord application (client ID `1547982688898777118`) must register `https://puppy-clicker.vercel.app/auth/discord/callback` as an **additional OAuth2 redirect URL in the Discord Developer Portal**. The browser sends a Discord PKCE authorization request to that exact HTTPS callback, validates its state, exchanges the code through `pup-web-auth`, verifies the linked Pup Account, and then returns to `https://puppy-clicker.vercel.app/`. The `discord-1547982688898777118:/authorize/callback` deep link remains app-only and is not a valid website redirect. Local development callbacks may be registered separately. Do not use ARC Raiders' Discord application or generic Supabase Discord OAuth: both risk linking the wrong identity. No server secrets belong in either public environment.
 
 Native Discord OAuth continues to use its separate PKCE callbacks, including `puppyclicker-reactpreview://auth/callback` (preview) and `puppyclicker://auth/callback` (production), with Android cold-start and warm callbacks. Add these to the existing Supabase redirect allowlist when testing native sign-in.
 
-**Kotlin `pup_account_saves` and signed PupEye installations remain separate.** Do not weaken RLS, transfer React-generated currency into protected accounts, reset live progress, or claim existing Kotlin accounts are already migrated. Proper authority, identity and single-device enforcement remain required.
+**PupEye remains authoritative.** The browser is a non-device-bound companion using a verified Pup Account session, never a replacement for signed Android attestation. A browser cannot upload a raw cloud save or reset live progress. Keep database RLS strict and rely only on server-calculated, revision-checked gameplay actions. Proper authority, identity and single-device enforcement remain required.
 
 ## Source artwork
 

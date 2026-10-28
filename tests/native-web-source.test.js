@@ -15,8 +15,11 @@ test("real mobile game engine source has been copied with every major subsystem"
  const paths=["game.js","progression.js","blackjack.js","slotsV6.js","plinkoV6.js",
   "rouletteV6.js","wheelV6.js","shopV6.js","gacha.js","dynamicRoster.js","monthlyRewards.js"];
  for(const path of paths)assert.ok(existsSync(new URL("../src/native/src/engine/"+path,import.meta.url)),path);
- assert.match(read("src/native/src/state/useGame.js"),/puppy_web_save_commit/);
- assert.match(read("src/native/src/state/useGame.js"),/nativeGame/);
+ const hook=read("src/native/src/state/useGame.js");
+ assert.match(hook,/projectKotlinCloudSave/);
+ assert.match(hook,/action:"cloud-save-read"/);
+ assert.match(hook,/action:"gameplay"/);
+ assert.doesNotMatch(hook,/\.rpc\(["\x27]puppy_web_save_commit/);
 });
 test("browser source never requires untrusted native device identity",()=>{
  const gate=read("src/native/web/AccountGate.jsx");
