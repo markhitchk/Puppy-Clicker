@@ -11,6 +11,7 @@ const text={color:"#f5fcff",fontSize:14};
 export default function WebAccountGate({children}){
  const [user,setUser]=useState(null),[pupAccount,setPupAccount]=useState(null);
  const callbackPending=useRef(hasPuppyDiscordCallback());
+ const callbackFailed=useRef(false);
  const [loading,setLoading]=useState(true),[login,setLogin]=useState(""),[password,setPassword]=useState("");
  const [busy,setBusy]=useState(false),[error,setError]=useState("");
  useEffect(()=>{
@@ -37,8 +38,8 @@ export default function WebAccountGate({children}){
   const {data}=client?.auth.onAuthStateChange((_event,_session)=>{
    // A pending OAuth callback must finish state/PKCE verification before
    // any existing Supabase session (including ARC) is allowed into the game.
-   if(callbackPending.current)return;
-   queueMicrotask(()=>{if(alive&&!callbackPending.current)void verify();});
+   if(callbackPending.current||callbackFailed.current)return;
+   queueMicrotask(()=>{if(alive&&!callbackPending.current&&!callbackFailed.current)void verify();});
   })||{};
   (async()=>{
    const callback=hasPuppyDiscordCallback();
@@ -49,7 +50,7 @@ export default function WebAccountGate({children}){
    }catch(e){
     // Failed state/PKCE verification cannot retain a previous game session.
     callbackPending.current=false;
-    if(callback)await client?.auth.signOut().catch(()=>{});
+    if(callback){callbackFailed.current=true;await client?.auth.signOut().catch(()=>{});}
     if(alive){setUser(null);setPupAccount(null);setLoading(false);
      setError(String(e?.message||"PUP_DISCORD_AUTH_FAILED").replace(/_/g," "));}
    }
@@ -65,6 +66,7 @@ export default function WebAccountGate({children}){
   if(!login.trim()||!password){setError("Enter your Pup username and password.");return;}
   setBusy(true);setError("");
   try{
+   callbackFailed.current=false;
    const account=await signInPupUsername(client,login.trim(),password);
    const {data}=await client.auth.getUser();
    if(data?.user){setUser(data.user);setPupAccount(account);}
