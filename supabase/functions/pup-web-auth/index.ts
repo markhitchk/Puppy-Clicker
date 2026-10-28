@@ -1,4 +1,5 @@
 import {createClient} from "npm:@supabase/supabase-js@2.117.1";
+import {crossPlay,CrossPlayError} from "./crossPlay.ts";
 
 // This is Puppy Clicker's own public OAuth2 application (same client ID as
 // the Android DiscordSignupAuth). Do not use shared Supabase Discord OAuth.
@@ -62,7 +63,7 @@ async function accountAllowed(account){
 }
 async function accountForDiscord(discordId){
  const {data,error}=await admin.from("pup_accounts").select(
-   "id,player_uuid,discord_user_id,username,display_name,status,terms_version,privacy_version,terms_accepted_at,privacy_accepted_at"
+   "id,player_uuid,active_installation_uuid,discord_user_id,username,display_name,status,terms_version,privacy_version,terms_accepted_at,privacy_accepted_at"
  ).eq("discord_user_id",discordId).maybeSingle();
  if(error)throw new PublicError(503,"PUP_ACCOUNT_LOOKUP_FAILED");
  if(!data)throw new PublicError(403,"PUP_ACCOUNT_LINK_REQUIRED");
@@ -71,7 +72,7 @@ async function accountForDiscord(discordId){
 }
 async function accountForCredentials(login){
  const {data,error}=await admin.from("pup_accounts").select(
-  "id,player_uuid,discord_user_id,username,display_name,status,terms_version,privacy_version,terms_accepted_at,privacy_accepted_at"
+  "id,player_uuid,active_installation_uuid,discord_user_id,username,display_name,status,terms_version,privacy_version,terms_accepted_at,privacy_accepted_at"
  ).ilike("username",login).maybeSingle();
  if(error)throw new PublicError(503,"PUP_ACCOUNT_LOOKUP_FAILED");
  if(!data)throw new PublicError(401,"PUP_SIGNIN_INVALID");
@@ -123,7 +124,7 @@ async function currentSession(req){
  if(le)throw new PublicError(503,"PUP_ACCOUNT_LOOKUP_FAILED");
  if(!link)throw new PublicError(403,"PUP_ACCOUNT_SESSION_REQUIRED");
  const {data:account,error:ae}=await admin.from("pup_accounts").select(
-  "id,player_uuid,discord_user_id,username,display_name,status,terms_version,privacy_version,terms_accepted_at,privacy_accepted_at"
+  "id,player_uuid,active_installation_uuid,discord_user_id,username,display_name,status,terms_version,privacy_version,terms_accepted_at,privacy_accepted_at"
  ).eq("id",link.account_uuid).maybeSingle();
  if(ae)throw new PublicError(503,"PUP_ACCOUNT_LOOKUP_FAILED");
  await accountAllowed(account);
@@ -144,6 +145,11 @@ Deno.serve(async req=>{
     displayName:account.display_name||account.username,
     discordUserId:account.discord_user_id||null
    }},origin);
+  }
+  if(["cloud-save-read","gameplay","account-update"].includes(body.action)){
+   const {account}=await currentSession(req);
+   const outcome=await crossPlay(admin,account,body);
+   return json(200,outcome,origin);
   }
   if(body.action==="password-login"){
    const login=required(body.login,/^[A-Za-z0-9_-]{3,20}$/,"PUP_SIGNIN_INVALID");
@@ -201,8 +207,8 @@ Deno.serve(async req=>{
   if(!(e instanceof PublicError)){
    console.error("Pup web auth request failed (details withheld from client)");
   }
-  return json(e instanceof PublicError?e.status:503,{
-   error:e instanceof PublicError?e.code:"PUP_WEB_AUTH_UNAVAILABLE"
+  return json(e instanceof PublicError||e instanceof CrossPlayError?e.status:503,{
+   error:e instanceof PublicError||e instanceof CrossPlayError?e.code:"PUP_WEB_AUTH_UNAVAILABLE"
   },origin);
  }
 });
