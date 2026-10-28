@@ -1,0 +1,12 @@
+{
+  "upstream": "markhitchk/pup-clinker",
+  "sourceCommit": "f35ad86ea874671bc05a3ab3dedde5bf97bbc06b",
+  "sourceDirectory": "Mobile",
+  "ui": "src/native/App.jsx",
+  "nativeCodePolicy": "Browser-specific auth/save adapter; no PupEye device credentials copied",
+  "platforms": [
+    "browser-mobile",
+    "browser-tablet",
+    "browser-desktop"
+  ]
+}
