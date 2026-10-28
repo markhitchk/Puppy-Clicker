@@ -87,7 +87,7 @@ function AccountDashboard(){
   event.preventDefault();
   if(saving)return;
   const name=displayName.trim();
-  if(name.length<2||name.length>24||!/^[\\p{L}\\p{N} ._'’-]+$/u.test(name)){
+  if(name.length<2||name.length>24||!/^[\p{L}\p{N} ._'’-]+$/u.test(name)){
    setStatus("Display name must be 2–24 characters, using letters, numbers, spaces or . _ ' -.");
    return;
   }
