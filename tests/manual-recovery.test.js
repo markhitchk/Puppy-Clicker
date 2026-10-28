@@ -33,7 +33,7 @@ test("manual form excludes credentials and supports reference lookup",()=>{
  const ui=read("src/ManualRecovery.jsx");
  assert.match(ui,/action:"request"/);
  assert.match(ui,/action:"status"/);
- assert.match(ui,/reference:data\.reference/);
+ assert.match(ui,/setReference\(data\.reference\)/);
  assert.match(ui,/Contact email for staff follow-up/);
  assert.doesNotMatch(ui,/password:/);
  assert.doesNotMatch(ui,/cloud-save-write|account-update|credential-link/);
