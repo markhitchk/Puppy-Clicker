@@ -10,6 +10,7 @@ const action={backgroundColor:"#00b8f0",padding:15,borderRadius:13,alignItems:"c
 const text={color:"#f5fcff",fontSize:14};
 
 export default function WebAccountGate({children}){
+ const recovery=globalThis.location?.pathname==="/recovery";
  const [user,setUser]=useState(null),[pupAccount,setPupAccount]=useState(null);
  const [loading,setLoading]=useState(true),[login,setLogin]=useState(""),[password,setPassword]=useState("");
  const [busy,setBusy]=useState(false),[error,setError]=useState("");
@@ -52,7 +53,7 @@ export default function WebAccountGate({children}){
   setBusy(true);setError("");
   try{
    try{globalThis.sessionStorage?.setItem("puppy-web-discord-return-v1",
-    globalThis.location?.pathname==="/account"?"/account":"/play");}catch{}
+    recovery?"/recovery":globalThis.location?.pathname==="/account"?"/account":"/play");}catch{}
    const url=await beginPuppyDiscord();
    // Discord returns to /auth/discord/callback in this same browser on
    // Android, iOS, and desktop, never to the Android app's custom URI.
@@ -79,10 +80,12 @@ export default function WebAccountGate({children}){
  if(!user||!pupAccount)return <View style={{flex:1,backgroundColor:"#0d1e29",alignItems:"center",justifyContent:"center",padding:20}}>
   <View style={{backgroundColor:"#19313e",padding:28,borderRadius:24,maxWidth:460,width:"100%",gap:13}}>
    <Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{height:95,width:120,alignSelf:"center"}}/>
-   <Text style={{fontSize:27,fontWeight:"900",color:"#fff",textAlign:"center"}}>🐶 Puppy Clicker · Pup Account</Text>
-   <Text style={{...text,color:"#bcd1df",textAlign:"center"}}>Sign in using your existing Pup Account. Discord returns to this website after authorization.</Text>
+   <Text style={{fontSize:27,fontWeight:"900",color:"#fff",textAlign:"center"}}>{recovery?"🔐 Pup Account Recovery":"🐶 Puppy Clicker · Pup Account"}</Text>
+   <Text style={{...text,color:"#bcd1df",textAlign:"center"}}>{recovery
+    ?"Use the Discord account already linked to your Pup Account. We will verify ownership before showing the username and password reset form."
+    :"Sign in using your existing Pup Account. Discord returns to this website after authorization."}</Text>
    <Pressable accessibilityRole="button" disabled={busy||!client} onPress={loginDiscord} style={action}>
-    <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Opening Discord…":"Continue with Puppy Clicker Discord"}</Text>
+    <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Opening Discord…":recovery?"Recover with linked Discord":"Continue with Puppy Clicker Discord"}</Text>
    </Pressable>
    <Text style={{...text,textAlign:"center"}}>Or sign in with your Pup username</Text>
    <TextInput accessibilityLabel="Pup username" placeholder="Pup Account username" placeholderTextColor="#8fa2ad" autoCapitalize="none"
@@ -93,6 +96,12 @@ export default function WebAccountGate({children}){
     <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Verifying…":"Sign in to Pup Account"}</Text>
    </Pressable>
    {!!error&&<Text accessibilityRole="alert" style={{color:"#ffb4ad"}}>{error}</Text>}
+   {recovery?<Text style={{...text,fontSize:12,color:"#bbccdc",lineHeight:20}}>
+    No access to Discord or your password? Use the Android app’s Settings → Support or another official Puppy Clicker support channel. Support requires independent proof of ownership; an unverified email address is not enough.
+   </Text>:null}
+   <a href={recovery?"/account":"/recovery"} style={{color:"#8ce9ff",fontSize:14,fontWeight:800,textAlign:"center",padding:7}}>
+    {recovery?"← Back to Pup Account sign-in":"Forgot your username or password? Recover account"}
+   </a>
    <Text style={{...text,fontSize:11,color:"#adc1ce"}}>Discord returns to the website. Your Pup Account identity and protected cloud progress are verified before gameplay.</Text>
   </View>
  </View>;
