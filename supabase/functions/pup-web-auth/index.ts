@@ -139,11 +139,11 @@ Deno.serve(async req=>{
   const body=await req.json();
   if(!body||typeof body!=="object")throw new PublicError(400,"PUP_REQUEST_INVALID");
   if(body.action==="status"){
-   const {account}=await currentSession(req);
+   const {account,user}=await currentSession(req);
    // These public-facing details are read only from the authenticated owner's
    // authoritative player and save records, never from browser-supplied IDs.
    const [{data:player,error:pe},{data:installation,error:ie},
-    {data:save,error:se}]=await Promise.all([
+    {data:save,error:se},{data:credentials,error:ce}]=await Promise.all([
     admin.from("pupeye_players").select("friend_code,guild_role")
      .eq("id",account.player_uuid).maybeSingle(),
     account.active_installation_uuid
@@ -151,9 +151,11 @@ Deno.serve(async req=>{
        .eq("id",account.active_installation_uuid).maybeSingle()
      : Promise.resolve({data:null,error:null}),
     admin.from("pup_account_saves").select("account_uuid")
-     .eq("player_uuid",account.player_uuid).maybeSingle()
+     .eq("player_uuid",account.player_uuid).maybeSingle(),
+    admin.from("pup_credential_links").select("auth_user_id")
+     .eq("account_uuid",account.id).maybeSingle()
    ]);
-   if(pe||ie||se)throw new PublicError(503,"PUP_ACCOUNT_DETAILS_UNAVAILABLE");
+   if(pe||ie||se||ce)throw new PublicError(503,"PUP_ACCOUNT_DETAILS_UNAVAILABLE");
    const owned=!!installation&&installation.player_uuid===account.player_uuid
     &&installation.active===true&&!installation.revoked_at;
    const connected=owned&&save?.account_uuid===account.id;
@@ -166,8 +168,57 @@ Deno.serve(async req=>{
     status:"VERIFIED",
     linkedFromPlay:connected,
     gameplayWritable:connected,
+    passwordLoginEnabled:credentials?.auth_user_id===user.id,
     contactEmail:account.contact_email||null
    }},origin);
+  }
+
+  if(body.action==="credential-check"||body.action==="credential-link"){
+   // Account ownership is resolved ONLY from the current verified session.
+   // No username, user ID or account ID sent by the browser is used to select
+   // another account. The password itself is changed through the signed-in
+   // Supabase Auth client, not through this endpoint or a SQL statement.
+   const {account,user}=await currentSession(req);
+   const username=required(body.username,/^[A-Za-z0-9_-]{3,20}$/,"PUP_USERNAME_INVALID");
+   const [{data:taken,error:te},{data:pending,error:pe},
+    {data:credential,error:ce},{data:identityLink,error:ie}]=await Promise.all([
+    admin.from("pup_accounts").select("id").ilike("username",username).maybeSingle(),
+    admin.from("pup_credential_pending").select("username").ilike("username",username).maybeSingle(),
+    admin.from("pup_credential_links").select("auth_user_id,email")
+     .eq("account_uuid",account.id).maybeSingle(),
+    admin.from("pup_credential_links").select("account_uuid")
+     .eq("auth_user_id",user.id).maybeSingle()
+   ]);
+   if(te||pe||ce||ie)throw new PublicError(503,"PUP_CREDENTIAL_LOOKUP_FAILED");
+   if((taken&&taken.id!==account.id)||pending)
+    throw new PublicError(409,"PUP_USERNAME_TAKEN");
+   if((credential&&credential.auth_user_id!==user.id)
+      ||(identityLink&&identityLink.account_uuid!==account.id))
+    throw new PublicError(409,"PUP_ACCOUNT_AUTH_LINK_CONFLICT");
+   if(body.action==="credential-check")
+    return json(200,{available:true,username},origin);
+   if(!user.email)throw new PublicError(503,"PUP_CREDENTIAL_EMAIL_MISSING");
+   if(account.username!==username){
+    const {error:ue}=await admin.from("pup_accounts")
+     .update({username,updated_at:new Date().toISOString()})
+     .eq("id",account.id).eq("status","active");
+    if(ue)throw new PublicError(409,"PUP_USERNAME_TAKEN");
+   }
+   if(!credential){
+    const {error:le}=await admin.from("pup_credential_links").insert({
+     auth_user_id:user.id,account_uuid:account.id,email:user.email
+    });
+    if(le)throw new PublicError(409,"PUP_CREDENTIAL_LINK_FAILED");
+   }
+   // Keep Android's public player name in sync, without altering ownership,
+   // installation IDs, Discord identities, save balances or inventory.
+   if(account.username!==username){
+    const {error:playerError}=await admin.from("pupeye_players")
+     .update({username,updated_at:new Date().toISOString()})
+     .eq("id",account.player_uuid);
+    if(playerError)console.error("Pup player name sync unavailable");
+   }
+   return json(200,{updated:true,username,passwordLoginEnabled:true},origin);
   }
   if(["cloud-save-read","gameplay","account-update"].includes(body.action)){
    const {account}=await currentSession(req);
