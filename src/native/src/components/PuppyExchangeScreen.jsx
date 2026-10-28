@@ -27,7 +27,7 @@ const safeMessage=code=>{
  return 'Exchange could not be verified. Refresh before repeating an offer.';
 };
 const names=values=>values?.length?values.join(', '):'None';
-export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,account}){
+export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,account,webRequest}){
  const [tab,setTab]=useState('friends'),[data,setData]=useState(empty);
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
  const [error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -36,16 +36,23 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
  const [offerKind,setOfferKind]=useState('gift'),[selected,setSelected]=useState([]);
  const [counterIds,setCounterIds]=useState([]);
  const [recipientOfferId,setRecipientOfferId]=useState(null);
- const verified=account?.status==='VERIFIED'&&account?.legalAccepted===true;
+ // The website already passed the authoritative Pup Account gate. Legal
+ // consent and active-installation standing are rechecked by the server; web
+ // never pretends to have the Android signed native module.
+ const verified=account?.status==='VERIFIED'&&
+  (webRequest?Boolean(account?.id):account?.legalAccepted===true);
  const bridge=NativeModules.PuppyBetaAccount;
  const request=useCallback(async(operation,fields={})=>{
-  if(!verified||!bridge?.exchangeAction)
-   throw Object.assign(new Error('Exchange bridge unavailable'),{code:'EXCHANGE_LOGIN_REQUIRED'});
+  if(!verified)
+   throw Object.assign(new Error('Pup Account verification required'),{code:'EXCHANGE_LOGIN_REQUIRED'});
+  if(webRequest)return webRequest(operation,fields);
+  if(!bridge?.exchangeAction)
+   throw Object.assign(new Error('Exchange native bridge unavailable'),{code:'EXCHANGE_NATIVE_UNAVAILABLE'});
   const result=await bridge.exchangeAction(JSON.stringify({operation,...fields}),KEY);
   const parsed=JSON.parse(result?.json||'null');
   if(!parsed||typeof parsed!=='object')throw new Error('Invalid exchange response');
   return parsed;
- },[verified,bridge]);
+ },[verified,bridge,webRequest]);
  const refresh=useCallback(async(silent=false)=>{
   if(!silent)setLoading(true);
   try{
