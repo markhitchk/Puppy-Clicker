@@ -139,3 +139,31 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #40cc
  .account-detail{padding:13px 15px}
  .account-actions .cta{width:100%}
 }
+
+/* Pup Account recovery — responsive security-first page. */
+.recovery-content{max-width:1180px}
+.recovery-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+.recovery-grid .portal-card{height:100%;min-width:0}
+.recovery-grid h2,.recovery-status-card h2{font-size:23px;letter-spacing:-.03em;margin:6px 0 18px}
+.recovery-step{font-size:11px;font-weight:900;letter-spacing:.14em;color:#79d9f5}
+.recovery-content .profile-form{margin-top:18px}
+.recovery-content .profile-form select,.recovery-content .profile-form textarea{
+ color:#effbff;background:#092431;border:1px solid #47778b;border-radius:12px;
+ font:inherit;padding:14px;max-width:100%;width:100%;min-width:0
+}
+.recovery-content .profile-form textarea{resize:vertical;min-height:115px}
+.recovery-content .profile-form select option{background:#102735}
+.recovery-content input:focus-visible,.recovery-content select:focus-visible,
+.recovery-content textarea:focus-visible{outline:3px solid #40ccff;outline-offset:3px}
+.recovery-footnote{font-size:12px!important;color:#95bacd!important;margin-top:17px}
+.recovery-success{color:#a2efc7!important}
+.recovery-receipt{margin:18px 0;padding:19px;background:#123e45;border:1px solid #407d80;border-radius:16px}
+.recovery-receipt small{display:block;color:#a6d5df;font-size:10px;font-weight:900;letter-spacing:.11em}
+.recovery-receipt strong{display:block;color:#dcfbff;font-size:19px;overflow-wrap:anywhere;margin-top:8px}
+.recovery-receipt p{font-size:12px;margin-bottom:0}
+.recovery-link,.recovery-content .account-heading a{color:#8be3ff;text-decoration:underline}
+.recovery-honeypot{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.recovery-status-card{margin-top:20px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.recovery-status-card .profile-form{margin-top:0}
+@media(max-width:850px){.recovery-grid,.recovery-status-card{grid-template-columns:1fr}}
+@media(max-width:760px){.recovery-grid{gap:15px}.recovery-grid h2,.recovery-status-card h2{font-size:21px}}
