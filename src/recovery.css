@@ -24,3 +24,24 @@
  .recovery-main{padding:20px}
  .recovery-intro h1{font-size:36px}
 }
+
+
+/* Manual recovery intake (staff reviews ownership separately). */
+.recovery-route{width:100%;min-height:100%;display:flex;flex-direction:column;align-items:stretch}
+.recovery-route>.recovery-manual{width:min(100% - 32px,830px);margin:24px auto 74px}
+.recovery-manual h2{font-size:clamp(23px,2.7vw,30px);margin:0 0 14px}
+.recovery-manual>p{color:#b4cddc;line-height:1.7}
+.recovery-manual .profile-form{margin-top:18px}
+.recovery-manual .profile-form select,.recovery-manual .profile-form textarea{
+ width:100%;min-width:0;background:#092431;border:1px solid #47778b;
+ border-radius:12px;padding:13px 14px;color:#fff;font:inherit;resize:vertical
+}
+.recovery-manual select:focus-visible,.recovery-manual textarea:focus-visible{outline:3px solid #40ccff;outline-offset:3px}
+.recovery-manual .profile-form button{margin-top:12px}
+.recovery-manual-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.recovery-manual-tabs button{padding:11px 16px;background:#173441;color:#bad7e5;border:1px solid #406579;border-radius:11px;font-weight:800;cursor:pointer}
+.recovery-manual-tabs button.selected{background:#225c71;color:#eaffff;border-color:#64bdd7}
+.recovery-reference{background:#103949;border:1px solid #31798b;border-radius:13px;padding:15px;overflow-wrap:anywhere}
+.recovery-reference strong{display:inline-block;margin-left:5px;color:#8ae8ff;letter-spacing:.03em}
+.recovery-trap{display:none!important}
+@media(max-width:760px){.recovery-route>.recovery-manual{margin:16px auto 55px;width:calc(100% - 30px)}.recovery-manual-tabs button{flex:1}}
