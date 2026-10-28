@@ -10,7 +10,9 @@ const action={backgroundColor:"#00b8f0",padding:15,borderRadius:13,alignItems:"c
 const text={color:"#f5fcff",fontSize:14};
 export default function WebAccountGate({children}){
  const [user,setUser]=useState(null),[pupAccount,setPupAccount]=useState(null);
- const callbackPending=useRef(hasPuppyDiscordCallback());
+ const initialCallback=useRef(hasPuppyDiscordCallback());
+ const callbackPending=useRef(initialCallback.current);
+ const callbackPromise=useRef(null);
  const callbackFailed=useRef(false);
  const [loading,setLoading]=useState(true),[login,setLogin]=useState(""),[password,setPassword]=useState("");
  const [busy,setBusy]=useState(false),[error,setError]=useState("");
@@ -42,9 +44,15 @@ export default function WebAccountGate({children}){
    queueMicrotask(()=>{if(alive&&!callbackPending.current&&!callbackFailed.current)void verify();});
   })||{};
   (async()=>{
-   const callback=hasPuppyDiscordCallback();
+   const callback=initialCallback.current;
    try{
-    if(client&&callback)await finishPuppyDiscord(client);
+    // StrictMode replays effects. Share ONE callback exchange/PKCE validation
+    // across both effects so the history replacement cannot race a stale
+    // Supabase session check or consume the one-time state twice.
+    if(client&&callback){
+      if(!callbackPromise.current)callbackPromise.current=finishPuppyDiscord(client);
+      await callbackPromise.current;
+    }
     callbackPending.current=false;
     if(alive)await verify();
    }catch(e){
