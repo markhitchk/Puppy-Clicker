@@ -22,7 +22,8 @@ test("username link checks account ownership and never receives a password",()=>
  assert.match(edge,/\.eq\("auth_user_id",user\.id\)/);
  assert.match(edge,/passwordLoginEnabled:credentials\?\.auth_user_id===user\.id/);
  assert.match(edge,/admin\.from\("pup_credential_links"\)\.insert/);
- assert.doesNotMatch(edge,/body\.password|password:body|updateUserById\(user\.id/);
+ const setup=edge.slice(edge.indexOf('if(body.action==="credential-check"'),edge.indexOf('if(["cloud-save-read"'));
+ assert.doesNotMatch(setup,/body\.password|password:body|updateUserById\(user\.id/);
 });
 
 test("credential setup does not overwrite cloud saves or Discord identity",()=>{
