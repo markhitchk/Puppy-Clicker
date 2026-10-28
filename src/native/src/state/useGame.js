@@ -1,114 +1,152 @@
 import {useCallback,useEffect,useReducer,useRef,useState} from "react";
 import {initialState,transition} from "./reducer.js";
-import {freshGame,sanitizeGame} from "../engine/game.js";
+import {freshGame} from "../engine/game.js";
+import {projectKotlinCloudSave} from "../production/kotlinCloudPreview.js";
 import {fallbackSchedule,parseMonthlySchedule,monthKey} from "../engine/monthlyRewards.js";
 import {useWebAccount} from "../../web/AccountGate.jsx";
 
-// Uses the REAL Android/React Native reducer and screens. Browser auth does
-// not imply PupEye authority: the website's existing RLS-backed save remains
-// independent from signed native Pup Account progression.
-const freshForAccount=user=>{
+// The browser is now a Pup Account companion, not a separate economy.
+// Never read or write puppy_web_saves, never forge a PupEye signed envelope.
+const LIVE_ACTIONS=new Set([
+ "tap","care","purchase","ticket","accessory","equip","exchange","skill",
+ "daily","claimDailyGoal","parkStart","parkClaim","prestige",
+ "slotsStart","slotsReveal","rouletteStart","rouletteReveal",
+ "plinkoStart","plinkoReveal","scratchStart","scratchReveal",
+ "wheelStart","wheelReveal","gacha","switch","rename","favorite",
+ "afkStart","afkSettle","afkClaim","afkOpen","afkMarkAllRead","afkClearRead",
+ "blackjackStart","blackjackHit","blackjackStand","blackjackDouble","blackjackSplit"
+]);
+const LOCAL_ACTIONS=new Set([
+ "dismiss","dismissGacha","monthlySchedule","comboTimeout","setPreference",
+ "resetSettings","checkNotifications","testNotification","markNotificationsRead",
+ "clearReadNotifications","openNotification"
+]);
+const freshView=name=>{
  const game=freshGame();
- game.onboardingComplete=true;
- game.onboardingStep=5;
- game.guestName=String(user.user_metadata?.full_name||user.user_metadata?.name||user.email?.split("@")[0]||"Puppy Player").slice(0,24);
+ game.onboardingComplete=true;game.onboardingStep=5;
+ game.guestName=String(name||"Pup Account").slice(0,24);
  return game;
 };
-const transient=new Set(["dismiss","comboTimeout","monthlySchedule","foregroundCareTick"]);
-const cleanInitial=()=>({...initialState(),notice:"",ready:false,monthlySchedule:fallbackSchedule()});
+const normalizeIntent=action=>Object.fromEntries(
+ ["type","kind","id","payment","upgradeId","rarity","name","skill",
+ "goalId","amount","wager","bet"].filter(k=>action[k]!==undefined).map(k=>[k,action[k]])
+);
+async function functionError(error){
+ let code="PUP_CLOUD_UNAVAILABLE";
+ try{
+  const json=await error?.context?.json?.();
+  if(typeof json?.error==="string"&&/^[A-Z0-9_]{3,80}$/.test(json.error))code=json.error;
+ }catch{}
+ return code;
+}
 export function useGame(){
  const {user,client,pupAccount}=useWebAccount();
- const [state,dispatch]=useReducer(transition,undefined,cleanInitial);
+ const [state,dispatch]=useReducer(transition,undefined,()=>({...initialState(),ready:false,notice:""}));
  const [syncStatus,setSyncStatus]=useState({state:"LOADING",revision:null,errorCode:null});
- const [change,setChange]=useState(0);
- const base=useRef(null),revision=useRef(0),updating=useRef(Promise.resolve());
- const latest=useRef(state),syncing=useRef(false),blocked=useRef(false),loaded=useRef(false),generation=useRef(0);
- latest.current=state;
+ const [cloudState,setCloudState]=useState("LOADING");
+ const revision=useRef(0),loaded=useRef(false),generation=useRef(0);
+ const pending=useRef(0),queue=useRef(Promise.resolve());
+ const latest=useRef(state);latest.current=state;
  const reload=useCallback(async()=>{
-  const index=++generation.current;
-  blocked.current=true;loaded.current=false;
-  setSyncStatus({state:"LOADING",revision:revision.current,errorCode:null});
+  if(pending.current>0)return false;
+  const request=++generation.current;
+  setSyncStatus(old=>({...old,state:"LOADING",errorCode:null}));
   try{
-   const {data,error}=await client.from("puppy_web_saves")
-    .select("revision,save_data").eq("auth_user_id",user.id).maybeSingle();
-   if(error)throw error;
-   if(index!==generation.current)return false;
-   const original=data?.save_data&&typeof data.save_data==="object"?data.save_data:{};
-   // Never erase existing V1 web saves, even if they came from the old website.
-   if(original.format&&original.format!=="puppy-clicker-web-save")throw Error("SAVE_FORMAT_MISMATCH");
-   base.current=original;
-   revision.current=Number(data?.revision||0);
-   const next=original.nativeGame?sanitizeGame(original.nativeGame):freshForAccount(user);
-   if(pupAccount?.displayName&&(!original.nativeGame||next.guestName==="Guest Puppy Fan"))next.guestName=pupAccount.displayName.slice(0,24);
-   next.onboardingComplete=true;next.onboardingStep=5;
-   dispatch({type:"hydrate",game:next,now:Date.now()});
+   const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"cloud-save-read"}});
+   if(error||!data?.verified||data.account?.id!==pupAccount.id)
+    throw new Error(error?await functionError(error):"PUP_ACCOUNT_VERIFICATION_FAILED");
+   if(request!==generation.current)return false;
+   if(!data.cloud?.exists){
+    // Never seed a blank website save over a pre-existing Kotlin player.
+    loaded.current=false;revision.current=0;
+    dispatch({type:"hydrate",game:freshView(data.account.displayName),now:Date.now(),readOnly:true});
+    setCloudState("NO_CLOUD_SAVE");
+    setSyncStatus({state:"BLOCKED",revision:0,errorCode:"CLOUD_SAVE_REQUIRED"});
+    return false;
+   }
+   const game=projectKotlinCloudSave(data.cloud.saveJson,data.account.displayName);
+   revision.current=data.cloud.revision;
+   loaded.current=true;
+   dispatch({type:"hydrate",game,now:Date.now(),readOnly:true});
    dispatch({type:"dismiss"});
-   loaded.current=true;blocked.current=false;
+   setCloudState("LIVE_SYNCED");
    setSyncStatus({state:"READY",revision:revision.current,errorCode:null});
    return true;
-  }catch{
-   if(index!==generation.current)return false;
-   setSyncStatus({state:"BLOCKED",revision:revision.current,errorCode:"SAVE_LOAD_FAILED"});
+  }catch(error){
+   if(request!==generation.current)return false;
+   const message=String(error?.message||"CLOUD_LOAD_FAILED");
+   setSyncStatus({state:loaded.current?"RECONNECTING":"BLOCKED",
+    revision:revision.current,errorCode:/^CLOUD_|^PUP_/.test(message)?message:"CLOUD_LOAD_FAILED"});
+   if(!loaded.current){setCloudState("CONNECTION_ERROR");}
    return false;
   }
- },[client,user.id,pupAccount?.displayName]);
- useEffect(()=>{void reload();return()=>{generation.current++;loaded.current=false;blocked.current=true;}},[reload]);
+ },[client,pupAccount.id]);
+ useEffect(()=>{
+  void reload();
+  return()=>{generation.current++;loaded.current=false;};
+ },[reload]);
  const act=useCallback(action=>{
-  if(!action||!action.type)return;
-  if(action.type==="dismiss"||action.type==="monthlySchedule"||action.type==="comboTimeout"){
-   dispatch(action);return;
-  }
-  if(!loaded.current||blocked.current)return;
-  if(action.type==="webBirthday"){
-   const current=latest.current.game;
-   dispatch({type:"hydrate",game:{...current,birthdayMonth:action.month,birthdayDay:action.day},now:Date.now(),readOnly:true});
-   setChange(n=>n+1);
+  if(!action?.type)return;
+  if(LOCAL_ACTIONS.has(action.type)){dispatch(action);return;}
+  if(action.type==="resume"||action.type==="rollDailyDay"){
+   if(pending.current===0)void reload();
    return;
   }
-  // Signed account ownership is enforced by Supabase RLS/RPC. This must
-  // never be represented as the original Android PupEye-signed economy.
-  dispatch(action);
-  if(!transient.has(action.type))setChange(n=>n+1);
- },[]);
- const flush=useCallback(snapshot=>{
-  const capturedIndex=generation.current;
-  const normalized=sanitizeGame(snapshot);
-  updating.current=updating.current.catch(()=>{}).then(async()=>{
-   if(blocked.current||!loaded.current||generation.current!==capturedIndex)return;
-   syncing.current=true;
-   setSyncStatus(prev=>({...prev,state:"SAVING",errorCode:null}));
-   // Legacy web `save_data.game` is explicitly preserved untouched.
-   const payload={...base.current,format:"puppy-clicker-web-save",
-     schemaVersion:1,nativeGame:normalized};
+  if(!LIVE_ACTIONS.has(action.type)){
+   // Unsupported actions fail closed; client-side reducers cannot mint money.
+   dispatch({type:"webActionBlocked"});
+   return;
+  }
+  if(!loaded.current||revision.current<1){
+   setSyncStatus(old=>({...old,state:"BLOCKED",errorCode:"CLOUD_SAVE_REQUIRED"}));
+   return;
+  }
+  const intent=normalizeIntent(action);
+  const captured=generation.current;
+  pending.current++;
+  setSyncStatus(old=>({...old,state:"SAVING",errorCode:null}));
+  queue.current=queue.current.catch(()=>{}).then(async()=>{
+   if(!loaded.current||captured!==generation.current)return;
+   const {data,error}=await client.functions.invoke("pup-web-auth",{
+    body:{action:"gameplay",expectedRevision:revision.current,intent}
+   });
+   if(error||!data?.saved||!data.cloud?.exists){
+    const code=error?await functionError(error):"SAVE_RECEIPT_MISSING";
+    throw new Error(code);
+   }
+   // The server has committed a single authoritative Kotlin revision.
+   // A display projection failure must never cause an automatic economy retry.
+   revision.current=data.cloud.revision;
+   setSyncStatus({state:"SAVED",revision:revision.current,errorCode:null});
    try{
-    const {data,error}=await client.rpc("puppy_web_save_commit",{
-      p_expected_revision:revision.current,p_save_data:payload
-    });
-    if(error)throw error;
-    if(generation.current!==capturedIndex)return;
-    revision.current=Number(data);
-    base.current=payload;
-    setSyncStatus({state:"SAVED",revision:revision.current,errorCode:null});
-   }catch(error){
-    blocked.current=true;
-    setSyncStatus({state:"BLOCKED",revision:revision.current,
-      errorCode:String(error?.message||"SAVE_FAILED").includes("WEB_SAVE_CONFLICT")?"SAVE_CONFLICT":"SAVE_FAILED"});
-   }finally{syncing.current=false;}
+    const game=projectKotlinCloudSave(data.cloud.saveJson,pupAccount?.displayName||pupAccount?.username);
+    dispatch({type:"hydrate",game,now:Date.now(),readOnly:true});
+    setCloudState("LIVE_SYNCED");
+   }catch{
+    setSyncStatus({state:"SAVED_DISPLAY_ERROR",revision:revision.current,errorCode:"SAVED_BUT_DISPLAY_REFRESH_FAILED"});
+   }
+  }).catch(error=>{
+   const code=String(error?.message||"SAVE_RESULT_UNKNOWN");
+   // Never automatically replay an ambiguous write, including timeouts.
+   // On conflict, require a fresh authenticated cloud snapshot.
+   if(code==="CLOUD_SAVE_CONFLICT"||code==="SAVE_RESULT_UNKNOWN"||code==="PUP_CLOUD_UNAVAILABLE"){
+    loaded.current=false;
+    setCloudState("CONNECTION_ERROR");
+   }
+   setSyncStatus({state:"BLOCKED",revision:revision.current,errorCode:code});
+  }).finally(()=>{
+   pending.current=Math.max(0,pending.current-1);
+   if(pending.current===0&&!loaded.current)void reload();
   });
-  return updating.current;
- },[client]);
+ },[client,reload,pupAccount?.displayName,pupAccount?.username]);
  useEffect(()=>{
-  if(change===0||!state.ready||!loaded.current||blocked.current)return;
-  // Gameplay reacts instantly. Backend snapshots are queued in reducer order.
-  const timer=setTimeout(()=>{void flush(latest.current.game)},180);
-  return()=>clearTimeout(timer);
- },[change,state.game,state.ready,flush]);
- useEffect(()=>{
-  if(!loaded.current)return;
-  const onHidden=()=>{if(document.visibilityState==="hidden"&&state.ready)void flush(latest.current.game)};
-  document.addEventListener("visibilitychange",onHidden);
-  return()=>document.removeEventListener("visibilitychange",onHidden);
- },[flush,state.ready]);
+  const refresh=()=>{if(pending.current===0&&document.visibilityState==="visible")void reload();};
+  const timer=setInterval(refresh,15000);
+  window.addEventListener("focus",refresh);
+  document.addEventListener("visibilitychange",refresh);
+  return()=>{clearInterval(timer);window.removeEventListener("focus",refresh);
+   document.removeEventListener("visibilitychange",refresh)};
+ },[reload]);
  useEffect(()=>{
   let alive=true;
   const update=async()=>{
@@ -127,19 +165,18 @@ export function useGame(){
   return()=>{alive=false;clearInterval(timer)};
  },[]);
  const updateAccountName=useCallback(async name=>{
-  const next=String(name||"").trim().slice(0,24);
-  if(next.length<2)throw Error("Display name must be at least 2 characters");
-  const {error}=await client.auth.updateUser({data:{full_name:next}});
-  if(error)throw error;
-  dispatch({type:"hydrate",game:{...latest.current.game,guestName:next},now:Date.now(),readOnly:true});
-  setChange(n=>n+1);
+  const displayName=String(name||"").trim().slice(0,24);
+  if(displayName.length<2)throw Error("Display name must be at least 2 characters");
+  const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"account-update",displayName}});
+  if(error||!data?.updated)throw Error("PUP_ACCOUNT_UPDATE_FAILED");
+  dispatch({type:"hydrate",game:{...latest.current.game,guestName:data.displayName},now:Date.now(),readOnly:true});
   return true;
- },[client,act]);
- const account={status:"WEB_VERIFIED_PUP_ACCOUNT",username:pupAccount?.username,
+ },[client]);
+ const account={status:"VERIFIED",username:pupAccount?.username,
   displayName:pupAccount?.displayName||pupAccount?.username,
   discordUserId:pupAccount?.discordUserId||null,
-  id:pupAccount?.id,authUserId:user.id,gameplayWritable:!blocked.current};
- return {state,gameForDisplay:state.game,act,account,cloudState:syncStatus.state,
+  id:pupAccount?.id,authUserId:user.id,gameplayWritable:loaded.current};
+ return {state,gameForDisplay:state.game,act,account,cloudState,
   startupError:syncStatus.errorCode?{code:syncStatus.errorCode}:null,syncStatus,
   refreshAccount:reload,updateAccountName};
 }
