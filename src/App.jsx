@@ -2,8 +2,6 @@ import React,{useEffect,useState} from "react";
 import NativeApp from "./native/App.jsx";
 import RecoveryPage from "./RecoveryPage.jsx";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
-import RecoveryPage from "./Recovery.jsx";
-import ManualRecovery from "./ManualRecovery.jsx";
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import "./styles.css";
 
@@ -226,7 +224,7 @@ function AccountDashboard(){
      {credentialMessage?<p className="portal-message" role="status">{credentialMessage}</p>:null}
      <p className="account-security-note">Use a unique password. Sign-in details are sent to Supabase Auth over HTTPS and are not stored in the website's source code or local preferences.</p>
     </section>
-    <section className="portal-card"><h3>Account management</h3><p>Refresh your verified account connection, reset a forgotten password, or request account recovery.</p><a href="/recovery" className="cta cta-secondary stretch">🔐 Account recovery</a><a href="/recovery" className="cta cta-primary stretch">🔑 Recover username or reset password</a><button type="button" className="small-action" onClick={()=>void refresh()} disabled={refreshing}>{refreshing?"Refreshing…":"Refresh account details"}</button><button className="cta cta-secondary stretch" type="button" onClick={()=>void signOut()}>Sign out</button></section>
+    <section className="portal-card"><h3>Account management</h3><p>Refresh your verified account connection, reset a forgotten password, or request account recovery.</p><a href="/recovery" className="cta cta-secondary stretch">🔐 Account recovery</a><button type="button" className="small-action" onClick={()=>void refresh()} disabled={refreshing}>{refreshing?"Refreshing…":"Refresh account details"}</button><button className="cta cta-secondary stretch" type="button" onClick={()=>void signOut()}>Sign out</button></section>
    </div>
   </div>
  </div>;
