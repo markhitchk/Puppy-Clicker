@@ -2,6 +2,7 @@ import React,{useEffect,useState} from "react";
 import NativeApp from "./native/App.jsx";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
 import RecoveryPage from "./Recovery.jsx";
+import ManualRecovery from "./ManualRecovery.jsx";
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import "./styles.css";
 
@@ -230,7 +231,7 @@ function AccountDashboard(){
  </div>;
 }
 function AccountPortal(){return <WebAccountGate><AccountDashboard/></WebAccountGate>;}
-function RecoveryPortal(){return <WebAccountGate><RecoveryPage/></WebAccountGate>;}
+function RecoveryPortal(){return <div className="recovery-route"><WebAccountGate><RecoveryPage/></WebAccountGate><ManualRecovery/></div>;}
 export default function App(){
  const path=typeof window!=="undefined"?window.location.pathname:"/";
  const page=path==="/account"?"account":path==="/recovery"?"recovery":path==="/play"||path.startsWith("/auth/discord/")?"play":"home";
