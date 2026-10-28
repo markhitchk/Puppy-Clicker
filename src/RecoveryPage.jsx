@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from "react";
-import {client} from "./native/supabase.js";
+import {client} from "./supabase.js";
 import {beginPuppyDiscord,verifyPuppySession} from "./native/web/puppyOAuth.js";
 
 const ISSUES=[
