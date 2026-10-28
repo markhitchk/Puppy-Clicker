@@ -67,8 +67,15 @@ export async function completePuppyDiscordCallback(client){
  const code=params.get("code"),state=params.get("state");
  const denied=params.has("error");
  // Remove the OAuth code from browser history before making any network call.
- // Always return to our fixed homepage; never honor a user-supplied next URL.
- globalThis.history.replaceState(globalThis.history.state,"","/");
+ // Only these two fixed destinations are eligible after a browser OAuth callback.
+ // Clear the authorization code from history before any network request.
+ let next="/play";
+ try{
+  const previous=globalThis.sessionStorage?.getItem("puppy-web-discord-return-v1");
+  if(previous==="/account")next="/account";
+  globalThis.sessionStorage?.removeItem("puppy-web-discord-return-v1");
+ }catch{}
+ globalThis.history.replaceState(globalThis.history.state,"",next);
  clearPendingDiscord();
  if(denied)throw new Error("DISCORD_LOGIN_CANCELLED");
  if(!pending||!state||state!==pending.state)
@@ -84,6 +91,8 @@ export async function completePuppyDiscordCallback(client){
   throw new Error("PUP_WEB_SESSION_INVALID");
  const {error}=await client.auth.verifyOtp({token_hash:data.token_hash,type:"magiclink"});
  if(error)throw new Error("PUP_WEB_SESSION_INVALID");
+ // Refresh the selected protected page after Supabase installs the session.
+ if(typeof globalThis.location?.replace==="function")globalThis.location.replace(next);
  return {status:"complete"};
 }
 

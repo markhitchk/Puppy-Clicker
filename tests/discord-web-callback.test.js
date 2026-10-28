@@ -64,7 +64,7 @@ test("HTTPS callback exchanges Discord code, clears it from URL, and signs into 
   assert.equal(calls[0].redirectUri,PUPPY_DISCORD_REDIRECT_URI);
   assert.equal(calls[0].code,"discord-code-123456789");
   assert.equal(getPendingDiscord(),null);
-  assert.deepEqual(b.paths,["/"]);
+  assert.deepEqual(b.paths,["/play"]);
  }finally{b.restore();}
 });
 test("mismatched state blocks exchange and clears code from the address bar",async()=>{
@@ -73,7 +73,7 @@ test("mismatched state blocks exchange and clears code from the address bar",asy
   await beginPuppyDiscord();
   globalThis.fetch=async()=>{throw Error("fetch must not run");};
   await assert.rejects(completePuppyDiscordCallback({}),/DISCORD_LOGIN_STATE_INVALID/);
-  assert.deepEqual(b.paths,["/"]);
+  assert.deepEqual(b.paths,["/play"]);
   assert.equal(getPendingDiscord(),null);
  }finally{b.restore();}
 });

@@ -155,9 +155,9 @@ function DailyGoalCard({g,goal,act,clock,readOnly=false}){
   </View>
  </View>;
 }
-function PlayScreen({g,act,clock,schedule,viewportHeight}){
+function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false}){
  const pup=ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
- const layout=revampedPlayLayout(viewportHeight);
+ const layout=desktop?{...revampedPlayLayout(viewportHeight),portrait:258,gap:13,tapHeight:58}:revampedPlayLayout(viewportHeight);
  const next=nextPlayReward(g,schedule,clock),cooldown=v6CooldownSeconds(g,clock),bonus=careTapBonus(g);
  const animate=g.animatedUi!==false&&g.tapAnimationsEnabled!==false;
  const tapScale=useRef(new Animated.Value(1)).current;
@@ -188,7 +188,7 @@ function PlayScreen({g,act,clock,schedule,viewportHeight}){
  };
  const accent=g.accentHex||'#00B8F0',rgb=[1,3,5].map(i=>parseInt(accent.slice(i,i+2),16)).join(',');
  const label=cooldown?'🐶👁️ Fair-play cooldown · '+cooldown+'s':g.energy<=10?'😴 '+g.puppyName+' is tired · Care needed':'🐾 Tap '+g.puppyName+'  +'+(g.clickPower+bonus);
- return <View style={[styles.restoredPlay,{height:Math.max(420,viewportHeight),gap:layout.gap}]}>
+ return <View style={[styles.restoredPlay,{height:Math.max(desktop?625:420,viewportHeight),gap:layout.gap}]}>
   <PageHeader title="Play" subtitle={layout.compact?'Tap your puppy and earn treats.':'Tap, earn treats, and have fun with your puppy!'}/>
   <Wallet game={g}/>
   <View style={[styles.restoredStage,{backgroundColor:`rgba(${rgb},0.065)`,borderColor:`rgba(${rgb},0.16)`}]}>
@@ -204,6 +204,30 @@ function PlayScreen({g,act,clock,schedule,viewportHeight}){
    <Txt style={{fontSize:22}}>🎁</Txt><View style={{flex:1,gap:5}}><View style={styles.pair}><Txt numberOfLines={1} style={[styles.small,{fontWeight:'900',flex:1}]}>{next.title}</Txt><Txt style={styles.small}>{next.allClaimed?'✓':next.progress+'/'+next.target}</Txt></View><View accessibilityRole="progressbar" accessibilityLabel="Next reward progress" accessibilityValue={{min:0,max:next.target,now:next.progress}} style={[styles.track,{height:5}]}><View style={[styles.fill,{backgroundColor:C.accent,width:(100*next.progress/next.target)+'%',height:5}]}/></View></View><Txt style={styles.small}>{next.allClaimed?'All claimed':next.rewardTreats+' 🍪'}</Txt>
   </View>
   {ticketVisible?<View pointerEvents="none" style={[styles.ticketOverlay,{top:2}]}><Txt style={styles.ticketOverlayTitle}>🎟️ {g.lastTicketDrop} UPGRADE TICKET</Txt></View>:null}
+ </View>;
+}
+// The desktop game is a dedicated multi-column experience using the same live
+// game state and authenticated actions as the original mobile play screen.
+function DesktopPlayScreen({g,act,clock,schedule,viewportHeight,onOpen}){
+ const panelHeight=Math.max(625,Math.min(800,viewportHeight));
+ return <View style={{flexDirection:'row',alignItems:'flex-start',gap:20,width:'100%',paddingTop:12,paddingBottom:18}}>
+  <View style={{flex:1.15,minWidth:0}}>
+   <PlayScreen g={g} act={act} clock={clock} schedule={schedule} viewportHeight={panelHeight} desktop/>
+  </View>
+  <View style={{flex:0.85,minWidth:0,gap:16}}>
+   <View style={{padding:17,borderRadius:22,borderWidth:1,borderColor:C.line,backgroundColor:C.surface}}>
+    <CareScreen g={g} act={act} viewportHeight={720}/>
+   </View>
+   <View style={{padding:16,borderRadius:20,borderWidth:1,borderColor:C.line,backgroundColor:C.surface,gap:12}}>
+    <Txt style={{fontWeight:'900',fontSize:17}}>🐾 Quick access</Txt>
+    <Txt muted style={{fontSize:13}}>Your full Puppy Clicker adventure is one click away.</Txt>
+    <View style={{flexDirection:'row',gap:8}}>
+     <View style={{flex:1}}><Button compact secondary onPress={()=>onOpen('roster')}>🐶 Roster</Button></View>
+     <View style={{flex:1}}><Button compact secondary onPress={()=>onOpen('shop')}>🛍️ Shop</Button></View>
+    </View>
+    <Button compact onPress={()=>onOpen('rewards')}>🎁 Rewards &amp; daily goals</Button>
+   </View>
+  </View>
  </View>;
 }
 // Shipped PuppyRevampedCareScreen, preserving the existing care reducer effects.
@@ -1072,7 +1096,7 @@ export function PuppyApp({betaMode=false}){
   if(secondary==='rewards'||tab==='rewards'&&!secondary)return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} readOnly={betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
   if(secondary==='gacha')return <GachaScreen g={g} act={act} state={state} registry={registry} onBack={()=>openScreen('rewards')}/>;
   if(secondary==='casino')return <CasinoScreen g={g} act={act} bet={bet} setBet={setBet} state={state} onBack={()=>openScreen('rewards')}/>;
-  if(tab==='play')return <PlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6}/>
+  if(tab==='play')return desktop?<DesktopPlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>:<PlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6}/>
   if(tab==='care')return <CareScreen g={g} act={act} viewportHeight={contentHeight-6}/>;
   if(tab==='shop')return <ShopScreen g={g} act={act} onOpen={openScreen}/>;
   return null;
@@ -1124,7 +1148,7 @@ export function PuppyApp({betaMode=false}){
   </View>:null}
 
 {state.notice?<Pressable accessibilityRole="button" onPress={()=>act({type:'dismiss'})} style={styles.notice}><Txt style={styles.small}>{state.notice}  ✕</Txt></Pressable>:null}
-  <ScrollView key={secondary||tab} onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={styles.scroll} contentContainerStyle={[styles.content,(secondary==='settings'||['play','care','roster'].includes(tab)&&!secondary)&&{paddingTop:2,paddingBottom:0,paddingHorizontal:secondary==='settings'?16:tab==='roster'?12:14,gap:0},{maxWidth:desktop?950:width>650?670:undefined}]} keyboardShouldPersistTaps="handled">
+  <ScrollView key={secondary||tab} onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={styles.scroll} contentContainerStyle={[styles.content,(secondary==='settings'||['play','care','roster'].includes(tab)&&!secondary)&&{paddingTop:2,paddingBottom:0,paddingHorizontal:secondary==='settings'?16:tab==='roster'?12:14,gap:0},{maxWidth:desktop?1540:width>650?670:undefined,paddingHorizontal:desktop?25:undefined}]} keyboardShouldPersistTaps="handled">
    {secondary&&secondary!=='settings'&&secondary!=='exchange'&&secondary!=='account-details'?<View style={styles.back}><Button compact secondary onPress={()=>setSecondary(null)}>← Back to {TABS.find(x=>x[0]===tab)?.[2]}</Button><Txt style={styles.heading}>{secondary.toUpperCase()}</Txt></View>:null}
    {!state.ready?<Card title={betaMode?'Loading Pup Account…':'Loading local guest data…'}><Txt muted>{betaMode?'Checking signed cloud progress.':'Reading device cache.'}</Txt></Card>:!g.onboardingComplete?<OnboardingScreen g={saved} act={act} notifications={notifications}/>:<>{secondary==='casino'?<Wallet game={g}/>:null}{main()}</>}
   </ScrollView>
@@ -1134,7 +1158,7 @@ export function PuppyApp({betaMode=false}){
    </Pressable>)}
   </View>:null}
     </View>
-    {desktop?<View style={{width:270,backgroundColor:C.surface,borderLeftWidth:1,borderColor:C.line,padding:18,gap:14}}>
+    {desktop&&width>=1700?<View style={{width:270,backgroundColor:C.surface,borderLeftWidth:1,borderColor:C.line,padding:18,gap:14}}>
      <Txt style={{fontSize:18,fontWeight:'900'}}>🐶 Player overview</Txt>
      <View style={{backgroundColor:C.accentSoft,borderRadius:16,padding:12,gap:6}}>
       <Txt style={{fontSize:14,fontWeight:'900'}}>{saved.guestName}</Txt>

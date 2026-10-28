@@ -51,6 +51,8 @@ export default function WebAccountGate({children}){
   if(!client||busy)return;
   setBusy(true);setError("");
   try{
+   try{globalThis.sessionStorage?.setItem("puppy-web-discord-return-v1",
+    globalThis.location?.pathname==="/account"?"/account":"/play");}catch{}
    const url=await beginPuppyDiscord();
    // Discord returns to /auth/discord/callback in this same browser on
    // Android, iOS, and desktop, never to the Android app's custom URI.
@@ -91,7 +93,7 @@ export default function WebAccountGate({children}){
     <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Verifying…":"Sign in to Pup Account"}</Text>
    </Pressable>
    {!!error&&<Text accessibilityRole="alert" style={{color:"#ffb4ad"}}>{error}</Text>}
-   <Text style={{...text,fontSize:11,color:"#adc1ce"}}>Discord returns to the website. Existing Pup Accounts only. Android PupEye saves stay protected and separate from website progress.</Text>
+   <Text style={{...text,fontSize:11,color:"#adc1ce"}}>Discord returns to the website. Your Pup Account identity and protected cloud progress are verified before gameplay.</Text>
   </View>
  </View>;
  return <C.Provider value={{user,client,pupAccount,signOut:()=>client.auth.signOut()}}>{children}</C.Provider>;
