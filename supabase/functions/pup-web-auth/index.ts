@@ -124,7 +124,7 @@ async function currentSession(req){
  if(le)throw new PublicError(503,"PUP_ACCOUNT_LOOKUP_FAILED");
  if(!link)throw new PublicError(403,"PUP_ACCOUNT_SESSION_REQUIRED");
  const {data:account,error:ae}=await admin.from("pup_accounts").select(
-  "id,player_uuid,active_installation_uuid,discord_user_id,username,display_name,status,terms_version,privacy_version,terms_accepted_at,privacy_accepted_at"
+  "id,player_uuid,active_installation_uuid,discord_user_id,username,display_name,contact_email,status,terms_version,privacy_version,terms_accepted_at,privacy_accepted_at"
  ).eq("id",link.account_uuid).maybeSingle();
  if(ae)throw new PublicError(503,"PUP_ACCOUNT_LOOKUP_FAILED");
  await accountAllowed(account);
@@ -140,10 +140,31 @@ Deno.serve(async req=>{
   if(!body||typeof body!=="object")throw new PublicError(400,"PUP_REQUEST_INVALID");
   if(body.action==="status"){
    const {account}=await currentSession(req);
+   // These public-facing details are read only from the authenticated owner's
+   // authoritative player and save records, never from browser-supplied IDs.
+   const [{data:player,error:pe},{data:installation,error:ie},
+    {data:save,error:se}]=await Promise.all([
+    admin.from("pupeye_players").select("friend_code,guild_role")
+     .eq("id",account.player_uuid).maybeSingle(),
+    admin.from("pupeye_installations").select("player_uuid,active,revoked_at")
+     .eq("id",account.active_installation_uuid).maybeSingle(),
+    admin.from("pup_account_saves").select("account_uuid")
+     .eq("player_uuid",account.player_uuid).maybeSingle()
+   ]);
+   if(pe||ie||se)throw new PublicError(503,"PUP_ACCOUNT_DETAILS_UNAVAILABLE");
+   const owned=!!installation&&installation.player_uuid===account.player_uuid
+    &&installation.active===true&&!installation.revoked_at;
+   const connected=owned&&save?.account_uuid===account.id;
    return json(200,{verified:true,account:{
     id:account.id,username:account.username,
     displayName:account.display_name||account.username,
-    discordUserId:account.discord_user_id||null
+    discordUserId:account.discord_user_id||null,
+    friendCode:player?.friend_code||null,
+    guildRole:player?.guild_role||null,
+    status:"VERIFIED",
+    linkedFromPlay:connected,
+    gameplayWritable:connected,
+    contactEmail:account.contact_email||null
    }},origin);
   }
   if(["cloud-save-read","gameplay","account-update"].includes(body.action)){
