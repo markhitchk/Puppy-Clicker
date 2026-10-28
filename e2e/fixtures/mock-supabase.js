@@ -28,7 +28,15 @@ export const client={
   async signOut(){signedOut=true;return{error:null}}
  },
  functions:{async invoke(name,{body}){
-  if(name!=="pup-web-auth"||signedOut)return{data:null,error:new Error("PUP_ACCOUNT_SESSION_REQUIRED")};
+  if(signedOut)return{data:null,error:new Error("PUP_ACCOUNT_SESSION_REQUIRED")};
+  if(name==="pup-exchange"){
+   if(body.operation==="profile")return{data:{
+    profile:{username:pup.username,friendCode:"PUP-TEST-WEBB-GAME",canGiftAll:false,canGiftDirect:false},
+    connections:[],offers:[],policies:[]
+   },error:null};
+   return{data:null,error:new Error("EXCHANGE_ACTION_INVALID")};
+  }
+  if(name!=="pup-web-auth")return{data:null,error:new Error("PUP_ACTION_INVALID")};
   if(body.action==="status")return {data:{verified:true,account:pup},error:null};
   if(body.action==="cloud-save-read")return {data:{verified:true,account:pup,cloud:cloud(record())},error:null};
   if(body.action==="account-update"){
