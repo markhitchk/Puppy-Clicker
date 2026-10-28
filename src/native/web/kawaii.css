@@ -89,3 +89,6 @@ html .portal-message,html .cloud-status{background:#00e5ff0a;border-color:var(--
 @media(max-width:999px){.mobile-play .puppy-platform{min-height:clamp(230px,calc(100dvh - 530px),330px)}.mobile-play .platform-portrait{margin-top:-12px;margin-bottom:-18px}.mobile-play .platform-name{position:relative}.mobile-play .platform-orbit{bottom:70px}.mobile-play .cyber-play-stage{flex-shrink:0}}
 
 @media(max-width:999px){.mobile-play .puppy-platform{min-height:clamp(200px,calc(100dvh - 680px),310px)}.mobile-play [data-testid=resource-strip]{padding-top:12px!important;padding-bottom:12px!important}.mobile-play .cyber-play-stage{padding-bottom:14px}.mobile-play .cyber-tap{min-height:70px}.mobile-play .play-energy{margin-bottom:12px;padding:10px}.mobile-play .next-reward{padding:14px}}
+
+.puppy-artwork{max-width:100%;object-fit:contain}.puppy-art-unavailable{display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--text-secondary)}
+[data-testid=puppy-roster-grid]>div{content-visibility:auto;contain-intrinsic-size:auto 230px}
