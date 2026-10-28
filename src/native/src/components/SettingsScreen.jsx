@@ -11,7 +11,7 @@ const T=({children,muted=false,style,...props})=><Text {...props} style={[s.text
 function Action({children,onPress,disabled=false,danger=false}){return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({pressed})=>[s.action,disabled&&{opacity:.45},pressed&&{opacity:.7},danger&&{borderColor:C.danger}]}><T style={{fontWeight:'700',color:danger?C.danger:C.accentInk,textAlign:'center'}}>{children}</T></Pressable>;}
 function Toggle({title,detail,value,onChange,disabled=false}){return <View style={s.toggle}><View style={{flex:1,gap:3}}><T style={s.bold}>{title}</T>{detail?<T muted style={s.small}>{detail}</T>:null}</View><Switch accessibilityLabel={title} disabled={disabled} value={value===true} onValueChange={onChange} trackColor={{false:C.line,true:C.accent}} thumbColor={C.surface}/></View>;}
 function Choices({label,value,items,onChange}){return <View style={{gap:6}}><T style={s.bold}>{label}</T><View style={s.choices}>{items.map(([id,title])=><Pressable key={id} accessibilityRole="radio" accessibilityState={{checked:value===id}} onPress={()=>onChange(id)} style={[s.choice,value===id&&s.selected]}><T style={{color:value===id?C.accentInk:C.text}}>{title}</T></Pressable>)}</View></View>;}
-export default function SettingsScreen({g,act,onOpen,registry,notifications,diagnostics,betaMode=false,account,onConnectAccount,onUpdateAccountName,onUpdateBirthday,cloudState,syncStatus,onRefreshAccount}){
+export default function SettingsScreen({g,act,onOpen,registry,notifications,diagnostics,betaMode=false,account,onConnectAccount,onUpdateAccountName,onUpdateBirthday,cloudState,syncStatus,onRefreshAccount,webMode=false}){
  const [expanded,setExpanded]=useState(null),[danger,setDanger]=useState(false),[dangerAction,setDangerAction]=useState(null);
  const [name,setName]=useState(g.guestName),[puppy,setPuppy]=useState(g.puppyName);
  const [profileBusy,setProfileBusy]=useState(false),[profileMessage,setProfileMessage]=useState('');
@@ -28,7 +28,7 @@ export default function SettingsScreen({g,act,onOpen,registry,notifications,diag
   </Pressable>{expanded===id?<View style={s.body}>{children}</View>:null}
  </View>;
  const group=title=><T style={s.group}>{title}</T>;
- const pending=<T muted>{betaMode?'Live gameplay is signed and saved to Pup Account. This specific feature is not yet available until its server-side implementation is verified.':'Available after the original linked account and protected services are migrated. This preview has local guest progress.'}</T>;
+ const pending=<T muted>{webMode?'This feature requires server-verified PupEye ownership before browser transactions are enabled.':betaMode?'Live gameplay is signed and saved to Pup Account. This specific feature is not yet available until its server-side implementation is verified.':'Available after verified account migration.'}</T>;
  return <View style={s.page}>
   <View><T style={s.title}>Settings</T><T muted style={s.description}>Everything in one place. Tap a card to expand its settings.</T></View>
   <View style={s.identity}>
@@ -37,8 +37,8 @@ export default function SettingsScreen({g,act,onOpen,registry,notifications,diag
   </View>
   {group('ACCOUNT')}
   {section('profile','👤','Profile',g.guestName+' · Level '+guestLevel(g),<>
-   <T muted>{betaMode?'Pup Account · Signed gameplay saves directly to Supabase and syncs between verified installations.':'Guest · Level '+guestLevel(g)+' · Saved on this device'}</T><T style={s.bold}>Display name</T><TextInput accessibilityLabel="Display name" value={name} onChangeText={setName} maxLength={24} style={s.input}/><Action disabled={profileBusy||!name.trim()||name.trim().length<2||name.trim().length>24} onPress={()=>{
-    if(!betaMode){act({type:'onboardPlayer',name});return;}
+   <T muted>{webMode?'Website Account · Your browser game is saved to your signed-in Supabase account, separate from native PupEye progress.':betaMode?'Pup Account · Signed gameplay saves directly to Supabase and syncs between verified installations.':'Guest · Level '+guestLevel(g)+' · Saved on this device'}</T><T style={s.bold}>Display name</T><TextInput accessibilityLabel="Display name" value={name} onChangeText={setName} maxLength={24} style={s.input}/><Action disabled={profileBusy||!name.trim()||name.trim().length<2||name.trim().length>24} onPress={()=>{
+    if(!betaMode&&!webMode){act({type:'onboardPlayer',name});return;}
     setProfileBusy(true);setProfileMessage('');
     Promise.resolve(onUpdateAccountName?.(name.trim()))
      .then(()=>setProfileMessage('✓ Display name saved to your Pup Account.'))
@@ -48,14 +48,18 @@ export default function SettingsScreen({g,act,onOpen,registry,notifications,diag
     {profileMessage?<T accessibilityRole="alert" muted>{profileMessage}</T>:null}
    <T style={s.bold}>Puppy name</T><TextInput accessibilityLabel="Puppy name" value={puppy} onChangeText={setPuppy} maxLength={18} style={s.input}/><Action disabled={!puppy.trim()} onPress={()=>act({type:'rename',name:puppy})}>Save Puppy Name</Action>
    <T style={s.bold}>Birthday</T><T muted>No birth year is stored. Leave both fields empty to skip.</T><View style={s.choices}><TextInput accessibilityLabel="Birthday month" placeholder="Month (1–12)" placeholderTextColor={C.muted} keyboardType="number-pad" maxLength={2} value={month} onChangeText={setMonth} style={[s.input,{flex:1}]}/><TextInput accessibilityLabel="Birthday day" placeholder="Day (1–31)" placeholderTextColor={C.muted} keyboardType="number-pad" maxLength={2} value={day} onChangeText={setDay} style={[s.input,{flex:1}]}/></View><Action disabled={!validBirthday(Number(month),Number(day))} onPress={()=>{
-     if(betaMode){void onUpdateBirthday?.({birthdayMonth:Number(month),birthdayDay:Number(day)}).then(ok=>setProfileMessage(ok?'✓ Birthday saved securely on this device.':'Unable to save birthday.')).catch(()=>setProfileMessage('Unable to save birthday.'));}
+     if(webMode){act({type:'webBirthday',month:Number(month),day:Number(day)});setProfileMessage('✓ Website birthday preference saved.');}
+     else if(betaMode){void onUpdateBirthday?.({birthdayMonth:Number(month),birthdayDay:Number(day)}).then(ok=>setProfileMessage(ok?'✓ Birthday saved securely on this device.':'Unable to save birthday.')).catch(()=>setProfileMessage('Unable to save birthday.'));}
      else act({type:'onboardBirthday',month:Number(month),day:Number(day)});
     }}>Save Birthday</Action><Action onPress={()=>onOpen('achievements')}>Achievements & XP</Action>
   </>)}
-  {betaMode?section('pup-account','🔐','Pup Account','Manage your sign-in and contact details',<>
-    <T muted>Sign-in and cloud progress load automatically during startup.</T>
+  {(betaMode||webMode)?section('pup-account','🔐',webMode?'Web Account':'Pup Account','Manage your sign-in and contact details',<>
+    <T muted>{webMode?'Your website session is authenticated; native Android PupEye saves and device authority remain separate.':'Sign-in and cloud progress load automatically during startup.'}</T>
+    <T>{account?.displayName||account?.username||'Connected account'}</T>
+    <Action onPress={onRefreshAccount}>Refresh Cloud Progress</Action>
+    {webMode?<Action onPress={onConnectAccount}>Sign Out / Switch Account</Action>:<>
     <Action onPress={()=>onOpen('account-details')}>View Account Details</Action>
-    <Action onPress={onConnectAccount}>Manage Pup Account Sign-in</Action>
+    <Action onPress={onConnectAccount}>Manage Pup Account Sign-in</Action></>}
    </>):null}
    {section('discord','◉','Discord','Connect or manage your Discord account',betaMode?<><Action onPress={onConnectAccount}>Connect Pup Account with Discord</Action><T muted>Discord sign-in and account management remain available in Settings.</T></>:pending)}
   {group('APP & EXPERIENCE')}
