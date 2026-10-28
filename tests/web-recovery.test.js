@@ -29,7 +29,7 @@ test("password reset requires a verified account session",()=>{
 test("manual recovery is support-only, rate limited, and RLS protected",()=>{
  const edge=read("supabase/functions/pup-recovery/index.ts");
  const migration=read("supabase/migrations/20261028_pup_recovery_support_requests.sql");
- assert.match(edge,/body\.action==="request"/);
+ assert.match(edge,/body\.action!=="request"/);
  assert.match(edge,/body\.action==="status"/);
  assert.match(edge,/countRecent\("username_key"/);
  assert.match(edge,/countRecent\("email_key"/);
