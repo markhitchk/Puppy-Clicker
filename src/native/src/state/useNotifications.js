@@ -18,7 +18,7 @@ export function useNotifications({game,ready,act,onOpen}){
  const sendTest=useCallback(()=>{
   act({type:"testNotification",now:Date.now()});
   if(typeof Notification!=="undefined"&&Notification.permission==="granted")
-   new Notification("Puppy Clicker",{body:"Your browser notifications are working."});
+   try{new Notification("Puppy Clicker",{body:"Your browser notifications are working."});setError("");}catch{setError("This browser cannot display a notification here. The test message is in your in-game inbox.");}
  },[act]);
  return {permission,error,request,sendTest,openSystemSettings:request,check:()=>act({type:"checkNotifications",now:Date.now()})};
 }

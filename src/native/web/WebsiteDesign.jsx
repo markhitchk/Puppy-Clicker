@@ -17,7 +17,7 @@ export function PuppyPlatform({children,name,onPrevious,onNext}){
   <button className="platform-arrow previous" aria-label="Previous unlocked puppy" onClick={onPrevious}>‹</button>
   <div className="platform-portrait">{children}</div>
   <button className="platform-arrow next" aria-label="Next unlocked puppy" onClick={onNext}>›</button>
-  <div className="platform-name"><h2>{name}</h2><span className="current-puppy-badge">Current Puppy</span></div>
+  <div className="platform-name"><h2 title={name}>{name}</h2><span className="current-puppy-badge">Current Puppy</span></div>
  </div>;
 }
 
