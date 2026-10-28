@@ -1,7 +1,6 @@
 import WebAccountGate from "./web/AccountGate.jsx";
 import {client as webClient} from "../supabase.js";
 import {requestWebPuppyExchange} from "./web/exchangeClient.js";
-const webExchangeRequest=(operation,fields)=>requestWebPuppyExchange(webClient,operation,fields);
 import ProductionEntry from './src/production/ProductionEntry.jsx';
 import BetaAccountEntry from './src/production/BetaAccountEntry.jsx';
 import AccountOnboarding from './src/production/AccountOnboarding.jsx';
@@ -51,6 +50,7 @@ import {GACHA_ART} from './src/assets/gacha.js';
 import {GACHA_MACHINE,gachaMachineFrame} from './src/engine/gachaV6.js';
 
 import {PUPPY_IMAGES} from './src/assets/puppies.js';
+const webExchangeRequest=(operation,fields)=>requestWebPuppyExchange(webClient,operation,fields);
 const TABS=MAIN_TABS;
 const skillNames={TAP_TRAINING:'Tap Training',AUTO_TRAINING:'Bonus Training',SMART_SHOPPER:'Smart Shopper',TICKET_SENSE:'Ticket Sense'};
 const die=()=>1+Math.floor(Math.random()*13);
