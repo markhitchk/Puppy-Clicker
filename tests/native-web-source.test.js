@@ -9,7 +9,7 @@ test("the website renders the original Android React Native PuppyApp, not the ol
  for(const screen of ["PlayScreen","CareScreen","RosterScreen","ShopScreen","RewardsScreen","CasinoScreen","GachaScreen","PrestigeScreen"])
   assert.match(native,new RegExp(screen));
  assert.match(native,/desktop=width>=1000/);
- assert.match(native,/Player overview/);
+ assert.match(native,/GameProgressHeader/);
 });
 test("real mobile game engine source has been copied with every major subsystem",()=>{
  const paths=["game.js","progression.js","blackjack.js","slotsV6.js","plinkoV6.js",

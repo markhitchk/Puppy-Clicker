@@ -1,9 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
 const fromHere=path=>fileURLToPath(new URL(path,import.meta.url));
 export default defineConfig(({command})=>({
- plugins:[react()],
+ plugins:[react(),tailwindcss()],
  define:{global:"globalThis","process.env":"{}"},
  resolve:{
   alias:[
