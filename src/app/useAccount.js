@@ -148,7 +148,7 @@ export function useAccount(platform) {
       } else {
         r.busy = false;
         setBusy(false);
-        setMessage("Guest session · sign in to save");
+        setMessage("Sign in with Discord to play and save on the website");
       }
     };
     if (!client) {
@@ -187,7 +187,7 @@ export function useAccount(platform) {
   const mutate = useCallback(
     (fn, options) => {
       const r = ref.current;
-      if (r.busy || r.conflict || r.closing) return false;
+      if (r.busy || r.conflict || r.closing || !r.user) return false;
       const next = applyMutation(r.game, fn, options);
       if (!next) return false;
       commit(next);
@@ -273,6 +273,6 @@ export function useAccount(platform) {
     load,
     login,
     logout,
-    locked: busy || conflict || closing,
+    locked: busy || conflict || closing || !user,
   };
 }

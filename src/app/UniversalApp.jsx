@@ -336,7 +336,7 @@ export default function UniversalApp({ platform }) {
                 }}
                 contentContainerStyle={{
                   flexGrow: 1,
-                  maxWidth: expanded ? 760 : 640,
+                  maxWidth: expanded ? ((route === "play" || route === "care") ? 880 : 1120) : 640,
                   width: "100%",
                   alignSelf: "center",
                   paddingHorizontal: (route === "play" || route === "care") ? 0 : prefs.scale === "LARGE" ? 18 : 14,
