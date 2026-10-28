@@ -1,4 +1,4 @@
-import React,{createContext,useContext,useEffect,useState} from "react";
+import React,{createContext,useContext,useEffect,useRef,useState} from "react";
 import {View,Text,TextInput,Pressable,Image,ActivityIndicator} from "react-native";
 import {client} from "../../supabase.js";
 import {beginPuppyDiscord,finishPuppyDiscord,hasPuppyDiscordCallback,
@@ -10,6 +10,7 @@ const action={backgroundColor:"#00b8f0",padding:15,borderRadius:13,alignItems:"c
 const text={color:"#f5fcff",fontSize:14};
 export default function WebAccountGate({children}){
  const [user,setUser]=useState(null),[pupAccount,setPupAccount]=useState(null);
+ const callbackPending=useRef(hasPuppyDiscordCallback());
  const [loading,setLoading]=useState(true),[login,setLogin]=useState(""),[password,setPassword]=useState("");
  const [busy,setBusy]=useState(false),[error,setError]=useState("");
  useEffect(()=>{
@@ -34,14 +35,21 @@ export default function WebAccountGate({children}){
    }
   };
   const {data}=client?.auth.onAuthStateChange((_event,_session)=>{
-   // Supabase callbacks are synchronous; defer all backend verification.
-   queueMicrotask(()=>{if(alive)void verify();});
+   // A pending OAuth callback must finish state/PKCE verification before
+   // any existing Supabase session (including ARC) is allowed into the game.
+   if(callbackPending.current)return;
+   queueMicrotask(()=>{if(alive&&!callbackPending.current)void verify();});
   })||{};
   (async()=>{
+   const callback=hasPuppyDiscordCallback();
    try{
-    if(client&&hasPuppyDiscordCallback())await finishPuppyDiscord(client);
+    if(client&&callback)await finishPuppyDiscord(client);
+    callbackPending.current=false;
     if(alive)await verify();
    }catch(e){
+    // Failed state/PKCE verification cannot retain a previous game session.
+    callbackPending.current=false;
+    if(callback)await client?.auth.signOut().catch(()=>{});
     if(alive){setUser(null);setPupAccount(null);setLoading(false);
      setError(String(e?.message||"PUP_DISCORD_AUTH_FAILED").replace(/_/g," "));}
    }
