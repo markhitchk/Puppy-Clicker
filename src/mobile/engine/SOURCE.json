@@ -1,6 +1,6 @@
 {
   "upstream": "markhitchk/pup-clinker",
-  "commit": "f35ad86ea874671bc05a3ab3dedde5bf97bbc06b",
+  "commit": "8266e829d537a4fbf5c2fa0406357d57b1b4a5c3",
   "sourceRoot": "Mobile/src/engine",
   "files": [
     "Mobile/src/engine/balancedProgression.js",
