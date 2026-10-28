@@ -11,7 +11,7 @@ test("the public recovery page is routed and linked from sign-in and account",()
  const oauth=read("src/native/web/puppyOAuth.js");
  assert.match(app,/path==="\/recovery"\?"recovery"/);
  assert.match(app,/page==="recovery"\?<RecoveryPage\/>/);
- assert.match(gate,/href="\/recovery"/);
+ assert.match(gate,/href=\{recovery\?"\/account":"\/recovery"\}/);
  assert.match(oauth,/previous==="\/account"\|\|previous==="\/recovery"/);
  assert.match(ui,/beginPuppyDiscord\(\)/);
  assert.match(ui,/verifyPuppySession\(client\)/);
