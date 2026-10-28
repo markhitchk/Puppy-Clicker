@@ -185,6 +185,7 @@ function AccountDashboard(){
      {detail("Account connection",connection)}
      {detail("Gameplay access",gameplay)}
      {detail("Discord",connected)}
+     {profile.recoveryEmail?detail("Verified recovery email",profile.recoveryEmail,"Confirmed by Supabase Auth. Used for password-reset links."):detail("Verified recovery email","Not configured","Visit /recovery to link and verify an email address.")}
      {profile.contactEmail?detail("Support contact email",profile.contactEmail,"Visible only to your signed-in account."):null}
     </dl>
     {profile.friendCode?<div className="account-actions"><button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button></div>:null}
