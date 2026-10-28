@@ -41,3 +41,18 @@ test("manual recovery is support-only, rate limited, and RLS protected",()=>{
  assert.match(migration,/revoke all on public\.pup_recovery_requests from public,anon,authenticated/);
  assert.match(migration,/pending.*in_review.*resolved.*rejected/);
 });
+
+test("email recovery is restricted to Supabase-verified addresses with PKCE callback",()=>{
+ const page=read("src/RecoveryPage.jsx");
+ const backend=read("supabase/functions/pup-web-auth/index.ts");
+ assert.match(page,/client\.auth\.updateUser\(\{email\}/);
+ assert.match(page,/client\.auth\.resetPasswordForEmail\(address/);
+ assert.match(page,/client\.auth\.exchangeCodeForSession\(code\)/);
+ assert.match(page,/globalThis\.history\.replaceState/);
+ assert.match(page,/await verifyPuppySession\(client\)/);
+ assert.match(backend,/user\.email_confirmed_at/);
+ assert.match(backend,/@accounts\.puppyclicker\.invalid/);
+ assert.match(backend,/recoveryEmail:confirmedEmail/);
+ assert.match(backend,/\.update\(\{email:confirmedEmail\}\)/);
+ assert.doesNotMatch(page,/auth\.admin\./);
+});
