@@ -17,7 +17,7 @@ const freshForAccount=user=>{
 const transient=new Set(["dismiss","comboTimeout","monthlySchedule","foregroundCareTick"]);
 const cleanInitial=()=>({...initialState(),notice:"",ready:false,monthlySchedule:fallbackSchedule()});
 export function useGame(){
- const {user,client}=useWebAccount();
+ const {user,client,pupAccount}=useWebAccount();
  const [state,dispatch]=useReducer(transition,undefined,cleanInitial);
  const [syncStatus,setSyncStatus]=useState({state:"LOADING",revision:null,errorCode:null});
  const [change,setChange]=useState(0);
@@ -39,6 +39,7 @@ export function useGame(){
    base.current=original;
    revision.current=Number(data?.revision||0);
    const next=original.nativeGame?sanitizeGame(original.nativeGame):freshForAccount(user);
+   if(pupAccount?.displayName&&(!original.nativeGame||next.guestName==="Guest Puppy Fan"))next.guestName=pupAccount.displayName.slice(0,24);
    next.onboardingComplete=true;next.onboardingStep=5;
    dispatch({type:"hydrate",game:next,now:Date.now()});
    dispatch({type:"dismiss"});
@@ -50,7 +51,7 @@ export function useGame(){
    setSyncStatus({state:"BLOCKED",revision:revision.current,errorCode:"SAVE_LOAD_FAILED"});
    return false;
   }
- },[client,user.id]);
+ },[client,user.id,pupAccount?.displayName]);
  useEffect(()=>{void reload();return()=>{generation.current++;loaded.current=false;blocked.current=true;}},[reload]);
  const act=useCallback(action=>{
   if(!action||!action.type)return;
@@ -134,9 +135,10 @@ export function useGame(){
   setChange(n=>n+1);
   return true;
  },[client,act]);
- const account={status:"WEB_AUTHENTICATED",username:user.user_metadata?.name||user.email,
-  displayName:user.user_metadata?.full_name||user.email,authUserId:user.id,
-  gameplayWritable:!blocked.current};
+ const account={status:"WEB_VERIFIED_PUP_ACCOUNT",username:pupAccount?.username,
+  displayName:pupAccount?.displayName||pupAccount?.username,
+  discordUserId:pupAccount?.discordUserId||null,
+  id:pupAccount?.id,authUserId:user.id,gameplayWritable:!blocked.current};
  return {state,gameForDisplay:state.game,act,account,cloudState:syncStatus.state,
   startupError:syncStatus.errorCode?{code:syncStatus.errorCode}:null,syncStatus,
   refreshAccount:reload,updateAccountName};

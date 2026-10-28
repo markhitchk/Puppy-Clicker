@@ -20,6 +20,8 @@ test("real mobile game engine source has been copied with every major subsystem"
 });
 test("browser source never requires untrusted native device identity",()=>{
  const gate=read("src/native/web/AccountGate.jsx");
- assert.match(gate,/signInWithOAuth/);
+ assert.match(gate,/beginPuppyDiscord/);
+ assert.match(gate,/verifyPuppySession/);
+ assert.doesNotMatch(gate,/signInWithOAuth/);
  assert.doesNotMatch(gate,/PuppyBetaAccount|Keystore|guestSave/);
 });
