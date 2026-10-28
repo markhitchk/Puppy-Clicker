@@ -1149,7 +1149,7 @@ export function PuppyApp({betaMode=false}){
      )}
      <Pressable accessibilityRole="button" onPress={()=>openScreen('rewards')} style={{backgroundColor:C.accentSoft,borderRadius:12,padding:12}}><Txt>🎁 Daily rewards</Txt></Pressable>
      <Pressable accessibilityRole="button" onPress={()=>openScreen('notifications')} style={{backgroundColor:C.accentSoft,borderRadius:12,padding:12}}><Txt>🔔 Notifications</Txt></Pressable>
-     <Txt muted style={{fontSize:11}}>Browser cloud save is separate from Android's protected PupEye save.</Txt>
+     <Txt muted style={{fontSize:11}}>Pup Account cross-play: Android and website share the same protected cloud progress.</Txt>
      <Pressable accessibilityRole="button" onPress={()=>void webClient.auth.signOut()} style={{padding:12,borderWidth:1,borderColor:C.line,borderRadius:12}}><Txt>Sign out</Txt></Pressable>
     </View>:null}
    </View>
