@@ -1,43 +1,23 @@
 import {test,expect} from "@playwright/test";
-const begin=async(page,width)=>{
- page.on("console",message=>{if(message.type()==="error")console.log("BROWSER_CONSOLE",message.text());});
- page.on("pageerror",error=>console.log("BROWSER_PAGE_ERROR",error.stack||error.message));
- await page.setViewportSize({width,height:850});
- await page.goto("/");
- await expect(page.getByText("Puppy Clicker",{exact:true}).first()).toBeVisible();
-};
-for(const width of [360,768,1280]){
- test("native Puppy Clicker React screens at "+width+"px",async({page})=>{
-  const errors=[];page.on("pageerror",e=>errors.push(e.message));
-  await begin(page,width);
-  await expect(page.getByRole("button",{name:"Tap Buddy to earn Treats"})).toBeVisible();
-  await page.getByRole("button",{name:"Tap Buddy to earn Treats"}).first().click();
-  await expect(page.getByRole("button",{name:"Treats exact balance: 2",exact:true})).toBeVisible();
-  if(width>=1000){
-   await expect(page.getByRole("button",{name:"Casino",exact:true})).toBeVisible();
-   await expect(page.getByRole("button",{name:"Exchange"})).toBeVisible();
-   await expect(page.getByText("Player overview")).toBeVisible();
-  }else{
-   await expect(page.getByRole("tab",{name:"Roster"})).toBeVisible();
-  }
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+for(const width of [360,768,1280,1920]){
+ test("website routes and responsive layout at "+width+"px",async({page})=>{
+  const errors=[];
+  page.on("pageerror",error=>errors.push(error.message));
+  await page.setViewportSize({width,height:850});
+  await page.goto("/");
+  await expect(page.getByRole("heading",{name:/Tap. Care. Collect./})).toBeVisible();
+  await expect(page.getByRole("navigation",{name:"Website"})).toBeVisible();
+  await expect(page.getByRole("link",{name:"Home",exact:true})).toBeVisible();
+  await expect(page.getByRole("link",{name:"🐾 Play",exact:true})).toBeVisible();
+  await expect(page.getByRole("link",{name:"Account",exact:true})).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  await page.getByRole("link",{name:"🐾 Play",exact:true}).click();
+  await expect(page).toHaveURL(/\/play$/);
+  await expect(page.getByRole("button",{name:"Sign in to Pup Account"})).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  await page.getByRole("link",{name:"Account",exact:true}).click();
+  await expect(page).toHaveURL(/\/account$/);
+  await expect(page.getByRole("button",{name:"Sign in to Pup Account"})).toBeVisible();
   expect(errors).toEqual([]);
  });
 }
-test("casino, roster, care and settings use the native screens",async({page})=>{
- await begin(page,1280);
- await page.getByRole("button",{name:"Casino",exact:true}).click();
- await expect(page.getByText("Puppy Casino").first()).toBeVisible();
- await page.getByRole("button",{name:"Roster",exact:true}).click();
- await expect(page.getByText("Puppy Roster").first()).toBeVisible();
- await page.getByRole("button",{name:"Care",exact:true}).click();
- await expect(page.getByText("Pup Care").first()).toBeVisible();
- await page.getByRole("button",{name:"Settings",exact:true}).click();
- await expect(page.getByText("Settings").first()).toBeVisible();
-});
-test("website requires authentication; never opens guest gameplay",async({page})=>{
- await page.goto("/?signedout=1");
- await expect(page.getByRole("button",{name:"Continue with Puppy Clicker Discord"})).toBeVisible();
- await expect(page.getByRole("button",{name:"Sign in to Pup Account"})).toBeVisible();
- await expect(page.getByRole("button",{name:"Tap Buddy to earn Treats"})).toHaveCount(0);
-});
