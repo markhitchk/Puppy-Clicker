@@ -37,7 +37,7 @@ test("casino, roster, care and settings use the native screens",async({page})=>{
 });
 test("website requires authentication; never opens guest gameplay",async({page})=>{
  await page.goto("/?signedout=1");
- await expect(page.getByRole("button",{name:"Continue with Discord"})).toBeVisible();
- await expect(page.getByRole("button",{name:"Sign in"})).toBeVisible();
+ await expect(page.getByRole("button",{name:"Continue with Puppy Clicker Discord"})).toBeVisible();
+ await expect(page.getByRole("button",{name:"Sign in to Pup Account"})).toBeVisible();
  await expect(page.getByRole("button",{name:"Tap Buddy to earn Treats"})).toHaveCount(0);
 });
