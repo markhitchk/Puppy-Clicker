@@ -15,6 +15,7 @@ for(const width of [360,768,1280,1920]){
   await expect(page).toHaveURL(/\/play$/);
   await expect(page.getByRole("button",{name:"Tap Buddy to earn Treats"})).toBeVisible();
   if(width>=1000){
+   await page.getByText("More game modes",{exact:true}).click();
    await expect(page.getByRole("button",{name:"Casino",exact:true})).toBeVisible();
    await expect(page.getByRole("heading",{name:"Pup Care Status",exact:true})).toBeVisible();
    await expect(page.getByRole("button",{name:"🎁 Rewards & daily goals"})).toBeVisible();
@@ -44,6 +45,7 @@ test("account display name is editable with authenticated Pup Account",async({pa
 test("verified web Pup Account opens Puppy Exchange without Android native signing",async({page})=>{
  await page.setViewportSize({width:1280,height:850});
  await page.goto("/play");
+ await page.getByText("More game modes",{exact:true}).click();
  await page.getByRole("button",{name:"Exchange",exact:true}).click();
  await expect(page.getByText("🎁 Puppy Exchange")).toBeVisible();
  await expect(page.getByText("PUP-TEST-WEBB-GAME")).toBeVisible();

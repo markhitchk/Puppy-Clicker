@@ -28,6 +28,7 @@ for(const width of [360,768,1440]){
 test('casino dialog supports cancel, keyboard focus and continue',async({page})=>{
  await page.setViewportSize({width:1440,height:900});
  await page.goto('/play');
+ await page.getByText('More game modes',{exact:true}).click();
  await page.getByRole('button',{name:'Casino',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:'Puppy Casino'});
  await expect(dialog).toBeVisible();
@@ -67,6 +68,7 @@ test('long puppy names, custom accents and reduced motion remain usable',async({
 test('casino dialog scrolls its actions into view on short screens',async({page})=>{
  await page.setViewportSize({width:1440,height:360});
  await page.goto('/play');
+ await page.getByText('More game modes',{exact:true}).click();
  await page.getByRole('button',{name:'Casino',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:'Puppy Casino'});
  await expect(dialog).toHaveCSS('overflow-y','auto');
