@@ -14,8 +14,9 @@ test("the website cannot silently use the ARC Raiders shared Discord provider",(
  assert.doesNotMatch(gate,/signInWithOAuth|provider:\s*["']discord/);
  assert.doesNotMatch(helper,/signInWithOAuth|provider:\s*["']discord/);
  assert.match(helper,/code_challenge_method:"S256"/);
- assert.match(helper,/requestPuppyRelay\("relay-start"/);
- assert.match(helper,/requestPuppyRelay\("relay-poll"/);
+ assert.match(helper,/completePuppyDiscordCallback/);
+ assert.match(helper,/DISCORD_LOGIN_STATE_INVALID/);
+ assert.doesNotMatch(helper,/requestPuppyRelay/);
  assert.match(gate,/verifyPuppySession/);
 });
 test("private Pup Account link is RLS-protected and binds an authenticated user",()=>{
@@ -34,6 +35,8 @@ test("explicit web/mobile redirect allowlist and private legacy relay are enforc
  const auth=source("supabase/functions/pup-web-auth/index.ts");
  const sql=source("supabase/migrations/20261028095501_pup_web_discord_relay.sql");
  assert.match(auth,/discord-1547982688898777118:\/authorize\/callback/);
+ assert.match(auth,/ALLOWED_DISCORD_REDIRECTS/);
+ assert.match(auth,/PUPPY_WEB_REDIRECT_URI/);
  assert.doesNotMatch(auth,/required\(body.redirectUri,\/\^https:/);
  assert.match(relay,/relay-submit/);
  assert.match(relay,/relay-poll/);
