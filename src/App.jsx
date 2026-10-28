@@ -51,6 +51,7 @@ function Home(){
   <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span>Made for puppy fans 🐶</span></footer>
  </div>;
 }
+const accountRole=role=>({DEVELOPER:"Developer",ADMIN:"Administrator",PUP_MEMBER:"Pup Member"})[role]||"Player";
 function AccountDashboard(){
  const {client,pupAccount,signOut}=useWebAccount();
  const [profile,setProfile]=useState(pupAccount);
@@ -58,19 +59,27 @@ function AccountDashboard(){
  const [editing,setEditing]=useState(false);
  const [saving,setSaving]=useState(false);
  const [status,setStatus]=useState("");
- const [cloud,setCloud]=useState("Checking protected cloud save…");
+ const [cloud,setCloud]=useState({loading:true,exists:null,updatedAt:null});
  const [refreshing,setRefreshing]=useState(false);
  const refresh=async()=>{
   setRefreshing(true);setStatus("");
   try{
    const account=await verifyPuppySession(client);
-   setProfile(account);setDisplayName(account.displayName||account.username||"");
+   setProfile(account);
+   if(!editing)setDisplayName(account.displayName||account.username||"");
+  }catch{
+   setStatus("Could not refresh your account details. Please sign in again if the problem continues.");
+   setRefreshing(false);
+   return;
+  }
+  try{
    const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"cloud-save-read"}});
    if(error||!data?.verified)throw Error("CLOUD_CHECK_FAILED");
-   setCloud(data.cloud?.exists===true?"Existing cloud save found":"No cloud save available yet");
+   setCloud({loading:false,exists:data.cloud?.exists===true,
+    updatedAt:data.cloud?.updatedAt||null});
   }catch{
-   setCloud("Cloud status unavailable");
-   setStatus("Could not refresh your account. Try again.");
+   // Account identity remains verified even if the cloud endpoint is temporarily unavailable.
+   setCloud({loading:false,exists:null,updatedAt:null});
   }finally{setRefreshing(false);}
  };
  useEffect(()=>{void refresh();},[]);
@@ -78,7 +87,7 @@ function AccountDashboard(){
   event.preventDefault();
   if(saving)return;
   const name=displayName.trim();
-  if(name.length<2||name.length>24||!/^[\p{L}\p{N} ._'’-]+$/u.test(name)){
+  if(name.length<2||name.length>24||!/^[\\p{L}\\p{N} ._'’-]+$/u.test(name)){
    setStatus("Display name must be 2–24 characters, using letters, numbers, spaces or . _ ' -.");
    return;
   }
@@ -92,22 +101,58 @@ function AccountDashboard(){
   }catch{setStatus("Unable to save your display name. Please try again.");}
   finally{setSaving(false);}
  };
+ const shareFriendCode=async()=>{
+  const code=profile.friendCode;
+  if(!code)return;
+  try{
+   if(navigator.share){await navigator.share({text:code});return;}
+   if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(code);
+    setStatus("Friend Code copied.");return;}
+   setStatus("Select and copy the Friend Code shown above.");
+  }catch(e){if(e?.name!=="AbortError")setStatus("Could not share. Select and copy the Friend Code shown above.");}
+ };
+ const detail=(label,value,description)=> <div className="account-detail" key={label}>
+  <dt>{label}</dt><dd>{value||"Not available"}</dd>{description?<small>{description}</small>:null}
+ </div>;
+ const connected=profile.discordUserId?"Connected":"Not connected";
+ const standing=profile.status==="VERIFIED"||!profile.status?"Verified":profile.status;
+ const connection=profile.linkedFromPlay===true?"Linked to Android Pup Account":
+  profile.linkedFromPlay===false?"Pup Account · Android connection unavailable":"Checking Android connection…";
+ const gameplay=profile.gameplayWritable===true?"Enabled":
+  profile.gameplayWritable===false?"Unavailable":"Checking…";
+ const cloudLabel=cloud.loading?"Checking protected cloud save…":
+  cloud.exists===true?"Cloud backup found":cloud.exists===false?"No cloud backup found":"Cloud status unavailable";
  return <div className="account-content">
-  <div className="account-heading"><p className="eyebrow">🐾 PUP ACCOUNT</p><h1>Your account</h1><p>View and manage your verified Puppy Clicker identity, without showing protected account or backend identifiers.</p></div>
+  <div className="account-heading"><p className="eyebrow">🐾 PUP ACCOUNT</p><h1>Your account</h1><p>View your verified Puppy Clicker identity and Android-linked account details. Only your signed-in account is shown.</p></div>
   <div className="account-grid">
-   <section className="portal-card profile-main">
-    <div className="profile-head"><img src={logo} alt="" /><div><small>Signed in as</small><h2>{profile.displayName||profile.username}</h2><p>@{profile.username}</p></div><span className="verified">✓ Connected</span></div>
+   <section className="portal-card profile-main" aria-label="Pup Account details">
+    <div className="profile-head"><img src={logo} alt="" /><div><small>Signed in as</small><h2>{profile.displayName||profile.username}</h2><p>@{profile.username}</p></div><span className="verified">✓ {standing}</span></div>
     <div className="portal-divider"></div>
-    <h3>Profile settings</h3>
+    <h3>👤 Account details</h3>
+    <dl className="account-details">
+     {detail("Account username","@"+profile.username)}
+     {detail("Display name",profile.displayName||profile.username)}
+     {detail("Friend Code",profile.friendCode,"Share this code to connect with players in Puppy Exchange.")}
+     {detail("Account standing",standing)}
+     {detail("Role",profile.guildRole===undefined?"Checking…":accountRole(profile.guildRole))}
+     {detail("Account connection",connection)}
+     {detail("Gameplay access",gameplay)}
+     {detail("Discord",connected)}
+     {profile.contactEmail?detail("Support contact email",profile.contactEmail,"Visible only to your signed-in account."):null}
+    </dl>
+    {profile.friendCode?<div className="account-actions"><button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button></div>:null}
+    <div className="portal-divider"></div>
+    <h3>✏️ Profile settings</h3>
     {editing?<form onSubmit={save} className="profile-form"><label htmlFor="pupDisplayName">Display name</label><input id="pupDisplayName" value={displayName} maxLength={24} onChange={e=>setDisplayName(e.target.value)} autoComplete="nickname"/><div className="form-actions"><button className="cta cta-primary" disabled={saving} type="submit">{saving?"Saving…":"Save display name"}</button><button className="cta cta-secondary" type="button" onClick={()=>{setEditing(false);setDisplayName(profile.displayName||profile.username);}}>Cancel</button></div></form>:
-     <div className="profile-row"><span><small>Display name</small><strong>{profile.displayName||profile.username}</strong></span><button className="small-action" onClick={()=>setEditing(true)}>Edit name</button></div>}
-    <div className="profile-row"><span><small>Pup username</small><strong>@{profile.username}</strong></span><span className="metadata">Account identifier</span></div>
-    <div className="profile-row"><span><small>Discord</small><strong>{profile.discordUserId?"Connected":"Not connected"}</strong></span><span className="metadata">Puppy Clicker login</span></div>
+     <div className="profile-row"><span><small>Display name</small><strong>{profile.displayName||profile.username}</strong></span><button className="small-action" type="button" onClick={()=>setEditing(true)}>Edit name</button></div>}
     {status?<p className="portal-message" role="status">{status}</p>:null}
    </section>
    <div className="portal-stack">
-    <section className="portal-card"><h3>☁️ Gameplay progress</h3><p>Gameplay uses the same protected Pup Account cloud-save service as the connected game.</p><p className="cloud-status">{cloud}</p><a href="/play" className="cta cta-primary stretch">Continue playing</a></section>
-    <section className="portal-card"><h3>🔐 Account security</h3><p>Sign in through your Pup username or Discord. Password and recovery changes are not available from this web page yet.</p><button type="button" className="small-action" onClick={()=>void refresh()} disabled={refreshing}>{refreshing?"Refreshing…":"Refresh account"}</button><button className="cta cta-secondary stretch" type="button" onClick={()=>void signOut()}>Sign out</button></section>
+    <section className="portal-card"><h3>☁️ Cloud game progress</h3><p>Your website and Android game use the same protected Pup Account save when linked. No backend credentials or private save identifiers are displayed.</p><p className="cloud-status" role="status">{cloudLabel}</p>
+     {cloud.updatedAt?<p className="cloud-updated">Last cloud update: {new Date(cloud.updatedAt).toLocaleString()}</p>:null}
+     <a href="/play" className="cta cta-primary stretch">🐾 Continue playing</a>
+    </section>
+    <section className="portal-card"><h3>🔐 Account management</h3><p>Manage your profile here and review your account connection. Contact and recovery changes may require the Android app or support.</p><button type="button" className="small-action" onClick={()=>void refresh()} disabled={refreshing}>{refreshing?"Refreshing…":"Refresh account details"}</button><button className="cta cta-secondary stretch" type="button" onClick={()=>void signOut()}>Sign out</button></section>
    </div>
   </div>
  </div>;
