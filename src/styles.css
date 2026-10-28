@@ -7,7 +7,7 @@ a{color:inherit;text-decoration:none}
 button,input{font:inherit}
 button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #40ccff;outline-offset:3px}
 .site-frame{background:#0b1a24;color:#effbff;width:100%;min-width:0}
-.site-frame-page{min-height:100dvh}
+.site-frame-page{min-height:100dvh;display:flex;flex-direction:column}
 .site-frame-game{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 .site-header{height:76px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 max(24px,calc((100vw - 1460px)/2));background:#102735;border-bottom:1px solid #2c5264;z-index:4}
 .site-brand{display:flex;align-items:center;gap:11px;font-size:18px;font-weight:900;min-width:0}
@@ -21,7 +21,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #40cc
 .site-nav a[aria-current=page]{background:#15516d;color:#92e6ff;border:1px solid #2e88a5}
 .game-mount{flex:1;min-height:0;display:flex;overflow:hidden}
 .game-mount>div{flex:1;min-width:0;min-height:0}
-.page-mount{width:100%}
+.page-mount{width:100%;flex:1;min-height:0;display:flex;flex-direction:column}
+.page-mount>div{width:100%;flex:1}
 .landing{max-width:1460px;margin:auto;padding:0 28px}
 .hero{min-height:560px;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(360px,.88fr);gap:32px;align-items:center;padding:65px 24px 58px}
 .eyebrow{font-size:12px;letter-spacing:.13em;font-weight:900;color:#73d9f9;margin:0 0 18px}
