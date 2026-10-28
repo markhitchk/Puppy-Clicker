@@ -65,7 +65,7 @@ export default function Settings({ account, go, notify }) {
             <Txt muted size={11}>
               {user
                 ? "☁️ " + (dirty ? "Save pending" : "Cloud connected")
-                : "Guest · sign in to save progress"}
+                : "Sign in required to play and save"}
             </Txt>
           </View>
         </Row>
