@@ -58,6 +58,12 @@ export function useGame(){
    dispatch(action);return;
   }
   if(!loaded.current||blocked.current)return;
+  if(action.type==="webBirthday"){
+   const current=latest.current.game;
+   dispatch({type:"hydrate",game:{...current,birthdayMonth:action.month,birthdayDay:action.day},now:Date.now(),readOnly:true});
+   setChange(n=>n+1);
+   return;
+  }
   // Signed account ownership is enforced by Supabase RLS/RPC. This must
   // never be represented as the original Android PupEye-signed economy.
   dispatch(action);
@@ -124,7 +130,8 @@ export function useGame(){
   if(next.length<2)throw Error("Display name must be at least 2 characters");
   const {error}=await client.auth.updateUser({data:{full_name:next}});
   if(error)throw error;
-  act({type:"setPreference",name:"guestName",value:next});
+  dispatch({type:"hydrate",game:{...latest.current.game,guestName:next},now:Date.now(),readOnly:true});
+  setChange(n=>n+1);
   return true;
  },[client,act]);
  const account={status:"WEB_AUTHENTICATED",username:user.user_metadata?.name||user.email,
