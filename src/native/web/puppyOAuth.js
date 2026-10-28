@@ -67,12 +67,12 @@ export async function completePuppyDiscordCallback(client){
  const code=params.get("code"),state=params.get("state");
  const denied=params.has("error");
  // Remove the OAuth code from browser history before making any network call.
- // Only these two fixed destinations are eligible after a browser OAuth callback.
+ // Only these fixed destinations are eligible after a browser OAuth callback.
  // Clear the authorization code from history before any network request.
  let next="/play";
  try{
   const previous=globalThis.sessionStorage?.getItem("puppy-web-discord-return-v1");
-  if(previous==="/account")next="/account";
+  if(previous==="/account"||previous==="/recovery")next=previous;
   globalThis.sessionStorage?.removeItem("puppy-web-discord-return-v1");
  }catch{}
  globalThis.history.replaceState(globalThis.history.state,"",next);
