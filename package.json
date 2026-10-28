@@ -8,6 +8,7 @@
     "postinstall": "node scripts/prepare-puppy-art.mjs",
     "build": "node scripts/prepare-puppy-art.mjs && vite build",
     "preview": "vite preview",
+    "sync:mobile-engine": "node scripts/sync-mobile-engine.mjs",
     "test": "node --test tests/*.test.js",
     "test:e2e": "playwright test",
     "android:export": "npm --prefix mobile run export:android",

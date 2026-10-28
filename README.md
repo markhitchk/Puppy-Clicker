@@ -1,8 +1,10 @@
-# Puppy Clicker — shared React Android and web
+# Puppy Clicker — React Native Web website
 
-The Android and browser versions now use **the same React Native screens and JavaScript game engines**. Expo renders native Android views; React Native Web renders the existing Vite website. The Kotlin repository remains the reference.
+The browser app uses **React Native Web** and the existing Vite/Vercel setup with a responsive desktop layout. Its screens currently remain a distinct React Native port, rather than a direct browser export of Android's `Mobile/App.js`. The Android entry uses native PupEye and device-bound `NativeModules`; their authority cannot be replaced by a simulated web native module.
 
-**This is still a parity migration, not a verified 100% replacement.** Protected Kotlin/PupEye save linking, admin, player exchange, push notifications and remaining native interactions are open. See the [source coverage and remaining work](docs/parity/2026-10-23-parity-audit.md).
+The website now imports **actual mobile source files** for balanced XP and Kotlin V6 wallet formatting from [pup-clinker/Mobile](https://github.com/markhitchk/pup-clinker/tree/main/Mobile). Their copied source and upstream commit are recorded in `src/mobile/engine/SOURCE.json`.
+
+**Security boundary:** Browser sign-in saves to `puppy_web_saves`, **not** the Android signed PupEye/Pup Account cloud-save format. Web and Android progress do not yet synchronize. Unauthenticated visitors cannot mutate gameplay. Native UI, secure account migration, player exchange, device permissions, push notifications and remaining systems still require a browser-safe port. See [the coverage audit](docs/parity/2026-10-23-parity-audit.md).
 
 ## What changed
 
@@ -62,3 +64,10 @@ npm test
 This copies original bytes, regenerates the roster/native static image registry, and records the Kotlin source commit and image hashes. No replacement/generated puppy artwork is used.
 
 © Harley’s Studios.
+
+
+## Keep native game rules in sync
+
+`npm run sync:mobile-engine` downloads only two allowlisted pure JavaScript game-engine files from the authoritative [React Native app](https://github.com/markhitchk/pup-clinker/tree/main/Mobile) and records the exact source commit. Set `PUPPY_NATIVE_SOURCE_REF=<commit-sha>` to pin an earlier revision. Normal Vercel builds use the reviewed and committed copies, not unexpected network changes.
+
+The scheduled/manual `Sync mobile game engine` workflow proposes upstream updates through a PR and runs tests and the Vite build before pushing. Additional UI and economy modules must be reviewed before adding them to the allowlist. Do not import native Keystore, PupEye, `AsyncStorage`, Discord Android callbacks, or other device-bound authorization into the website.
