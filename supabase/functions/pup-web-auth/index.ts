@@ -146,8 +146,10 @@ Deno.serve(async req=>{
     {data:save,error:se}]=await Promise.all([
     admin.from("pupeye_players").select("friend_code,guild_role")
      .eq("id",account.player_uuid).maybeSingle(),
-    admin.from("pupeye_installations").select("player_uuid,active,revoked_at")
-     .eq("id",account.active_installation_uuid).maybeSingle(),
+    account.active_installation_uuid
+     ? admin.from("pupeye_installations").select("player_uuid,active,revoked_at")
+       .eq("id",account.active_installation_uuid).maybeSingle()
+     : Promise.resolve({data:null,error:null}),
     admin.from("pup_account_saves").select("account_uuid")
      .eq("player_uuid",account.player_uuid).maybeSingle()
    ]);
