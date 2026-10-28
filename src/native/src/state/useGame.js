@@ -111,7 +111,7 @@ export function useGame(){
     if(!response.ok)return;
     const json=await response.text();
     if(json.length>524288)return;
-    const schedule=parseMonthlySchedule(json,month);
+    const schedule=parseMonthlySchedule(json,new Date());
     if(alive&&schedule)dispatch({type:"monthlySchedule",schedule});
    }catch{}
   };
