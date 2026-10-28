@@ -1,5 +1,6 @@
+import DesktopNavigation,{DesktopHelp} from './web/DesktopNavigation.jsx';
 import PuppyArtwork from './web/PuppyArtwork.jsx';
-import {GameProgressHeader,PuppyPlatform,CasinoIntroDialog} from './web/WebsiteDesign.jsx';
+import {GameProgressHeader,PuppyPlatform,CasinoIntroDialog,RenamePuppyDialog} from './web/WebsiteDesign.jsx';
 import WebAccountGate from "./web/AccountGate.jsx";
 import {client as webClient} from "../supabase.js";
 import {requestWebPuppyExchange} from "./web/exchangeClient.js";
@@ -142,7 +143,7 @@ function QuickAction({emoji,title,subtitle,onPress,disabled=false}){
 function DailyGoalCard({g,goal,act,clock,readOnly=false,compact=false}){
  const date=new Date(clock),today=localEpochDay(date),claimed=g.dailyDay===today&&g.claimedDailyTasks.includes(goal.id);
  const progress=Math.max(0,progressForGoal(g,goal,date)),complete=progress>=goal.target;
- if(compact)return <article className="compact-goal"><div><div className="compact-goal-heading"><strong title={goal.description}>{goal.emoji} {goal.title}</strong><span>{Math.min(progress,goal.target)}/{goal.target}</span></div><div className="cyber-progress" role="progressbar" aria-label={goal.title} aria-valuemin={0} aria-valuemax={goal.target} aria-valuenow={Math.min(progress,goal.target)}><span style={{width:Math.min(100,100*progress/goal.target)+'%'}}/></div><p>{format(goal.rewardTreats)} 🍪 + 1 🦴 + 1 🪙</p></div>{claimed?<span className="claimed">✓ Claimed</span>:<button className="cyber-button primary" disabled={readOnly||!complete} onClick={()=>act({type:'claimDailyGoal',goalId:goal.id,now:clock})}>Claim</button>}</article>;
+ if(compact)return <article className="compact-goal reference-goal"><span className="goal-illustration" aria-hidden="true">{goal.emoji}</span><div className="reference-goal-body"><div className="compact-goal-heading"><strong>{goal.title}</strong><span>{Math.min(progress,goal.target)}/{goal.target}</span></div><p className="goal-description">{goal.description}</p><div className="cyber-progress" role="progressbar" aria-label={goal.title} aria-valuemin={0} aria-valuemax={goal.target} aria-valuenow={Math.min(progress,goal.target)}><span style={{width:Math.min(100,100*progress/goal.target)+'%'}}/></div><div className="goal-footer"><p className="goal-reward">Reward: {format(goal.rewardTreats)} 🍪 + 1 🦴 + 1 🪙</p>{claimed?<span className="claimed">✓ Claimed</span>:<button className="cyber-button primary" disabled={readOnly||!complete} onClick={()=>act({type:'claimDailyGoal',goalId:goal.id,now:clock})}>Claim</button>}</div></div></article>;
 
  return <View style={styles.dailyGoalCard}>
   <Txt style={{fontSize:28}}>{goal.emoji}</Txt>
@@ -165,6 +166,7 @@ function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen}){
  const rotation=useRef(new Animated.Value(0)).current;
  const lift=useRef(new Animated.Value(0)).current;
  const [ticketVisible,setTicketVisible]=useState(false);
+ const [renameOpen,setRenameOpen]=useState(false);
  useEffect(()=>{
   if(!animate){for(const [value,target] of [[tapScale,1],[rotation,0],[lift,0]]){value.stopAnimation();value.setValue(target);}}
  },[animate,tapScale,rotation,lift]);
@@ -196,7 +198,8 @@ function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen}){
  };
  return <section className={'cyber-play '+(desktop?'desktop-play':'mobile-play')} data-reduced-motion={!g.idleAnimationsEnabled}>
   <div className="play-heading"><div><h1>Play</h1><p>Tap your puppy and earn treats.</p></div>{desktop?<button className="cyber-button secondary small" onClick={()=>onOpen('roster')}>⇄ Switch Puppy</button>:null}</div>
-  {!desktop?<Wallet game={g}/>:null}
+  {!desktop?<Wallet game={g}/>:<div className="puppy-identity"><div className="identity-portrait"><Portrait puppy={pup} size={64} accessory={g.accessory}/></div><div><strong>{g.puppyName}</strong><p>{pup.id.startsWith('v2_')?pup.id:'v1_'+pup.id} · {pup.id.startsWith('v2_')?'V2':'V1'} Puppies</p><span className="current-puppy-badge">Current Puppy</span><button className="cyber-button secondary small" aria-label="Rename current puppy" onClick={()=>setRenameOpen(true)}>✎ Rename</button></div></div>}
+  {renameOpen?<RenamePuppyDialog name={g.puppyName} onClose={()=>setRenameOpen(false)} onSave={name=>{act({type:'rename',name});setRenameOpen(false);}}/>:null}
   <div className="cyber-play-stage">
    <PuppyPlatform name={g.puppyName} onPrevious={()=>cycle(-1)} onNext={()=>cycle(1)}>
     <Pressable accessibilityRole="button" accessibilityLabel={'Tap '+g.puppyName+' to earn Treats'} accessibilityState={{disabled:cooldown>0}} disabled={cooldown>0} onPress={doTap}>
@@ -206,7 +209,7 @@ function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen}){
     </Pressable>
    </PuppyPlatform>
    <div className="play-energy"><span>⚡ <strong>Energy {g.energy}%</strong></span><span>💖 Care bonus <strong>+{bonus} 🍪 / tap</strong></span><span className="tap-tip">ⓘ Tap to earn treats!</span></div>
-   <button disabled={cooldown>0} onClick={doTap} className="cyber-tap"><span aria-hidden="true">🐾</span><span><strong>{label}</strong>{!cooldown&&g.energy>10?<small>+{format(g.clickPower+bonus)} treats</small>:null}</span></button>
+   <button disabled={cooldown>0} onClick={doTap} className="cyber-tap"><span aria-hidden="true">🐾</span><span><strong>{label}</strong>{!cooldown&&g.energy>10?<small>+{format(g.clickPower+bonus)}{desktop?'':' treats'}</small>:null}</span></button>
   </div>
   <div className="cyber-panel next-reward"><span className="reward-icon" aria-hidden="true">🎁</span><div className="flex-1 min-w-0"><div className="reward-heading"><strong>{next.title}</strong><strong>{next.allClaimed?'✓':next.progress+'/'+next.target}</strong></div><div className="cyber-progress" role="progressbar" aria-label="Next reward progress" aria-valuemin={0} aria-valuemax={next.target} aria-valuenow={next.progress}><span style={{width:(100*next.progress/next.target)+'%'}}/></div><p>{next.allClaimed?'All goals claimed. See you tomorrow!':'Keep playing to reach your next reward.'}</p></div><strong className="reward-value">{next.allClaimed?'All claimed':format(next.rewardTreats)+' 🍪'}</strong></div>
   {ticketVisible?<View pointerEvents="none" style={[styles.ticketOverlay,{top:2}]}><Txt style={styles.ticketOverlayTitle}>🎟️ {g.lastTicketDrop} UPGRADE TICKET</Txt></View>:null}
@@ -214,13 +217,12 @@ function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen}){
 }
 function DesktopPlayScreen({g,act,clock,schedule,viewportHeight,onOpen}){
  const pup=ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
- return <div className="desktop-dashboard">
+ return <div className="desktop-dashboard desktop-reference">
   <PlayScreen g={g} act={act} clock={clock} schedule={schedule} viewportHeight={viewportHeight} onOpen={onOpen} desktop/>
   <aside className="dashboard-panels">
    <section className="cyber-panel"><h2>Your Resources</h2><Wallet game={g}/></section>
-   <section className="cyber-panel daily-goals-panel compact-goals"><div className="panel-heading"><h2>Today’s goals</h2><span>{monthKey(new Date(clock))}</span></div>{goalsForDay(schedule,new Date(clock)).slice(0,2).map(goal=><DailyGoalCard key={goal.id} g={g} goal={goal} act={act} clock={clock} compact/>)}</section>
-   <section className="cyber-panel care-summary compact-care"><div className="panel-heading"><h2>Pup Care Status</h2><button className="cyber-button secondary small" onClick={()=>onOpen('care')}>Go to Care →</button></div><div className="care-summary-identity"><Portrait puppy={pup} size={76} accessory={g.accessory}/><div><strong>{g.puppyName}</strong><p>{mood(g)} · Wellness {wellness(g)}%</p></div></div>{[['💖','Happiness',g.happiness],['🍗','Fullness',g.fullness],['⚡','Energy',g.energy],['🫧','Cleanliness',g.cleanliness],['🤝','Bond',g.bond]].map(([icon,label,value])=><div className="web-care-row" key={label}><span>{icon} {label}</span><div className="cyber-progress" role="progressbar" aria-label={label+' need'} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(value)}><span style={{width:Math.max(0,Math.min(100,value))+'%'}}/></div><strong>{Math.round(value)}%</strong></div>)}<p className="care-bonus-note">✨ Care bonus: +{careTapBonus(g)} Treats on every normal puppy tap.</p></section>
-   <button className="cyber-button secondary" onClick={()=>onOpen('rewards')}>🎁 Rewards &amp; daily goals</button>
+   <section className="cyber-panel daily-goals-panel compact-goals"><div className="panel-heading"><h2>Today’s goals</h2><span>{monthKey(new Date(clock))}</span><button className="cyber-button secondary all-daily-goals" aria-label="🎁 Rewards & daily goals" onClick={()=>onOpen('rewards')}>All goals →</button></div>{goalsForDay(schedule,new Date(clock)).slice(0,3).map(goal=><DailyGoalCard key={goal.id} g={g} goal={goal} act={act} clock={clock} compact/>)}</section>
+   <section className="cyber-panel care-summary compact-care reference-care"><div className="panel-heading"><h2>Pup Care Status</h2><button className="cyber-button secondary small" onClick={()=>onOpen('care')}>Go to Care →</button></div><div className="care-summary-content"><div className="care-avatar"><Portrait puppy={pup} size={76} accessory={g.accessory}/></div><div className="care-meter-detail"><strong className="care-puppy-name">{g.puppyName}</strong><p className="care-summary-caption">{mood(g)} · Wellness {wellness(g)}% · Bond {g.bond}%</p>{[['💖','Happiness',g.happiness],['🍗','Fullness',g.fullness],['⚡','Energy',g.energy],['🫧','Cleanliness',g.cleanliness],['🤝','Bond',g.bond]].map(([icon,label,value])=><div className="web-care-row" key={label}><span>{icon} {label}</span><div className="cyber-progress" role="progressbar" aria-label={label+' need'} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(value)}><span style={{width:Math.max(0,Math.min(100,value))+'%'}}/></div><strong>{Math.round(value)}%</strong></div>)}</div><aside className="care-bonus-box"><span>✨ {careTapBonus(g)===2?'Thriving':careTapBonus(g)===1?'Healthy':'Pup'} care bonus</span><p>+{careTapBonus(g)} Treats on every normal puppy tap.</p></aside></div></section>
   </aside>
  </div>;
 }
@@ -1084,6 +1086,7 @@ export function PuppyApp({betaMode=false}){
  const openScreen=id=>{if(id==='notifications'){notifications.check();setInboxOpen(true);}else if(TABS.some(tab=>tab[0]===id)){setTab(id);setSecondary(null);}else setSecondary(id);};
  const usePuppy=id=>{if(!saved.unlockedPuppies.includes(id))return;act({type:'switch',id,now:Date.now()});setTab('play');setSecondary(null);};
  const main=()=>{
+  if(secondary==='help')return <DesktopHelp onOpen={openScreen}/>;
   if(secondary==='achievements')return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} readOnly={betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
   if(secondary==='settings')return <SettingsScreen g={saved} act={act} onOpen={openScreen} registry={registry} notifications={notifications} betaMode={betaMode} webMode account={account} onConnectAccount={()=>webClient.auth.signOut()} onUpdateAccountName={updateAccountName} onUpdateBirthday={onboarding.update} cloudState={cloudState} syncStatus={syncStatus} gameplayBusy={gameplayBusy} onRefreshAccount={refreshAccount}/>;
   if(secondary==='account-details')return <AccountDetailsScreen account={account} cloudState={cloudState}
@@ -1125,27 +1128,12 @@ export function PuppyApp({betaMode=false}){
  return <PuppyPointer enabled={saved.puppyPointerEnabled} style={[styles.root,{paddingTop:insets.top,paddingBottom:insets.bottom}]}>
   <StatusBar barStyle={C.dark?'light-content':'dark-content'} backgroundColor={C.bg}/>
   <View style={{flex:1,flexDirection:desktop?'row':'column',minWidth:0,minHeight:0}}>
-   {desktop?<View testID="game-sidebar" style={{width:214,backgroundColor:C.surface,borderRightWidth:1,borderColor:C.line,padding:15,gap:9}}>
-     <Image source={{uri:'/assets/logos/puppy_clicker.png'}} resizeMode="contain" style={{width:92,height:92,alignSelf:'center'}}/>
-     <Txt style={{fontSize:19,fontWeight:'900',textAlign:'center',marginBottom:12}}>Puppy Clicker</Txt>
-     {[...TABS,['casino','🎰','Casino'],['exchange','🎁','Exchange'],['settings','⚙️','Settings']].map(([id,icon,label])=>{
-      const active=secondary===id||!secondary&&tab===id;
-      return <Pressable key={id} accessibilityRole="button" accessibilityLabel={label}
-       onPress={()=>openScreen(id)} style={{minHeight:46,borderRadius:13,flexDirection:'row',alignItems:'center',gap:10,
-        paddingHorizontal:13,backgroundColor:active?C.accentSoft:'transparent',
-        borderWidth:active?1:0,borderColor:C.accent}}>
-       <Txt style={{fontSize:22}}>{icon}</Txt><Txt style={{fontWeight:active?'900':'700',flex:1}}>{label}</Txt>
-      </Pressable>;
-     })}
-     <View style={{flex:1}}/>
-     <Txt muted style={{fontSize:11,textAlign:'center'}}>Built by Harley's Studios</Txt>
-    </View>:null}
+   {desktop?<DesktopNavigation tabs={TABS} route={secondary||tab} onOpen={openScreen}/>:null}
     <View style={{flex:1,minWidth:0,minHeight:0}}>
   {state.ready&&saved.onboardingComplete?<View testID="game-top-bar" style={styles.topBar}>
-   {desktop?<GameProgressHeader game={g}/>:<Image source={({uri:"/assets/logos/puppy_clicker.png"})} resizeMode="contain" style={{width:38,height:38}}/>}
-   {!desktop?<Txt style={[styles.brand,{flex:1,letterSpacing:0}]}>Puppy Clicker</Txt>:null}
-   <Pressable accessibilityRole="button" accessibilityLabel={'Notifications, '+saved.notificationInbox.filter(n=>!n.read).length+' unread'} onPress={()=>{notifications.check();setInboxOpen(true);}} style={styles.headerButton}><Txt style={{fontSize:23}}>🔔</Txt>{saved.notificationInbox.some(n=>!n.read)?<View style={styles.unreadDot}/>:null}</Pressable>
-   <Pressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={()=>setSecondary('settings')} style={styles.headerButton}><Txt style={{fontSize:23}}>⚙️</Txt></Pressable>
+   {desktop?<GameProgressHeader game={g}><div className="game-header-actions"><Pressable accessibilityRole="button" accessibilityLabel={'Notifications, '+saved.notificationInbox.filter(n=>!n.read).length+' unread'} onPress={()=>{notifications.check();setInboxOpen(true);}} style={styles.headerButton}><Txt style={{fontSize:23}}>🔔</Txt>{saved.notificationInbox.some(n=>!n.read)?<View style={styles.unreadDot}/>:null}</Pressable>
+   <Pressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={()=>setSecondary('settings')} style={styles.headerButton}><Txt style={{fontSize:23}}>⚙️</Txt></Pressable></div></GameProgressHeader>:<><Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{width:38,height:38}}/><Txt style={[styles.brand,{flex:1,letterSpacing:0}]}>Puppy Clicker</Txt><div className="game-header-actions"><Pressable accessibilityRole="button" accessibilityLabel={'Notifications, '+saved.notificationInbox.filter(n=>!n.read).length+' unread'} onPress={()=>{notifications.check();setInboxOpen(true);}} style={styles.headerButton}><Txt style={{fontSize:23}}>🔔</Txt>{saved.notificationInbox.some(n=>!n.read)?<View style={styles.unreadDot}/>:null}</Pressable>
+   <Pressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={()=>setSecondary('settings')} style={styles.headerButton}><Txt style={{fontSize:23}}>⚙️</Txt></Pressable></div></>}
   </View>:null}
 
 {state.notice?<Pressable accessibilityRole="button" onPress={()=>act({type:'dismiss'})} style={styles.notice}><Txt style={styles.small}>{state.notice}  ✕</Txt></Pressable>:null}
