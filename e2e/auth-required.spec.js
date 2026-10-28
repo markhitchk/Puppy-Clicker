@@ -45,7 +45,7 @@ test("public home is available without Pup Account login",async({page})=>{
  await expect(page.getByRole("link",{name:"Manage Pup Account"})).toBeVisible();
 });
 test("account management requires the existing verified Pup Account",async({page})=>{
- await page.goto("/account");
+ await page.goto("/account?signedout=1");
  await expect(page.getByRole("button",{name:"Sign in to Pup Account"})).toBeVisible();
  await expect(page.getByRole("button",{name:"Continue with Puppy Clicker Discord"})).toBeVisible();
  await expect(page.getByText("Your account",{exact:true})).toHaveCount(0);
