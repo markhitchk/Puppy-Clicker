@@ -152,10 +152,25 @@ Deno.serve(async req=>{
      : Promise.resolve({data:null,error:null}),
     admin.from("pup_account_saves").select("account_uuid")
      .eq("player_uuid",account.player_uuid).maybeSingle(),
-    admin.from("pup_credential_links").select("auth_user_id")
+    admin.from("pup_credential_links").select("auth_user_id,email")
      .eq("account_uuid",account.id).maybeSingle()
    ]);
    if(pe||ie||se||ce)throw new PublicError(503,"PUP_ACCOUNT_DETAILS_UNAVAILABLE");
+   // A support contact is NOT a recovery email. Only the email verified
+   // directly by Supabase Auth can receive a real password reset link.
+   const confirmedEmail=typeof user.email==="string"&&user.email_confirmed_at
+    &&!user.email.toLowerCase().endsWith("@accounts.puppyclicker.invalid")
+    ?user.email.toLowerCase():null;
+   // A confirmed Auth email change must also update the native/web username
+   // credential mapping. Otherwise Android password sign-in would still try
+   // the previous synthetic email and stop working after email verification.
+   if(confirmedEmail&&credentials?.auth_user_id===user.id
+      &&credentials.email?.toLowerCase()!==confirmedEmail){
+    const {error:syncError}=await admin.from("pup_credential_links")
+     .update({email:confirmedEmail}).eq("account_uuid",account.id)
+     .eq("auth_user_id",user.id);
+    if(syncError)throw new PublicError(503,"PUP_RECOVERY_EMAIL_SYNC_UNAVAILABLE");
+   }
    const owned=!!installation&&installation.player_uuid===account.player_uuid
     &&installation.active===true&&!installation.revoked_at;
    const connected=owned&&save?.account_uuid===account.id;
@@ -169,6 +184,7 @@ Deno.serve(async req=>{
     linkedFromPlay:connected,
     gameplayWritable:connected,
     passwordLoginEnabled:credentials?.auth_user_id===user.id,
+    recoveryEmail:confirmedEmail,
     contactEmail:account.contact_email||null
    }},origin);
   }
