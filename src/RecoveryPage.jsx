@@ -36,6 +36,12 @@ export default function RecoveryPage(){
  const [lookupEmail,setLookupEmail]=useState("");
  const [lookupBusy,setLookupBusy]=useState(false);
  const [lookupStatus,setLookupStatus]=useState("");
+ const [recoveryEmailInput,setRecoveryEmailInput]=useState("");
+ const [emailResetAddress,setEmailResetAddress]=useState("");
+ const [emailBusy,setEmailBusy]=useState(false);
+ const [emailEnrollBusy,setEmailEnrollBusy]=useState(false);
+ const [emailMessage,setEmailMessage]=useState("");
+ const [emailResetMessage,setEmailResetMessage]=useState("");
  useEffect(()=>{
   let active=true;
   const readSession=async()=>{
@@ -51,6 +57,22 @@ export default function RecoveryPage(){
     if(active)setChecking(false);
    }
   };
+  // Supabase Auth PKCE links return with a short-lived code. Exchange only
+  // on /recovery and scrub it from browser history before any other request.
+  const params=new URLSearchParams(globalThis.location?.search||"");
+  const code=params.get("code");
+  if(code){
+   globalThis.history.replaceState(globalThis.history.state,"","/recovery");
+   if(/^[A-Za-z0-9._~-]{8,1024}$/.test(code)){
+    void client.auth.exchangeCodeForSession(code).then(({error})=>{
+     if(!active)return;
+     if(error)setAuthMessage("The email link could not be verified. Open the latest recovery email in the same browser, or use Discord recovery.");
+     else{setAuthMessage("Email link verified. You can change the password for your linked Pup Account below.");void readSession();}
+    }).catch(()=>{
+     if(active)setAuthMessage("The email link could not be verified. Request a new recovery email.");
+    });
+   }else if(active)setAuthMessage("Invalid recovery link. Request a new email.");
+  }
   void readSession();
   const {data}=client?.auth.onAuthStateChange(()=>{
    queueMicrotask(()=>{if(active)void readSession();});
@@ -91,6 +113,45 @@ export default function RecoveryPage(){
   }finally{
    setNewPassword("");setConfirmPassword("");setResetBusy(false);
   }
+ };
+ const enrollEmail=async event=>{
+  event.preventDefault();
+  if(emailEnrollBusy||!account||!client)return;
+  const email=recoveryEmailInput.trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254){
+   setEmailMessage("Enter a valid email address.");return;
+  }
+  setEmailEnrollBusy(true);setEmailMessage("");
+  try{
+   // Account session must already belong to this verified Pup Account.
+   await verifyPuppySession(client);
+   const {error}=await client.auth.updateUser({email},{
+    emailRedirectTo:"https://puppy-clicker.vercel.app/recovery"
+   });
+   if(error)throw error;
+   setEmailMessage("Email verification requested. Follow the Supabase confirmation email, then return here. Recovery will only use the address after it is verified.");
+   setRecoveryEmailInput("");
+  }catch{
+   setEmailMessage("Could not start email verification. Supabase may require confirmation at your original email; older Pup Accounts use a non-deliverable internal address. Contact support if confirmation cannot be completed.");
+  }finally{setEmailEnrollBusy(false);}
+ };
+ const requestEmailReset=async event=>{
+  event.preventDefault();
+  if(emailBusy||!client)return;
+  const address=emailResetAddress.trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)||address.length>254){
+   setEmailResetMessage("Enter a valid email address.");return;
+  }
+  setEmailBusy(true);setEmailResetMessage("");
+  try{
+   await client.auth.resetPasswordForEmail(address,{
+    redirectTo:"https://puppy-clicker.vercel.app/recovery"
+   });
+   // Do not reveal whether a user or verified email exists.
+   setEmailResetMessage("If this address is a verified authentication email, Supabase will send a recovery link. Check your inbox and spam folder.");
+  }catch{
+   setEmailResetMessage("If this address is a verified authentication email, a recovery link may be sent. If you receive nothing, use Discord or request manual recovery.");
+  }finally{setEmailBusy(false);}
  };
  const submitRequest=async event=>{
   event.preventDefault();
@@ -151,6 +212,22 @@ export default function RecoveryPage(){
      account?<div className="recovery-verified">
       <p className="recovery-success">✓ Verified account: <strong>@{account.username}</strong></p>
       <p>Your username is shown above. Password reset is available only for this verified Pup Account.</p>
+      <div className="recovery-email-enrollment">
+       <h3>📨 Verified recovery email</h3>
+       <p>{account.recoveryEmail
+        ?"Verified with Supabase Auth: "+account.recoveryEmail
+        :"No verified recovery email is connected. A support contact email alone cannot receive a password reset."}</p>
+       <form className="profile-form" onSubmit={enrollEmail}>
+        <label htmlFor="pupRecoveryEmail">Add or update recovery email</label>
+        <input id="pupRecoveryEmail" type="email" autoComplete="email"
+         value={recoveryEmailInput} onChange={e=>setRecoveryEmailInput(e.target.value)}
+         maxLength={254} placeholder="your-email@example.com" required/>
+        <button className="cta cta-secondary stretch" disabled={emailEnrollBusy}
+         type="submit">{emailEnrollBusy?"Requesting verification…":"Send email verification"}</button>
+       </form>
+       {emailMessage?<p className="portal-message" role="status">{emailMessage}</p>:null}
+       <p className="recovery-footnote">Your new email must be confirmed before recovery links work. Supabase settings may require confirmation from the prior address too.</p>
+      </div>
       {account.passwordLoginEnabled?
        <form className="profile-form" onSubmit={resetPassword}>
         <label htmlFor="recoverNewPassword">New password</label>
@@ -180,7 +257,23 @@ export default function RecoveryPage(){
     {authMessage?<p className="portal-message" role="alert">{authMessage}</p>:null}
    </section>
    <section className="portal-card">
-    <div className="recovery-step">02 · NO ACCESS TO DISCORD?</div>
+    <div className="recovery-step">02 · VERIFIED EMAIL</div>
+    <h2>✉️ Recover with email</h2>
+    <p>Already linked and verified an email through Supabase Auth? Request a one-time password-reset link. Your previous support contact email is not automatically eligible.</p>
+    <form className="profile-form" onSubmit={requestEmailReset}>
+     <label htmlFor="pupRecoveryResetEmail">Verified authentication email</label>
+     <input id="pupRecoveryResetEmail" type="email" autoComplete="email"
+      value={emailResetAddress} onChange={e=>setEmailResetAddress(e.target.value)}
+      maxLength={254} placeholder="verified-email@example.com" required/>
+     <button type="submit" className="cta cta-primary stretch" disabled={emailBusy}>
+      {emailBusy?"Sending request…":"Email password reset link"}
+     </button>
+    </form>
+    {emailResetMessage?<p className="portal-message" role="status">{emailResetMessage}</p>:null}
+    <p className="recovery-footnote">Only verified Auth email addresses can recover passwords. Supabase manages link expiration and request limits. A reset link never transfers game ownership.</p>
+   </section>
+   <section className="portal-card">
+    <div className="recovery-step">03 · NO ACCESS TO DISCORD OR EMAIL?</div>
     <h2>🛟 Request manual recovery</h2>
     <p>Can't access your password or linked Discord account? Submit a private support request. Staff must independently verify account ownership before making changes.</p>
     {reference?<div className="recovery-receipt" role="status">
@@ -218,7 +311,7 @@ export default function RecoveryPage(){
    </section>
   </div>
   <section className="portal-card recovery-status-card">
-   <div><div className="recovery-step">03 · REQUEST STATUS</div>
+   <div><div className="recovery-step">04 · REQUEST STATUS</div>
     <h2>Check recovery request</h2>
     <p>Use the reference provided when you submitted the request and the contact email you entered.</p></div>
    <form className="profile-form" onSubmit={checkStatus}>
