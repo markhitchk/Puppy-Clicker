@@ -71,3 +71,8 @@ This copies original bytes, regenerates the roster/native static image registry,
 `npm run sync:mobile-engine` downloads only two allowlisted pure JavaScript game-engine files from the authoritative [React Native app](https://github.com/markhitchk/pup-clinker/tree/main/Mobile) and records the exact source commit. Set `PUPPY_NATIVE_SOURCE_REF=<commit-sha>` to pin an earlier revision. Normal Vercel builds use the reviewed and committed copies, not unexpected network changes.
 
 The scheduled/manual `Sync mobile game engine` workflow proposes upstream updates through a PR and runs tests and the Vite build before pushing. Additional UI and economy modules must be reviewed before adding them to the allowlist. Do not import native Keystore, PupEye, `AsyncStorage`, Discord Android callbacks, or other device-bound authorization into the website.
+
+
+### Browser E2E testing without real account writes
+
+`npm run test:e2e` serves Vite with `PUPPY_E2E_FIXTURE=1`, which swaps **only the dev server's** Supabase import for an isolated in-browser mock account and localStorage-backed test save. The normal Vercel production build uses the real Supabase client; the fixture alias is disabled for `vite build` even if the environment variable is set. This lets Playwright exercise authenticated gameplay without a real user's Pup Account or Supabase data.
