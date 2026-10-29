@@ -277,33 +277,94 @@ html [data-testid="play-viewport"] .desktop-play{
 html [data-testid="play-viewport"] .desktop-play .cyber-play-stage{
  background:transparent;
 }
-html .switch-puppy-action{white-space:nowrap;border-color:rgba(0,229,255,.4);color:#00E5FF}
 html [data-testid="play-viewport"] .platform-arrow{display:none!important}
-@media(max-width:959px){
- html [data-testid="play-viewport"] .mobile-play .puppy-platform{
-  height:min(100%,420px);max-height:420px;align-self:center;
-  align-items:center;justify-items:center;
- }
- html [data-testid="play-viewport"] .mobile-play .cyber-play-stage{
-  background:radial-gradient(ellipse at 50% 50%,rgba(0,229,255,.07),transparent 70%),#12151F;
+
+/* Portrait phones: reserve the fixed nav/header space, then let the puppy
+   artwork shrink before the energy, tap and next-reward controls are clipped. */
+@media(max-width:959px) and (orientation:portrait){
+ html [data-testid="play-viewport"]{padding:6px!important}
+ html [data-testid="play-viewport"] .mobile-play{
+  height:100%;min-height:0;min-width:0;
+  grid-template-rows:auto auto minmax(0,1fr) auto;
+  gap:5px;
  }
  html [data-testid="play-viewport"] .mobile-play .play-heading{
-  display:flex;align-items:center;justify-content:space-between;gap:6px;
+  display:flex;align-items:center;min-height:0;padding:0 2px;
  }
- html [data-testid="play-viewport"] .mobile-play .switch-puppy-action{
-  min-height:34px;padding:6px 12px;font-size:12px;
+ html [data-testid="play-viewport"] .mobile-play .play-heading h1{
+  font-size:clamp(19px,5vw,23px);line-height:1.15;margin:0;
+ }
+ html [data-testid="play-viewport"] .mobile-play [data-testid="resource-strip"]{
+  min-height:0!important;padding:5px 6px!important;
+ }
+ html [data-testid="play-viewport"] .mobile-play .cyber-play-stage{
+  min-height:0;max-height:100%;overflow:hidden;
+  display:grid;grid-template-rows:minmax(0,1fr) auto auto;
+  gap:5px;padding:7px 9px 9px;
+  background:radial-gradient(ellipse at 50% 50%,rgba(0,229,255,.07),transparent 70%),#12151F;
+ }
+ html [data-testid="play-viewport"] .mobile-play .puppy-platform{
+  min-height:0!important;max-height:none;height:100%;width:100%;
+  align-self:stretch;align-items:center;justify-items:center;
+  overflow:hidden;
+ }
+ html [data-testid="play-viewport"] .mobile-play .platform-portrait{
+  width:min(80cqw,max(64px,calc(100cqh - 44px)),220px);
+  height:min(80cqw,max(64px,calc(100cqh - 44px)),220px);
+  min-width:0;max-width:100%;max-height:100%;
+  margin:0!important;align-self:end;justify-self:center;
+ }
+ /* RN-web renders Pressable and Animated.View as divs (not button tags).
+    Constrain their inline-sized children along with the image itself. */
+ html [data-testid="play-viewport"] .mobile-play .platform-portrait>*,
+ html [data-testid="play-viewport"] .mobile-play .platform-portrait>*>*,
+ html [data-testid="play-viewport"] .mobile-play .platform-portrait>*>*>*{
+  width:100%!important;height:100%!important;
+  max-width:100%;max-height:100%;min-width:0;
+ }
+ html [data-testid="play-viewport"] .mobile-play .platform-portrait img{
+  width:100%!important;height:100%!important;object-fit:contain;
+ }
+ html [data-testid="play-viewport"] .mobile-play .platform-name{
+  height:40px;min-width:0;overflow:hidden;align-self:end;
+ }
+ html [data-testid="play-viewport"] .mobile-play .platform-name h2{
+  font-size:clamp(15px,4.8vw,20px);line-height:22px;margin:0 0 2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ }
+ html [data-testid="play-viewport"] .mobile-play .current-puppy-badge{
+  font-size:10px;line-height:12px;padding:2px 9px;
+ }
+ html [data-testid="play-viewport"] .mobile-play .platform-orbit{
+  bottom:40px;width:70%;height:24px;
+ }
+ html [data-testid="play-viewport"] .mobile-play .play-energy{
+  min-height:31px;margin:0!important;padding:6px 8px;gap:6px;
+  font-size:clamp(10px,2.8vw,12px);
+ }
+ html [data-testid="play-viewport"] .mobile-play .cyber-tap{
+  min-height:50px;padding:6px 9px;gap:8px;
+ }
+ html [data-testid="play-viewport"] .mobile-play .cyber-tap strong{
+  font-size:clamp(15px,4.7vw,20px);line-height:1.15;
+  white-space:normal;overflow-wrap:anywhere;
+ }
+ html [data-testid="play-viewport"] .mobile-play .cyber-tap small{
+  font-size:12px;line-height:14px;
+ }
+ html [data-testid="play-viewport"] .mobile-play .next-reward{
+  min-height:48px;padding:8px 10px;gap:7px;
  }
 }
-@media(max-width:959px) and (max-height:500px){
- html [data-testid="play-viewport"] .mobile-play .play-heading{display:none}
-}
-
-/* Keep the puppy fully visible on 320px-wide devices with short browser viewports.
-   These devices already have the Roster tab for switching. */
-@media(max-width:380px) and (max-height:650px){
- html [data-testid="play-viewport"] .mobile-play .switch-puppy-action{display:none}
- html [data-testid="play-viewport"] .mobile-play{gap:3px}
- html [data-testid="play-viewport"] .mobile-play .cyber-play-stage{padding:5px 7px}
+/* Exceptionally short portrait windows remain scrollable instead of hiding
+   the tap/reward controls underneath Android system navigation. */
+@media(max-width:959px) and (orientation:portrait) and (max-height:510px){
+ html [data-testid="play-viewport"]{overflow-y:auto}
+ html [data-testid="play-viewport"] .mobile-play{
+  height:auto;min-height:100%;grid-template-rows:auto auto auto auto;
+ }
+ html [data-testid="play-viewport"] .mobile-play .cyber-play-stage{min-height:260px;max-height:none}
+ html [data-testid="play-viewport"] .mobile-play .puppy-platform{height:150px}
 }
 
 
