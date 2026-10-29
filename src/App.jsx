@@ -11,6 +11,9 @@ import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
 import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
 import AdminPortal from "./AdminPortal.jsx";
+import ProfileAvatarEditor from "./ProfileAvatarEditor.jsx";
+import PupGiftRequests from "./PupGiftRequests.jsx";
+import {avatarForAccount} from "./pupWebApi.js";
 import SiteAccountMenu,{ProfileAvatar,PUP_ACCOUNT_CHANGED} from "./SiteAccountMenu.jsx";
 import "./styles.css";
 
@@ -97,7 +100,7 @@ function AccountDashboard(){
   setRefreshing(true);setStatus("");
   try{
    const account=await verifyPuppySession(client);
-   setProfile(account);
+   setProfile(await avatarForAccount(account));
    if(!editing)setDisplayName(account.displayName||account.username||"");
    if(!credentialBusy)setCredentialUsername(account.username||"");
   }catch{
@@ -228,6 +231,7 @@ function AccountDashboard(){
     {profile.friendCode?<div className="account-actions"><button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button></div>:null}
     <div className="portal-divider"></div>
     <h3 id="profile-settings">✏️ Profile settings</h3>
+     <ProfileAvatarEditor account={profile} onChanged={avatarUrl=>setProfile(old=>({...old,avatarUrl}))}/>
     {editing?<form onSubmit={save} className="profile-form"><label htmlFor="pupDisplayName">Display name</label><input id="pupDisplayName" value={displayName} maxLength={24} onChange={e=>setDisplayName(e.target.value)} autoComplete="nickname"/><div className="form-actions"><button className="cta cta-primary" disabled={saving} type="submit">{saving?"Saving…":"Save display name"}</button><button className="cta cta-secondary" type="button" onClick={()=>{setEditing(false);setDisplayName(profile.displayName||profile.username);}}>Cancel</button></div></form>:
      <div className="profile-row"><span><small>Display name</small><strong>{profile.displayName||profile.username}</strong></span><button className="small-action" type="button" onClick={()=>setEditing(true)}>Edit name</button></div>}
     {status?<p className="portal-message" role="status">{status}</p>:null}
@@ -342,7 +346,7 @@ export default function App(){
  const callback=path==="/auth/discord/callback";
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
  const page=path==="/"?"home":path==="/puppies"?"puppies":
-  /^\/account\/admin(?:\/(?:users|audit|bans))?\/?$/.test(path)?"admin":
+  /^\/account\/admin(?:\/(?:users|audit|bans|gifts))?\/?$/.test(path)?"admin":
   path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   callback?"callback":path==="/play"?"play":"error";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
