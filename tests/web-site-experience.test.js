@@ -11,7 +11,11 @@ test("public roster uses published roster metadata rather than hardcoded placeho
  assert.match(gallery,/import roster from "\.\/data\/roster\.js"/);
  assert.match(gallery,/LEGACY_V6_PUPPIES/);
  assert.match(gallery,/p\.group!=="test"/);
- assert.match(gallery,/loading="lazy"/);
+ assert.match(gallery,/import PuppyArtwork from "\.\/native\/web\/PuppyArtwork\.jsx"/);
+ assert.match(gallery,/<PuppyArtwork id=\{p\.id\}/);
+ assert.match(gallery,/size=\{215\} lazy/);
+ assert.match(gallery,/\/assets\/transparent\/\$1/);
+ assert.doesNotMatch(gallery,/<img[^>]+src=\{[^}]*p\.image/);
  assert.match(gallery,/Search puppies/);
  assert.ok(roster.some(p=>p.id==="classic")&&roster.some(p=>p.id==="v2_frost"));
  assert.ok(LEGACY_V6_PUPPIES.some(p=>p.id==="classic"&&p.description));
