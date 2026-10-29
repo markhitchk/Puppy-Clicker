@@ -111,7 +111,7 @@ async function bans(db) {
 }
 async function action(db,actor,body) {
   const type=body?.action;
-  if (type==="staff-info") return {role:actor.role,username:actor.player.username};
+  if (type==="staff-info") return {role:actor.role,username:actor.player.username,playerUuid:actor.player.id};
   if (type==="users") {
     const listed=await users(db,body.search);
     await audit(db,actor,null,"WEB_USERS_VIEW",{count:listed.length,filtered:!!safeSearch(body.search)});
