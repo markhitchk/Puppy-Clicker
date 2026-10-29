@@ -1,5 +1,6 @@
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
 import {ActivityIndicator,Alert,NativeModules,Platform,Pressable,ScrollView,Share,StyleSheet,Text,TextInput,View} from 'react-native';
+import {isValidPupFriendCode,normalizePupFriendCode} from './pupFriendCode';
 
 // Kotlin Exchange parity: Friends / Connect / Gifts / Trade / History.
 // Transfers are never applied by React state; a signed PupEye request must
@@ -114,8 +115,8 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
  const puppyLabel=id=>byId.get(id)?.name||id;
  const details=ids=>ids?.length?ids.map(puppyLabel).join(' · '):'No puppies selected';
  const sendFriend=async()=>{
-  const valid=code.trim().toUpperCase();
-  if(!/^(?:PUP-[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}|PUP-HARLEYTG-DEV)$/.test(valid)){
+  const valid=normalizePupFriendCode(code);
+  if(!isValidPupFriendCode(valid)){
    setError('Use a Friend Code like PUP-XXXX-XXXX-XXXX.');return;
   }
   if(await run('request',{friendCode:valid},'Friend request sent.'))
@@ -261,13 +262,17 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
    <Text style={styles.heading}>Connect with a friend</Text>
    <Text style={styles.muted}>Enter their Friend Code. The recipient accepts from Friends. Developer gifting is available directly in Gifts without adding a friend.</Text>
    <TextInput accessibilityLabel="Friend Code" value={code}
-    onChangeText={x=>{setCode(x.toUpperCase());setFound(null);}} autoCapitalize="characters"
+    onChangeText={x=>{setCode(normalizePupFriendCode(x));setFound(null);}} autoCapitalize="characters"
     placeholder="PUP-XXXX-XXXX-XXXX" placeholderTextColor="#8B9DAC"
     maxLength={19} style={styles.input}/>
    <View style={styles.actions}>
     {button('Find player',async()=>{
+     const recipientCode=normalizePupFriendCode(code);
+     if(!isValidPupFriendCode(recipientCode)){
+      setError('Use a Friend Code like PUP-XXXX-XXXX-XXXX.');return;
+     }
      setBusy(true);setError('');
-     try{setFound((await request('lookup',{friendCode:code.trim().toUpperCase()})).player);}
+     try{setFound((await request('lookup',{friendCode:recipientCode})).player);}
      catch(e){setError(safeMessage(String(e?.code||'')));}
      finally{setBusy(false);}
     },!code)}
@@ -292,7 +297,7 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
     {tab==='gifts'&&canGiftDirect?<TextInput
       accessibilityLabel="Gift recipient Friend Code"
       value={friendCode}
-      onChangeText={x=>setFriendCode(x.toUpperCase().trim())}
+      onChangeText={x=>setFriendCode(normalizePupFriendCode(x))}
       autoCapitalize="characters"
       placeholder="Recipient Friend Code: PUP-XXXX-XXXX-XXXX"
       placeholderTextColor="#8B9DAC"
@@ -304,8 +309,8 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
      // sendOffer reads offerKind on the next render. Pass the intended mode
      // directly below rather than relying on asynchronous React state.
      const kind=tab==='gifts'?'gift':'trade';
-     const recipientCode=friendCode.trim().toUpperCase();
-     if(!/^(?:PUP-[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}|PUP-HARLEYTG-DEV)$/.test(recipientCode)||selected.length===0){
+     const recipientCode=normalizePupFriendCode(friendCode);
+     if(!isValidPupFriendCode(recipientCode)||selected.length===0){
       setError('Enter a valid recipient Friend Code and select a puppy.');return;
      }
      confirmExchange(kind==='gift'?'Send gift?':'Propose trade?',

@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {requestWebPuppyExchange} from "../src/native/web/exchangeClient.js";
+import {normalizePupFriendCode,isValidPupFriendCode} from "../src/native/src/components/pupFriendCode.js";
 
 test("web Exchange invokes protected function using Pup Account client",async()=>{
  let invocation;
@@ -29,4 +30,14 @@ test("web Exchange maps server authentication and policy errors",async()=>{
 test("web Exchange cannot invent arbitrary server operations",async()=>{
  const client={functions:{invoke:async()=>{throw Error("Should not call server");}}};
  await assert.rejects(requestWebPuppyExchange(client,"admin"),e=>e.code==="EXCHANGE_ACTION_INVALID");
+});
+
+test("Friend Code validation accepts issued codes containing 0 and 1",()=>{
+ assert.equal(normalizePupFriendCode(" pup-a0b1-c234-d567 "),"PUP-A0B1-C234-D567");
+ for(const code of ["PUP-A0B1-C234-D567","PUP-Z999-A000-1B2C","PUP-HARLEYTG-DEV"]){
+  assert.equal(isValidPupFriendCode(code),true,code);
+ }
+ for(const code of ["PUP-AAA-BBBB-CCCC","PUP-AAAA-BBBB-CCCC-extra","PUP-AAAA_BBBB_CCCC",null]){
+  assert.equal(isValidPupFriendCode(code),false,String(code));
+ }
 });
