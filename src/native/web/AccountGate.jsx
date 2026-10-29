@@ -1,4 +1,4 @@
-import React,{createContext,useContext,useEffect,useState} from "react";
+import React,{createContext,useContext,useEffect,useRef,useState} from "react";
 import {View,Text,Pressable,Image} from "react-native";
 import WebLoading from "../../WebLoading.jsx";
 import {client} from "../../supabase.js";
@@ -14,6 +14,7 @@ const text={color:"#f5fcff",fontSize:14};
 export default function WebAccountGate({children}){
  const recovery=globalThis.location?.pathname==="/recovery";
  const [user,setUser]=useState(null),[pupAccount,setPupAccount]=useState(null);
+ const panelRef=useRef(null);
  const [loading,setLoading]=useState(true),[login,setLogin]=useState(""),[password,setPassword]=useState("");
  const [busy,setBusy]=useState(false),[error,setError]=useState("");
  const [mode,setMode]=useState(()=>(
@@ -22,7 +23,9 @@ export default function WebAccountGate({children}){
  )?"register":"signin");
  const chooseMode=next=>{
   if(busy||recovery)return;
-  setError("");setPassword("");setMode(next);
+  setError("");setPassword("");
+  if(panelRef.current)panelRef.current.scrollTop=0;
+  setMode(next);
  };
  const [callbackFailed,setCallbackFailed]=useState(false);
  useEffect(()=>{
@@ -95,8 +98,8 @@ export default function WebAccountGate({children}){
   <a href="/recovery" style={{color:'#8ce9ff'}}>Account recovery</a>
  </View>;
  if(loading)return <WebLoading stage={hasPuppyDiscordCallback()?"callback":"account"}/>;
- if(!user||!pupAccount)return <View style={{flex:1,backgroundColor:"#0d1e29",alignItems:"center",justifyContent:"center",padding:20}}>
-  <View style={{backgroundColor:"#19313e",padding:28,borderRadius:24,maxWidth:500,width:"100%",gap:13,borderWidth:1,borderColor:"#315466"}}>
+ if(!user||!pupAccount)return <View style={{flex:1,minHeight:0,backgroundColor:"#0d1e29",alignItems:"center",justifyContent:"center",padding:20}}>
+  <View ref={panelRef} style={{backgroundColor:"#19313e",padding:28,borderRadius:24,maxWidth:500,width:"100%",minHeight:0,maxHeight:"calc(100dvh - 112px)",overflowY:"auto",overscrollBehavior:"contain",gap:13,borderWidth:1,borderColor:"#315466"}}>
    <Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{height:85,width:110,alignSelf:"center"}}/>
    <Text style={{...text,fontSize:11,color:"#00e5ff",fontWeight:"900",textAlign:"center"}}>PUPPY CLICKER · SET UP YOUR ACCOUNT</Text>
    <Text accessibilityRole="header" style={{fontSize:27,fontWeight:"900",color:"#fff",textAlign:"center"}}>{recovery?"🔐 Pup Account Recovery":"🐶 Puppy Clicker · Pup Account"}</Text>
