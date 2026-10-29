@@ -205,6 +205,13 @@ function AccountDashboard(){
      {detail("Account connection",connection)}
      {detail("Gameplay access",gameplay)}
      {detail("Discord",connected)}
+     {profile.discordProfile?<>
+      {detail("Discord username",profile.discordProfile.username?"@"+profile.discordProfile.username:null)}
+      {detail("Discord display name",profile.discordProfile.displayName)}
+      {detail("Discord user ID",profile.discordProfile.id)}
+      {profile.discordProfile.email?detail("Discord email",profile.discordProfile.email,
+       "Returned through Discord OAuth. Not automatically a verified Supabase recovery email."):null}
+     </>:null}
      {profile.recoveryEmail?detail("Verified recovery email",profile.recoveryEmail,"Confirmed by Supabase Auth. Used for password-reset links."):detail("Verified recovery email","Not configured","Visit /recovery to link and verify an email address.")}
      {profile.contactEmail?detail("Support contact email",profile.contactEmail,"Visible only to your signed-in account."):null}
     </dl>
