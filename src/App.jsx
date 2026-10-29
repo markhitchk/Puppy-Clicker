@@ -217,6 +217,8 @@ function AccountDashboard(){
      {detail("Role",profile.guildRole===undefined?"Checking…":accountRole(profile.guildRole))}
      {detail("Account connection",connection)}
      {detail("Gameplay access",gameplay)}
+     {detail("PupEye Web",profile.pupeyeWeb?.mode==="server-verified"?"Server protection active":"Checking protection…",
+       "Browser gameplay and privileged actions use server-side account verification and abuse limits. Browser identification is not Android device attestation.")}
      {detail("Discord",connected)}
      {profile.discordProfile?<>
       {detail("Discord username",profile.discordProfile.username?"@"+profile.discordProfile.username:null)}
