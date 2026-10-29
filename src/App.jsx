@@ -270,6 +270,20 @@ export default function App(){
  useEffect(()=>{
   // Root-level styling includes Home, Play, Account, and all website routes.
   const systemTheme=window.matchMedia('(prefers-color-scheme: dark)');
+  const primaryMouse=window.matchMedia('(hover: hover) and (pointer: fine)');
+  const root=document.documentElement;
+  // Touchscreens can retain :hover after a tap (including when a mouse is
+  // connected). Only enable the custom pointer for actual mouse/pen input.
+  root.dataset.puppyCursorInput=primaryMouse.matches?'mouse':'touch';
+  const pointerInput=event=>{
+   if(event.pointerType==='touch')root.dataset.puppyCursorInput='touch';
+   else if(event.pointerType==='mouse'||event.pointerType==='pen')
+    root.dataset.puppyCursorInput='mouse';
+  };
+  const pointerMovement=event=>{
+   if(event.pointerType==='mouse'||event.pointerType==='pen')
+    root.dataset.puppyCursorInput='mouse';
+  };
   const syncPawCursor=event=>{
    const saved=loadWebPreferences();
    // An in-tab settings change also works when browser storage is unavailable.
@@ -285,12 +299,19 @@ export default function App(){
   window.addEventListener(WEB_PREFERENCES_CHANGED,syncPawCursor);
   window.addEventListener('storage',syncPawCursor);
   systemTheme.addEventListener('change',syncPawCursor);
+  window.addEventListener('pointerdown',pointerInput,{passive:true});
+  window.addEventListener('pointermove',pointerMovement,{passive:true});
+  window.addEventListener('pointerover',pointerMovement,{passive:true});
   return()=>{
    window.removeEventListener(WEB_PREFERENCES_CHANGED,syncPawCursor);
    window.removeEventListener('storage',syncPawCursor);
    systemTheme.removeEventListener('change',syncPawCursor);
-   delete document.documentElement.dataset.puppyCursor;
-   delete document.documentElement.dataset.puppyCursorTheme;
+   window.removeEventListener('pointerdown',pointerInput);
+   window.removeEventListener('pointermove',pointerMovement);
+   window.removeEventListener('pointerover',pointerMovement);
+   delete root.dataset.puppyCursor;
+   delete root.dataset.puppyCursorTheme;
+   delete root.dataset.puppyCursorInput;
   };
  },[]);
  // Keep historical /register bookmarks, but make /account the one auth endpoint.
