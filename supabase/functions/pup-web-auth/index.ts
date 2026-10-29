@@ -1,5 +1,7 @@
 import {createClient} from "npm:@supabase/supabase-js@2.117.1";
 import {crossPlay,CrossPlayError} from "./crossPlay.ts";
+import {newBetaKotlinSave} from "../_shared/beta-economy.ts";
+import {createHash} from "node:crypto";
 
 // This is Puppy Clicker's own public OAuth2 application (same client ID as
 // the Android DiscordSignupAuth). Do not use shared Supabase Discord OAuth.
@@ -124,12 +126,63 @@ async function currentSession(req){
  if(le)throw new PublicError(503,"PUP_ACCOUNT_LOOKUP_FAILED");
  if(!link)throw new PublicError(403,"PUP_ACCOUNT_SESSION_REQUIRED");
  const {data:account,error:ae}=await admin.from("pup_accounts").select(
-  "id,player_uuid,active_installation_uuid,discord_user_id,username,display_name,contact_email,status,terms_version,privacy_version,terms_accepted_at,privacy_accepted_at"
+  "id,player_uuid,active_installation_uuid,discord_user_id,username,display_name,contact_email,status,terms_version,privacy_version,terms_accepted_at,privacy_accepted_at,origin_platform"
  ).eq("id",link.account_uuid).maybeSingle();
  if(ae)throw new PublicError(503,"PUP_ACCOUNT_LOOKUP_FAILED");
  await accountAllowed(account);
  return {account,user:data.user};
 }
+
+// Web signup is for NEW identities only: never claim Android installations.
+async function registerWebAccount(req,body,origin){
+ const username=required(body.username,/^[A-Za-z0-9_-]{3,20}$/,"PUP_USERNAME_INVALID");
+ const password=required(body.password,/^[\s\S]{8,128}$/,"PUP_PASSWORD_INVALID");
+ if(body.termsAccepted!==true||body.privacyAccepted!==true)
+  throw new PublicError(400,"PUP_LEGAL_ACCEPTANCE_REQUIRED");
+ const contactEmail=body.contactEmail==null?"":typeof body.contactEmail==="string"?
+  body.contactEmail.trim().toLowerCase():null;
+ if(contactEmail===null||contactEmail.length>254||
+    (contactEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)))
+  throw new PublicError(400,"PUP_CONTACT_EMAIL_INVALID");
+ const network=req.headers.get("cf-connecting-ip")||
+  req.headers.get("x-real-ip")||
+  req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";
+ const ipHash=createHash("sha256").update("pup-web-signup:"+network).digest("hex");
+ const {data:admitted,error:budgetError}=await admin.rpc("consume_pup_web_signup_budget",
+  {p_ip_hash:ipHash});
+ if(budgetError)throw new PublicError(503,"PUP_SIGNUP_LIMIT_UNAVAILABLE");
+ if(admitted!==true)throw new PublicError(429,"PUP_SIGNUP_RATE_LIMIT");
+ const internalEmail="pup-web-"+crypto.randomUUID()+"@accounts.puppyclicker.invalid";
+ const {data:created,error:creationError}=await admin.auth.admin.createUser({
+  email:internalEmail,email_confirm:true,password,
+  app_metadata:{puppy_clicker_web:true}
+ });
+ if(creationError||!created?.user)throw new PublicError(503,"PUP_SIGNUP_UNAVAILABLE");
+ const save=newBetaKotlinSave();
+ const saveHash=createHash("sha256").update(JSON.stringify(save)).digest("hex");
+ const {error:registrationError}=await admin.rpc("register_pup_web_account",{
+  p_auth_user_id:created.user.id,p_username:username,
+  p_contact_email:contactEmail||null,p_email:internalEmail,
+  p_save_data:save,p_payload_hash:saveHash
+ });
+ if(registrationError){
+  await admin.auth.admin.deleteUser(created.user.id).catch(()=>{});
+  if(registrationError.code==="23505"||
+     /PUP_USERNAME_TAKEN/.test(registrationError.message||""))
+   throw new PublicError(409,"PUP_USERNAME_TAKEN");
+  throw new PublicError(503,"PUP_SIGNUP_UNAVAILABLE");
+ }
+ // The new account remains usable via password login if auto-sign-in fails.
+ const {data:signed,error:signError}=await auth.auth.signInWithPassword({
+  email:internalEmail,password
+ });
+ if(signError||!signed?.session)
+  return json(201,{registered:true,signInRequired:true},origin);
+ return json(201,{registered:true,
+  access_token:signed.session.access_token,
+  refresh_token:signed.session.refresh_token},origin);
+}
+
 Deno.serve(async req=>{
  const origin=req.headers.get("origin")||"";
  if(req.method==="OPTIONS")return json(200,{},origin);
@@ -138,7 +191,8 @@ Deno.serve(async req=>{
  try{
   const body=await req.json();
   if(!body||typeof body!=="object")throw new PublicError(400,"PUP_REQUEST_INVALID");
-  if(body.action==="status"){
+  if(body.action==="register")return await registerWebAccount(req,body,origin);
+   if(body.action==="status"){
    const {account,user}=await currentSession(req);
    // These public-facing details are read only from the authenticated owner's
    // authoritative player and save records, never from browser-supplied IDs.
@@ -150,7 +204,7 @@ Deno.serve(async req=>{
      ? admin.from("pupeye_installations").select("player_uuid,active,revoked_at")
        .eq("id",account.active_installation_uuid).maybeSingle()
      : Promise.resolve({data:null,error:null}),
-    admin.from("pup_account_saves").select("account_uuid")
+    admin.from("pup_account_saves").select("account_uuid,origin_platform,installation_uuid")
      .eq("player_uuid",account.player_uuid).maybeSingle(),
     admin.from("pup_credential_links").select("auth_user_id,email")
      .eq("account_uuid",account.id).maybeSingle()
@@ -174,6 +228,9 @@ Deno.serve(async req=>{
    const owned=!!installation&&installation.player_uuid===account.player_uuid
     &&installation.active===true&&!installation.revoked_at;
    const connected=owned&&save?.account_uuid===account.id;
+   const webOnly=account.origin_platform==="web"&&!account.active_installation_uuid&&
+    save?.account_uuid===account.id&&save?.origin_platform==="web"&&
+    save?.installation_uuid===null;
    return json(200,{verified:true,account:{
     id:account.id,username:account.username,
     displayName:account.display_name||account.username,
@@ -181,8 +238,9 @@ Deno.serve(async req=>{
     friendCode:player?.friend_code||null,
     guildRole:player?.guild_role||null,
     status:"VERIFIED",
-    linkedFromPlay:connected,
-    gameplayWritable:connected,
+    linkedFromPlay:webOnly?null:connected,
+    webOnly,
+    gameplayWritable:webOnly||connected,
     passwordLoginEnabled:credentials?.auth_user_id===user.id,
     recoveryEmail:confirmedEmail,
     contactEmail:account.contact_email||null

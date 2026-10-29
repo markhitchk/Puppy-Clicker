@@ -135,6 +135,13 @@ export function puppyAuthMessage(error){
   PUP_ACCOUNT_BLOCKED:"Your Pup Account is blocked. Contact Puppy Clicker support to review its standing.",
   PUP_ACCOUNT_NOT_AVAILABLE:"Your Pup Account is unavailable. Contact Puppy Clicker support.",
   PUP_WEB_ORIGIN_NOT_ALLOWED:"Sign in at https://puppy-clicker.vercel.app. This website address is not approved for Discord sign-in.",
+  PUP_USERNAME_TAKEN:"That Pup Account username is already registered.",
+  PUP_SIGNUP_RATE_LIMIT:"Too many registrations right now. Try again later.",
+  PUP_SIGNUP_UNAVAILABLE:"Pup Account registration is temporarily unavailable.",
+  PUP_CONTACT_EMAIL_INVALID:"Enter a valid optional support contact email.",
+  PUP_LEGAL_ACCEPTANCE_REQUIRED:"Accept both legal documents to register.",
+  PUP_PASSWORD_INVALID:"Password must contain 8–128 characters.",
+  PUP_USERNAME_INVALID:"Username must contain 3–20 letters, digits, underscores or hyphens.",
   PUP_SIGNIN_INVALID:"Incorrect Pup username or password.",
   PUP_WEB_SESSION_INVALID:"The sign-in session could not be saved. Allow website storage and start sign-in again in the same browser."
  })[code]||"Pup Account verification could not complete. Retry sign-in in this browser. If it keeps failing, use Account recovery or contact support.";

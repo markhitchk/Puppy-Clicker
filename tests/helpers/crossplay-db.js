@@ -1,6 +1,8 @@
-export function crossplayDb(save, {owner=true, race=false}={}) {
- const account={id:'account',player_uuid:'player',active_installation_uuid:'install'};
- let row=save?{player_uuid:'player',account_uuid:'account',revision:1,save_data:structuredClone(save)}:null;
+export function crossplayDb(save, {owner=true, race=false, webOnly=false}={}) {
+ const account={id:'account',player_uuid:'player',
+  active_installation_uuid:webOnly?null:'install',origin_platform:webOnly?'web':'android'};
+ let row=save?{player_uuid:'player',account_uuid:'account',revision:1,save_data:structuredClone(save),
+  origin_platform:webOnly?'web':'android',installation_uuid:webOnly?null:'install'}:null;
  let writes=0;
  const admin={from(table){
   let patch=null;const filters=[];

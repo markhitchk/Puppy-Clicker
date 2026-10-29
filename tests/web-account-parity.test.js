@@ -27,7 +27,7 @@ test("status endpoint returns server-owned fields for only the authenticated pla
  assert.match(auth,/\.eq\("player_uuid",account\.player_uuid\)/);
  assert.match(auth,/friendCode:player\?\.friend_code/);
  assert.match(auth,/guildRole:player\?\.guild_role/);
- assert.match(auth,/gameplayWritable:connected/);
+ assert.match(auth,/gameplayWritable:webOnly\|\|connected/);
  assert.match(auth,/contactEmail:account\.contact_email/);
  assert.doesNotMatch(read("src/App.jsx"),/profile\.id|profile\.playerUuid|profile\.installationId|cloud\.revision/);
 });
