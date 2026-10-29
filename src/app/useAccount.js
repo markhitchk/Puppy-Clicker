@@ -1,3 +1,4 @@
+import {puppyReadFrom} from "../dbSchemaLayout.js";
 import { applyMutation, closeAccount } from "../accountLifecycle.js";
 import { recover } from "../blackjack.js";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -41,8 +42,9 @@ export function useAccount(platform) {
     setBusy(true);
     setMessage("Loading cloud save…");
     try {
-      const { data, error } = await client
-        .from("puppy_web_saves")
+      const { data, error } = await puppyReadFrom(client, "puppy_web_saves", {
+        useGrouped: import.meta.env.VITE_PUPPY_GROUPED_DB_READS === "true",
+      })
         .select("save_data,revision")
         .eq("auth_user_id", account)
         .maybeSingle();
