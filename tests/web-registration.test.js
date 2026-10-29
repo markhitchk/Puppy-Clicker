@@ -13,7 +13,7 @@ test("sign-in and registration use the same Pup Account screen",()=>{
  assert.match(app,/href="\/account\?mode=register"/);
  assert.doesNotMatch(app,/page==="register"\?<WebRegister\/>/);
  assert.match(gate,/accessibilityRole="tablist"/);
- assert.match(gate,/accessibilityRole="tab"/);
+ assert.match(gate,/role="tab" aria-selected=/);
  assert.match(gate,/Sign In/);
  assert.match(gate,/Create Account/);
  assert.match(gate,/<WebRegister onAuthenticated=/);
