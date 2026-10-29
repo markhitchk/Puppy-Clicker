@@ -95,5 +95,5 @@ test("Meet the Puppies includes both missing test puppies and their transparent 
  await page.getByRole("button",{name:"V2 puppies"}).click();
  await expect(page.getByRole("heading",{name:/Dev Pup/})).toBeVisible();
  await page.getByRole("button",{name:"Special"}).click();
- await expect(page.getByRole("heading",{name:/Dev Pup/})).toBeVisible();
+ await expect(page.getByRole("heading",{name:/Dev Pup/}).first()).toBeVisible();
 });
