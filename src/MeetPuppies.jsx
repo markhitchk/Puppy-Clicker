@@ -1,4 +1,6 @@
 import React,{useEffect,useMemo,useRef,useState} from "react";
+// Import alongside the dialog so styling cannot be omitted by a partial stylesheet deploy.
+import "./puppy-details.css";
 import roster from "./data/roster.js";
 import {LEGACY_V6_PUPPIES} from "./native/src/engine/rosterV6.js";
 import PuppyArtwork from "./native/web/PuppyArtwork.jsx";
