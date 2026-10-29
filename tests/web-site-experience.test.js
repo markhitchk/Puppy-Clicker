@@ -83,7 +83,7 @@ test("published catalog keeps both crash test puppies as well as developers and 
  assert.match(gallery,/p\.group==="test"\?"Development test only"/);
 });
 
-test("desktop and mobile play expose switching only through roster and no scenic background",()=>{
+test("desktop and mobile play retain roster switching with a desktop-only yard scene",()=>{
  const platform=read("src/native/web/WebsiteDesign.jsx");
  const play=read("src/native/App.jsx");
  const desktop=read("src/native/web/desktop-reference.css");
@@ -92,7 +92,7 @@ test("desktop and mobile play expose switching only through roster and no scenic
  assert.doesNotMatch(play,/cycle\(-1\)|cycle\(1\)|onPrevious=\{|onNext=\{/);
  assert.match(play,/className="cyber-button secondary small switch-puppy-action"/);
  assert.match(play,/onClick=\{\(\)=>onOpen\('roster'\)\}/);
- assert.doesNotMatch(desktop,/night-yard-v1\.webp|\/assets\/scenes\//);
+ assert.match(desktop,/night-yard-v1\.webp/);
  assert.match(desktop,/background-color:#0A0C12/);
  assert.match(theme,/\.mobile-play \.puppy-platform/);
 });
