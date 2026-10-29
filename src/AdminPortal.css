@@ -51,3 +51,17 @@
 .pup-admin-modal textarea{min-height:96px}
 .pup-admin-modal-actions{display:flex;justify-content:flex-end;gap:10px}
 @media(max-width:650px){.pup-admin-stats{gap:8px}.pup-admin-stat{padding:12px}.pup-admin-stat strong{font-size:22px}.pup-admin-panel{padding:12px}.pup-admin-tabs button{padding:10px 13px}.pup-admin-tabs .pup-admin-refresh{margin-left:0}}
+
+/* Dedicated registered-account ban editor (/account/bansys/user=?@username). */
+.pup-admin-ban-page{max-width:880px}
+.pup-admin-ban-editor{margin-top:24px;padding:clamp(20px,4vw,34px)}
+.pup-admin-ban-editor h1{font-size:clamp(27px,5vw,38px);margin:8px 0 12px}
+.pup-admin-ban-editor>p{color:#b6cfdb;line-height:1.6}
+.pup-admin-ban-editor form{margin-top:24px}
+.pup-admin-ban-editor label{display:flex;flex-direction:column;gap:9px;margin:18px 0;color:#d8ecf6;font-size:14px;font-weight:700}
+.pup-admin-ban-editor textarea,.pup-admin-ban-editor input{width:100%;min-height:46px;border:1px solid #527084;border-radius:14px;background:#0e1927;color:#fff;padding:13px;font:inherit}
+.pup-admin-ban-editor textarea{min-height:132px;resize:vertical}
+.pup-admin-ban-actions{display:flex;gap:18px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:24px}
+.pup-admin-ban-actions button{padding:12px 19px;border-radius:12px;font:inherit;font-weight:800;cursor:pointer}
+.pup-admin-ban-actions button.pup-admin-danger-button{border:1px solid #af586c;background:#743444;color:#fff}
+.pup-admin-ban-actions button:disabled{opacity:.5;cursor:not-allowed}
