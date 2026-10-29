@@ -1,5 +1,6 @@
 import React,{createContext,useContext,useEffect,useState} from "react";
-import {View,Text,TextInput,Pressable,Image,ActivityIndicator} from "react-native";
+import {View,Text,Pressable,Image} from "react-native";
+import WebLoading from "../../WebLoading.jsx";
 import {client} from "../../supabase.js";
 import WebRegister from "../../WebRegister.jsx";
 import {beginPuppyDiscord,completePuppyDiscordCallback,hasPuppyDiscordCallback,
@@ -92,9 +93,7 @@ export default function WebAccountGate({children}){
   <a href="/play" style={{color:'#8ce9ff'}}>Return to sign-in</a>
   <a href="/recovery" style={{color:'#8ce9ff'}}>Account recovery</a>
  </View>;
- if(loading)return <View style={{flex:1,justifyContent:"center",alignItems:"center",backgroundColor:"#0d1e29",gap:12}}>
-  <ActivityIndicator color="#00b8f0" size="large"/><Text style={text}>Verifying Pup Account…</Text>
- </View>;
+ if(loading)return <WebLoading stage={hasPuppyDiscordCallback()?"callback":"account"}/>;
  if(!user||!pupAccount)return <View style={{flex:1,backgroundColor:"#0d1e29",alignItems:"center",justifyContent:"center",padding:20}}>
   <View style={{backgroundColor:"#19313e",padding:28,borderRadius:24,maxWidth:500,width:"100%",gap:13,borderWidth:1,borderColor:"#315466"}}>
    <Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{height:85,width:110,alignSelf:"center"}}/>
@@ -119,15 +118,20 @@ export default function WebAccountGate({children}){
      <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Opening Discord…":recovery?"Recover with linked Discord":"Continue with Puppy Clicker Discord"}</Text>
     </Pressable>
     <Text style={{...text,textAlign:"center"}}>Or sign in with your Pup username</Text>
-    <TextInput accessibilityLabel="Pup username" autoComplete="username" placeholder="Pup Account username"
-     placeholderTextColor="#8fa2ad" autoCapitalize="none" value={login} onChangeText={setLogin}
-     style={{backgroundColor:"#0d1e29",color:"#fff",padding:12,borderRadius:10}}/>
-    <TextInput accessibilityLabel="Pup password" autoComplete="current-password" placeholder="Password"
-     placeholderTextColor="#8fa2ad" secureTextEntry value={password} onChangeText={setPassword}
-     style={{backgroundColor:"#0d1e29",color:"#fff",padding:12,borderRadius:10}}/>
-    <Pressable accessibilityRole="button" disabled={busy||!client} onPress={loginPup} style={action}>
-     <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Verifying…":"Sign in to Pup Account"}</Text>
-    </Pressable>
+    <form className="pup-signin-form" autoComplete="on" onSubmit={event=>{event.preventDefault();void loginPup();}}>
+     <label htmlFor="pup-login-username">Pup username</label>
+     <input id="pup-login-username" type="text" name="username" autoComplete="username"
+      autoCapitalize="none" autoCorrect="off" spellCheck="false" required
+      placeholder="Pup Account username" value={login} onChange={event=>setLogin(event.target.value)}
+      disabled={busy||!client}/>
+     <label htmlFor="pup-login-password">Password</label>
+     <input id="pup-login-password" type="password" name="password" autoComplete="current-password"
+      required placeholder="Password" value={password} onChange={event=>setPassword(event.target.value)}
+      disabled={busy||!client}/>
+     <button className="pup-signin-submit" type="submit" disabled={busy||!client}>
+      {busy?"Verifying…":"Sign in to Pup Account"}
+     </button>
+    </form>
     {!!error&&<Text accessibilityRole="alert" style={{color:"#ffb4ad"}}>{error}</Text>}
     {recovery?<Text style={{...text,fontSize:12,color:"#bbccdc",lineHeight:20}}>
      No access to Discord or your password? Use the Android app's Settings → Support or another official Puppy Clicker support channel. Support requires independent proof of ownership.
