@@ -1,9 +1,10 @@
 import React,{useCallback,useEffect,useState} from "react";
 import {useWebAccount} from "./native/web/AccountGate.jsx";
 import "./AdminPortal.css";
+import AdminPuppyGifts from "./AdminPuppyGifts.jsx";
 
 const initialSection=()=> {
- const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit)\/?$/);
+ const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit|gifts)\/?$/);
  return match?.[1] || "users";
 };
 const formatTime=value=>{
@@ -87,7 +88,7 @@ export default function AdminPortal(){
   return ()=>{alive=false;};
  },[request]);
 
- useEffect(()=>{if(staff)void refresh(section);},[staff,section,refresh]);
+ useEffect(()=>{if(staff&&section!=="gifts")void refresh(section);},[staff,section,refresh]);
 
  const navigate=(tab)=>{
   setSection(tab);setMessage("");setError("");
@@ -149,10 +150,10 @@ export default function AdminPortal(){
    <Stat label="Recent audit events" value={events.length}/>
   </div>
   <nav className="pup-admin-tabs" aria-label="Administration sections">
-   {[["users","👥 Users"],["bans","🛡️ Bans"],["audit","📋 Audit Log"]].map(([tab,label])=>
+   {[["users","👥 Users"],["bans","🛡️ Bans"],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"]].map(([tab,label])=>
     <button key={tab} type="button" className={section===tab?"is-selected":""}
      aria-current={section===tab?"page":undefined} onClick={()=>navigate(tab)}>{label}</button>)}
-   <button type="button" className="pup-admin-refresh" onClick={()=>void refresh(section)} disabled={busy||tabLoading}>↻ Refresh</button>
+   <button type="button" className="pup-admin-refresh" onClick={()=>void refresh(section)} disabled={busy||tabLoading||section==="gifts"}>↻ Refresh</button>
   </nav>
   {error?<p className="pup-admin-error" role="alert">{error}</p>:null}
   {message?<p className="pup-admin-success" role="status">{message}</p>:null}
@@ -189,6 +190,7 @@ export default function AdminPortal(){
    {!visibleUsers.length&&!tabLoading?<p className="pup-admin-empty">No matching Pup Accounts.</p>:null}
    <p className="pup-admin-note">Directory shows up to 100 registered Pup Accounts. Web connection details appear only if the optional network telemetry service has records. Access is restricted to staff and audited.</p>
   </section>:null}
+  {section==="gifts"?<AdminPuppyGifts request={request} role={staff.role}/>:null}
   {section==="bans"?<section className="pup-admin-panel">
    <h2>Ban history</h2><p className="pup-admin-note">Shared PupEye bans affect Android and the website. Bans issued outside this panel must be managed by their original system.</p>
    <div className="pup-admin-table-wrap"><table className="pup-admin-table">
