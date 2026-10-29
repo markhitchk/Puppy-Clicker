@@ -153,7 +153,11 @@ function DailyGoalCard({g,goal,act,clock,readOnly=false,compact=false}){
 }
 function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen}){
  const pup=ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
- const layout={...revampedPlayLayout(viewportHeight),portrait:desktop?260:220};
+ // Scale artwork to the measured Play viewport, not the device's full screen height.
+  // A fixed 220px portrait pushed the energy and reward rows behind the tab bar.
+  const layout={...revampedPlayLayout(viewportHeight),
+   portrait:desktop?260:Math.max(92,Math.min(220,Math.floor(viewportHeight*0.3)))};
+
  const next=nextPlayReward(g,schedule,clock),cooldown=v6CooldownSeconds(g,clock),bonus=careTapBonus(g);
  const animate=g.animatedUi!==false&&g.tapAnimationsEnabled!==false;
  const tapScale=useRef(new Animated.Value(1)).current;
@@ -185,7 +189,7 @@ function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen}){
  };
  const label=cooldown?'Fair-play cooldown · '+cooldown+'s':g.energy<=10?g.puppyName+' is tired · Care needed':'Tap '+g.puppyName;
  return <section className={'cyber-play '+(desktop?'desktop-play':'mobile-play')} data-reduced-motion={!g.idleAnimationsEnabled}>
-  <div className="play-heading"><div><h1>Play</h1><p>Tap your puppy and earn treats.</p></div><button className="cyber-button secondary small switch-puppy-action" onClick={()=>onOpen('roster')}>⇄ Switch Puppy</button></div>
+  <div className="play-heading"><div><h1>Play</h1><p>Tap your puppy and earn treats.</p></div></div>
   {!desktop?<Wallet game={g}/>:<div className="puppy-identity"><div className="identity-portrait"><Portrait puppy={pup} size={64} accessory={g.accessory}/></div><div><strong>{g.puppyName}</strong><p>{pup.id.startsWith('v2_')?pup.id:'v1_'+pup.id} · {pup.id.startsWith('v2_')?'V2':'V1'} Puppies</p><span className="current-puppy-badge">Current Puppy</span><button className="cyber-button secondary small" aria-label="Rename current puppy" onClick={()=>setRenameOpen(true)}>✎ Rename</button></div></div>}
   {renameOpen?<RenamePuppyDialog name={g.puppyName} onClose={()=>setRenameOpen(false)} onSave={name=>{act({type:'rename',name});setRenameOpen(false);}}/>:null}
   <div className="cyber-play-stage">
