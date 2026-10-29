@@ -43,6 +43,6 @@ test("Discord registration is explicit and preserves existing linked account ide
  assert.ok(server.includes("body.useDiscordEmail===true?profile.email:null"));
  assert.ok(sql.includes("revoke all on function public.register_pup_web_discord_account"));
  assert.ok(sql.includes("to service_role"));
- assert.ok(sql.includes("pup_web_auth_links(account_uuid,auth_user_id,discord_user_id)"));
+ assert.match(sql,/pup_web_auth_links\s*\(\s*account_uuid\s*,\s*auth_user_id\s*,\s*discord_user_id\s*\)/);
  assert.ok(!sql.includes("SECURITY DEFINER"));
 });
