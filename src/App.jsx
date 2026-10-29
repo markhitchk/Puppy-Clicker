@@ -11,6 +11,7 @@ import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
 import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
 import AdminPortal from "./AdminPortal.jsx";
+import SiteAccountMenu,{ProfileAvatar,PUP_ACCOUNT_CHANGED} from "./SiteAccountMenu.jsx";
 import "./styles.css";
 
 const logo="/assets/logos/puppy_clicker.png";
@@ -23,7 +24,7 @@ function Header({page}){
    <a href="/" aria-current={page==="home"?"page":undefined}>Home</a>
    <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 Play</a>
    <a href="/puppies" aria-current={page==="puppies"?"page":undefined}>Puppies</a>
-   <a href="/account" aria-current={page==="account"?"page":undefined}>Account</a>
+   <SiteAccountMenu active={page==="account"}/>
   </nav>
  </header>;
 }
@@ -86,6 +87,12 @@ function AccountDashboard(){
  const [credentialConfirmation,setCredentialConfirmation]=useState("");
  const [credentialBusy,setCredentialBusy]=useState(false);
  const [credentialMessage,setCredentialMessage]=useState("");
+ useEffect(()=>{
+  const id=window.location.hash.slice(1);
+  if(!["profile-settings","account-security","account-management"].includes(id))return;
+  const frame=requestAnimationFrame(()=>document.getElementById(id)?.scrollIntoView({block:"start"}));
+  return ()=>cancelAnimationFrame(frame);
+ },[]);
  const refresh=async()=>{
   setRefreshing(true);setStatus("");
   try{
@@ -124,6 +131,7 @@ function AccountDashboard(){
    setProfile(old=>({...old,displayName:data.displayName||name}));
    setDisplayName(data.displayName||name);setEditing(false);
    setStatus("Display name saved to your Pup Account.");
+    window.dispatchEvent(new Event(PUP_ACCOUNT_CHANGED));
   }catch{setStatus("Unable to save your display name. Please try again.");}
   finally{setSaving(false);}
  };
@@ -160,6 +168,7 @@ function AccountDashboard(){
     throw Error(linked.data?.error||"CREDENTIAL_LINK_FAILED");
    setProfile(old=>({...old,username,passwordLoginEnabled:true}));
    setCredentialMessage("Username and password login are now enabled for this Pup Account.");
+    window.dispatchEvent(new Event(PUP_ACCOUNT_CHANGED));
    setStatus("");
   }catch{
    setCredentialMessage("Could not complete password login setup. Your existing account remains accessible through Discord. Verify your connection and retry.");
@@ -190,10 +199,10 @@ function AccountDashboard(){
  const cloudLabel=cloud.loading?"Checking protected cloud save…":
   cloud.exists===true?"Cloud backup found":cloud.exists===false?"No cloud backup found":"Cloud status unavailable";
  return <div className="account-content">
-  <div className="account-heading"><p className="eyebrow">🐾 PUP ACCOUNT</p><h1>Your account</h1><p>View your verified Puppy Clicker identity and Android-linked account details. Only your signed-in account is shown.</p></div>
+  <div className="account-heading"><p className="eyebrow">🐾 PUP ACCOUNT</p><h1>Your account</h1><p>View your verified Puppy Clicker identity, profile picture and Android-linked account details. Only your signed-in account is shown.</p></div>
   <div className="account-grid">
    <section className="portal-card profile-main" aria-label="Pup Account details">
-    <div className="profile-head"><img src={profile.discordProfile?.avatarUrl||logo} alt={profile.discordProfile?.avatarUrl?"Discord profile avatar":"Pup Account logo"} onError={event=>{event.currentTarget.src=logo;}} referrerPolicy="no-referrer" /><div><small>Signed in as</small><h2>{profile.displayName||profile.username}</h2><p>@{profile.username}</p></div><span className="verified">✓ {standing}</span></div>
+    <div className="profile-head"><ProfileAvatar account={profile} className="profile-avatar-large"/><div><small>Signed in as</small><h2>{profile.displayName||profile.username}</h2><p>@{profile.username}</p></div><span className="verified">✓ {standing}</span></div>
     <div className="portal-divider"></div>
     <h3>👤 Account details</h3>
     <dl className="account-details">
@@ -218,7 +227,7 @@ function AccountDashboard(){
     {["ADMIN","DEVELOPER"].includes(profile.guildRole)?<div className="account-actions"><a className="cta cta-secondary" href="/account/admin">🛡️ Open Admin Panel</a></div>:null}
     {profile.friendCode?<div className="account-actions"><button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button></div>:null}
     <div className="portal-divider"></div>
-    <h3>✏️ Profile settings</h3>
+    <h3 id="profile-settings">✏️ Profile settings</h3>
     {editing?<form onSubmit={save} className="profile-form"><label htmlFor="pupDisplayName">Display name</label><input id="pupDisplayName" value={displayName} maxLength={24} onChange={e=>setDisplayName(e.target.value)} autoComplete="nickname"/><div className="form-actions"><button className="cta cta-primary" disabled={saving} type="submit">{saving?"Saving…":"Save display name"}</button><button className="cta cta-secondary" type="button" onClick={()=>{setEditing(false);setDisplayName(profile.displayName||profile.username);}}>Cancel</button></div></form>:
      <div className="profile-row"><span><small>Display name</small><strong>{profile.displayName||profile.username}</strong></span><button className="small-action" type="button" onClick={()=>setEditing(true)}>Edit name</button></div>}
     {status?<p className="portal-message" role="status">{status}</p>:null}
@@ -230,7 +239,7 @@ function AccountDashboard(){
     </section>
 
     <section className="portal-card">
-     <h3>🔐 Username &amp; password login</h3>
+     <h3 id="account-security">🔐 Username &amp; password login</h3>
      <p>{profile.passwordLoginEnabled===true?"Password login is enabled for your Pup Account. You can change your password here.":"Add a username and password to the Pup Account you're already signed into with Discord. Your cloud progress, Friend Code, and game ownership are preserved."}</p>
      <form className="profile-form account-credentials" onSubmit={saveCredentials} autoComplete="on">
       <label htmlFor="pupCredentialUsername">Pup Account username</label>
@@ -254,7 +263,7 @@ function AccountDashboard(){
      <p className="account-security-note">Use a unique password. Sign-in details are sent to Supabase Auth over HTTPS and are not stored in the website's source code or local preferences.</p>
     </section>
     <section className="portal-card account-management-card" aria-labelledby="account-management-title">
-     <h3 id="account-management-title">Account management</h3>
+     <h3 id="account-management">Account management</h3>
      <p>Refresh your verified account connection, reset a forgotten password, or request account recovery.</p>
      <div className="account-management-actions">
       <a href="/recovery" className="cta cta-secondary">🔐 Account recovery</a>
