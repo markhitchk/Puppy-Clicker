@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {isStaff,canModifyRole,canSanction,validateBanInput,validateIp,safeSearch,classifyPlayerProfile,AdminError}
+import {isStaff,canModifyRole,canSanction,validateBanInput,validateIp,safeSearch,classifyPlayerProfile,filterRegisteredAccountDirectory,AdminError}
  from "../api/_lib/adminPolicy.js";
 
 test("staff role is restricted to the database's exact ADMIN and DEVELOPER role identifiers",()=>{
@@ -43,4 +43,21 @@ test("admin user classification uses Pup Account association, not the localplaye
  assert.equal(classifyPlayerProfile("player-bound-to-real-account",ids),"registered");
  assert.equal(classifyPlayerProfile("other-localplayer",ids),"local");
  assert.equal(classifyPlayerProfile("unlinked-max-puppy4",ids),"local");
+});
+
+test("admin account directory includes only profiles linked to actual Pup Accounts",()=>{
+ const profiles=[
+   {id:"legacy",username:"localplayer",player_id:"PC-LEGACY",friend_code:"PUP-AAAA-AAAA-AAAA"},
+   {id:"orphan",username:"localplayer",player_id:"PC-ORPHAN",friend_code:"PUP-BBBB-BBBB-BBBB"},
+   {id:"web",username:"web_name",player_id:"PC-WEB",friend_code:"PUP-CCCC-CCCC-CCCC"}
+ ];
+ const accounts=[
+   {id:"account-legacy",player_uuid:"legacy",username:"real_user",display_name:"Real Player"},
+   {id:"account-web",player_uuid:"web",username:"web_name",display_name:"Web Player"}
+ ];
+ const directory=filterRegisteredAccountDirectory(accounts,profiles,"",100);
+ assert.deepEqual(directory.map(a=>a.username),["real_user","web_name"]);
+ assert.equal(filterRegisteredAccountDirectory(accounts,profiles,"localplayer").length,1);
+ assert.equal(filterRegisteredAccountDirectory(accounts,profiles,"PC-ORPHAN").length,0);
+ assert.equal(filterRegisteredAccountDirectory(accounts,profiles,"real_user").length,1);
 });
