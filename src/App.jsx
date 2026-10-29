@@ -193,7 +193,7 @@ function AccountDashboard(){
   <div className="account-heading"><p className="eyebrow">🐾 PUP ACCOUNT</p><h1>Your account</h1><p>View your verified Puppy Clicker identity and Android-linked account details. Only your signed-in account is shown.</p></div>
   <div className="account-grid">
    <section className="portal-card profile-main" aria-label="Pup Account details">
-    <div className="profile-head"><img src={logo} alt="" /><div><small>Signed in as</small><h2>{profile.displayName||profile.username}</h2><p>@{profile.username}</p></div><span className="verified">✓ {standing}</span></div>
+    <div className="profile-head"><img src={profile.discordProfile?.avatarUrl||logo} alt={profile.discordProfile?.avatarUrl?"Discord profile avatar":"Pup Account logo"} onError={event=>{event.currentTarget.src=logo;}} referrerPolicy="no-referrer" /><div><small>Signed in as</small><h2>{profile.displayName||profile.username}</h2><p>@{profile.username}</p></div><span className="verified">✓ {standing}</span></div>
     <div className="portal-divider"></div>
     <h3>👤 Account details</h3>
     <dl className="account-details">
@@ -205,6 +205,13 @@ function AccountDashboard(){
      {detail("Account connection",connection)}
      {detail("Gameplay access",gameplay)}
      {detail("Discord",connected)}
+     {profile.discordProfile?<>
+      {detail("Discord username",profile.discordProfile.username?"@"+profile.discordProfile.username:null)}
+      {detail("Discord display name",profile.discordProfile.displayName)}
+      {detail("Discord user ID",profile.discordProfile.id)}
+      {profile.discordProfile.email?detail("Discord email",profile.discordProfile.email,
+       "Returned through Discord OAuth. Not automatically a verified Supabase recovery email."):null}
+     </>:null}
      {profile.recoveryEmail?detail("Verified recovery email",profile.recoveryEmail,"Confirmed by Supabase Auth. Used for password-reset links."):detail("Verified recovery email","Not configured","Visit /recovery to link and verify an email address.")}
      {profile.contactEmail?detail("Support contact email",profile.contactEmail,"Visible only to your signed-in account."):null}
     </dl>

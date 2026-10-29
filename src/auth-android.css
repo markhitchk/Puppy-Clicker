@@ -1,0 +1,37 @@
+/* The web sign-up follows Android AccountOnboarding step 2 without
+   introducing Android-only permissions, notifications or device claims. */
+.android-auth-register{display:flex;flex-direction:column;gap:12px;min-width:0}
+.android-auth-title{display:flex;flex-direction:column;gap:6px}
+.android-auth-step{color:#00e5ff;font-size:11px;font-weight:850;letter-spacing:.075em}
+.android-auth-title h2{font-size:24px;line-height:1.2;color:#fff;margin:0}
+.android-auth-title p,.android-auth-provider>p{font-size:13px;line-height:1.55;color:#bcd1df;margin:0}
+.android-auth-provider{display:flex;flex-direction:column;gap:10px;padding:14px;
+ border:1px solid #315466;border-radius:16px;background:#132b38}
+.android-auth-provider-heading{display:flex;align-items:center;gap:12px;min-width:0}
+.android-auth-provider-heading img{width:40px;height:40px;object-fit:contain;flex-shrink:0}
+.android-auth-provider-heading strong{display:block;color:#f6fcff;font-size:16px;font-weight:900}
+.android-auth-provider-heading small{color:#abbfcc;font-size:12px}
+.android-auth-provider .profile-form{gap:9px}
+.android-auth-provider .cta,.discord-signup .cta{min-height:46px;border-radius:24px}
+.discord-signup{display:flex;flex-direction:column;gap:13px;padding:14px;
+ border:1px solid #315466;border-radius:16px;background:#132b38}
+.discord-signup>p{font-size:13px;line-height:1.6;margin:0;color:#bcd1df}
+.discord-signup-profile{display:flex;align-items:center;gap:12px;padding:12px;
+ background:#1b3747;border-radius:15px;min-width:0}
+.discord-signup-avatar{width:62px;height:62px;border-radius:50%;overflow:hidden;display:grid;
+ place-items:center;background:#244859;font-size:27px;flex-shrink:0}
+.discord-signup-avatar img{width:100%;height:100%;object-fit:cover}
+.discord-signup-identity{display:flex;flex-direction:column;gap:3px;min-width:0}
+.discord-signup-identity strong{font-size:17px;color:#fff;overflow-wrap:anywhere}
+.discord-signup-identity small{font-size:12px;color:#bcd1df;overflow-wrap:anywhere}
+.discord-signup-tag{font-size:10px;letter-spacing:.04em;font-weight:850;color:#00e5ff}
+.discord-signup-email{padding:12px;background:#1a3744;border:1px solid #345366;
+ border-radius:14px;display:flex;flex-direction:column;gap:7px}
+.discord-signup-email strong{color:#fff;font-size:14px}
+.discord-signup-email p{margin:0;font-size:13px;color:#e7f9ff;overflow-wrap:anywhere}
+.discord-signup-email p span,.discord-signup-email small{font-size:11px;color:#b7cada}
+.discord-signup .account-auth-consent{display:flex;align-items:flex-start;gap:10px}
+.discord-signup .account-auth-consent input{width:18px;height:18px;flex-shrink:0}
+@media(max-width:420px){.android-auth-provider,.discord-signup{padding:12px}
+ .android-auth-title h2{font-size:21px}.discord-signup-profile{gap:9px}
+ .discord-signup-avatar{width:50px;height:50px}}

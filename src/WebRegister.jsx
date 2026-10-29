@@ -1,5 +1,7 @@
 import React,{useState} from "react";
-import {requestPuppyAuth,puppyAuthMessage,verifyPuppySession} from "./native/web/puppyOAuth.js";
+import {requestPuppyAuth,puppyAuthMessage,verifyPuppySession,
+ beginPuppyDiscord,getPendingDiscordSignup} from "./native/web/puppyOAuth.js";
+import DiscordSignupForm from "./DiscordSignupForm.jsx";
 import {client} from "./supabase.js";
 
 // Mirror the Supabase Auth password policy before submitting a new account.
@@ -24,6 +26,14 @@ export default function WebRegister({onAuthenticated,onSignIn}){
  const [busy,setBusy]=useState(false);
  const [registered,setRegistered]=useState(false);
  const [message,setMessage]=useState("");
+ const [discordSignup]=useState(()=>getPendingDiscordSignup());
+ const [discordBusy,setDiscordBusy]=useState(false);
+ const registerWithDiscord=async()=>{
+  if(discordBusy)return;
+  setDiscordBusy(true);setMessage("");
+  try{window.location.assign(await beginPuppyDiscord());}
+  catch(error){setMessage(puppyAuthMessage(error));setDiscordBusy(false);}
+ };
 
  async function register(event){
   event.preventDefault();
@@ -73,7 +83,16 @@ export default function WebRegister({onAuthenticated,onSignIn}){
    setMessage(puppyAuthMessage(error));
   }finally{setBusy(false);}
  }
- return <div className="account-auth-register">
+ return <div className="account-auth-register android-auth-register">
+  <div className="android-auth-title"><span className="android-auth-step">PUP ACCOUNT · SET UP YOUR ACCOUNT</span><h2>Create Pup Account</h2><p>Choose a username and password, or continue with Discord. Both legal policies require acceptance.</p></div>
+  <section className="android-auth-provider">
+   <div className="android-auth-provider-heading"><img src="/assets/logos/discord.png" alt="" /><div><strong>Discord</strong><small>Alternative account registration or sign-in</small></div></div>
+   <p>Register using your Discord identity and optionally import your verified Discord email as a support contact.</p>
+   {!discordSignup?<button type="button" className="cta cta-secondary stretch" onClick={()=>void registerWithDiscord()} disabled={discordBusy}>{discordBusy?"Connecting to Discord…":"Register with Discord"}</button>:null}
+  </section>
+  {discordSignup?<DiscordSignupForm signup={discordSignup} onAuthenticated={onAuthenticated} onSignIn={onSignIn}/>:
+  <section className="android-auth-provider">
+   <div className="android-auth-provider-heading"><img src="/assets/logos/puppy_clicker.png" alt="" /><div><strong>Pup Account</strong><small>Username and password registration</small></div></div>
   <p className="account-auth-description">Create a new Pup Account to play on the web. Already play on Android? Use <strong>Sign In</strong> to keep your existing account and cloud progress.</p>
   <form className="profile-form" onSubmit={register} aria-label="Create Pup Account" autoComplete="on">
    <label htmlFor="reg-name">Pup username</label>
@@ -107,7 +126,7 @@ export default function WebRegister({onAuthenticated,onSignIn}){
    <button className="cta cta-primary stretch" type="submit" disabled={busy||registered||!client}>
     {busy?"Creating account…":registered?"Account created":"Create Pup Account"}
    </button>
-  </form>
+  </form></section>}
   {message?<p className="portal-message" role="status" aria-live="polite">{message}</p>:null}
   {registered&&onSignIn?<button type="button" className="account-auth-text-button" onClick={onSignIn}>Sign in with your new account</button>:null}
  </div>;

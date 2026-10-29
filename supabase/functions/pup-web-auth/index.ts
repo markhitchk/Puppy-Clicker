@@ -2,6 +2,7 @@ import {createClient} from "npm:@supabase/supabase-js@2.117.1";
 import {crossPlay,CrossPlayError} from "./crossPlay.ts";
 import {newBetaKotlinSave} from "../_shared/beta-economy.ts";
 import {createHash} from "node:crypto";
+import {offerDiscordRegistration,registerDiscordWebAccount} from "./discordRegistration.ts";
 
 // This is Puppy Clicker's own public OAuth2 application (same client ID as
 // the Android DiscordSignupAuth). Do not use shared Supabase Discord OAuth.
@@ -199,13 +200,16 @@ Deno.serve(async req=>{
   const body=await req.json();
   if(!body||typeof body!=="object")throw new PublicError(400,"PUP_REQUEST_INVALID");
   if(body.action==="register")return await registerWebAccount(req,body,origin);
+   if(body.action==="discord-register")return await registerDiscordWebAccount({
+    req,body,origin,admin,json,PublicError,key,newBetaKotlinSave
+   });
    if(body.action==="status"){
    const {account,user}=await currentSession(req);
    // These public-facing details are read only from the authenticated owner's
    // authoritative player and save records, never from browser-supplied IDs.
    const [{data:player,error:pe},{data:installation,error:ie},
     {data:save,error:se},{data:credentials,error:ce}]=await Promise.all([
-    admin.from("pupeye_players").select("friend_code,guild_role")
+    admin.from("pupeye_players").select("friend_code,guild_role,discord_username,discord_global_name,discord_avatar_hash,discord_email")
      .eq("id",account.player_uuid).maybeSingle(),
     account.active_installation_uuid
      ? admin.from("pupeye_installations").select("player_uuid,active,revoked_at")
@@ -250,7 +254,16 @@ Deno.serve(async req=>{
     gameplayWritable:webOnly||connected,
     passwordLoginEnabled:credentials?.auth_user_id===user.id,
     recoveryEmail:confirmedEmail,
-    contactEmail:account.contact_email||null
+    contactEmail:account.contact_email||null,
+    discordProfile:account.discord_user_id?{
+     id:account.discord_user_id,
+     username:player?.discord_username||null,
+     displayName:player?.discord_global_name||player?.discord_username||null,
+     avatarUrl:player?.discord_avatar_hash
+      ?"https://cdn.discordapp.com/avatars/"+account.discord_user_id+
+       "/"+player.discord_avatar_hash+".png":null,
+     email:player?.discord_email||null
+    }:null
    }},origin);
   }
 
@@ -347,6 +360,10 @@ Deno.serve(async req=>{
   if(!response.ok)throw new PublicError(401,"PUP_DISCORD_PROFILE_FAILED");
   const profile=await response.json();
   const discordId=required(profile.id,/^\d{15,22}$/,"DISCORD_ID_INVALID");
+  const offer=await offerDiscordRegistration({
+   profile,origin,admin,json,PublicError,key
+  });
+  if(offer)return offer;
   const account=await accountForDiscord(discordId);
   const authId=await linkedAuthUser(account);
   const {data:user,error:ue}=await admin.auth.admin.getUserById(authId);

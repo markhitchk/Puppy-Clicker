@@ -79,7 +79,7 @@ test("published catalog keeps both crash test puppies as well as developers and 
   assert.match(catalog,new RegExp('id: "'+id+'"'));
  }
  assert.match(gallery,/p\.group==="test"\?"Development test only"/);
- assert.match(gallery,/p\.group==="test"\?"Test"/);
+ assert.match(gallery,/p\.group==="test"\?"Test Puppies"/);
  assert.match(gallery,/p\.group==="test"\?"Development test only"/);
 });
 
