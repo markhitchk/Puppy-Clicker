@@ -175,6 +175,12 @@ export async function action(db,actor,body) {
     return {bans:listed};
   }
   if(type==="activity")return await activity(db,body.filter);
+  if(type==="pupeye-web"){
+    // Staff has already been verified against the authoritative player role.
+    // This service-role-only function never grants browser table access.
+    const rows=ensure(await db.rpc('pupeye_web_admin_events',{p_limit:80}));
+    return {events:rows||[]};
+  }
   if (type==="role-update") {
     const id=requireId(body.targetPlayerId);
     const role=body.role;
