@@ -3,7 +3,7 @@
 // Pin the revision so website, web app and Android use identical artwork.
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
-import {join,dirname} from 'node:path';
+import {join} from 'node:path';
 
 const SOURCE_REF='af9f32f8a545ab2a43dcc36917f8beae9ae7c56f';
 const SOURCE_ROOT=`https://raw.githubusercontent.com/markhitchk/pup-clinker/${SOURCE_REF}/Mobile/assets/pointers`;
@@ -40,7 +40,7 @@ export async function syncPuppyPointers(){
  // Bounded concurrency avoids overloading the upstream repository.
  for(let index=0;index<NAMES.length;index+=6)
   await Promise.all(NAMES.slice(index,index+6).map(syncOne));
- await writeFile(REVISION_FILE,SOURCE_REF+'\\n','utf8');
+ await writeFile(REVISION_FILE,SOURCE_REF+'\n','utf8');
  console.log(`Puppy pointers: synced ${NAMES.length} original PNGs from pup-clinker@${SOURCE_REF.slice(0,12)}`);
 }
 await syncPuppyPointers();
