@@ -271,7 +271,6 @@ html .meet-puppy-art{
 html .meet-puppy-card:hover{border-color:#00E5FF;box-shadow:0 0 18px rgba(0,229,255,.18)}
 html [data-testid="play-viewport"] .desktop-play{
  background-color:#0A0C12;
- background-image:radial-gradient(ellipse at 50% 57%,rgba(0,229,255,.07),transparent 70%);
  border-color:rgba(0,229,255,.25);
 }
 html [data-testid="play-viewport"] .desktop-play .cyber-play-stage{
@@ -279,7 +278,7 @@ html [data-testid="play-viewport"] .desktop-play .cyber-play-stage{
 }
 html .switch-puppy-action{white-space:nowrap;border-color:rgba(0,229,255,.4);color:#00E5FF}
 html [data-testid="play-viewport"] .platform-arrow{display:none!important}
-@media(max-width:999px){
+@media(max-width:959px){
  html [data-testid="play-viewport"] .mobile-play .puppy-platform{
   height:min(100%,420px);max-height:420px;align-self:center;
   align-items:center;justify-items:center;
@@ -294,7 +293,7 @@ html [data-testid="play-viewport"] .platform-arrow{display:none!important}
   min-height:34px;padding:6px 12px;font-size:12px;
  }
 }
-@media(max-width:999px) and (max-height:500px){
+@media(max-width:959px) and (max-height:500px){
  html [data-testid="play-viewport"] .mobile-play .play-heading{display:none}
 }
 
@@ -304,4 +303,82 @@ html [data-testid="play-viewport"] .platform-arrow{display:none!important}
  html [data-testid="play-viewport"] .mobile-play .switch-puppy-action{display:none}
  html [data-testid="play-viewport"] .mobile-play{gap:3px}
  html [data-testid="play-viewport"] .mobile-play .cyber-play-stage{padding:5px 7px}
+}
+
+
+/* Account actions: actual layout containers rather than adjacent inline pills.
+   The signed-in actions must not alter the smaller Edit name button. */
+.split-cta>div:first-child,.home-account-copy,.account-management-card,
+.account-grid>* ,.portal-stack,.account-credentials{min-width:0}
+html .split-cta .home-account-actions{
+ display:flex;
+ flex-direction:row;
+ flex-wrap:wrap;
+ align-items:stretch;
+ gap:12px;
+ margin-top:24px;
+ min-width:0;
+}
+html .split-cta .home-account-actions .cta{
+ flex:0 1 auto;
+ min-width:0;
+ max-width:100%;
+ margin:0;
+ padding:13px 20px;
+ min-height:48px;
+ line-height:1.35;
+ white-space:normal;
+ overflow-wrap:anywhere;
+}
+html .split-cta .home-account-recovery{
+ display:inline-block;
+ max-width:100%;
+ margin-top:18px;
+ color:var(--accent-cyan);
+ font-size:14px;
+ font-weight:600;
+ line-height:1.5;
+ overflow-wrap:anywhere;
+ text-underline-offset:3px;
+}
+html .split-cta .home-account-recovery:hover{text-decoration:underline}
+html .account-management-card>p{margin-bottom:0}
+html .account-management-actions{
+ display:grid;
+ grid-template-columns:minmax(0,1fr);
+ gap:12px;
+ min-width:0;
+ margin-top:24px;
+}
+html .account-management-actions>.cta{
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ width:100%;
+ max-width:100%;
+ min-width:0;
+ min-height:48px;
+ margin:0;
+ padding:12px 16px;
+ line-height:1.35;
+ white-space:normal;
+ overflow-wrap:anywhere;
+}
+html .account-management-actions>.cta:disabled{opacity:.55}
+html .profile-row>.small-action{flex:0 0 auto;max-width:48%;white-space:nowrap}
+html .account-credentials{width:100%;max-width:100%}
+html .account-credentials input{min-width:0;max-width:100%;width:100%}
+html .account-credentials .cta.stretch{min-width:0;max-width:100%;width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.35}
+@media(max-width:1050px){
+ .account-grid{grid-template-columns:minmax(0,1fr)}
+ .account-content{max-width:780px}
+}
+@media(max-width:980px){
+ .split-cta{grid-template-columns:minmax(0,1fr);gap:18px}
+ .split-cta>div:first-child{min-width:0}
+}
+@media(max-width:760px){
+ html .split-cta .home-account-actions{flex-direction:column}
+ html .split-cta .home-account-actions .cta{width:100%;flex:none}
+ .split-cta .home-account-recovery{margin-top:18px}
 }

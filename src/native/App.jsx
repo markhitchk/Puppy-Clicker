@@ -1054,7 +1054,7 @@ export function PuppyApp({betaMode=false}){
  const openAccount=mode=>{setAccountEntryMode(mode||'signin');setAccountOpen(true);};
  const registry=useRoster();
  const {width}=useWindowDimensions();
- const desktop=width>=1000;
+ const desktop=width>=960;
  const [tab,setTab]=useState('play');
  const [secondary,setSecondary]=useState(null);
  const [bet,setBet]=useState(20);

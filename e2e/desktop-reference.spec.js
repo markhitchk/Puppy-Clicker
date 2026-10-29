@@ -7,7 +7,7 @@ test('desktop follows the reference layout with real controls and three live goa
  await expect(page.locator('.desktop-play .puppy-identity')).toBeVisible();
  await expect(page.getByRole('button',{name:'Rename current puppy',exact:true})).toBeVisible();
  await expect(page.locator('.desktop-play')).toHaveCSS('background-color','rgb(10, 12, 18)');
- expect(await page.locator('.desktop-play').evaluate(el=>getComputedStyle(el).backgroundImage)).not.toContain('night-yard');
+ expect(await page.locator('.desktop-play').evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('night-yard-v1.webp');
  await expect(page.locator('.platform-arrow')).toHaveCount(0);
  await expect(page.getByRole('button',{name:/Switch Puppy/})).toBeVisible();
  await expect(page.locator('.reference-goal')).toHaveCount(3);
@@ -27,7 +27,7 @@ test('desktop follows the reference layout with real controls and three live goa
  await expect(page.getByRole('link',{name:'Discord',exact:true})).toHaveAttribute('href','https://discord.gg/HcZweHchbv');
 });
 
-for(const [width,height] of [[1000,600],[1000,900],[1100,900],[1100,720],[1280,720],[1920,1080]])test('desktop reference stays within viewport at '+width+'x'+height,async({page})=>{
+for(const [width,height] of [[960,800],[980,800],[1000,600],[1000,900],[1100,900],[1100,720],[1280,720],[1920,1080]])test('desktop reference stays within viewport at '+width+'x'+height,async({page})=>{
  await page.setViewportSize({width,height});await page.goto('/play');
  await expect(page.getByRole('button',{name:'Tap Buddy to earn Treats'})).toBeVisible();
  await expect(page.locator('.reference-goal')).toHaveCount(3);
