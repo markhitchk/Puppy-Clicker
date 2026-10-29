@@ -4,7 +4,7 @@ alter table public.pup_accounts add column if not exists profile_avatar_path tex
 do $$ begin
  if not exists(select 1 from pg_constraint where conname='pup_profile_avatar_path_check' and conrelid='public.pup_accounts'::regclass) then
   alter table public.pup_accounts add constraint pup_profile_avatar_path_check
-   check (profile_avatar_path is null or profile_avatar_path ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/avatar-[0-9]{10,15}[.](png|jpg|webp)$');
+   check (profile_avatar_path is null or profile_avatar_path ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/avatar[.](png|jpg|webp)$');
  end if;
 end $$;
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
@@ -38,7 +38,19 @@ do $$ begin
   for insert to authenticated with check(
    bucket_id='pup-profile-avatars'
    and (storage.foldername(name))[1]=(select auth.uid())::text
-   and name ~ '^[0-9a-f-]{36}/avatar-[0-9]{10,15}[.](png|jpg|webp)$'
+   and name ~ '^[0-9a-f-]{36}/avatar[.](png|jpg|webp)$'
   );
+ end if;
+end $$;
+
+do $$ begin
+ if not exists(select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='Puppy profile replace own photos') then
+  create policy "Puppy profile replace own photos" on storage.objects for update to authenticated
+  using (bucket_id='pup-profile-avatars' and (storage.foldername(name))[1]=(select auth.uid())::text and name ~ '^[0-9a-f-]{36}/avatar[.](png|jpg|webp)$')
+  with check (bucket_id='pup-profile-avatars' and (storage.foldername(name))[1]=(select auth.uid())::text and name ~ '^[0-9a-f-]{36}/avatar[.](png|jpg|webp)$');
+ end if;
+ if not exists(select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='Puppy profile own file read for replace') then
+  create policy "Puppy profile own file read for replace" on storage.objects for select to authenticated
+  using (bucket_id='pup-profile-avatars' and (storage.foldername(name))[1]=(select auth.uid())::text and name ~ '^[0-9a-f-]{36}/avatar[.](png|jpg|webp)$');
  end if;
 end $$;
