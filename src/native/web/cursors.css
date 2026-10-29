@@ -33,58 +33,52 @@ html[data-puppy-cursor-theme='light'] {
   --puppy-secondary: url('/assets/pointers/puppy_pointer_light_secondary.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
 }
 
+
+/*
+ * Cursor state is a single inherited custom property. Do not assign different
+ * cursor URLs to control children: nested React Native Web spans and icons must
+ * display exactly the same state as their clickable parent.
+ *
+ * :where() normalizes specificity for every state. Disabled comes last and
+ * wins over hover/press, including for descendants and aria-disabled controls.
+ * A touch event disables the custom cursor until a mouse/trackpad moves again.
+ */
 @media (any-hover: hover) and (any-pointer: fine) {
-  /* Covers the marketing pages, account flows, dialogs, and /play. */
-  html[data-puppy-cursor='enabled'] body,
-  html[data-puppy-cursor='enabled'] body * {
-    cursor: var(--puppy-default) !important;
+  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body,
+  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body * {
+    cursor: var(--puppy-current-cursor, var(--puppy-default)) !important;
   }
-  html[data-puppy-cursor='enabled'] :is(a[href],button,summary,select,label,[role='button'],[role='link'],[role='tab'],[role='menuitem'],[role='checkbox'],[role='switch'],[role='radio'],[role='option'],input[type='button'],input[type='submit'],input[type='reset']),
-  html[data-puppy-cursor='enabled'] :is(a[href],button,summary,select,label,[role='button'],[role='link'],[role='tab'],[role='menuitem'],[role='checkbox'],[role='switch'],[role='radio'],[role='option'],input[type='button'],input[type='submit'],input[type='reset']) * {
-    cursor: var(--puppy-link) !important;
+  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where(a[href], button, summary, select, label, [role='button'], [role='link'], [role='tab'], [role='menuitem'], [role='checkbox'], [role='switch'], [role='radio'], [role='option'], input[type='button'], input[type='submit'], input[type='reset'], input[type='checkbox'], input[type='radio'], [tabindex='0'][data-testid]) {
+    --puppy-current-cursor: var(--puppy-link);
   }
-  html[data-puppy-cursor='enabled'] :is(a[href],button,summary,select,label,[role='button'],[role='link'],[role='tab'],[role='menuitem'],[role='checkbox'],[role='switch'],[role='radio'],[role='option'],input[type='button'],input[type='submit'],input[type='reset']):hover,
-  html[data-puppy-cursor='enabled'] :is(a[href],button,summary,select,label,[role='button'],[role='link'],[role='tab'],[role='menuitem'],[role='checkbox'],[role='switch'],[role='radio'],[role='option'],input[type='button'],input[type='submit'],input[type='reset']):hover * {
-    cursor: var(--puppy-hover) !important;
+  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where(a[href], button, summary, select, label, [role='button'], [role='link'], [role='tab'], [role='menuitem'], [role='checkbox'], [role='switch'], [role='radio'], [role='option'], input[type='button'], input[type='submit'], input[type='reset'], input[type='checkbox'], input[type='radio'], [tabindex='0'][data-testid]):where(:hover) {
+    --puppy-current-cursor: var(--puppy-hover);
   }
-  html[data-puppy-cursor='enabled'] :is(a[href],button,summary,select,label,[role='button'],[role='link'],[role='tab'],[role='menuitem'],[role='checkbox'],[role='switch'],[role='radio'],[role='option'],input[type='button'],input[type='submit'],input[type='reset']):active,
-  html[data-puppy-cursor='enabled'] :is(a[href],button,summary,select,label,[role='button'],[role='link'],[role='tab'],[role='menuitem'],[role='checkbox'],[role='switch'],[role='radio'],[role='option'],input[type='button'],input[type='submit'],input[type='reset']):active * {
-    cursor: var(--puppy-click) !important;
+  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where(a[href], button, summary, select, label, [role='button'], [role='link'], [role='tab'], [role='menuitem'], [role='checkbox'], [role='switch'], [role='radio'], [role='option'], input[type='button'], input[type='submit'], input[type='reset'], input[type='checkbox'], input[type='radio'], [tabindex='0'][data-testid]):where(:active) {
+    --puppy-current-cursor: var(--puppy-click);
   }
-  /* Text selection must not be overridden by nested buttons or hover rules. */
-  html[data-puppy-cursor='enabled'] :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='button']):not([type='submit']):not([type='reset']),textarea,[contenteditable='true'],[role='textbox']),
-  html[data-puppy-cursor='enabled'] :is(textarea,[contenteditable='true'],[role='textbox']) * {
-    cursor: var(--puppy-text-select) !important;
+  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='button']):not([type='submit']):not([type='reset']), textarea, [contenteditable='true'], [role='textbox']) {
+    --puppy-current-cursor: var(--puppy-text-select);
   }
-  html[data-puppy-cursor='enabled'] :is([draggable='true'],[aria-grabbed='false'],[role='slider'],input[type='range']),
-  html[data-puppy-cursor='enabled'] :is([draggable='true'],[aria-grabbed='false'],[role='slider']) * {
-    cursor: var(--puppy-grab) !important;
+  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where([draggable='true'], [aria-grabbed='false'], [role='slider'], input[type='range']) {
+    --puppy-current-cursor: var(--puppy-grab);
   }
-  html[data-puppy-cursor='enabled'] :is([draggable='true']:active,[aria-grabbed='true'],[role='slider']:active,input[type='range']:active),
-  html[data-puppy-cursor='enabled'] :is([draggable='true']:active,[aria-grabbed='true'],[role='slider']:active) * {
-    cursor: var(--puppy-grabbing) !important;
+  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where([draggable='true']:active, [aria-grabbed='true'], [role='slider']:active, input[type='range']:active) {
+    --puppy-current-cursor: var(--puppy-grabbing);
   }
-  html[data-puppy-cursor='enabled'] [data-testid='puppy-scratch-coating'],
-  html[data-puppy-cursor='enabled'] [data-testid='puppy-scratch-coating'] *,
-  html[data-puppy-cursor='enabled'] [data-puppy-pointer-state='precision'],
-  html[data-puppy-cursor='enabled'] [data-puppy-pointer-state='precision'] * {
-    cursor: var(--puppy-precision) !important;
+  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where([data-testid='puppy-scratch-coating'], [data-puppy-pointer-state='precision']) {
+    --puppy-current-cursor: var(--puppy-precision);
   }
-  html[data-puppy-cursor='enabled'] :is([aria-busy='true'],[data-puppy-pointer-state='working']),
-  html[data-puppy-cursor='enabled'] :is([aria-busy='true'],[data-puppy-pointer-state='working']) * {
-    cursor: var(--puppy-working) !important;
+  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where([aria-busy='true'], [data-puppy-pointer-state='working']) {
+    --puppy-current-cursor: var(--puppy-working);
   }
-  html[data-puppy-cursor='enabled'] [data-puppy-pointer-state='alternate'],
-  html[data-puppy-cursor='enabled'] [data-puppy-pointer-state='alternate'] * {
-    cursor: var(--puppy-alternate) !important;
+  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where([data-puppy-pointer-state='alternate']) {
+    --puppy-current-cursor: var(--puppy-alternate);
   }
-  html[data-puppy-cursor='enabled'] [data-puppy-pointer-state='secondary'],
-  html[data-puppy-cursor='enabled'] [data-puppy-pointer-state='secondary'] * {
-    cursor: var(--puppy-secondary) !important;
+  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where([data-puppy-pointer-state='secondary']) {
+    --puppy-current-cursor: var(--puppy-secondary);
   }
-  /* Disabled always wins, including when hovering over a nested icon. */
-  html[data-puppy-cursor='enabled'] body :is(:disabled,[disabled],[aria-disabled='true']),
-  html[data-puppy-cursor='enabled'] body :is(:disabled,[disabled],[aria-disabled='true']) * {
-    cursor: var(--puppy-not-allowed) !important;
+  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where(:disabled, [disabled], [aria-disabled='true']) {
+    --puppy-current-cursor: var(--puppy-not-allowed);
   }
 }
