@@ -39,6 +39,7 @@ test("provider url is fixed HTTPS endpoint and response classifications are pars
     const parsed=new URL(url);
     assert.equal(parsed.origin,"https://proxycheck.io");
     assert.equal(parsed.pathname,"/v3/"+ip);
+    assert.equal(parsed.searchParams.get("key"),"test-key");
     assert.equal(parsed.searchParams.get("tag"),"0");
     return {ok:true,json:async()=>({status:"ok",[ip]:{detections:{
       vpn:false,proxy:true,tor:false,hosting:false,anonymous:true,confidence:90
