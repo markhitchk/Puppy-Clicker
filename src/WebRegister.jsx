@@ -2,6 +2,16 @@ import React,{useState} from "react";
 import {requestPuppyAuth,puppyAuthMessage,verifyPuppySession} from "./native/web/puppyOAuth.js";
 import {client} from "./supabase.js";
 
+// Mirror the Supabase Auth password policy before submitting a new account.
+const PASSWORD_SYMBOLS=new Set(["!","@","#","$","%","^","&","*","(",")","_","+","-","=","[","]","{","}",";","'","\\",":","\"","|","<",">","?",",",".","/","`","~"]);
+const passwordRules=value=>[
+ {label:"8–128 characters",passed:value.length>=8&&value.length<=128},
+ {label:"Uppercase letter",passed:/[A-Z]/.test(value)},
+ {label:"Lowercase letter",passed:/[a-z]/.test(value)},
+ {label:"Number",passed:/[0-9]/.test(value)},
+ {label:"Special character",passed:[...value].some(character=>PASSWORD_SYMBOLS.has(character))}
+];
+
 // Reused inside the same Pup Account sign-in / registration panel on
 // /account, /register (legacy link), and the signed-out /play gate.
 export default function WebRegister({onAuthenticated,onSignIn}){
@@ -24,8 +34,8 @@ export default function WebRegister({onAuthenticated,onSignIn}){
   if(!/^[A-Za-z0-9_-]{3,20}$/.test(name)){
    setMessage("Username must be 3–20 letters, numbers, underscores or hyphens.");return;
   }
-  if(password.length<8||password.length>128){
-   setMessage("Password must be between 8 and 128 characters.");return;
+  if(passwordRules(password).some(rule=>!rule.passed)){
+   setMessage("Password must be 8–128 characters and include uppercase and lowercase letters, a number, and a special character.");return;
   }
   if(password!==confirm){setMessage("Passwords do not match.");return;}
   if(contactEmail.trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())){
@@ -73,6 +83,12 @@ export default function WebRegister({onAuthenticated,onSignIn}){
    <label htmlFor="reg-pass">Password</label>
    <input id="reg-pass" type="password" name="new-password" autoComplete="new-password" required minLength={8}
     maxLength={128} value={password} onChange={e=>setPassword(e.target.value)} disabled={busy||registered}/>
+   <div className="account-password-rules" aria-label="Password requirements">
+    {passwordRules(password).map(rule=><span key={rule.label}
+     className={"account-password-rule"+(rule.passed?" satisfied":"")}>
+     {rule.passed?"✓":"○"} {rule.label}
+    </span>)}
+   </div>
    <label htmlFor="reg-confirm">Confirm password</label>
    <input id="reg-confirm" type="password" name="confirm-password" autoComplete="new-password" required minLength={8}
     maxLength={128} value={confirm} onChange={e=>setConfirm(e.target.value)} disabled={busy||registered}/>

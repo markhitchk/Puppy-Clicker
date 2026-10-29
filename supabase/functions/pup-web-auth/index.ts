@@ -157,7 +157,14 @@ async function registerWebAccount(req,body,origin){
   email:internalEmail,email_confirm:true,password,
   app_metadata:{puppy_clicker_web:true}
  });
- if(creationError||!created?.user)throw new PublicError(503,"PUP_SIGNUP_UNAVAILABLE");
+ if(creationError){
+  // Give a useful public validation error, never raw Supabase Auth diagnostics.
+  if(creationError.code==="weak_password"||
+     (creationError.status===422&&/password/i.test(creationError.message||"")))
+   throw new PublicError(422,"PUP_PASSWORD_COMPLEXITY_REQUIRED");
+  throw new PublicError(503,"PUP_SIGNUP_UNAVAILABLE");
+ }
+ if(!created?.user)throw new PublicError(503,"PUP_SIGNUP_UNAVAILABLE");
  const save=newBetaKotlinSave();
  const saveHash=createHash("sha256").update(JSON.stringify(save)).digest("hex");
  const {error:registrationError}=await admin.rpc("register_pup_web_account",{

@@ -19,6 +19,9 @@ html .feature-card,html .portal-card,html .account-preview,html .art-tag,html .s
 html .cta,html .small-action{border-radius:999px;font-weight:600}
 html .cta-primary{color:#07141b;background:linear-gradient(135deg,#51efff,#00c4e0);box-shadow:0 4px 24px #00e5ff25}
 html .cta-secondary,html .small-action{background:var(--bg-secondary);border-color:var(--cyber-border);color:var(--accent-cyan)}
+html .account-password-rules{display:flex;flex-wrap:wrap;gap:7px 9px;margin:4px 0 10px;font-size:12px;line-height:1.4}
+html .account-password-rule{padding:4px 9px;border:1px solid #526477;border-radius:12px;color:#bdccdc;background:#0c1722}
+html .account-password-rule.satisfied{border-color:#368d81;color:#8df2b0;background:#12352e}
 html .profile-form input{background:var(--bg-elevated);border-color:var(--cyber-border);border-radius:18px}
 html .profile-row,html .portal-divider,html .site-footer{border-color:var(--cyber-border)}
 html .portal-message,html .cloud-status{background:#00e5ff0a;border-color:var(--cyber-border);border-radius:18px}
