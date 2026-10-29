@@ -2,6 +2,8 @@ import DesktopNavigation,{DesktopHelp} from './web/DesktopNavigation.jsx';
 import PuppyArtwork from './web/PuppyArtwork.jsx';
 import {GameProgressHeader,PuppyPlatform,CasinoIntroDialog,RenamePuppyDialog} from './web/WebsiteDesign.jsx';
 import WebAccountGate from "./web/AccountGate.jsx";
+import WebLoading from "../WebLoading.jsx";
+import WebErrorPage from "../WebErrorPage.jsx";
 import {client as webClient} from "../supabase.js";
 import {requestWebPuppyExchange} from "./web/exchangeClient.js";
 import ProductionEntry from './src/production/ProductionEntry.jsx';
@@ -1105,17 +1107,18 @@ export function PuppyApp({betaMode=false}){
  // No account banner, cached preview or unverified account can enter gameplay.
  const startPhase=betaMode?startupGate({account,cloudState,setupReady:onboarding.ready,
   setupProblem:onboarding.problem,gameReady:state.ready}):'ready';
- if(!betaMode&&cloudState!=='LIVE_SYNCED')return <View style={{padding:28,gap:16}}>
-  {cloudState==='LOADING'?<><ActivityIndicator/><Txt>Loading verified Pup Account progress…</Txt></>:
-   <><View accessibilityRole="alert"><Txt>{cloudState==='NO_CLOUD_SAVE'
-    ?'Open Puppy Clicker on Android and upload its cloud save before playing on the website.'
+ if(!betaMode&&cloudState!=='LIVE_SYNCED'){
+   if(cloudState==='LOADING')return <WebLoading stage="progress"/>;
+   const unavailable=cloudState==='NO_CLOUD_SAVE'
+    ?'No cloud save is available yet. If you play on Android, connect the existing Pup Account and sync your save first.'
     :startupError?.code==='PUP_OWNER_DEVICE_UNAVAILABLE'
-     ?'Your Android PupEye owner installation is unavailable. Open the registered Android app or use Account recovery.'
-     :'Cloud progress could not be verified. Check your connection and refresh. Your Android save has not been replaced.'}</Txt></View>
-    <Button onPress={()=>void refreshAccount()}>Refresh cloud progress</Button>
-    <a href="/recovery">Account recovery</a></>}
- </View>;
- if(betaMode&&!crashChecked)return <PuppyStartupScreen phase="loading"/>;
+     ?'Your registered Android PupEye owner installation is unavailable. Open the Android app or use account recovery.'
+     :'Cloud progress could not be verified. Check your connection and try again. Your save has not been replaced.';
+   return <WebErrorPage code={cloudState==='NO_CLOUD_SAVE'?409:503}
+    title="Protected progress unavailable" description={unavailable}
+    onRetry={()=>void refreshAccount()} showRecovery/>;
+  }
+  if(betaMode&&!crashChecked)return <PuppyStartupScreen phase="loading"/>;
  if(betaMode&&previousCrash)return <PuppyStartupScreen phase="crash" issue={previousCrash}
   busy={startupRetryBusy} retry={retryPreviousCrash}/>;
  if(betaMode&&(startPhase==='loading'||startPhase==='connection-error'||startPhase==='setup-error'))
@@ -1146,7 +1149,7 @@ export function PuppyApp({betaMode=false}){
   {state.ready&&g.onboardingComplete&&!secondary&&tab==='play'?<View testID="play-viewport" onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={{flex:1,minHeight:0,minWidth:0,padding:8}}>{main()}</View>:<>
   <ScrollView key={secondary||tab} onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={styles.scroll} contentContainerStyle={[styles.content,(secondary==='settings'||['play','care','roster'].includes(tab)&&!secondary)&&{paddingTop:2,paddingBottom:0,paddingHorizontal:secondary==='settings'?16:tab==='roster'?12:14,gap:0},{maxWidth:desktop?1800:width>650?700:undefined,paddingHorizontal:desktop?24:14,paddingVertical:desktop?18:12}]} keyboardShouldPersistTaps="handled">
    {secondary&&secondary!=='exchange'&&secondary!=='account-details'?<View style={styles.back}><Button compact secondary onPress={()=>setSecondary(null)}>← Back to {TABS.find(x=>x[0]===tab)?.[2]}</Button><Txt style={styles.heading}>{secondary.toUpperCase()}</Txt></View>:null}
-   {!state.ready?<Card title={betaMode?'Loading Pup Account…':'Loading local guest data…'}><Txt muted>{betaMode?'Checking signed cloud progress.':'Reading device cache.'}</Txt></Card>:!g.onboardingComplete?<OnboardingScreen g={saved} act={act} notifications={notifications}/>:<>{secondary==='casino'?<Wallet game={g}/>:null}{main()}</>}
+   {!state.ready?<WebLoading stage="startup" compact/>:!g.onboardingComplete?<OnboardingScreen g={saved} act={act} notifications={notifications}/>:<>{secondary==='casino'?<Wallet game={g}/>:null}{main()}</>}
   </ScrollView>
   </>}
   {!desktop&&state.ready&&g.onboardingComplete&&!secondary?<View testID="game-bottom-bar" style={styles.bottomBar}>

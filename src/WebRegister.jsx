@@ -67,17 +67,17 @@ export default function WebRegister({onAuthenticated,onSignIn}){
   <p className="account-auth-description">Create a new Pup Account to play on the web. Already play on Android? Use <strong>Sign In</strong> to keep your existing account and cloud progress.</p>
   <form className="profile-form" onSubmit={register} aria-label="Create Pup Account" autoComplete="on">
    <label htmlFor="reg-name">Pup username</label>
-   <input id="reg-name" autoComplete="username" required minLength={3} maxLength={20}
+   <input id="reg-name" type="text" name="username" autoComplete="username" required minLength={3} maxLength={20}
     pattern="[A-Za-z0-9_-]{3,20}" value={username} onChange={e=>setUsername(e.target.value)}
     disabled={busy||registered} spellCheck="false" autoCapitalize="none"/>
    <label htmlFor="reg-pass">Password</label>
-   <input id="reg-pass" type="password" autoComplete="new-password" required minLength={8}
+   <input id="reg-pass" type="password" name="new-password" autoComplete="new-password" required minLength={8}
     maxLength={128} value={password} onChange={e=>setPassword(e.target.value)} disabled={busy||registered}/>
    <label htmlFor="reg-confirm">Confirm password</label>
-   <input id="reg-confirm" type="password" autoComplete="new-password" required minLength={8}
+   <input id="reg-confirm" type="password" name="confirm-password" autoComplete="new-password" required minLength={8}
     maxLength={128} value={confirm} onChange={e=>setConfirm(e.target.value)} disabled={busy||registered}/>
    <label htmlFor="reg-email">Support contact email (optional)</label>
-   <input id="reg-email" type="email" autoComplete="email" maxLength={254}
+   <input id="reg-email" type="email" name="email" autoComplete="email" maxLength={254}
     value={contactEmail} onChange={e=>setContactEmail(e.target.value)} disabled={busy||registered}/>
    <p className="account-security-note">This contact address is unverified and used for manual support only, not automatic password recovery.</p>
    <label className="account-auth-consent">

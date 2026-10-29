@@ -2,6 +2,9 @@ import {installInspectionDeterrent} from "./inspectionDeterrent.js";
 import React,{useEffect,useState} from "react";
 import NativeApp from "./native/App.jsx";
 import RecoveryPage from "./RecoveryPage.jsx";
+import MeetPuppies from "./MeetPuppies.jsx";
+import WebLoading from "./WebLoading.jsx";
+import WebErrorPage from "./WebErrorPage.jsx";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import "./styles.css";
@@ -15,6 +18,7 @@ function Header({page}){
   <nav className="site-nav" aria-label="Website">
    <a href="/" aria-current={page==="home"?"page":undefined}>Home</a>
    <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 Play</a>
+   <a href="/puppies" aria-current={page==="puppies"?"page":undefined}>Puppies</a>
    <a href="/account" aria-current={page==="account"?"page":undefined}>Account</a>
   </nav>
  </header>;
@@ -46,6 +50,7 @@ function Home(){
     <article className="feature-card"><div className="feature-icon">🎁</div><h3>Rewards &amp; minigames</h3><p>Complete goals, collect rewards and explore puppy-themed games.</p></article>
    </div>
   </section>
+  <MeetPuppies preview/>
   <section className="home-section split-cta">
    <div><p className="eyebrow">YOUR GAME · YOUR ACCOUNT</p><h2>Manage your Pup Account</h2><p>Sign in with a Pup username or the Puppy Clicker Discord login, check your account, and update your display name without opening the game.</p><a href="/account" className="cta cta-secondary">Open Account Management</a> <a href="/account?mode=register" className="cta cta-primary">Create Pup Account</a><a href="/recovery" className="recovery-home-link">Forgot your login? Recover your Pup Account</a></div>
    <div className="account-preview"><span>🐾</span><strong>Pup Account</strong><p>Verified login · Linked progress · Account settings</p></div>
@@ -206,12 +211,12 @@ function AccountDashboard(){
     <section className="portal-card">
      <h3>🔐 Username &amp; password login</h3>
      <p>{profile.passwordLoginEnabled===true?"Password login is enabled for your Pup Account. You can change your password here.":"Add a username and password to the Pup Account you're already signed into with Discord. Your cloud progress, Friend Code, and game ownership are preserved."}</p>
-     <form className="profile-form account-credentials" onSubmit={saveCredentials} autoComplete="off">
+     <form className="profile-form account-credentials" onSubmit={saveCredentials} autoComplete="on">
       <label htmlFor="pupCredentialUsername">Pup Account username</label>
       <input id="pupCredentialUsername" type="text" minLength={3} maxLength={20}
        spellCheck="false" autoCapitalize="none" autoCorrect="off" required
        value={credentialUsername} onChange={e=>setCredentialUsername(e.target.value)}
-       autoComplete="off"/>
+       name="username" autoComplete="username"/>
       <label htmlFor="pupCredentialPassword">{profile.passwordLoginEnabled?"New password":"Password"}</label>
       <input id="pupCredentialPassword" type="password" minLength={8} maxLength={128}
        required value={credentialPassword} onChange={e=>setCredentialPassword(e.target.value)}
@@ -234,22 +239,33 @@ function AccountDashboard(){
 }
 function AccountPortal(){return <WebAccountGate><AccountDashboard/></WebAccountGate>;}
 function DiscordCallbackPage(){
- // Process the browser PKCE callback using the verified website account gate;
- // only exact preapproved return paths are restored after authentication.
- return <WebAccountGate><div className="account-content"><p role="status">Completing secure Pup Account sign-in…</p></div></WebAccountGate>;
+ // Process the browser PKCE callback using the verified website account gate.
+ return <WebAccountGate><WebLoading stage="callback"/></WebAccountGate>;
 }
 export default function App(){
  useEffect(()=>installInspectionDeterrent(),[]);
+ // Keep historical /register bookmarks, but make /account the one auth endpoint.
+ useEffect(()=>{
+  if(globalThis.location?.pathname==="/register"){
+   const params=new URLSearchParams(globalThis.location.search);
+   params.set("mode","register");
+   globalThis.history?.replaceState?.(globalThis.history.state,"","/account?"+params.toString());
+  }
+ },[]);
  const path=typeof window!=="undefined"?window.location.pathname:"/";
  const callback=path==="/auth/discord/callback";
- const page=path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
-  callback?"callback":path==="/play"?"play":"home";
+ const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
+ const page=path==="/"?"home":path==="/puppies"?"puppies":
+  path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
+  callback?"callback":path==="/play"?"play":"error";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
   <Header page={callback?"account":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
-   {page==="home"?<Home/>:page==="account"?<AccountPortal/>:
+   {page==="home"?<Home/>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
+    page==="account"?<AccountPortal/>:
     page==="recovery"?<RecoveryPage/>:
-    page==="callback"?<DiscordCallbackPage/>:<NativeApp/>}
+    page==="callback"?<DiscordCallbackPage/>:
+    page==="error"?<WebErrorPage code={errorRoute?Number(errorRoute[1]):404}/>:<NativeApp/>}
   </main>
  </div>;
 }
