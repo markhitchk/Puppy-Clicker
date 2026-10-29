@@ -90,3 +90,12 @@ Both the session client and the public web auth exchange now use `VITE_SUPABASE_
 A saved legacy Android casino round blocks new website wagers until that original round is finished and synchronized. The website now explains this and withholds the legacy deck. It never clears, refunds, re-rolls or settles that wager from browser input. Gacha and all supported casino transactions continue to use server RNG and revision-checked saves.
 
 No new environment variable or database migration is required. Release the updated website and `pup-web-auth` together, retaining the function's existing authentication configuration. Do not rotate the existing server casino seed while Blackjack hands are open. No Android source or build configuration is changed by this repair.
+
+## Vercel admin API configuration
+
+The website's `/account/admin` page calls the **server-only** Vercel Function at `/api/admin`. To enable it, open Vercel → **puppy-clicker** → **Settings → Environment Variables** and configure these for **Production** (and Preview only if you want admin access on preview deployments):
+
+- `SUPABASE_URL` — the same Supabase project URL used by the Puppy Clicker web login.
+- `SUPABASE_SECRET_KEY` — a Supabase **server-side secret key** for that project; the API also supports the legacy `SUPABASE_SERVICE_ROLE_KEY` variable. Configure only one of these key names.
+
+Store the secret **only in Vercel**, never in GitHub, a public `VITE_*` variable, logs, or client code. After updating the environment variables, redeploy the production deployment so the serverless function receives them. No public browser setting can substitute for this server-side credential. The admin API continues to verify the bearer session, active registered Pup Account, current staff role, and ban status on **every request** before performing audited actions. A missing key causes `ADMIN_BACKEND_NOT_CONFIGURED`; insufficient table permissions or missing tables may cause `ADMIN_DATA_UNAVAILABLE` instead. Do not weaken these checks to work around a configuration error.
