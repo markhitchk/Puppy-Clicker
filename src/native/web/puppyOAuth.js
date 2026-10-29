@@ -84,7 +84,7 @@ async function finishPuppyDiscordCallback(client){
  let next="/play";
  try{
   const previous=globalThis.sessionStorage?.getItem("puppy-web-discord-return-v1");
-  if(previous==="/account"||previous==="/recovery")next=previous;
+  if(previous==="/account"||previous==="/recovery"||previous==="/account/admin")next=previous;
   globalThis.sessionStorage?.removeItem("puppy-web-discord-return-v1");
  }catch{}
  globalThis.history.replaceState(globalThis.history.state,"","/auth/discord/callback");
