@@ -227,6 +227,7 @@ function AccountDashboard(){
      {profile.recoveryEmail?detail("Verified recovery email",profile.recoveryEmail,"Confirmed by Supabase Auth. Used for password-reset links."):detail("Verified recovery email","Not configured","Visit /recovery to link and verify an email address.")}
      {profile.contactEmail?detail("Support contact email",profile.contactEmail,"Visible only to your signed-in account."):null}
     </dl>
+     <p className="pup-admin-note">For account security, the website records recent signed-in visits, IP address (when available), browser information and page path for authorized staff review. These are website sessions, not Android installations.</p>
     {["ADMIN","DEVELOPER"].includes(profile.guildRole)?<div className="account-actions"><a className="cta cta-secondary" href="/account/admin">🛡️ Open Admin Panel</a></div>:null}
     {profile.friendCode?<div className="account-actions"><button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button></div>:null}
     <div className="portal-divider"></div>

@@ -177,18 +177,22 @@ export default function AdminPortal(){
        <option value="ADMIN">Admin</option><option value="DEVELOPER">Developer</option>
        </select><button type="button" disabled={busy||!selectedRole[user.id]||selectedRole[user.id]===user.role}
        onClick={()=>confirmedRole(user)}>Save</button></div>:user.role}</td>
-      <td>{user.network?<><small><strong>IP:</strong> {user.network.ip}</small>
-        <small title={user.network.userAgent}>UA: {user.network.userAgent}</small>
-        <small>VPN: {user.network.vpn===null?"Unknown":user.network.vpn?"Detected":"Not detected"}
-         {" · "}{formatTime(user.network.checkedAt)}</small></>:
-        <small>No web connection record yet</small>}</td>
+      <td>{user.connection?<><small><strong>{user.connection.recentlyActive?"Active recently":"Last seen"}:</strong> {formatTime(user.connection.lastSeenAt)}</small>
+        <small><strong>Page:</strong> {user.connection.path||"/"}</small>
+        <small><strong>IP:</strong> {user.connection.ip||"Not available"}</small>
+        <small title={user.connection.userAgent}><strong>Browser:</strong> {user.connection.userAgent||"Not available"}</small>
+        {user.network?<small>VPN: {user.network.vpn===null?"Unknown":user.network.vpn?"Detected":"Not detected"}</small>:null}</>:
+        user.network?<><small><strong>Last network check:</strong> {formatTime(user.network.checkedAt)}</small>
+          <small><strong>IP:</strong> {user.network.ip}</small>
+          <small title={user.network.userAgent}><strong>Browser:</strong> {user.network.userAgent}</small></>:
+        <small>No website visit recorded yet</small>}</td>
       <td><button type="button" className="pup-admin-danger-button"
         disabled={busy||user.id===staff.playerUuid||user.role==="DEVELOPER"||staff.role==="ADMIN"&&user.role==="ADMIN"}
         onClick={()=>{setShowBan(user);setReason("");setExpiry("");}}>Ban account</button></td>
      </tr>)}
     </tbody></table></div>
    {!visibleUsers.length&&!tabLoading?<p className="pup-admin-empty">No matching Pup Accounts.</p>:null}
-   <p className="pup-admin-note">Directory shows up to 100 registered Pup Accounts. Web connection details appear only if the optional network telemetry service has records. Access is restricted to staff and audited.</p>
+   <p className="pup-admin-note">Directory shows up to 100 registered Pup Accounts. Verified website visits appear after a user signs in or returns to the site. VPN checks are optional. Access is restricted to staff and audited.</p>
   </section>:null}
   {section==="gifts"?<AdminPuppyGifts request={request} role={staff.role}/>:null}
   {section==="bans"?<section className="pup-admin-panel">

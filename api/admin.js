@@ -86,9 +86,21 @@ async function users(db,query) {
   }
   const latest=new Map();
   for (const n of network) if (!latest.has(n.account_uuid)) latest.set(n.account_uuid,n);
+  // Website sessions are authoritative for last visit; ProxyCheck is optional.
+  let sessions=[];
+  if(accountIds.length){
+    const response=await db.from("pup_web_sessions")
+      .select("account_uuid,ip_address,user_agent,path,started_at,last_seen_at,ended_at")
+      .in("account_uuid",accountIds).order("last_seen_at",{ascending:false}).limit(500);
+    if(!response.error)sessions=response.data||[];
+    else console.error("Pup web session directory unavailable");
+  }
+  const latestSessions=new Map();
+  for(const s of sessions)if(!latestSessions.has(s.account_uuid))latestSessions.set(s.account_uuid,s);
   return filtered.map(a=>{
     const p=byPlayer.get(a.player_uuid);
     const n=latest.get(a.id);
+    const s=latestSessions.get(a.id);
     return {
       id:p.id,username:a.username,displayName:a.display_name || null,
       profileType:"registered",
@@ -96,6 +108,9 @@ async function users(db,query) {
       status:a.status === "blocked" || p.status === "blocked" ? "blocked" : p.status,
       accountStatus:a.status,createdAt:a.created_at,updatedAt:a.updated_at,
       contactEmail:a.contact_email || null,
+      connection:s ? {ip:s.ip_address,userAgent:s.user_agent,path:s.path,
+        startedAt:s.started_at,lastSeenAt:s.last_seen_at,
+        recentlyActive:!s.ended_at&&Date.parse(s.last_seen_at)>Date.now()-150000} : null,
       network:n ? {ip:n.ip_address,userAgent:n.user_agent,checkedAt:n.checked_at,
         vpn:n.vpn,proxy:n.proxy,tor:n.tor,hosting:n.hosting,status:n.detection_status} : null
     };
