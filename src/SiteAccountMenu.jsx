@@ -2,6 +2,7 @@ import React,{useEffect,useId,useRef,useState} from "react";
 import {client} from "./supabase.js";
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import "./site-account-menu.css";
+import {avatarForAccount} from "./pupWebApi.js";
 
 export const PUP_ACCOUNT_CHANGED="puppy-clicker:pup-account-changed";
 
@@ -22,7 +23,7 @@ function discordAvatar(account){
 /** Only a verified Pup Account can be represented by the account button. */
 export function ProfileAvatar({account,className=""}){
  const [failed,setFailed]=useState(false);
- const src=discordAvatar(account);
+ const src=account?.avatarUrl||discordAvatar(account);
  useEffect(()=>setFailed(false),[src]);
  const initial=Array.from(displayName(account))[0]?.toLocaleUpperCase()||"🐾";
  return <span className={"pup-avatar "+className} role="img"
@@ -55,7 +56,8 @@ export default function SiteAccountMenu({active=false,placement="down",compact=f
     }
     // Supabase is shared with other apps. Never show an unverified identity.
     const verified=await verifyPuppySession(client);
-    if(mounted.current&&request===version)setAccount(verified);
+    const enriched=await avatarForAccount(verified);
+    if(mounted.current&&request===version)setAccount(enriched);
    }catch{
     if(mounted.current&&request===version){setAccount(null);setOpen(false);}
    }
@@ -133,7 +135,8 @@ export default function SiteAccountMenu({active=false,placement="down",compact=f
    {account.friendCode?<div className="site-account-friend-code"><span>Friend Code</span><strong>{account.friendCode}</strong></div>:null}
    <nav className="site-account-dropdown-links" aria-label="Account actions">
     <a href="/account" aria-current={active?"page":undefined}><span aria-hidden="true">👤</span>View full profile</a>
-    <a href="/account#profile-settings"><span aria-hidden="true">✏️</span>Edit display name</a>
+    <a href="/account#profile-settings"><span aria-hidden="true">📷</span>Edit name &amp; avatar</a>
+    <a href="/account#puppy-requests"><span aria-hidden="true">🎁</span>Request a puppy</a>
     <a href="/account#account-security"><span aria-hidden="true">🔒</span>Login &amp; security</a>
     <a href="/account#account-management"><span aria-hidden="true">⚙️</span>Account settings</a>
     {staff?<a href="/account/admin"><span aria-hidden="true">🛡️</span>Administration</a>:null}
