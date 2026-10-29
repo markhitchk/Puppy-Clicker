@@ -1,4 +1,4 @@
-import React,{useEffect,useRef,useState} from "react";
+import React,{useEffect,useId,useRef,useState} from "react";
 import {client} from "./supabase.js";
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import "./site-account-menu.css";
@@ -33,6 +33,7 @@ export function ProfileAvatar({account,className=""}){
 }
 
 export default function SiteAccountMenu({active=false,placement="down",compact=false}){
+ const dropdownId=useId();
  const [account,setAccount]=useState(null);
  const [open,setOpen]=useState(false);
  const [signingOut,setSigningOut]=useState(false);
@@ -59,13 +60,8 @@ export default function SiteAccountMenu({active=false,placement="down",compact=f
     if(mounted.current&&request===version){setAccount(null);setOpen(false);}
    }
   };
-  const onUpdated=event=>{
-   if(event.detail?.account){
-    // Only accept same-page refresh notifications after a successful
-    // authenticated account write; never persist them as authority.
-    void refresh();
-   }else void refresh();
-  };
+  // Re-read the authoritative account after any same-tab profile change.
+  const onUpdated=()=>{void refresh();};
   const {data}=client.auth.onAuthStateChange((event)=>{
    if(event==="SIGNED_OUT"){++request;setAccount(null);setOpen(false);return;}
    // The Supabase auth lock must be released before verifying with Edge Functions.
@@ -120,13 +116,13 @@ export default function SiteAccountMenu({active=false,placement="down",compact=f
    data-testid="site-account">
   <button ref={trigger} type="button" className="site-account-trigger"
    aria-label={"Account menu for "+name}
-   aria-haspopup="true" aria-expanded={open} aria-controls="pup-account-dropdown"
+   aria-haspopup="true" aria-expanded={open} aria-controls={dropdownId}
    onClick={()=>{setSignOutError("");setOpen(value=>!value);}}>
    <ProfileAvatar account={account} className="site-account-trigger-avatar"/>
    <span className="site-account-trigger-identity"><strong>{name}</strong><small>{username}</small></span>
    <span className="site-account-chevron" aria-hidden="true">{open?"⌃":"⌄"}</span>
   </button>
-  {open?<div className="site-account-dropdown" id="pup-account-dropdown" data-testid="site-account-dropdown">
+  {open?<div className="site-account-dropdown" id={dropdownId} data-testid="site-account-dropdown">
    <div className="site-account-preview">
     <ProfileAvatar account={account} className="site-account-preview-avatar"/>
     <div className="site-account-preview-info">
