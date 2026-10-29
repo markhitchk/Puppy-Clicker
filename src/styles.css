@@ -297,3 +297,11 @@ html [data-testid="play-viewport"] .platform-arrow{display:none!important}
 @media(max-width:999px) and (max-height:500px){
  html [data-testid="play-viewport"] .mobile-play .play-heading{display:none}
 }
+
+/* Keep the puppy fully visible on 320px-wide devices with short browser viewports.
+   These devices already have the Roster tab for switching. */
+@media(max-width:380px) and (max-height:650px){
+ html [data-testid="play-viewport"] .mobile-play .switch-puppy-action{display:none}
+ html [data-testid="play-viewport"] .mobile-play{gap:3px}
+ html [data-testid="play-viewport"] .mobile-play .cyber-play-stage{padding:5px 7px}
+}
