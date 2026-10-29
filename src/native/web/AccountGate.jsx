@@ -66,7 +66,8 @@ export default function WebAccountGate({children}){
   setBusy(true);setError("");
   try{
    try{globalThis.sessionStorage?.setItem("puppy-web-discord-return-v1",
-    recovery?"/recovery":["/account","/register"].includes(globalThis.location?.pathname)?"/account":"/play");}catch{}
+    recovery?"/recovery":globalThis.location?.pathname?.startsWith("/account/admin")?"/account/admin":
+    ["/account","/register"].includes(globalThis.location?.pathname)?"/account":"/play");}catch{}
    const url=await beginPuppyDiscord();
    // Discord returns to /auth/discord/callback in this same browser on
    // Android, iOS, and desktop, never to the Android app's custom URI.
