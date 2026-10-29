@@ -17,10 +17,13 @@ const featuredIds=["classic","golden","poodle","spotty","v2_frost","v2_honey"];
 const categories=[["all","All puppies"],["v1","V1 classics"],["v2","V2 puppies"],["discord","Community"]];
 
 function PuppyCard({p}){
+ // Even if the generated WebP manifest is unavailable, never use the
+ // original opaque V1/V2 image on a public roster card.
+ const transparentFallback=p.image.replace(/^\/assets\/(v1|v2)\//,"/assets/transparent/$1/");
  return <article className="meet-puppy-card">
   <div className="meet-puppy-art">
    <PuppyArtwork id={p.id} name={p.name+" from the Puppy Clicker roster"}
-    uri={p.image} size={215} lazy/>
+    uri={transparentFallback} size={215} lazy/>
    <span className="meet-puppy-group">{p.group==="discord"?"Community":p.group.toUpperCase()}</span>
   </div>
   <div className="meet-puppy-body">
