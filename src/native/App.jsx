@@ -1053,8 +1053,19 @@ export function PuppyApp({betaMode=false}){
  const [accountEntryMode,setAccountEntryMode]=useState('signin');
  const openAccount=mode=>{setAccountEntryMode(mode||'signin');setAccountOpen(true);};
  const registry=useRoster();
- const {width}=useWindowDimensions();
- const desktop=width>=960;
+ const {width} = useWindowDimensions();
+ const [desktop, setDesktop] = useState(() => {
+  if (typeof window === 'undefined') return width >= 960;
+  return window.matchMedia('(min-width: 960px)').matches;
+ });
+ useEffect(() => {
+  if (typeof window === 'undefined') return;
+  const mq = window.matchMedia('(min-width: 960px)');
+  const update = () => setDesktop(mq.matches);
+  update();
+  mq.addEventListener('change', update);
+  return () => mq.removeEventListener('change', update);
+ }, []);
  const [tab,setTab]=useState('play');
  const [secondary,setSecondary]=useState(null);
  const [bet,setBet]=useState(20);
