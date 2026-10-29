@@ -1,0 +1,13 @@
+.pup-admin-gift-form{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin:20px 0 28px}
+.pup-admin-gift-form label{font-size:13px;color:#a5d9e7;font-weight:800}
+.pup-admin-gift-form select{padding:12px;border-radius:13px;border:1px solid #366575;background:#112837;color:white;width:100%;min-width:0}
+.pup-admin-gift-form button,.pup-admin-gifts button{cursor:pointer;background:#145770;color:#e5fbff;border:1px solid #3b8ca5;padding:10px 15px;border-radius:11px;font-weight:800}
+.pup-admin-gift-form button{grid-column:1/-1;justify-self:start}
+.pup-admin-gifts button:disabled{opacity:.5;cursor:not-allowed}
+.pup-admin-gifts h3{margin-top:25px}
+.pup-admin-gift-requests{display:grid;gap:10px}
+.pup-admin-gift-row{border:1px solid #31576a;background:#102b3c;padding:15px;border-radius:14px;display:flex;gap:15px;justify-content:space-between;flex-wrap:wrap}
+.pup-admin-gift-row small{display:block;margin-top:5px;color:#a7bfd0}
+.pup-admin-gift-row p{font-size:13px;overflow-wrap:anywhere}
+.pup-admin-gift-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+@media(max-width:750px){.pup-admin-gift-form{grid-template-columns:1fr}.pup-admin-gift-form label{margin-top:4px}}
