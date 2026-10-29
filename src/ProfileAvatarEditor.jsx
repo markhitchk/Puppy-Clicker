@@ -19,9 +19,9 @@ export default function ProfileAvatarEditor({account,onChanged}){
    const {data,error}=await client.auth.getUser();
    if(error||!data?.user)throw Error("SIGN_IN_REQUIRED");
    const extension={"image/png":"png","image/jpeg":"jpg","image/webp":"webp"}[file.type];
-   const path=data.user.id+"/avatar-"+Date.now()+"."+extension;
+   const path=data.user.id+"/avatar."+extension;
    const result=await client.storage.from("pup-profile-avatars").upload(path,file,{
-    cacheControl:"3600",contentType:file.type,upsert:false
+    cacheControl:"3600",contentType:file.type,upsert:true
    });
    if(result.error)throw result.error;
    const updated=await pupWebApi({action:"update",avatarPath:path});
