@@ -1,4 +1,5 @@
 import {createHmac,timingSafeEqual} from "node:crypto";
+import {Buffer} from "node:buffer";
 
 export type DiscordIdentity={
  id:string;
