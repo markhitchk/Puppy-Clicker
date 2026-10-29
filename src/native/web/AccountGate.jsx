@@ -98,6 +98,7 @@ export default function WebAccountGate({children}){
  if(!user||!pupAccount)return <View style={{flex:1,backgroundColor:"#0d1e29",alignItems:"center",justifyContent:"center",padding:20}}>
   <View style={{backgroundColor:"#19313e",padding:28,borderRadius:24,maxWidth:500,width:"100%",gap:13,borderWidth:1,borderColor:"#315466"}}>
    <Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{height:85,width:110,alignSelf:"center"}}/>
+   <Text style={{...text,fontSize:11,color:"#00e5ff",fontWeight:"900",textAlign:"center"}}>PUPPY CLICKER · SET UP YOUR ACCOUNT</Text>
    <Text accessibilityRole="header" style={{fontSize:27,fontWeight:"900",color:"#fff",textAlign:"center"}}>{recovery?"🔐 Pup Account Recovery":"🐶 Puppy Clicker · Pup Account"}</Text>
    {!recovery?<View style={{flexDirection:"row",backgroundColor:"#0d1e29",borderRadius:14,padding:4,gap:5}} accessibilityRole="tablist">
     <button type="button" role="tab" aria-selected={mode==="signin"}
@@ -115,10 +116,9 @@ export default function WebAccountGate({children}){
     <Text style={{...text,color:"#bcd1df",textAlign:"center"}}>{recovery
      ?"Use the Discord account already linked to your Pup Account. Ownership is verified before recovery."
      :"Sign in with your existing Pup Account. Discord returns to this website after authorization."}</Text>
-    <Pressable accessibilityRole="button" disabled={busy||!client} onPress={loginDiscord} style={action}>
-     <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Opening Discord…":recovery?"Recover with linked Discord":"Continue with Puppy Clicker Discord"}</Text>
-    </Pressable>
-    <Text style={{...text,textAlign:"center"}}>Or sign in with your Pup username</Text>
+    <section className="android-auth-provider">
+     <div className="android-auth-provider-heading"><img src="/assets/logos/puppy_clicker.png" alt="" /><div><strong>Pup Account</strong><small>Username and password sign-in</small></div></div>
+     <p>Sign in using the same Pup Account you use on Android. Your linked progress is preserved.</p>
     <form className="pup-signin-form" autoComplete="on" onSubmit={event=>{event.preventDefault();void loginPup();}}>
      <label htmlFor="pup-login-username">Pup username</label>
      <input id="pup-login-username" type="text" name="username" autoComplete="username"
@@ -133,6 +133,14 @@ export default function WebAccountGate({children}){
       {busy?"Verifying…":"Sign in to Pup Account"}
      </button>
     </form>
+    </section>
+    <section className="android-auth-provider">
+     <div className="android-auth-provider-heading"><img src="/assets/logos/discord.png" alt="" /><div><strong>Discord</strong><small>Alternative login or optional linked account</small></div></div>
+     <p>Sign in with the Discord identity linked to your Pup Account. New Discord users are offered registration.</p>
+     <Pressable accessibilityRole="button" disabled={busy||!client} onPress={loginDiscord} style={action}>
+      <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Opening Discord…":recovery?"Recover with linked Discord":"Sign in with Discord"}</Text>
+     </Pressable>
+    </section>
     {!!error&&<Text accessibilityRole="alert" style={{color:"#ffb4ad"}}>{error}</Text>}
     {recovery?<Text style={{...text,fontSize:12,color:"#bbccdc",lineHeight:20}}>
      No access to Discord or your password? Use the Android app's Settings → Support or another official Puppy Clicker support channel. Support requires independent proof of ownership.
