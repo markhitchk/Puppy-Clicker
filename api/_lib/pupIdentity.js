@@ -36,15 +36,18 @@ export async function getPupIdentity(req,db){
   .select("account_uuid").eq("auth_user_id",uid).maybeSingle());
  if(!link)throw new PupError(403,"PUP_ACCOUNT_REQUIRED");
  const account=ensure(await db.from("pup_accounts")
-  .select("id,player_uuid,username,status,profile_avatar_path")
+  .select("id,player_uuid,username,status,profile_avatar_path,updated_at,discord_user_id")
   .eq("id",link.account_uuid).maybeSingle());
  if(!account||account.status!=="active")throw new PupError(403,"ACCOUNT_NOT_ACTIVE");
  const player=ensure(await db.from("pupeye_players")
   .select("id,guild_role,status").eq("id",account.player_uuid).maybeSingle());
  if(!player||player.status!=="active")throw new PupError(403,"ACCOUNT_NOT_ACTIVE");
  // Player or Discord bans also block staff actions and gifts.
+ const predicates=["player_uuid.eq."+player.id];
+ if(account.discord_user_id&&/^\\d{15,22}$/.test(account.discord_user_id))
+  predicates.push("discord_user_id.eq."+account.discord_user_id);
  const bans=ensure(await db.from("pupeye_ban_targets")
-  .select("ban_uuid").eq("player_uuid",player.id))||[];
+  .select("ban_uuid").or(predicates.join(",")))||[];
  if(bans.length){
   const active=ensure(await db.from("pupeye_global_bans")
    .select("id,revoked_at,expires_at").in("id",[...new Set(bans.map(x=>x.ban_uuid))])
