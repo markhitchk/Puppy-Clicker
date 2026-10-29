@@ -30,3 +30,28 @@ test('website and game use preference theme, system theme, and mouse-only cursor
  assert.ok(app.includes("systemTheme.addEventListener('change'"));
  assert.ok(prefs.includes('themeMode:cleaned.themeMode'));
 });
+
+test('nested controls inherit one cursor state and disabled wins over pressed/hover',()=>{
+ const allElementsSelector="body *";
+ assert.ok(css.includes(allElementsSelector));
+ assert.ok(css.includes("cursor: var(--puppy-current-cursor, var(--puppy-default)) !important;"));
+ // A single inherited custom property is used rather than overriding each
+ // button child with a separate URL, which caused mismatches in nested RNW spans.
+ assert.ok(!css.includes("cursor: var(--puppy-link) !important;"));
+ assert.ok(css.includes(":where(:active)"));
+ assert.ok(css.includes(":where(:hover)"));
+ const pressed=css.indexOf("--puppy-current-cursor: var(--puppy-click);");
+ const disabled=css.indexOf("--puppy-current-cursor: var(--puppy-not-allowed);");
+ assert.ok(pressed>=0 && disabled>pressed);
+ assert.ok(css.includes(":where(:disabled, [disabled], [aria-disabled='true'])"));
+});
+test('touch stops sticky mouse hover until an actual hardware pointer moves again',()=>{
+ assert.ok(css.includes(":not([data-puppy-cursor-input='touch'])"));
+ assert.ok(app.includes("root.dataset.puppyCursorInput=primaryMouse.matches?'mouse':'touch'"));
+ assert.ok(app.includes("event.pointerType==='touch'"));
+ assert.ok(app.includes("event.pointerType==='mouse'||event.pointerType==='pen'"));
+ assert.ok(app.includes("addEventListener('pointerdown',pointerInput"));
+ assert.ok(app.includes("addEventListener('pointermove',pointerMovement"));
+ assert.ok(app.includes("addEventListener('pointerover',pointerMovement"));
+ assert.ok(app.includes("removeEventListener('pointerdown',pointerInput"));
+});
