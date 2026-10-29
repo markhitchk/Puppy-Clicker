@@ -8,7 +8,7 @@ test("the website renders the original Android React Native PuppyApp, not the ol
  assert.match(native,/export function PuppyApp/);
  for(const screen of ["PlayScreen","CareScreen","RosterScreen","ShopScreen","RewardsScreen","CasinoScreen","GachaScreen","PrestigeScreen"])
   assert.match(native,new RegExp(screen));
- assert.match(native,/desktop=width>=1000/);
+ assert.match(native,/desktop=width>=960/);
  assert.match(native,/GameProgressHeader/);
 });
 test("real mobile game engine source has been copied with every major subsystem",()=>{
