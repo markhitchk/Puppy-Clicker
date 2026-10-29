@@ -43,6 +43,16 @@ export function publicCloudSnapshot(save:Dict|null){
 }
 async function authoritativeSave(admin:any,account:Dict){
  // Browser doesn't become an Android device or bypass its PupEye standing.
+ if(account.origin_platform==="web"&&!account.active_installation_uuid){
+  // Web registrations cannot impersonate Android's PupEye owner installation.
+  const {data:save,error}=await admin.from("pup_account_saves")
+   .select("player_uuid,account_uuid,revision,generation,installation_uuid,origin_platform,save_schema,save_data,updated_at")
+   .eq("player_uuid",account.player_uuid).maybeSingle();
+  if(error)reject(503,"PUP_CLOUD_UNAVAILABLE");
+  if(!save||save.account_uuid!==account.id||save.origin_platform!=="web"||
+     save.installation_uuid!==null)reject(403,"PUP_WEB_SAVE_UNAVAILABLE");
+  return save;
+ }
  const {data:owner,error:oe}=await admin.from("pupeye_installations")
   .select("id,player_uuid,active,revoked_at")
   .eq("id",account.active_installation_uuid).maybeSingle();
