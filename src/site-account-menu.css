@@ -81,3 +81,31 @@
  .site-account-dropdown{right:0;width:min(335px,calc(100vw - 12px))}
 }
 @media(prefers-reduced-motion:reduce){.site-account-trigger{transition:none}}
+
+/* Sidebar's generic game navigation button rules must not override this profile widget. */
+.desktop-navigation .desktop-account-slot .site-account-trigger{
+ display:flex;align-items:center;gap:8px;justify-content:flex-start;
+ width:100%;min-height:46px;max-width:none;padding:5px 9px 5px 5px;
+ border:1px solid rgba(0,229,255,.32);border-radius:14px;
+ background:#161A25;color:#f3fbff;text-align:left;font:inherit;cursor:pointer
+}
+.desktop-navigation .desktop-account-slot .site-account-trigger:hover,
+.desktop-navigation .desktop-account-slot .site-account-trigger[aria-expanded="true"]{
+ border-color:#00e5ff;background:#1A1E2B
+}
+.desktop-navigation .desktop-account-slot .site-account-trigger>.pup-avatar{
+ width:36px;height:36px;font-size:19px;flex-shrink:0
+}
+.desktop-navigation .desktop-account-slot .site-account-trigger>.site-account-trigger-identity{
+ display:flex;flex-direction:column;gap:2px;align-items:flex-start;
+ width:auto;flex:1;min-width:0;max-width:none;font-size:12px
+}
+.desktop-navigation .desktop-account-slot .site-account-trigger>.site-account-chevron{
+ width:auto;flex:0 0 auto;font-size:18px
+}
+.desktop-navigation .desktop-account-slot .site-account-dropdown button{
+ min-height:43px;padding:10px 12px;border:0;border-radius:12px;
+ background:transparent;font-size:13px;color:#ffa9b8;width:100%
+}
+.desktop-navigation .desktop-account-slot .site-account-dropdown button:hover{background:#203747}
+.desktop-navigation .desktop-account-slot .site-account-dropdown a{font-size:13px}
