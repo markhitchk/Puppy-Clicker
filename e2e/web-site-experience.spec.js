@@ -55,3 +55,25 @@ test("legacy register bookmarks show the registration tab within /account",async
  await expect(page).toHaveURL(/\/account\?.*mode=register/);
  await expect(page.getByRole("tab",{name:"Create Account"})).toHaveAttribute("aria-selected","true");
 });
+
+
+test("puppy roster and home showcase use transparent optimized portraits",async({page})=>{
+ for(const route of ["/","/puppies"]){
+  await page.goto(route);
+  const cards=page.locator(".meet-puppy-card");
+  const art=cards.locator("img.puppy-artwork");
+  const count=await cards.count();
+  expect(count).toBeGreaterThan(route==="/puppies"?20:5);
+  await expect(art).toHaveCount(count);
+  const sources=await art.evaluateAll(nodes=>nodes.map(node=>({
+   src:node.getAttribute("src"),set:node.getAttribute("srcset")
+  })));
+  for(const source of sources){
+   expect(source.src).toMatch(/^\/assets\/portraits\/[a-z0-9_-]+-[a-f0-9]{12}-256\.webp$/);
+   expect(source.set).toContain("/assets/portraits/");
+  }
+  const first=art.first();
+  await first.scrollIntoViewIfNeeded();
+  await expect.poll(()=>first.evaluate(node=>node.complete&&node.naturalWidth>0)).toBe(true);
+ }
+});
