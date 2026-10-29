@@ -1,6 +1,7 @@
 import {createClient} from "@supabase/supabase-js";
 import {getClientIp} from "./_lib/networkRisk.js";
 import {isBrowserSessionId,safeWebsitePath} from "./_lib/webPresence.js";
+import {findActiveIpBan} from "./_lib/ipBan.js";
 
 const respond=(res,status,body)=>{
   res.setHeader("Cache-Control","private, no-store, max-age=0");
@@ -40,6 +41,7 @@ export default async function handler(req,res){
   const db=makeDb();
   if(!db)return respond(res,503,{ok:false,error:"PRESENCE_UNAVAILABLE"});
   try{
+    if(await findActiveIpBan(db,req.headers))return respond(res,403,{ok:false,error:"IP_BANNED"});
     const {data:identity,error:userError}=await db.auth.getUser(auth.slice(7));
     if(userError||!identity?.user?.id)
       return respond(res,401,{ok:false,error:"SIGN_IN_REQUIRED"});

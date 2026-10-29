@@ -1,5 +1,6 @@
 import {dbClient,ensure,validateRequest,getPupIdentity,PupError,fail} from "./_lib/pupIdentity.js";
 import {normalizeAvatarUrl} from "./_lib/avatarUrl.js";
+import {findActiveIpBan} from "./_lib/ipBan.js";
 const BUCKET="pup-profile-avatars";
 const AVATAR_NAME=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/avatar\.(png|jpg|webp)$/;
 const safeUrl=(db,path,version)=>path?db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl+'?v='+encodeURIComponent(version||'1'):null;
@@ -7,6 +8,7 @@ export default async function handler(req,res){
  try{
   validateRequest(req,res);
   const db=dbClient();
+  if(await findActiveIpBan(db,req.headers))throw new PupError(403,"IP_BANNED");
   const actor=await getPupIdentity(req,db);
   const action=req.body?.action;
   if(action==="read"){

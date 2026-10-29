@@ -1,10 +1,13 @@
 import {dbClient,ensure,validateRequest,fail} from './_lib/pupIdentity.js';
 import {getClientIp} from './_lib/networkRisk.js';
+import {findActiveIpBan} from './_lib/ipBan.js';
+import {PupError} from './_lib/pupIdentity.js';
 import {normalizeBrowserEvent,activityIdentity} from './_lib/webActivity.js';
 export default async function handler(req,res){
  try{
   validateRequest(req,res);
   const event=normalizeBrowserEvent(req.body),db=dbClient();
+  if(await findActiveIpBan(db,req.headers))throw new PupError(403,"IP_BANNED");
   const identity=await activityIdentity(req,db);
   const recorded=ensure(await db.rpc('record_pup_web_activity',{
    p_session_id:event.sessionId,p_account_uuid:identity.accountUuid,p_auth_user_id:identity.authUserId,

@@ -1,4 +1,5 @@
 import {isIP} from "node:net";
+import {isPublicIp} from "./networkRisk.js";
 
 export const STAFF_ROLES = new Set(["ADMIN","DEVELOPER"]);
 export const ROLES = new Set(["GUEST","PUP_MEMBER","ADMIN","DEVELOPER"]);
@@ -66,6 +67,11 @@ export function validateIp(value) {
   if (typeof value !== "string" || value.length > 45 || isIP(value.trim()) === 0)
     throw new AdminError(400,"INVALID_IP_ADDRESS");
   return value.trim();
+}
+export function validatePublicIp(value){
+ const ip=validateIp(value);
+ if(!isPublicIp(ip))throw new AdminError(400,"PUBLIC_IP_REQUIRED");
+ return ip;
 }
 export function safeSearch(value) {
   if (typeof value !== "string") return "";
