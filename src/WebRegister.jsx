@@ -122,7 +122,7 @@ export default function WebRegister({onAuthenticated,onSignIn}){
    </label>
    <label className="account-auth-consent">
     <input type="checkbox" required checked={privacy} onChange={e=>setPrivacy(e.target.checked)} disabled={busy||registered}/>
-    <span>I acknowledge the <a href="https://github.com/markhitchk/pup-clinker/blob/main/assets/legal/privacy-policy.md" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.</span>
+    <span>I acknowledge the <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>, including website connection and account security records.</span>
    </label>
    <button className="cta cta-primary stretch" type="submit" disabled={busy||registered||!client}>
     {busy?"Creating account…":registered?"Account created":"Create Pup Account"}

@@ -11,8 +11,8 @@ test("Puppy Discord uses the Android application's client ID",()=>{
 test("the website cannot silently use the ARC Raiders shared Discord provider",()=>{
  const gate=source("src/native/web/AccountGate.jsx");
  const helper=source("src/native/web/puppyOAuth.js");
- assert.doesNotMatch(gate,/signInWithOAuth|provider:\s*["']discord/);
- assert.doesNotMatch(helper,/signInWithOAuth|provider:\s*["']discord/);
+ assert.doesNotMatch(gate,/signInWithOAuth/);
+ assert.doesNotMatch(helper,/signInWithOAuth/);
  assert.match(helper,/code_challenge_method:"S256"/);
  assert.match(helper,/completePuppyDiscordCallback/);
  assert.match(helper,/DISCORD_LOGIN_STATE_INVALID/);

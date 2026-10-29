@@ -39,10 +39,10 @@ test("Discord registration is explicit and preserves existing linked account ide
  const server=readFileSync(new URL("../supabase/functions/pup-web-auth/discordRegistration.ts",import.meta.url),"utf8");
  const sql=readFileSync(new URL("../supabase/sql/discord_web_signup_draft.sql",import.meta.url),"utf8");
  assert.ok(server.includes('if(account)throw new PublicError(409,"PUP_DISCORD_ALREADY_LINKED")'));
- assert.ok(server.includes('if(player)throw new PublicError(409,"PUP_ACCOUNT_LINK_REQUIRED")'));
+ assert.ok(sql.includes('or exists (select 1 from public.pupeye_players where discord_user_id = p_discord_user_id)'));
  assert.ok(server.includes("body.useDiscordEmail===true?profile.email:null"));
  assert.ok(sql.includes("revoke all on function public.register_pup_web_discord_account"));
  assert.ok(sql.includes("to service_role"));
- assert.ok(sql.includes("pup_web_auth_links(account_uuid,auth_user_id,discord_user_id)"));
+ assert.match(sql,/pup_web_auth_links\s*\(\s*account_uuid,\s*auth_user_id,\s*discord_user_id\s*\)/);
  assert.ok(!sql.includes("SECURITY DEFINER"));
 });

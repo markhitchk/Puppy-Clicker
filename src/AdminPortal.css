@@ -49,3 +49,16 @@
 .pup-admin-modal textarea{min-height:96px}
 .pup-admin-modal-actions{display:flex;justify-content:flex-end;gap:10px}
 @media(max-width:650px){.pup-admin-stats{gap:8px}.pup-admin-stat{padding:12px}.pup-admin-stat strong{font-size:22px}.pup-admin-panel{padding:12px}.pup-admin-tabs button{padding:10px 13px}.pup-admin-tabs .pup-admin-refresh{margin-left:0}}
+.pup-admin-stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.pup-admin-row-actions{display:flex;gap:7px;flex-wrap:wrap;max-width:230px}
+.pup-admin-status.neutral{background:#273e50;color:#c5d7e3}
+.pup-admin-activity{display:grid;gap:22px}
+.pup-admin-detail{margin:0;line-height:1.65;max-width:340px;overflow-wrap:anywhere}
+.pup-admin-filter{display:flex;align-items:center;gap:10px;color:#aac7d4;font-size:13px}
+.pup-admin-filter select,.pup-admin-modal select{background:#0d1a27;color:#fff;border:1px solid #446578;padding:11px;border-radius:12px}
+.pup-admin-modal{color:#eaf9ff;max-height:90dvh;overflow:auto;margin:auto}
+.pup-admin-modal::backdrop{background:#03080dc9;backdrop-filter:blur(5px)}
+.pup-admin-device-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:18px}
+.pup-admin-device{display:flex;align-items:flex-start;flex-direction:column;gap:9px;border:1px solid #31586c;border-radius:16px;background:#172a38;padding:18px}
+.pup-admin-device small{color:#aac7d4}
+.pup-admin-container button:focus-visible,.pup-admin-container input:focus-visible,.pup-admin-container select:focus-visible,.pup-admin-modal :focus-visible{outline:2px solid #00e5ff;outline-offset:3px}

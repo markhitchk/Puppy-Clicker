@@ -1,5 +1,6 @@
 // Website OAuth must return to an HTTPS route in this browser.
 import {puppyService} from '../../supabaseConfig.js';
+import {getActivitySessionId,reportWebActivity} from '../../webActivity.js';
 // Android retains its own app-only redirect; never use it for browser login.
 export const PUPPY_DISCORD_CLIENT_ID="1547982688898777118";
 export const PUPPY_DISCORD_REDIRECT_URI="https://puppy-clicker.vercel.app/auth/discord/callback";
@@ -32,7 +33,8 @@ const base64url=bytes=>btoa(String.fromCharCode(...new Uint8Array(bytes)))
 const digest=text=>crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));
 async function post(url,body){
  const response=await fetch(url,{method:"POST",headers:{
-  "Content-Type":"application/json","apikey":PUBLISHABLE_KEY
+  "Content-Type":"application/json","apikey":PUBLISHABLE_KEY,
+  "x-pup-session-id":getActivitySessionId()||'',"x-pup-path":globalThis.location?.pathname||'/account'
  },cache:"no-store",body:JSON.stringify(body)});
  let result={};try{result=await response.json()}catch{}
  if(!response.ok||result.error)throw new Error(result.error||"PUP_WEB_AUTH_UNAVAILABLE");
@@ -83,7 +85,11 @@ export function completePuppyDiscordCallback(client){
  // Share the entire attempt, including failure, until an explicit new login.
  if(callbackAttempts.has(client))return callbackAttempts.get(client);
  if(!hasPuppyDiscordCallback())return Promise.resolve({status:"none"});
- const attempt=finishPuppyDiscordCallback(client);
+ const attempt=finishPuppyDiscordCallback(client).catch(error=>{
+  void reportWebActivity('auth_error',{provider:'discord',
+   errorCode:/^[A-Z][A-Z0-9_]{2,79}$/.test(error?.message||'')?error.message:'PUP_WEB_AUTH_UNAVAILABLE'});
+  throw error;
+ });
  callbackAttempts.set(client,attempt);
  return attempt;
 }
