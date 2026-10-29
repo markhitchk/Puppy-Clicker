@@ -1,6 +1,7 @@
 import React,{useMemo,useState} from "react";
 import roster from "./data/roster.js";
 import {LEGACY_V6_PUPPIES} from "./native/src/engine/rosterV6.js";
+import PuppyArtwork from "./native/web/PuppyArtwork.jsx";
 
 const info=new Map(LEGACY_V6_PUPPIES.map(p=>[p.id,p]));
 export const publicPuppies=roster
@@ -16,11 +17,10 @@ const featuredIds=["classic","golden","poodle","spotty","v2_frost","v2_honey"];
 const categories=[["all","All puppies"],["v1","V1 classics"],["v2","V2 puppies"],["discord","Community"]];
 
 function PuppyCard({p}){
- const [broken,setBroken]=useState(false);
  return <article className="meet-puppy-card">
   <div className="meet-puppy-art">
-   <img loading="lazy" decoding="async" src={broken?"/assets/logos/puppy_clicker.png":p.image}
-    onError={()=>setBroken(true)} alt={p.name+" from the Puppy Clicker roster"} />
+   <PuppyArtwork id={p.id} name={p.name+" from the Puppy Clicker roster"}
+    uri={p.image} size={215} lazy/>
    <span className="meet-puppy-group">{p.group==="discord"?"Community":p.group.toUpperCase()}</span>
   </div>
   <div className="meet-puppy-body">
