@@ -58,3 +58,50 @@ body:has(.meet-puppy-dialog[open]){overflow:hidden}
 }
 @media(max-width:350px){.meet-detail-actions{grid-template-columns:1fr}.meet-detail-name h3{font-size:21px}}
 @media(prefers-reduced-motion:reduce){.meet-puppy-dialog::backdrop{backdrop-filter:none}}
+
+/* Desktop deep links (?pup=v1_golden) become a full-screen puppy profile.
+   Retain the compact native dialog on smaller viewports. */
+.meet-detail-main,.meet-detail-aside{display:contents}
+@media(min-width:960px){
+ .meet-puppy-dialog{
+  position:fixed;inset:0;margin:0;width:100vw;max-width:none;
+  height:100dvh;max-height:100dvh;min-height:100dvh;border:0;border-radius:0;
+  background:#0A0C12;box-shadow:none;overflow-y:auto;
+ }
+ .meet-puppy-dialog::backdrop{background:#0A0C12;backdrop-filter:none}
+ .meet-puppy-dialog-inner{width:100%;min-height:100%;max-width:1650px;margin:0 auto;
+  padding:clamp(24px,3vw,56px);gap:26px;display:flex;flex-direction:column}
+ .meet-detail-heading{width:100%;padding:0 0 20px;border-bottom:1px solid rgba(0,229,255,.22)}
+ .meet-detail-heading h2{font-size:clamp(27px,2.3vw,42px)}
+ .meet-detail-close{width:auto;min-height:48px;padding:0 14px;font-size:18px;font-weight:800;
+  background:#161A25;border:1px solid rgba(0,229,255,.3);color:#a9eeff}
+ .meet-detail-close:hover{background:#193648}
+ .meet-detail-main{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(330px,.9fr);
+  align-items:stretch;gap:clamp(22px,3vw,50px);width:100%;flex:1;min-height:0}
+ .meet-detail-identity{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:22px;min-height:390px;background:radial-gradient(circle at 50% 37%,rgba(0,229,255,.13),transparent 62%),#12151F;
+  border:1px solid rgba(0,229,255,.24);padding:clamp(24px,3vw,48px);text-align:center}
+ .meet-detail-artwork{width:100%;min-height:230px}
+ .meet-detail-artwork img.puppy-artwork{width:min(36vw,420px)!important;height:min(36vw,420px)!important;
+  max-width:100%;max-height:min(50vh,420px);object-fit:contain}
+ .meet-detail-name h3{font-size:clamp(30px,3vw,52px);margin-bottom:12px}
+ .meet-detail-asset-id{font-size:17px}
+ .meet-detail-pills{justify-content:center;gap:10px}
+ .meet-detail-aside{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:22px;min-width:0}
+ .meet-detail-about{padding:28px;background:#161A25;border:1px solid rgba(0,229,255,.16)}
+ .meet-detail-about h3{color:#00E5FF;font-size:21px}
+ .meet-detail-about p{font-size:clamp(17px,1.5vw,21px)}
+ .meet-detail-actions{gap:14px}
+ .meet-detail-disclaimer{font-size:13px;line-height:1.7}
+ .meet-detail-secondary,.meet-detail-primary{min-height:54px}
+}
+@media(min-width:960px) and (max-height:660px){
+ .meet-puppy-dialog-inner{padding:18px 32px;gap:14px}
+ .meet-detail-heading{padding-bottom:10px}
+ .meet-detail-identity{min-height:280px;padding:20px}
+ .meet-detail-artwork{min-height:150px}
+ .meet-detail-artwork img.puppy-artwork{max-height:200px}
+ .meet-detail-aside{gap:10px}
+ .meet-detail-about{padding:16px}
+ .meet-detail-secondary,.meet-detail-primary{min-height:44px}
+}
