@@ -8,7 +8,7 @@ import AdminRestrictionDialog from "./AdminRestrictionDialog.jsx";
 import {formatTime,describeDevice,presentAuditEvent} from "./adminPresentation.js";
 
 const initialSection=()=> {
- const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit|gifts|activity)\/?$/);
+ const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit|gifts|activity|pupeye-web)\/?$/);
  return match?.[1] || "users";
 };
 const lastIp=user=>(user.connection?user.connection.ip:user.network?.ip)||null;
@@ -55,6 +55,7 @@ export default function AdminPortal(){
  const [users,setUsers] = useState([]);
  const [bans,setBans] = useState([]);
  const [events,setEvents] = useState([]);
+ const [webPupEyeEvents,setWebPupEyeEvents] = useState([]);
  const [query,setQuery] = useState("");
  const [busy,setBusy] = useState(false);
  const [message,setMessage] = useState("");
@@ -83,7 +84,7 @@ export default function AdminPortal(){
  },[client]);
 
  const refresh=useCallback(async(tab,silent=false)=>{
-  if(!['users','bans','audit','activity'].includes(tab))return;
+  if(!['users','bans','audit','activity','pupeye-web'].includes(tab))return;
   if(!silent){setTabLoading(true);setError("");}
   try {
    const result=await request({action:tab,filter:activityFilter});
@@ -91,6 +92,7 @@ export default function AdminPortal(){
    if(tab==="bans")setBans(result.bans||[]);
    if(tab==="audit")setEvents(result.events||[]);
    if(tab==="activity")setActivity(result);
+   if(tab==="pupeye-web")setWebPupEyeEvents(result.events||[]);
   }catch(e){setError(normalizeError(e.message));}
   finally{if(!silent)setTabLoading(false);}
  },[request,activityFilter]);
@@ -231,7 +233,7 @@ export default function AdminPortal(){
    <Stat label="Errors in 24 hours" value={activity.summary?.errors24h??'—'}/>
   </div>
   <nav className="pup-admin-tabs" aria-label="Administration sections">
-   {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"]].map(([tab,label])=>
+   {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["pupeye-web","🛡️ PupEye Web"],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"]].map(([tab,label])=>
     <button key={tab} type="button" className={section===tab?"is-selected":""}
      aria-current={section===tab?"page":undefined} onClick={()=>navigate(tab)}>{label}</button>)}
    <button type="button" className="pup-admin-refresh" onClick={()=>void refresh(section)} disabled={busy||tabLoading||section==="gifts"}>↻ Refresh</button>
@@ -276,6 +278,21 @@ export default function AdminPortal(){
    <p className="pup-admin-note">Up to 100 registered accounts. Open Activity & Devices for website sessions, linked Android devices, sign-ins and errors.</p>
   </section>:null}
   {section==="activity"?<AdminActivity activity={activity} filter={activityFilter} onFilter={setActivityFilter}/>:null}
+ {section==="pupeye-web"?<section className="pup-admin-panel" aria-label="PupEye Web security incidents">
+ <h2>🛡️ PupEye Web security</h2>
+ <p className="pup-admin-note">Server-verified browser account activity and abuse-limit incidents. These are not Android device detections. VPN/network risk alone does not constitute cheating or trigger an automatic ban.</p>
+ <div className="pup-admin-table-wrap"><table className="pup-admin-table">
+  <thead><tr><th>When</th><th>Pup Account</th><th>Event</th><th>Details</th></tr></thead>
+  <tbody>{webPupEyeEvents.map(e=><tr key={e.id}>
+   <td>{formatTime(e.created_at)}</td>
+   <td>{e.account_username?'@'+e.account_username:'Former account'}</td>
+   <td>{e.event_code==='RATE_LIMIT'?'Request limit reached':e.event_code==='IP_BAN_BLOCK'?'IP restriction':e.event_code}</td>
+   <td>{e.action_code||'Web'}{Number.isInteger(e.detail?.max)?' · '+e.detail.max+' requests/min':''}</td>
+  </tr>)}</tbody>
+ </table></div>
+ {!webPupEyeEvents.length&&!tabLoading?<p className="pup-admin-empty">No PupEye Web security incidents recorded.</p>:null}
+</section>:null}
+
   {section==="gifts"?<AdminPuppyGifts request={request} role={staff.role}/>:null}
   {section==="bans"?<section className="pup-admin-panel">
    <h2>Suspension & ban history</h2><p className="pup-admin-note">Restrictions apply to Android and the website. Timed restrictions stop applying at their end time. Bans issued outside this panel must be managed by their original system.</p>
