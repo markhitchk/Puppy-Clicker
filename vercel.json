@@ -21,9 +21,22 @@
           "value": "private, no-store, max-age=0"
         }
       ]
+    },
+    {
+      "source": "/api/admin",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store, max-age=0"
+        }
+      ]
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/admin",
+      "destination": "/api/admin"
+    },
     {
       "source": "/api/network-check",
       "destination": "/api/network-check"
