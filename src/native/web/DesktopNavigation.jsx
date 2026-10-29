@@ -1,4 +1,5 @@
 import React from 'react';
+import SiteAccountMenu from '../../SiteAccountMenu.jsx';
 
 export default function DesktopNavigation({tabs,route,onOpen}){
  return <aside className="desktop-navigation" data-testid="desktop-navigation">
@@ -11,7 +12,8 @@ export default function DesktopNavigation({tabs,route,onOpen}){
    <button type="button" aria-label="Help" aria-current={route==='help'?'page':undefined} onClick={()=>onOpen('help')}><span aria-hidden="true">❔</span>Help</button>
    <a href="https://discord.gg/HcZweHchbv" target="_blank" rel="noreferrer"><span aria-hidden="true">💬</span>Discord</a>
   </nav>
-  <nav className="desktop-site-links" aria-label="Website"><a href="/">Home</a><span aria-hidden="true">·</span><a href="/account">Account</a></nav>
+  <div className="desktop-account-slot"><SiteAccountMenu placement="up" compact/></div>
+  <nav className="desktop-site-links" aria-label="Website"><a href="/">Home</a></nav>
  </aside>;
 }
 
