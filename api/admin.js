@@ -1,7 +1,7 @@
 import {randomUUID} from "node:crypto";
 import {createClient} from "@supabase/supabase-js";
 import {
-  AdminError, UUID_PATTERN, isStaff, canModifyRole,
+  AdminError, UUID_PATTERN, isStaff, classifyPlayerProfile, canModifyRole,
   canSanction, validateBanInput, safeSearch, noStore
 } from "./_lib/adminPolicy.js";
 
@@ -89,6 +89,7 @@ async function users(db,query) {
     const n=a&&latest.get(a.id);
     return {
       id:p.id,username:a?.username || p.username || "", displayName:a?.display_name || null,
+      profileType:classifyPlayerProfile(p.id,byPlayer),
       playerId:p.player_id,friendCode:p.friend_code,role:p.guild_role || "GUEST",
       status:a?.status === "blocked" || p.status === "blocked" ? "blocked" : p.status,
       accountStatus:a?.status || null,createdAt:p.created_at,updatedAt:p.updated_at,
@@ -137,6 +138,10 @@ async function action(db,actor,body) {
     const target=ensure(await db.from("pupeye_players").select("id,guild_role,status")
       .eq("id",id).maybeSingle());
     if (!target || target.status !== "active") throw new AdminError(409,"TARGET_NOT_ACTIVE");
+    // Staff roles belong to verified Pup Accounts, not orphaned local player rows.
+    const linked=ensure(await db.from("pup_accounts")
+      .select("id").eq("player_uuid",id).maybeSingle());
+    if (!linked) throw new AdminError(409,"REGISTERED_PUP_ACCOUNT_REQUIRED");
     if (target.guild_role === role) return {updated:true,unchanged:true};
     // Developer demotion requires a dedicated privileged, transactional
     // owner workflow. Never risk demoting the final developer via web requests.
