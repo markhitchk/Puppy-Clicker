@@ -2,7 +2,7 @@ import {randomUUID} from "node:crypto";
 import {createClient} from "@supabase/supabase-js";
 import {
   AdminError, UUID_PATTERN, isStaff, canModifyRole,
-  canSanction, validateBanInput, safeSearch, noStore
+  canSanction, validateBanInput, safeSearch, filterRegisteredAccountDirectory, noStore
 } from "./_lib/adminPolicy.js";
 
 const requireId = (value) => {
@@ -73,11 +73,7 @@ async function users(db,query) {
     .select("id,username,player_id,friend_code,guild_role,status,created_at,updated_at")
     .in("id",ids)) || [];
   const byPlayer=new Map(players.map(p=>[p.id,p]));
-  const filtered=accounts.filter(a=>{
-    const p=byPlayer.get(a.player_uuid);
-    return p && (!q || [a.username,a.display_name,p.username,p.player_id,p.friend_code]
-      .some(v=>typeof v==="string" && v.toLowerCase().includes(q)));
-  }).slice(0,100);
+  const filtered=filterRegisteredAccountDirectory(accounts,players,q,100);
   // Network telemetry is optional and has a separate migration; its absence
   // must never hide registered Pup Accounts or expose installation identities.
   let network=[];
