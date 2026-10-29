@@ -7,6 +7,20 @@ export const PUPPY_ANDROID_DISCORD_REDIRECT_URI="discord-1547982688898777118:/au
 const AUTH_URL=puppyService.url+"/functions/v1/pup-web-auth";
 const PUBLISHABLE_KEY=puppyService.key;
 const PENDING_KEY="puppy-web-discord-pkce-pending-v3";
+const SIGNUP_KEY="puppy-web-discord-signup-v1";
+export function getPendingDiscordSignup(){
+ try{
+  const raw=globalThis.sessionStorage?.getItem(SIGNUP_KEY);
+  if(!raw)return null;
+  const obj=JSON.parse(raw);
+  if(!obj?.ticket||!obj.profile?.id||!Number.isFinite(obj.at)||
+   Date.now()-obj.at>9*60*1000){clearPendingDiscordSignup();return null;}
+  return obj;
+ }catch{return null;}
+}
+export function clearPendingDiscordSignup(){
+ try{globalThis.sessionStorage?.removeItem(SIGNUP_KEY);}catch{}
+}
 let callbackAttempts=new WeakMap();
 const ALLOWED_WEB_ORIGINS=new Set([
  "https://puppy-clicker.vercel.app",
@@ -48,6 +62,7 @@ export async function beginPuppyDiscord(){
  callbackAttempts=new WeakMap();
  if(!globalThis.crypto?.subtle||!globalThis.crypto?.getRandomValues||!globalThis.localStorage)
   throw new Error("SECURE_BROWSER_REQUIRED");
+ clearPendingDiscordSignup();
  const redirectUri=callbackUri();
  const state="pcw1_"+base64url(crypto.getRandomValues(new Uint8Array(32)));
  const verifier=base64url(crypto.getRandomValues(new Uint8Array(48)));
@@ -57,7 +72,7 @@ export async function beginPuppyDiscord(){
  const url=new URL("https://discord.com/oauth2/authorize");
  for(const [key,value] of Object.entries({
   client_id:PUPPY_DISCORD_CLIENT_ID,response_type:"code",
-  redirect_uri:redirectUri,scope:"identify",
+  redirect_uri:redirectUri,scope:"identify email",
   state,code_challenge:challenge,code_challenge_method:"S256"
  }))url.searchParams.set(key,value);
  return url.toString();
@@ -99,6 +114,15 @@ async function finishPuppyDiscordCallback(client){
  const data=await requestPuppyAuth("discord-exchange",{
   code,verifier:pending.verifier,redirectUri:callbackUri()
  });
+ if(data.registration_required===true&&data.ticket&&data.profile?.id){
+  try{
+   globalThis.sessionStorage?.setItem(SIGNUP_KEY,JSON.stringify({
+    ticket:data.ticket,profile:data.profile,at:Date.now()
+   }));
+  }catch{throw new Error("SECURE_BROWSER_REQUIRED");}
+  globalThis.location.replace("/account?mode=register&provider=discord");
+  return {status:"registration_required"};
+ }
  if(!data.token_hash||data.otp_type!=="magiclink")
   throw new Error("PUP_WEB_SESSION_INVALID");
  const {error}=await client.auth.verifyOtp({token_hash:data.token_hash,type:"magiclink"});
@@ -129,7 +153,11 @@ export function puppyAuthMessage(error){
   DISCORD_LOGIN_CANCELLED:"Discord sign-in was cancelled. Choose Continue with Puppy Clicker Discord to try again.",
   DISCORD_LOGIN_STATE_INVALID:"This sign-in link does not match this browser. Start Discord sign-in again here; keep the same browser open.",
   DISCORD_LOGIN_EXPIRED:"Discord sign-in expired. Start sign-in again and complete it within five minutes.",
-  PUP_ACCOUNT_LINK_REQUIRED:"This Discord account has no linked Pup Account. Link it in the Android app first, then sign in here.",
+  PUP_ACCOUNT_LINK_REQUIRED:"This Discord identity belongs to a previous player record. Use account recovery to link the original Pup Account; a new account cannot claim its data.",
+  PUP_DISCORD_ALREADY_LINKED:"This Discord account is already linked to a Pup Account. Sign in with Discord instead.",
+  PUP_DISCORD_SIGNUP_EXPIRED:"Discord registration expired. Choose Create Account and reconnect Discord to start again.",
+  PUP_DISCORD_EMAIL_UNAVAILABLE:"Discord did not supply a verified email address. Uncheck Import Discord email and continue.",
+  PUP_DISCORD_PROFILE_SYNC_FAILED:"Discord profile sync is temporarily unavailable. Retry sign-in.",
   PUP_ACCOUNT_LEGAL_REQUIRED:"Open Puppy Clicker on Android and accept the current terms and privacy policy, then retry here.",
   PUP_OWNER_DEVICE_UNAVAILABLE:"Your Android PupEye owner installation is unavailable. Open the registered Android app or use account recovery.",
   PUP_ACCOUNT_BLOCKED:"Your Pup Account is blocked. Contact Puppy Clicker support to review its standing.",
