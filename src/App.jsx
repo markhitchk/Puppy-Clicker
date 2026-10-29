@@ -6,6 +6,7 @@ import MeetPuppies from "./MeetPuppies.jsx";
 import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
+import {loadWebPreferences,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
 import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
@@ -266,6 +267,23 @@ function DiscordCallbackPage(){
 }
 export default function App(){
  useEffect(()=>installInspectionDeterrent(),[]);
+ useEffect(()=>{
+  // Root-level styling includes Home, Play, Account, and all website routes.
+  const syncPawCursor=event=>{
+   const enabled=typeof event?.detail?.puppyPointerEnabled==='boolean'
+    ?event.detail.puppyPointerEnabled
+    :loadWebPreferences().puppyPointerEnabled!==false;
+   document.documentElement.dataset.puppyCursor=enabled?'enabled':'disabled';
+  };
+  syncPawCursor();
+  window.addEventListener(WEB_PREFERENCES_CHANGED,syncPawCursor);
+  window.addEventListener('storage',syncPawCursor);
+  return()=>{
+   window.removeEventListener(WEB_PREFERENCES_CHANGED,syncPawCursor);
+   window.removeEventListener('storage',syncPawCursor);
+   delete document.documentElement.dataset.puppyCursor;
+  };
+ },[]);
  // Keep historical /register bookmarks, but make /account the one auth endpoint.
  useEffect(()=>{
   if(globalThis.location?.pathname==="/register"){
