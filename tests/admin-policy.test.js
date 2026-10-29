@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {isStaff,canModifyRole,canSanction,validateBanInput,validateIp,safeSearch,AdminError}
+import {isStaff,canModifyRole,canSanction,validateBanInput,validateIp,safeSearch,classifyPlayerProfile,AdminError}
  from "../api/_lib/adminPolicy.js";
 
 test("staff role is restricted to the database's exact ADMIN and DEVELOPER role identifiers",()=>{
@@ -36,4 +36,11 @@ test("IP validation and search-length boundaries",()=>{
  assert.throws(()=>validateIp("not-an-ip"),AdminError);
  assert.equal(safeSearch("  USER  "),"user");
  assert.equal(safeSearch("x".repeat(999)).length,80);
+});
+
+test("admin user classification uses Pup Account association, not the localplayer name",()=>{
+ const ids=new Map([["player-bound-to-real-account",{id:"account-1"}]]);
+ assert.equal(classifyPlayerProfile("player-bound-to-real-account",ids),"registered");
+ assert.equal(classifyPlayerProfile("other-localplayer",ids),"local");
+ assert.equal(classifyPlayerProfile("unlinked-max-puppy4",ids),"local");
 });
