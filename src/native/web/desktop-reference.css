@@ -26,7 +26,7 @@
  .game-header-actions>button{width:54px!important;height:54px!important;border-radius:50%!important;border-color:#b9c6dc!important}.game-header-actions>button>div:first-child{font-size:32px!important}
  [data-testid=play-viewport]{padding:0 16px 20px!important;background:#0a1017}
  [data-testid=play-viewport] .desktop-reference{max-width:none;grid-template-columns:minmax(0,1.366fr) minmax(0,1fr);gap:18px}
- [data-testid=play-viewport] .desktop-play{position:relative;grid-template-rows:auto minmax(0,1fr) 88px;gap:20px;padding:16px 18px 30px;border:1px solid #263944;border-radius:18px;background-color:#081725;background-image:linear-gradient(180deg,#00132033 0%,#00142000 50%,#03121bd9 100%),url('/assets/scenes/night-yard-v1.webp');background-size:cover;background-position:center;color:white;overflow:hidden}
+ [data-testid=play-viewport] .desktop-play{position:relative;grid-template-rows:auto minmax(0,1fr) 88px;gap:20px;padding:16px 18px 30px;border:1px solid #263944;border-radius:18px;background-color:#0A0C12;background-image:radial-gradient(ellipse at 50% 56%,#00e5ff12 0%,transparent 70%);background-size:cover;background-position:center;color:white;overflow:hidden}
  [data-testid=play-viewport] .play-heading{align-items:flex-start;z-index:2}
  [data-testid=play-viewport] .play-heading h1{font-size:44px;line-height:1.08;letter-spacing:-1px}
  [data-testid=play-viewport] .play-heading p{font-size:18px;margin:5px 0 0;color:#b9c4da}

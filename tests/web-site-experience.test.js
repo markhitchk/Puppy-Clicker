@@ -10,7 +10,11 @@ test("public roster uses published roster metadata rather than hardcoded placeho
  const gallery=read("src/MeetPuppies.jsx");
  assert.match(gallery,/import roster from "\.\/data\/roster\.js"/);
  assert.match(gallery,/LEGACY_V6_PUPPIES/);
- assert.match(gallery,/p\.group!=="test"/);
+ assert.doesNotMatch(gallery,/\.filter\(p=>p\.group!=="test"\)/);
+ assert.match(gallery,/Object\.keys\(PUPPY_IMAGES\)/);
+ assert.match(gallery,/\["test","Test puppies"\]/);
+ assert.match(gallery,/test_v1_crash_dummy/);
+ assert.match(gallery,/test_v2_crash_dummy/);
  assert.match(gallery,/import PuppyArtwork from "\.\/native\/web\/PuppyArtwork\.jsx"/);
  assert.match(gallery,/<PuppyArtwork id=\{p\.id\}/);
  assert.match(gallery,/size=\{215\} lazy/);
@@ -65,4 +69,30 @@ test("legacy register URL canonicalizes to /account and retains registration mod
  assert.match(app,/replaceState\?\./);
  assert.match(app,/\/account\?mode=register/);
  assert.match(gate,/get\("mode"\)==="register"/);
+});
+
+
+test("published catalog keeps both crash test puppies as well as developers and V2 pups",()=>{
+ const catalog=read("src/data/roster.js");
+ const gallery=read("src/MeetPuppies.jsx");
+ for(const id of ["test_v1_crash_dummy","test_v2_crash_dummy","v2_dev_pup","v2_rory"]){
+  assert.match(catalog,new RegExp('id: "'+id+'"'));
+ }
+ assert.match(gallery,/p\.group==="test"\?"Development test only"/);
+ assert.match(gallery,/p\.group==="test"\?"Test"/);
+ assert.match(gallery,/p\.group==="test"\?"Development test only"/);
+});
+
+test("desktop and mobile play expose switching only through roster and no scenic background",()=>{
+ const platform=read("src/native/web/WebsiteDesign.jsx");
+ const play=read("src/native/App.jsx");
+ const desktop=read("src/native/web/desktop-reference.css");
+ const theme=read("src/styles.css");
+ assert.doesNotMatch(platform,/platform-arrow|onPrevious|onNext/);
+ assert.doesNotMatch(play,/cycle\(-1\)|cycle\(1\)|onPrevious=\{|onNext=\{/);
+ assert.match(play,/className="cyber-button secondary small switch-puppy-action"/);
+ assert.match(play,/onClick=\{\(\)=>onOpen\('roster'\)\}/);
+ assert.doesNotMatch(desktop,/night-yard-v1\.webp|\/assets\/scenes\//);
+ assert.match(desktop,/background-color:#0A0C12/);
+ assert.match(theme,/\.mobile-play \.puppy-platform/);
 });

@@ -16,13 +16,11 @@ export function RenamePuppyDialog({name,onSave,onClose}){
  return <dialog ref={dialog} className="casino-intro rename-puppy-dialog cyber-panel" aria-labelledby="rename-puppy-title" onCancel={event=>{event.preventDefault();onClose();}}><h2 id="rename-puppy-title">Rename puppy</h2><p>Choose a nickname for your current puppy.</p><form onSubmit={event=>{event.preventDefault();const name=input.current.value.trim();if(!name)return;onSave(name);}}><label className="web-field">Puppy name<input ref={input} name="puppyName" aria-label="Puppy name" defaultValue={name} maxLength={18} required autoFocus/></label><div className="casino-dialog-actions"><button type="button" className="cyber-button secondary" onClick={onClose}>Cancel</button><button type="submit" className="cyber-button primary">Save name</button></div></form></dialog>;
 }
 
-export function PuppyPlatform({children,name,onPrevious,onNext}){
+export function PuppyPlatform({children,name}){
  return <div className="puppy-platform">
   <div className="platform-paws" aria-hidden="true"><span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span></div>
   <div className="platform-orbit" aria-hidden="true"/>
-  <button className="platform-arrow previous" aria-label="Previous unlocked puppy" onClick={onPrevious}>‹</button>
   <div className="platform-portrait">{children}</div>
-  <button className="platform-arrow next" aria-label="Next unlocked puppy" onClick={onNext}>›</button>
   <div className="platform-name"><h2 title={name}>{name}</h2><span className="current-puppy-badge">Current Puppy</span></div>
  </div>;
 }
