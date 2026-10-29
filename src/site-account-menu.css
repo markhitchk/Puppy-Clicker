@@ -90,6 +90,19 @@
 @media(prefers-reduced-motion:reduce){.site-account-trigger{transition:none}}
 
 /* Sidebar's generic game navigation button rules must not override this profile widget. */
+/* Keep the upward-opening game sidebar dropdown inside its scrollable rail. */
+.desktop-navigation .desktop-account-slot .site-account-compact .site-account-dropdown{
+ width:100%;max-width:100%;left:0;right:0;
+ max-height:min(440px,calc(100dvh - 150px));padding:9px;border-radius:15px
+}
+.desktop-navigation .desktop-account-slot .site-account-preview{flex-wrap:wrap;gap:8px;padding:8px 6px 12px}
+.desktop-navigation .desktop-account-slot .site-account-preview-avatar{width:42px;height:42px;font-size:22px}
+.desktop-navigation .desktop-account-slot .site-account-preview-info{flex:1;min-width:90px}
+.desktop-navigation .desktop-account-slot .site-account-preview-info strong{font-size:14px}
+.desktop-navigation .desktop-account-slot .site-account-friend-code{flex-wrap:wrap}
+@media(max-width:380px){
+ .site-nav>a[href="/puppies"]{display:none}
+}
 .desktop-navigation .desktop-account-slot .site-account-trigger{
  display:flex;align-items:center;gap:8px;justify-content:flex-start;
  width:100%;min-height:46px;max-width:none;padding:5px 9px 5px 5px;
