@@ -20,6 +20,8 @@ const normalizeError=(code)=>{
   ADMIN_BACKEND_NOT_CONFIGURED:"The administration server is not configured on Vercel.",
   ADMIN_DATA_UNAVAILABLE:"The administration service could not load its data.",
   LAST_DEVELOPER_PROTECTED:"The final active Developer cannot be demoted.",
+  DEVELOPER_ROLE_PROTECTED:"Developer accounts must be demoted through a separate owner-reviewed workflow.",
+  ACCOUNT_BANNED:"This account is banned from Puppy Clicker.",
   CANNOT_SANCTION_STAFF:"You cannot ban this staff account.",
   DEVELOPER_ROLE_REQUIRED:"Only Developers can change staff roles.",
   MANAGE_FROM_ORIGINAL_SYSTEM:"This ban must be managed in the original PupEye support system.",
@@ -161,7 +163,7 @@ export default function AdminPortal(){
     <tbody>{users.filter(user=>[user.username,user.playerId,user.friendCode].some(v=>
      String(v||"").toLowerCase().includes(query.trim().toLowerCase()))).map(user=>
      <tr key={user.id}>
-      <td><strong>{user.displayName||user.username}</strong><small>@{user.username}</small><small>{user.friendCode||"—"}</small></td>
+      <td><strong>{user.displayName||user.username}</strong><small>@{user.username}</small><small>{user.friendCode||"—"}</small>{user.contactEmail?<small>Support email: {user.contactEmail}</small>:null}</td>
       <td><span className={user.status==="blocked"?"pup-admin-status danger":"pup-admin-status"}>{user.status||"unknown"}</span></td>
       <td>{staff.role==="DEVELOPER" && user.role!=="DEVELOPER"?
        <div className="pup-admin-role"><select aria-label={"Role for "+user.username}
@@ -176,7 +178,7 @@ export default function AdminPortal(){
          {" · "}{formatTime(user.network.checkedAt)}</small></>:
         <small>No web connection record yet</small>}</td>
       <td><button type="button" className="pup-admin-danger-button"
-        disabled={busy||user.id===pupAccount.playerUuid||user.role==="DEVELOPER"||staff.role==="ADMIN"&&user.role==="ADMIN"}
+        disabled={busy||user.id===staff.playerUuid||user.role==="DEVELOPER"||staff.role==="ADMIN"&&user.role==="ADMIN"}
         onClick={()=>{setShowBan(user);setReason("");setExpiry("");}}>Ban account</button></td>
      </tr>)}
     </tbody></table></div>
