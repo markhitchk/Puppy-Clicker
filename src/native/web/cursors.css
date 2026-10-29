@@ -1,90 +1,90 @@
-/* Original paw artwork: pup-clinker/assets/cursors (already in public/assets/cursors).
- * Site-wide on mouse/trackpad only; touchscreen pointers remain unchanged.
- * Browser preference: Settings > Play & performance > Puppy mouse pointer.
+/* Exact 64px cursor art from pup-clinker/Mobile/assets/pointers.
+ * The build copies the original 24 Android PNGs to public/assets/pointers.
+ * Keep the legacy SVGs only as browser/offline fallbacks.
+ * Applies to every website route and the React Native Web game on mouse/trackpad.
+ * Settings > Play & performance > Puppy mouse pointer controls the opt-in.
  */
+html[data-puppy-cursor-theme='dark'] {
+  --puppy-default: url('/assets/pointers/puppy_pointer_dark_default.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/puppy_pointer_dark_hover.png') 16 16, url('/assets/cursors/paw_hover.svg') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/puppy_pointer_dark_click.png') 16 16, url('/assets/cursors/paw_click.svg') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/puppy_pointer_dark_text_select.png') 16 16, url('/assets/cursors/paw_text.svg') 16 16, text;
+  --puppy-link: url('/assets/pointers/puppy_pointer_dark_link.png') 16 16, url('/assets/cursors/paw_link.svg') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/puppy_pointer_dark_grab.png') 16 16, url('/assets/cursors/paw_drag.svg') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/puppy_pointer_dark_grabbing.png') 16 16, url('/assets/cursors/paw_drag.svg') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/puppy_pointer_dark_not_allowed.png') 16 16, url('/assets/cursors/paw_disabled.svg') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/puppy_pointer_dark_working.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/puppy_pointer_dark_precision.png') 16 16, url('/assets/cursors/paw_casino.svg') 32 32, crosshair;
+  --puppy-alternate: url('/assets/pointers/puppy_pointer_dark_alternate.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/puppy_pointer_dark_secondary.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
+}
+html[data-puppy-cursor-theme='light'] {
+  --puppy-default: url('/assets/pointers/puppy_pointer_light_default.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/puppy_pointer_light_hover.png') 16 16, url('/assets/cursors/paw_hover.svg') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/puppy_pointer_light_click.png') 16 16, url('/assets/cursors/paw_click.svg') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/puppy_pointer_light_text_select.png') 16 16, url('/assets/cursors/paw_text.svg') 16 16, text;
+  --puppy-link: url('/assets/pointers/puppy_pointer_light_link.png') 16 16, url('/assets/cursors/paw_link.svg') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/puppy_pointer_light_grab.png') 16 16, url('/assets/cursors/paw_drag.svg') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/puppy_pointer_light_grabbing.png') 16 16, url('/assets/cursors/paw_drag.svg') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/puppy_pointer_light_not_allowed.png') 16 16, url('/assets/cursors/paw_disabled.svg') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/puppy_pointer_light_working.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/puppy_pointer_light_precision.png') 16 16, url('/assets/cursors/paw_casino.svg') 32 32, crosshair;
+  --puppy-alternate: url('/assets/pointers/puppy_pointer_light_alternate.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/puppy_pointer_light_secondary.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
+}
+
 @media (any-hover: hover) and (any-pointer: fine) {
+  /* Covers the marketing pages, account flows, dialogs, and /play. */
   html[data-puppy-cursor='enabled'] body,
   html[data-puppy-cursor='enabled'] body * {
-    cursor: url('/assets/cursors/paw_default.svg') 16 16, auto !important;
+    cursor: var(--puppy-default) !important;
   }
-
-  /* Include descendants, so text and icons inside controls keep the right state. */
-  html[data-puppy-cursor='enabled'] :is(
-    a, button, summary, select, label,
-    [role='button'], [role='link'], [role='tab'],
-    [role='menuitem'], [role='checkbox'], [role='switch'],
-    [role='radio'], [role='option']
-  ),
-  html[data-puppy-cursor='enabled'] :is(
-    a, button, summary, select, label,
-    [role='button'], [role='link'], [role='tab'],
-    [role='menuitem'], [role='checkbox'], [role='switch'],
-    [role='radio'], [role='option']
-  ) * {
-    cursor: url('/assets/cursors/paw_link.svg') 16 16, pointer !important;
+  html[data-puppy-cursor='enabled'] :is(a[href],button,summary,select,label,[role='button'],[role='link'],[role='tab'],[role='menuitem'],[role='checkbox'],[role='switch'],[role='radio'],[role='option'],input[type='button'],input[type='submit'],input[type='reset']),
+  html[data-puppy-cursor='enabled'] :is(a[href],button,summary,select,label,[role='button'],[role='link'],[role='tab'],[role='menuitem'],[role='checkbox'],[role='switch'],[role='radio'],[role='option'],input[type='button'],input[type='submit'],input[type='reset']) * {
+    cursor: var(--puppy-link) !important;
   }
-
-  html[data-puppy-cursor='enabled'] :is(
-    a, button, summary, select, label,
-    [role='button'], [role='link'], [role='tab'],
-    [role='menuitem'], [role='checkbox'], [role='switch'],
-    [role='radio'], [role='option']
-  ):hover,
-  html[data-puppy-cursor='enabled'] :is(
-    a, button, summary, select, label,
-    [role='button'], [role='link'], [role='tab'],
-    [role='menuitem'], [role='checkbox'], [role='switch'],
-    [role='radio'], [role='option']
-  ):hover * {
-    cursor: url('/assets/cursors/paw_hover.svg') 16 16, pointer !important;
+  html[data-puppy-cursor='enabled'] :is(a[href],button,summary,select,label,[role='button'],[role='link'],[role='tab'],[role='menuitem'],[role='checkbox'],[role='switch'],[role='radio'],[role='option'],input[type='button'],input[type='submit'],input[type='reset']):hover,
+  html[data-puppy-cursor='enabled'] :is(a[href],button,summary,select,label,[role='button'],[role='link'],[role='tab'],[role='menuitem'],[role='checkbox'],[role='switch'],[role='radio'],[role='option'],input[type='button'],input[type='submit'],input[type='reset']):hover * {
+    cursor: var(--puppy-hover) !important;
   }
-
-  html[data-puppy-cursor='enabled'] :is(
-    a, button, summary, select, label,
-    [role='button'], [role='link'], [role='tab'],
-    [role='menuitem'], [role='checkbox'], [role='switch'],
-    [role='radio'], [role='option']
-  ):active,
-  html[data-puppy-cursor='enabled'] :is(
-    a, button, summary, select, label,
-    [role='button'], [role='link'], [role='tab'],
-    [role='menuitem'], [role='checkbox'], [role='switch'],
-    [role='radio'], [role='option']
-  ):active * {
-    cursor: url('/assets/cursors/paw_click.svg') 16 16, pointer !important;
+  html[data-puppy-cursor='enabled'] :is(a[href],button,summary,select,label,[role='button'],[role='link'],[role='tab'],[role='menuitem'],[role='checkbox'],[role='switch'],[role='radio'],[role='option'],input[type='button'],input[type='submit'],input[type='reset']):active,
+  html[data-puppy-cursor='enabled'] :is(a[href],button,summary,select,label,[role='button'],[role='link'],[role='tab'],[role='menuitem'],[role='checkbox'],[role='switch'],[role='radio'],[role='option'],input[type='button'],input[type='submit'],input[type='reset']):active * {
+    cursor: var(--puppy-click) !important;
   }
-
-  html[data-puppy-cursor='enabled'] :is(
-    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='button']):not([type='submit']):not([type='reset']),
-    textarea, [contenteditable='true'], [role='textbox']
-  ),
-  html[data-puppy-cursor='enabled'] :is(
-    textarea, [contenteditable='true'], [role='textbox']
-  ) * {
-    cursor: url('/assets/cursors/paw_text.svg') 16 16, text !important;
+  /* Text selection must not be overridden by nested buttons or hover rules. */
+  html[data-puppy-cursor='enabled'] :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='button']):not([type='submit']):not([type='reset']),textarea,[contenteditable='true'],[role='textbox']),
+  html[data-puppy-cursor='enabled'] :is(textarea,[contenteditable='true'],[role='textbox']) * {
+    cursor: var(--puppy-text-select) !important;
   }
-
-  html[data-puppy-cursor='enabled'] :is(
-    [draggable='true']:active, [aria-grabbed='true'],
-    [role='slider']:active, input[type='range']:active
-  ),
-  html[data-puppy-cursor='enabled'] :is(
-    [draggable='true']:active, [aria-grabbed='true'], [role='slider']:active
-  ) * {
-    cursor: url('/assets/cursors/paw_drag.svg') 16 16, grabbing !important;
+  html[data-puppy-cursor='enabled'] :is([draggable='true'],[aria-grabbed='false'],[role='slider'],input[type='range']),
+  html[data-puppy-cursor='enabled'] :is([draggable='true'],[aria-grabbed='false'],[role='slider']) * {
+    cursor: var(--puppy-grab) !important;
   }
-
-  /* Coin hotspot is centered on the scratch card coating. */
+  html[data-puppy-cursor='enabled'] :is([draggable='true']:active,[aria-grabbed='true'],[role='slider']:active,input[type='range']:active),
+  html[data-puppy-cursor='enabled'] :is([draggable='true']:active,[aria-grabbed='true'],[role='slider']:active) * {
+    cursor: var(--puppy-grabbing) !important;
+  }
   html[data-puppy-cursor='enabled'] [data-testid='puppy-scratch-coating'],
-  html[data-puppy-cursor='enabled'] [data-testid='puppy-scratch-coating'] * {
-    cursor: url('/assets/cursors/paw_casino.svg') 32 32, crosshair !important;
+  html[data-puppy-cursor='enabled'] [data-testid='puppy-scratch-coating'] *,
+  html[data-puppy-cursor='enabled'] [data-puppy-pointer-state='precision'],
+  html[data-puppy-cursor='enabled'] [data-puppy-pointer-state='precision'] * {
+    cursor: var(--puppy-precision) !important;
   }
-
-  /* Disabled wins over hover/active, including on nested button content. */
+  html[data-puppy-cursor='enabled'] :is([aria-busy='true'],[data-puppy-pointer-state='working']),
+  html[data-puppy-cursor='enabled'] :is([aria-busy='true'],[data-puppy-pointer-state='working']) * {
+    cursor: var(--puppy-working) !important;
+  }
+  html[data-puppy-cursor='enabled'] [data-puppy-pointer-state='alternate'],
+  html[data-puppy-cursor='enabled'] [data-puppy-pointer-state='alternate'] * {
+    cursor: var(--puppy-alternate) !important;
+  }
+  html[data-puppy-cursor='enabled'] [data-puppy-pointer-state='secondary'],
+  html[data-puppy-cursor='enabled'] [data-puppy-pointer-state='secondary'] * {
+    cursor: var(--puppy-secondary) !important;
+  }
+  /* Disabled always wins, including when hovering over a nested icon. */
   html[data-puppy-cursor='enabled'] body :is(:disabled,[disabled],[aria-disabled='true']),
-  html[data-puppy-cursor='enabled'] body :is(:disabled,[disabled],[aria-disabled='true']) *,
-  html[data-puppy-cursor='enabled'] body :is(:disabled,[disabled],[aria-disabled='true']):hover,
-  html[data-puppy-cursor='enabled'] body :is(:disabled,[disabled],[aria-disabled='true']):hover * {
-    cursor: url('/assets/cursors/paw_disabled.svg') 16 16, not-allowed !important;
+  html[data-puppy-cursor='enabled'] body :is(:disabled,[disabled],[aria-disabled='true']) * {
+    cursor: var(--puppy-not-allowed) !important;
   }
 }
