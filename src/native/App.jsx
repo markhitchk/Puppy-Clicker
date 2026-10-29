@@ -1073,7 +1073,7 @@ export function PuppyApp({betaMode=false}){
  const [contentHeight,setContentHeight]=useState(600);
  useEffect(()=>{const sub=BackHandler.addEventListener('hardwareBackPress',()=>{if(!secondary)return false;setSecondary(null);return true;});return ()=>sub.remove();},[secondary]);
  useEffect(()=>{const timer=setInterval(()=>setClock(Date.now()),1000);return ()=>clearInterval(timer);},[]);
- const saved=betaMode?{...gameForDisplay,...Object.fromEntries(Object.keys(DEFAULT_PREFERENCES).map(name=>[name,onboarding.setup[name]??state.game[name]])),birthdayMonth:onboarding.setup.birthdayMonth,birthdayDay:onboarding.setup.birthdayDay}:state.game;
+ const saved=betaMode?{...gameForDisplay,...Object.fromEntries(Object.keys(DEFAULT_PREFERENCES).map(name=>[name,onboarding.setup[name]??state.game[name]])),birthdayMonth:onboarding.setup.birthdayMonth,birthdayDay:onboarding.setup.birthdayDay}:gameForDisplay;
  const appearance=applyAppearance(saved,systemDark);
  const motion=effectiveMotion(saved);
  useEffect(()=>{

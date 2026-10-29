@@ -203,6 +203,40 @@ Deno.serve(async req=>{
    if(body.action==="discord-register")return await registerDiscordWebAccount({
     req,body,origin,admin,json,PublicError,key,newBetaKotlinSave
    });
+   if(body.action==="notifications-read"){
+    // Derive recipient exclusively from the verified Supabase Auth session.
+    // A browser cannot select another player's inbox by supplying an ID.
+    const {account}=await currentSession(req);
+    const {data,error}=await admin.from("pup_system_notifications")
+     .select("id,kind,title,body,created_at,read_at")
+     .eq("player_uuid",account.player_uuid)
+     .is("dismissed_at",null)
+     .order("created_at",{ascending:false}).limit(100);
+    if(error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
+    return json(200,{notifications:(data||[]).map(row=>({
+     id:row.id,kind:row.kind,title:row.title,body:row.body,
+     createdAt:row.created_at,read:row.read_at!==null
+    }))},origin);
+   }
+   if(body.action==="notifications-mark"){
+    const {account}=await currentSession(req);
+    const mode=body.mode;
+    if(!["read-one","read-all","clear-read"].includes(mode))
+     throw new PublicError(400,"PUP_NOTIFICATION_ACTION_INVALID");
+    const now=new Date().toISOString();
+    let update=admin.from("pup_system_notifications")
+     .update(mode==="clear-read"?{dismissed_at:now}:{read_at:now})
+     .eq("player_uuid",account.player_uuid).is("dismissed_at",null);
+    if(mode==="read-one"){
+     if(typeof body.id!=="string"||!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(body.id))
+      throw new PublicError(400,"PUP_NOTIFICATION_ID_INVALID");
+     update=update.eq("id",body.id).is("read_at",null);
+    }else if(mode==="read-all")update=update.is("read_at",null);
+    else update=update.not("read_at","is",null);
+    const {error}=await update;
+    if(error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
+    return json(200,{updated:true},origin);
+   }
    if(body.action==="status"){
    const {account,user}=await currentSession(req);
    // These public-facing details are read only from the authenticated owner's

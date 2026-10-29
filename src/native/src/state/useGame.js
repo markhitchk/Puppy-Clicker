@@ -6,6 +6,7 @@ import {projectKotlinCloudSave} from "../production/kotlinCloudPreview.js";
 import {fallbackSchedule,parseMonthlySchedule,monthKey} from "../engine/monthlyRewards.js";
 import {useWebAccount} from "../../web/AccountGate.jsx";
 import {puppyFunctionError} from '../../web/puppyOAuth.js';
+import {mapSystemNotifications,combineNotificationInbox} from '../../web/systemNotificationInbox.js';
 
 // The browser is now a Pup Account companion, not a separate economy.
 // Never read or write puppy_web_saves, never forge a PupEye signed envelope.
@@ -40,6 +41,35 @@ export function useGame(){
  const [syncStatus,setSyncStatus]=useState({state:"LOADING",revision:null,errorCode:null});
  const [cloudState,setCloudState]=useState("LOADING");
  const [pendingActions,setPendingActions]=useState(0);
+ const [serverInbox,setServerInbox]=useState({accountId:null,rows:[]});
+ const refreshNotifications=useCallback(async()=>{
+  try{
+   const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"notifications-read"}});
+   if(error||!Array.isArray(data?.notifications))return false;
+   const rows=mapSystemNotifications(data.notifications);
+   setServerInbox({accountId:pupAccount.id,rows});
+   return true;
+  }catch{return false;}
+ },[client,pupAccount.id]);
+ const markServerNotifications=useCallback(async(mode,id)=>{
+  try{
+   const {error}=await client.functions.invoke("pup-web-auth",{
+    body:{action:"notifications-mark",mode,...(id?{id}:{})}
+   });
+   if(error)throw error;
+  }catch{/* A failed receipt is reconciled from the server, not silently accepted. */}
+  void refreshNotifications();
+ },[client,refreshNotifications]);
+ useEffect(()=>{
+  setServerInbox({accountId:null,rows:[]});
+  void refreshNotifications();
+  const refresh=()=>{if(document.visibilityState==="visible")void refreshNotifications();};
+  const timer=setInterval(refresh,20000);
+  window.addEventListener("focus",refresh);
+  document.addEventListener("visibilitychange",refresh);
+  return()=>{clearInterval(timer);window.removeEventListener("focus",refresh);
+   document.removeEventListener("visibilitychange",refresh);};
+ },[refreshNotifications]);
  const preferences=useRef(null);
  if(!preferences.current)preferences.current=loadWebPreferences();
  const revision=useRef(0),loaded=useRef(false),generation=useRef(0);
@@ -94,6 +124,21 @@ export function useGame(){
    dispatch(action);
    for(const [name,value] of Object.entries(preferences.current))dispatch({type:'setPreference',name,value});
    return;
+  }
+  // Staff notices are server-owned and never mutate the gameplay cloud save.
+  if(action.type==="openNotification"&&typeof action.id==="string"&&action.id.startsWith("staff:")){
+   const id=action.id.slice(6);
+   setServerInbox(old=>({...old,rows:old.rows.map(n=>n.id===action.id?{...n,read:true}:n)}));
+   void markServerNotifications("read-one",id);
+   return;
+  }
+  if(action.type==="markNotificationsRead"){
+   setServerInbox(old=>({...old,rows:old.rows.map(n=>({...n,read:true}))}));
+   void markServerNotifications("read-all");
+  }
+  if(action.type==="clearReadNotifications"){
+   setServerInbox(old=>({...old,rows:old.rows.filter(n=>!n.read)}));
+   void markServerNotifications("clear-read");
   }
   if(LOCAL_ACTIONS.has(action.type)){dispatch(action);return;}
   if(action.type==="resume"||action.type==="rollDailyDay"){
@@ -154,7 +199,7 @@ export function useGame(){
    pending.current=Math.max(0,pending.current-1);setPendingActions(pending.current);
    if(pending.current===0&&!loaded.current)void reload();
   });
- },[client,reload,pupAccount?.displayName,pupAccount?.username]);
+ },[client,reload,pupAccount?.displayName,pupAccount?.username,markServerNotifications]);
  useEffect(()=>{
   const refresh=()=>{if(pending.current===0&&document.visibilityState==="visible")void reload();};
   const timer=setInterval(refresh,15000);
@@ -192,7 +237,8 @@ export function useGame(){
   displayName:pupAccount?.displayName||pupAccount?.username,
   discordUserId:pupAccount?.discordUserId||null,
   id:pupAccount?.id,authUserId:user.id,gameplayWritable:loaded.current};
- return {state,gameForDisplay:state.game,act,account,cloudState,
+ const gameForDisplay=combineNotificationInbox(state.game,serverInbox,pupAccount.id);
+ return {state,gameForDisplay,act,account,cloudState,
   gameplayBusy:pendingActions>0,
   startupError:syncStatus.errorCode?{code:syncStatus.errorCode}:null,syncStatus,
   refreshAccount:reload,updateAccountName};
