@@ -5,6 +5,7 @@ for(const [width,height] of [[320,568],[360,640],[390,844],[768,1024],[844,390],
   await page.setViewportSize({width,height});
   await page.goto('/play');
   await expect(page.getByRole('button',{name:'Tap Buddy to earn Treats'})).toBeVisible();
+  await expect(page.getByRole('button',{name:/Switch Puppy/i})).toHaveCount(0);
   await expect(page.locator('.cyber-tap')).toBeInViewport({ratio:1});
   await expect(page.locator('.next-reward')).toBeInViewport({ratio:1});
   await expect(page.locator('.platform-portrait img')).toBeInViewport({ratio:1});
