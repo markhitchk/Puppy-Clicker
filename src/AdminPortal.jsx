@@ -8,7 +8,7 @@ import AdminRestrictionDialog from "./AdminRestrictionDialog.jsx";
 import {formatTime,describeDevice,presentAuditEvent} from "./adminPresentation.js";
 
 const initialSection=()=> {
- const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit|gifts|activity)\/?$/);
+ const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit|gifts|activity|ip-bans)\/?$/);
  return match?.[1] || "users";
 };
 const lastIp=user=>(user.connection?user.connection.ip:user.network?.ip)||null;
@@ -32,7 +32,12 @@ const normalizeError=(code)=>{
   DEVELOPER_ROLE_REQUIRED:"Only Developers can change staff roles.",
   REGISTERED_PUP_ACCOUNT_REQUIRED:"This player does not have a registered Pup Account.",
   MANAGE_FROM_ORIGINAL_SYSTEM:"This ban must be managed in the original PupEye support system.",
-  ROLE_CHANGED_CONCURRENTLY:"This account's role was changed. Refresh and try again."
+  ROLE_CHANGED_CONCURRENTLY:"This account's role was changed. Refresh and try again.",
+  INVALID_IP_ADDRESS:"Enter a valid IPv4 or IPv6 address.",
+  PUBLIC_IP_REQUIRED:"Only public IP addresses can be banned.",
+  CANNOT_BAN_OWN_IP:"You cannot ban your current website IP address.",
+  IP_BAN_NOT_FOUND:"This IP restriction was not found.",
+  IP_BANNED:"Your current IP address is restricted."
  };
  return errors[code] || (code?"Request failed: "+code:"The administration service is temporarily unavailable.");
 };
@@ -54,6 +59,10 @@ export default function AdminPortal(){
  const [staff,setStaff] = useState(null);
  const [users,setUsers] = useState([]);
  const [bans,setBans] = useState([]);
+ const [ipBans,setIpBans]=useState([]);
+ const [ipInput,setIpInput]=useState("");
+ const [ipReason,setIpReason]=useState("");
+ const [ipExpiry,setIpExpiry]=useState("");
  const [events,setEvents] = useState([]);
  const [query,setQuery] = useState("");
  const [busy,setBusy] = useState(false);
@@ -83,12 +92,13 @@ export default function AdminPortal(){
  },[client]);
 
  const refresh=useCallback(async(tab,silent=false)=>{
-  if(!['users','bans','audit','activity'].includes(tab))return;
+  if(!['users','bans','audit','activity','ip-bans'].includes(tab))return;
   if(!silent){setTabLoading(true);setError("");}
   try {
    const result=await request({action:tab,filter:activityFilter});
    if(tab==="users")setUsers(result.users||[]);
    if(tab==="bans")setBans(result.bans||[]);
+   if(tab==="ip-bans")setIpBans(result.ipBans||[]);
    if(tab==="audit")setEvents(result.events||[]);
    if(tab==="activity")setActivity(result);
   }catch(e){setError(normalizeError(e.message));}
@@ -123,6 +133,7 @@ export default function AdminPortal(){
   if(section!=='users')void refresh('users',true);
   if(section!=='bans')void refresh('bans',true);
   if(section!=='audit')void refresh('audit',true);
+  if(section!=='ip-bans')void refresh('ip-bans',true);
  },[staff]);
 
  const navigate=(tab)=>{
@@ -137,10 +148,26 @@ export default function AdminPortal(){
    await request(body);
    setMessage(success);
    setShowRestriction(null);setReason("");setExpiry("");
-   await Promise.all([refresh("users",true),refresh("bans",true),refresh("audit",true)]);
+   await Promise.all([refresh("users",true),refresh("bans",true),refresh("ip-bans",true),refresh("audit",true)]);
    return true;
   }catch(e){setError(normalizeError(e.message));return false;}
   finally{setBusy(false);}
+ };
+ const submitIpBan=async event=>{
+  event.preventDefault();
+  const parsed=ipExpiry?Date.parse(ipExpiry):null;
+  if(ipExpiry&&!Number.isFinite(parsed)){setError("Choose a valid end time.");return;}
+  const success=await run({action:"ban-ip",ip:ipInput.trim(),reason:ipReason.trim(),
+   expiresAt:parsed===null?null:new Date(parsed).toISOString()},"Website IP restriction created.");
+  if(success){setIpInput("");setIpReason("");setIpExpiry("");}
+ };
+ const unbanIp=item=>{
+  if(!window.confirm("Unban the IP address "+item.ip+"?"))return;
+  void run({action:"unban-ip",ipBanId:item.id},"IP restriction lifted.");
+ };
+ const banLastIp=user=>{
+  if(!lastIp(user))return;
+  setIpInput(lastIp(user));setIpReason("");setIpExpiry("");navigate("ip-bans");
  };
  const restrictUser=body=>run(body,body.action==='suspend-account'?'Account suspended until the selected end time.':'Account ban created.');
  const liftRestriction=user=>{
@@ -231,7 +258,7 @@ export default function AdminPortal(){
    <Stat label="Errors in 24 hours" value={activity.summary?.errors24h??'—'}/>
   </div>
   <nav className="pup-admin-tabs" aria-label="Administration sections">
-   {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"]].map(([tab,label])=>
+   {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["ip-bans","🌐 IP bans"],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"]].map(([tab,label])=>
     <button key={tab} type="button" className={section===tab?"is-selected":""}
      aria-current={section===tab?"page":undefined} onClick={()=>navigate(tab)}>{label}</button>)}
    <button type="button" className="pup-admin-refresh" onClick={()=>void refresh(section)} disabled={busy||tabLoading||section==="gifts"}>↻ Refresh</button>
@@ -267,6 +294,9 @@ export default function AdminPortal(){
         onClick={()=>setShowRestriction({user,type:'suspension'})}>Suspend</button>
        <button type="button" className="pup-admin-danger-button" disabled={busy||user.id===staff.playerUuid||staff.role==='ADMIN'&&['ADMIN','DEVELOPER'].includes(user.role)}
         onClick={()=>globalThis.location?.assign?.(banAccountUrl(user.username))}>Ban account</button>
+       <button type="button" disabled={busy||!lastIp(user)}
+        title={lastIp(user)?"Block the latest IP recorded for this player":"No website IP recorded"}
+        onClick={()=>banLastIp(user)}>Ban IP</button>
        {user.restriction?.managedHere?<button type="button" disabled={busy||user.id===staff.playerUuid||staff.role==='ADMIN'&&['ADMIN','DEVELOPER'].includes(user.role)}
         onClick={()=>liftRestriction(user)}>Lift restriction</button>:null}
       </div></td>
@@ -274,6 +304,29 @@ export default function AdminPortal(){
     </tbody></table></div>
    {!visibleUsers.length&&!tabLoading?<p className="pup-admin-empty">No matching Pup Accounts.</p>:null}
    <p className="pup-admin-note">Up to 100 registered accounts. Open Activity & Devices for website sessions, linked Android devices, sign-ins and errors.</p>
+  </section>:null}
+  {section==="ip-bans"?<section className="pup-admin-panel pup-admin-ip-bans">
+   <h2>Website IP restrictions</h2>
+   <p className="pup-admin-note">Block public IPv4 or IPv6 addresses from Puppy Clicker web API endpoints. IP bans do not ban accounts or other projects. Shared IP addresses may belong to multiple players.</p>
+   <form className="pup-admin-ip-form" onSubmit={event=>void submitIpBan(event)}>
+    <label>IP address<input type="text" aria-label="IP address to ban" value={ipInput} onChange={e=>setIpInput(e.target.value)}
+      placeholder="IPv4 or IPv6 address" maxLength={45} required/></label>
+    <label>Public reason<textarea value={ipReason} onChange={e=>setIpReason(e.target.value)}
+      minLength={3} maxLength={300} required placeholder="Explain the restriction"/></label>
+    <label>Expires at (optional)<input type="datetime-local" value={ipExpiry} onChange={e=>setIpExpiry(e.target.value)}/></label>
+    <button type="submit" className="pup-admin-danger-button"
+      disabled={busy||ipReason.trim().length<3||!ipInput.trim()}>{busy?"Saving…":"Ban IP address"}</button>
+   </form>
+   <h3>IP restriction history</h3>
+   <div className="pup-admin-table-wrap"><table className="pup-admin-table">
+    <thead><tr><th>IP address</th><th>Reason</th><th>Standing</th><th>Expires</th><th>Updated</th><th>Action</th></tr></thead>
+    <tbody>{ipBans.map(item=><tr key={item.id}>
+     <td><code>{item.ip}</code></td><td>{item.reason}</td>
+     <td><span className={"pup-admin-status "+(item.status==="active"?"danger":"neutral")}>{item.status}</span></td>
+     <td>{item.expiresAt?formatTime(item.expiresAt):"Permanent"}</td><td>{formatTime(item.updatedAt)}</td>
+     <td>{item.status==="active"?<button type="button" disabled={busy} onClick={()=>unbanIp(item)}>Unban IP</button>:"—"}</td>
+    </tr>)}</tbody></table></div>
+   {!ipBans.length?<p className="pup-admin-empty">No IP restrictions recorded.</p>:null}
   </section>:null}
   {section==="activity"?<AdminActivity activity={activity} filter={activityFilter} onFilter={setActivityFilter}/>:null}
   {section==="gifts"?<AdminPuppyGifts request={request} role={staff.role}/>:null}

@@ -23,7 +23,7 @@ const titles={
  WEB_ROLE_CHANGED:'Account role changed',WEB_BAN_CREATED:'Account banned',
  WEB_SUSPENSION_CREATED:'Account suspended',WEB_BAN_REVOKED:'Restriction lifted',
  WEB_SYSTEM_PUPPY_GRANTED:'System puppy delivered',WEB_PUPPY_REQUEST_DECLINED:'Puppy request declined',
- WEB_PUPPY_REQUEST_CREATED:'Puppy requested',WEB_PROFILE_UPDATED:'Profile updated',
+ WEB_PUPPY_REQUEST_CREATED:'Puppy requested',WEB_PROFILE_UPDATED:'Profile updated',WEB_IP_BAN_CREATED:'IP address banned',WEB_IP_BAN_REVOKED:'IP address unbanned',
  login_success:'Sign-in succeeded',login_failed:'Sign-in failed',register_success:'Registration succeeded',
  register_failed:'Registration failed',discord_authorized:'Discord authorization completed',
  discord_registration_required:'Discord registration started',page_view:'Page visited',
@@ -47,7 +47,8 @@ export function friendlyError(code){
 export function presentAuditEvent(event){
  const d=event.detail||{},parts=[];
  if(typeof d.reason==='string')parts.push(d.reason.slice(0,300));
- if(['WEB_BAN_CREATED','WEB_SUSPENSION_CREATED'].includes(event.action_code))
+ if(typeof d.ip==='string')parts.push('IP: '+d.ip);
+ if(['WEB_BAN_CREATED','WEB_SUSPENSION_CREATED','WEB_IP_BAN_CREATED'].includes(event.action_code))
   parts.push(d.expiresAt?'Until '+formatTime(d.expiresAt):'Permanent');
  if(typeof d.before==='string'&&typeof d.after==='string')parts.push(humanize(d.before)+' → '+humanize(d.after));
  if(typeof d.puppyId==='string')parts.push('Puppy: '+humanize(d.puppyId));

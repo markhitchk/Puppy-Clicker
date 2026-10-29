@@ -79,3 +79,9 @@
 .pup-admin-device{display:flex;align-items:flex-start;flex-direction:column;gap:9px;border:1px solid #31586c;border-radius:16px;background:#172a38;padding:18px}
 .pup-admin-device small{color:#aac7d4}
 .pup-admin-container button:focus-visible,.pup-admin-container input:focus-visible,.pup-admin-container select:focus-visible,.pup-admin-modal :focus-visible{outline:2px solid #00e5ff;outline-offset:3px}
+
+.pup-admin-ip-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));align-items:end;gap:14px;margin:20px 0 28px}
+.pup-admin-ip-form label{display:grid;gap:8px;font-size:13px;color:#d1e6f1;font-weight:700}
+.pup-admin-ip-form input,.pup-admin-ip-form textarea{width:100%;min-height:46px;background:#0c1b29;color:#fff;border:1px solid #446f82;border-radius:12px;padding:11px;font:inherit}
+.pup-admin-ip-form textarea{min-height:65px;resize:vertical}
+.pup-admin-ip-form button{min-height:46px;padding:10px 16px;border-radius:12px;font-weight:800;cursor:pointer}
