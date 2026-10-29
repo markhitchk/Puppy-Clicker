@@ -1,0 +1,10 @@
+.pup-avatar-editor{margin-top:18px;padding:20px;border:1px solid #286477;border-radius:18px;background:#112534}
+.pup-avatar-editor-preview{display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+.pup-avatar-editor-preview .profile-avatar-large{width:74px;height:74px;flex:0 0 74px}
+.pup-avatar-editor-preview div{display:grid;gap:5px}
+.pup-avatar-editor-preview small,.pup-avatar-editor>small{color:#a9c1d2}
+.pup-avatar-editor-actions{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.pup-avatar-editor-actions input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+.pup-avatar-editor-actions label{cursor:pointer}
+.pup-avatar-editor-actions label[aria-disabled=true]{pointer-events:none;opacity:.5}
+.pup-avatar-editor-actions button,.pup-avatar-editor-actions label{font-size:13px;text-align:center}
