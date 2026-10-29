@@ -1,6 +1,7 @@
 import React,{createContext,useContext,useEffect,useRef,useState} from "react";
 import {View,Text,Pressable,Image} from "react-native";
 import WebLoading from "../../WebLoading.jsx";
+import PupAccountBanned from "../../PupAccountBanned.jsx";
 import {client} from "../../supabase.js";
 import WebRegister from "../../WebRegister.jsx";
 import {DISCORD_ICON_URL} from "../../discordIcon.js";
@@ -29,6 +30,18 @@ export default function WebAccountGate({children}){
   setMode(next);
  };
  const [callbackFailed,setCallbackFailed]=useState(false);
+ const [standingRefresh,setStandingRefresh]=useState(0);
+ // Refresh account standing without destroying the signed-in Supabase session.
+ // Server-side checks apply immediately even between these UI refreshes.
+ useEffect(()=>{
+  const recheck=()=>setStandingRefresh(n=>n+1);
+  const interval=globalThis.setInterval?.(recheck,60000);
+  globalThis.addEventListener?.("focus",recheck);
+  return()=>{
+   globalThis.clearInterval?.(interval);
+   globalThis.removeEventListener?.("focus",recheck);
+  };
+ },[]);
  useEffect(()=>{
   let alive=true,starting=true,verification=0;
   const verify=async()=>{
@@ -63,7 +76,7 @@ export default function WebAccountGate({children}){
   };
   void start();
   return()=>{alive=false;data?.subscription?.unsubscribe();};
- },[]);
+ },[standingRefresh]);
 
  const loginDiscord=async()=>{
   if(!client||busy)return;
@@ -99,6 +112,9 @@ export default function WebAccountGate({children}){
   <a href="/recovery" style={{color:'#8ce9ff'}}>Account recovery</a>
  </View>;
  if(loading)return <WebLoading stage={hasPuppyDiscordCallback()?"callback":"account"}/>;
+ if(user&&pupAccount?.status==="BANNED")
+  return <PupAccountBanned account={pupAccount} onRefresh={()=>setStandingRefresh(n=>n+1)}
+   onSignOut={()=>void client.auth.signOut()}/>;
  if(!user||!pupAccount)return <div className="pup-auth-page" data-testid="pup-auth-page">
   <aside className="pup-auth-intro" aria-label="Welcome to Pup Account">
    <a className="pup-auth-home" href="/">← Back to Puppy Clicker Home</a>
