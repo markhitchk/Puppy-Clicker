@@ -16,7 +16,7 @@ export async function offerDiscordRegistration({profile,origin,admin,json,Public
   };
   if(identity.email)patch.discord_email=identity.email;
   const {error:syncError}=await admin.from("pupeye_players").update(patch)
-   .eq("id",account.player_uuid).eq("discord_user_id",identity.id);
+   .eq("id",account.player_uuid);
   if(syncError)throw new PublicError(503,"PUP_DISCORD_PROFILE_SYNC_FAILED");
   return null;
  }
