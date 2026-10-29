@@ -50,3 +50,33 @@ test("account management requires the existing verified Pup Account",async({page
  await expect(page.getByRole("button",{name:"Continue with Puppy Clicker Discord"})).toBeVisible();
  await expect(page.getByText("Your account",{exact:true})).toHaveCount(0);
 });
+
+
+test("Pup Account sign-in and registration share one screen on account and play",async({page})=>{
+ for(const route of ["/account?signedout=1","/play?signedout=1"]){
+  await page.goto(route);
+  const signIn=page.getByRole("tab",{name:"Sign In"});
+  const create=page.getByRole("tab",{name:"Create Account"});
+  await expect(signIn).toHaveAttribute("aria-selected","true");
+  await expect(create).toBeVisible();
+  await expect(page.getByRole("button",{name:"Sign in to Pup Account"})).toBeVisible();
+  await create.click();
+  await expect(create).toHaveAttribute("aria-selected","true");
+  await expect(page.getByRole("form",{name:"Create Pup Account"})).toBeVisible();
+  await expect(page.getByLabel("Confirm password")).toBeVisible();
+  await expect(page.getByRole("button",{name:"Continue with Puppy Clicker Discord"})).toHaveCount(0);
+  await signIn.click();
+  await expect(signIn).toHaveAttribute("aria-selected","true");
+  await expect(page.getByRole("button",{name:"Sign in to Pup Account"})).toBeVisible();
+ }
+});
+
+test("register bookmarks and account links open the same create-account tab",async({page})=>{
+ for(const route of ["/register?signedout=1","/account?mode=register&signedout=1"]){
+  await page.goto(route);
+  await expect(page.getByRole("tab",{name:"Create Account"})).toHaveAttribute("aria-selected","true");
+  await expect(page.getByRole("form",{name:"Create Pup Account"})).toBeVisible();
+  await page.getByRole("tab",{name:"Sign In"}).click();
+  await expect(page.getByRole("button",{name:"Sign in to Pup Account"})).toBeVisible();
+ }
+});
