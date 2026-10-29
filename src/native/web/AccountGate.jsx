@@ -100,16 +100,16 @@ export default function WebAccountGate({children}){
    <Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{height:85,width:110,alignSelf:"center"}}/>
    <Text accessibilityRole="header" style={{fontSize:27,fontWeight:"900",color:"#fff",textAlign:"center"}}>{recovery?"🔐 Pup Account Recovery":"🐶 Puppy Clicker · Pup Account"}</Text>
    {!recovery?<View style={{flexDirection:"row",backgroundColor:"#0d1e29",borderRadius:14,padding:4,gap:5}} accessibilityRole="tablist">
-    <Pressable accessibilityRole="tab" accessibilityState={{selected:mode==="signin"}}
-     disabled={busy} onPress={()=>chooseMode("signin")}
-     style={{flex:1,paddingVertical:13,borderRadius:11,backgroundColor:mode==="signin"?"#00b8f0":"transparent",alignItems:"center"}}>
-     <Text style={{fontWeight:"900",color:mode==="signin"?"#001622":"#bcd1df"}}>Sign In</Text>
-    </Pressable>
-    <Pressable accessibilityRole="tab" accessibilityState={{selected:mode==="register"}}
-     disabled={busy} onPress={()=>chooseMode("register")}
-     style={{flex:1,paddingVertical:13,borderRadius:11,backgroundColor:mode==="register"?"#00b8f0":"transparent",alignItems:"center"}}>
-     <Text style={{fontWeight:"900",color:mode==="register"?"#001622":"#bcd1df"}}>Create Account</Text>
-    </Pressable>
+    <button type="button" role="tab" aria-selected={mode==="signin"}
+     disabled={busy} onClick={()=>chooseMode("signin")}
+     style={{flex:1,padding:"13px 8px",border:0,borderRadius:11,backgroundColor:mode==="signin"?"#00b8f0":"transparent",color:mode==="signin"?"#001622":"#bcd1df",fontWeight:900,cursor:"pointer"}}>
+     Sign In
+    </button>
+    <button type="button" role="tab" aria-selected={mode==="register"}
+     disabled={busy} onClick={()=>chooseMode("register")}
+     style={{flex:1,padding:"13px 8px",border:0,borderRadius:11,backgroundColor:mode==="register"?"#00b8f0":"transparent",color:mode==="register"?"#001622":"#bcd1df",fontWeight:900,cursor:"pointer"}}>
+     Create Account
+    </button>
    </View>:null}
    {(mode==="signin"||recovery)?<>
     <Text style={{...text,color:"#bcd1df",textAlign:"center"}}>{recovery
