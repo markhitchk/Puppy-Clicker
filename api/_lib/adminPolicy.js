@@ -8,6 +8,11 @@ export class AdminError extends Error {
   constructor(status, code) { super(code); this.status=status; this.code=code; }
 }
 export function isStaff(role) { return STAFF_ROLES.has(role); }
+// A display name of "localplayer" is not proof that an account is unregistered.
+// Only the authoritative pup_accounts.player_uuid association establishes this.
+export function classifyPlayerProfile(playerId, linkedAccountByPlayer) {
+  return linkedAccountByPlayer.has(playerId) ? "registered" : "local";
+}
 export function canModifyRole(actorRole, nextRole, actorId, targetId) {
   return actorRole === "DEVELOPER" &&
     actorId !== targetId && ROLES.has(nextRole);
