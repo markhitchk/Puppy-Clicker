@@ -13,7 +13,7 @@ test.describe("desktop website Pup Account pages",()=>{
   const form=page.getByTestId("pup-auth-form");
   await expect(form).toBeVisible();
   await expect(form.getByRole("tab",{name:"Sign In"})).toBeVisible();
-  await expect(form.locator('img[src="'+discordIcon+'"]')).toHaveCount(1);
+  await expect(form.locator('.android-auth-provider-heading img[src="'+discordIcon+'"]')).toHaveCount(1);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   const bounds=await form.boundingBox();
   expect(bounds?.width).toBeGreaterThan(500);
