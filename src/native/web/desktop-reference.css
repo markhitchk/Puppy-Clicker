@@ -7,10 +7,10 @@
  .desktop-brand{display:flex;align-items:center;gap:10px;padding:0 14px 18px;color:#fff;font-size:27px;line-height:1.08;font-weight:800;letter-spacing:-.7px}
  .desktop-brand img{width:76px;height:76px;object-fit:contain}
  .desktop-main-nav,.desktop-support-nav{display:flex;flex-direction:column;gap:8px}
- .desktop-navigation button,.desktop-support-nav>a{display:flex;align-items:center;gap:20px;min-height:60px;padding:12px 20px;border:1px solid transparent;border-radius:14px;background:transparent;color:inherit;font:600 17px/1.3 Inter,system-ui,sans-serif;text-align:left;cursor:pointer}
- .desktop-navigation button>span,.desktop-support-nav>a>span{font-size:30px;width:36px;text-align:center;flex-shrink:0}
+ .desktop-navigation button,.desktop-support-nav>a,.desktop-main-nav>.desktop-home-link{display:flex;align-items:center;gap:20px;min-height:60px;padding:12px 20px;border:1px solid transparent;border-radius:14px;background:transparent;color:inherit;font:600 17px/1.3 Inter,system-ui,sans-serif;text-align:left;cursor:pointer}
+ .desktop-navigation button>span,.desktop-support-nav>a>span,.desktop-main-nav>.desktop-home-link>span{font-size:30px;width:36px;text-align:center;flex-shrink:0}
  .desktop-navigation button[aria-current=page]{background:#003f54aa;border-color:#00c4e0;color:#00dfff;box-shadow:inset 0 0 22px #00c4e00a}
- .desktop-navigation button:hover,.desktop-support-nav>a:hover{background:#16303d}
+ .desktop-navigation button:hover,.desktop-support-nav>a:hover,.desktop-main-nav>.desktop-home-link:hover{background:#16303d}
  .desktop-nav-spacer{flex:1;min-height:24px}
  .desktop-support-nav{border-top:1px solid #28353e;padding:10px 8px 0;gap:0}
  .desktop-support-nav button,.desktop-support-nav>a{min-height:42px;font-size:14px;padding:8px 12px;gap:14px}
