@@ -30,7 +30,7 @@ test("provider failure or malformed response remains unknown",async()=>{
   const ip="203.0.113.12";
   assert.equal(parseProxycheckV3({status:"denied"},ip).status,"unknown");
   assert.equal(parseProxycheckV3({status:"ok",[ip]:{detections:{}}},ip).status,"unknown");
-  assert.equal((await detectNetworkRisk(ip,{key:"",fetcher:async()=>{throw Error("should not run")}})).status,"unknown");
+  assert.equal((await detectNetworkRisk(ip,{fetcher:async()=>{throw Error("simulated outage")}})).status,"unknown");
 });
 
 test("provider url is fixed HTTPS endpoint and response classifications are parsed",async()=>{
@@ -46,4 +46,24 @@ test("provider url is fixed HTTPS endpoint and response classifications are pars
   }});
   assert.equal(result.proxy,true);
   assert.equal(result.vpn,false);
+});
+
+test("keyless VPN check works on free anonymous proxycheck.io tier", async () => {
+  const ip = "192.0.2.170";
+  let called = 0;
+  const result = await detectNetworkRisk(ip, {
+    fetcher: async (url) => {
+      called += 1;
+      const u = new URL(url);
+      assert.equal(u.origin, "https://proxycheck.io");
+      assert.equal(u.pathname, "/v3/" + ip);
+      assert.equal(u.searchParams.has("key"), false);
+      return {ok:true,json:async()=>({status:"ok",[ip]:{detections:{
+        vpn:true,proxy:false,tor:false,hosting:false,anonymous:true,confidence:92
+      }}})};
+    },
+  });
+  assert.equal(called, 1);
+  assert.equal(result.vpn, true);
+  assert.equal(result.provider, "proxycheck-v3");
 });
