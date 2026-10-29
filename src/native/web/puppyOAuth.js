@@ -138,6 +138,7 @@ export function puppyAuthMessage(error){
   PUP_USERNAME_TAKEN:"That Pup Account username is already registered.",
   PUP_SIGNUP_RATE_LIMIT:"Too many registrations right now. Try again later.",
   PUP_SIGNUP_UNAVAILABLE:"Pup Account registration is temporarily unavailable.",
+  PUP_PASSWORD_COMPLEXITY_REQUIRED:"Password must contain an uppercase letter, a lowercase letter, a number and a special character (8–128 characters).",
   PUP_CONTACT_EMAIL_INVALID:"Enter a valid optional support contact email.",
   PUP_LEGAL_ACCEPTANCE_REQUIRED:"Accept both legal documents to register.",
   PUP_PASSWORD_INVALID:"Password must contain 8–128 characters.",
