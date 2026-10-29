@@ -93,6 +93,6 @@ test("desktop and mobile play retain roster switching with a desktop-only yard s
  assert.match(play,/className="cyber-button secondary small switch-puppy-action"/);
  assert.match(play,/onClick=\{\(\)=>onOpen\('roster'\)\}/);
  assert.match(desktop,/night-yard-v1\.webp/);
- assert.match(desktop,/background-color:#0A0C12/);
+ assert.match(desktop,/background-color:\s*#0A0C12\s*!important/i);
  assert.match(theme,/\.mobile-play \.puppy-platform/);
 });
