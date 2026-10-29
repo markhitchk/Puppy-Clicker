@@ -3,6 +3,7 @@ import {crossPlay,CrossPlayError} from "./crossPlay.ts";
 import {newBetaKotlinSave} from "../_shared/beta-economy.ts";
 import {createHash} from "node:crypto";
 import {offerDiscordRegistration,registerDiscordWebAccount} from "./discordRegistration.ts";
+import {auditAuthResponse} from "../_shared/web-activity.ts";
 
 // This is Puppy Clicker's own public OAuth2 application (same client ID as
 // the Android DiscordSignupAuth). Do not use shared Supabase Discord OAuth.
@@ -22,7 +23,7 @@ const SAFE_ORIGINS = new Set(["https://puppy-clicker.vercel.app",
 const json=(status,body,origin)=>new Response(JSON.stringify(body),{
  status,headers:{"content-type":"application/json","cache-control":"no-store",
   "access-control-allow-origin":SAFE_ORIGINS.has(origin)?origin:"https://puppy-clicker.vercel.app",
-  "access-control-allow-headers":"authorization,apikey,content-type,x-client-info",
+  "access-control-allow-headers":"authorization,apikey,content-type,x-client-info,x-pup-session-id,x-pup-path",
   "access-control-allow-methods":"POST,OPTIONS",
   "vary":"Origin"}
 });
@@ -203,7 +204,7 @@ async function registerWebAccount(req,body,origin){
   refresh_token:signed.session.refresh_token},origin);
 }
 
-Deno.serve(async req=>{
+async function handleAuthRequest(req,auditContext){
  const origin=req.headers.get("origin")||"";
  if(req.method==="OPTIONS")return json(200,{},origin);
  if(req.method!=="POST")return json(405,{error:"METHOD_NOT_ALLOWED"},origin);
@@ -383,6 +384,7 @@ Deno.serve(async req=>{
     throw new PublicError(401,"PUP_SIGNIN_INVALID");
    const uid=await linkedAuthUser(account);
    if(uid!==signed.user.id)throw new PublicError(403,"PUP_ACCOUNT_AUTH_LINK_CONFLICT");
+   auditContext.accountUuid=account.id;auditContext.authUserId=signed.user.id;
    return json(200,{access_token:signed.session.access_token,
     refresh_token:signed.session.refresh_token},origin);
   }
@@ -424,6 +426,7 @@ Deno.serve(async req=>{
   const hashed=link?.properties?.hashed_token;
   if(ge||typeof hashed!=="string"||!hashed)
    throw new PublicError(503,"PUP_WEB_SESSION_UNAVAILABLE");
+  auditContext.accountUuid=account.id;auditContext.authUserId=authId;
   return json(200,{token_hash:hashed,otp_type:"magiclink"},origin);
  }catch(e){
   if(!(e instanceof PublicError)){
@@ -433,4 +436,11 @@ Deno.serve(async req=>{
    error:e instanceof PublicError||e instanceof CrossPlayError?e.code:"PUP_WEB_AUTH_UNAVAILABLE"
   },origin);
  }
+}
+Deno.serve(async req=>{
+ const auditRequest=req.method==='POST'?req.clone():null;
+ const auditContext={};
+ const response=await handleAuthRequest(req,auditContext);
+ if(auditRequest&&SAFE_ORIGINS.has(req.headers.get('origin')||''))await auditAuthResponse(auditRequest,response,admin,auditContext);
+ return response;
 });

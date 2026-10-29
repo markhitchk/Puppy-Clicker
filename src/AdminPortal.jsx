@@ -3,19 +3,16 @@ import {useWebAccount} from "./native/web/AccountGate.jsx";
 import "./AdminPortal.css";
 import AdminPuppyGifts from "./AdminPuppyGifts.jsx";
 import {banTargetFromLocation,banAccountUrl} from "./banRoute.js";
+import AdminActivity from "./AdminActivity.jsx";
+import AdminRestrictionDialog from "./AdminRestrictionDialog.jsx";
+import {formatTime,describeDevice,presentAuditEvent} from "./adminPresentation.js";
 
 const initialSection=()=> {
- const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit|gifts)\/?$/);
+ const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit|gifts|activity)\/?$/);
  return match?.[1] || "users";
-};
-const formatTime=value=>{
- if(!value)return "—";
- const date=new Date(value);
- return Number.isNaN(date.getTime())?"—":date.toLocaleString();
 };
 const lastIp=user=>(user.connection?user.connection.ip:user.network?.ip)||null;
 const lastUserAgent=user=>(user.connection?user.connection.userAgent:user.network?.userAgent)||null;
-const lastVisit=user=>user.connection?.lastSeenAt||user.network?.checkedAt||null;
 const normalizeError=(code)=>{
  const errors={
   SIGN_IN_REQUIRED:"Sign in to your Pup Account to continue.",
@@ -27,7 +24,11 @@ const normalizeError=(code)=>{
   LAST_DEVELOPER_PROTECTED:"The final active Developer cannot be demoted.",
   DEVELOPER_ROLE_PROTECTED:"Developer accounts must be demoted through a separate owner-reviewed workflow.",
   ACCOUNT_BANNED:"This account is banned from Puppy Clicker.",
-  CANNOT_SANCTION_STAFF:"You cannot ban this staff account.",
+  CANNOT_SANCTION_STAFF:"You cannot restrict this staff account or your own account.",
+  SUSPENSION_EXPIRY_REQUIRED:"Choose when this suspension should end.",
+  INVALID_BAN_EXPIRY:"Choose an end time in the future, within five years.",
+  INVALID_BAN_REASON:"Enter a public reason between 3 and 300 characters.",
+  CANNOT_UNBAN_STAFF:"Only a Developer can lift restrictions on staff.",
   DEVELOPER_ROLE_REQUIRED:"Only Developers can change staff roles.",
   REGISTERED_PUP_ACCOUNT_REQUIRED:"This player does not have a registered Pup Account.",
   MANAGE_FROM_ORIGINAL_SYSTEM:"This ban must be managed in the original PupEye support system.",
@@ -36,6 +37,15 @@ const normalizeError=(code)=>{
  return errors[code] || (code?"Request failed: "+code:"The administration service is temporarily unavailable.");
 };
 function Stat({label,value}) {return <div className="pup-admin-stat"><span>{label}</span><strong>{value}</strong></div>;}
+function Connection({user}){
+ const connection=user.connection,network=user.network;
+ if(!connection&&!network)return <small>No website connection recorded yet</small>;
+ const device=describeDevice(connection?.userAgent||network?.userAgent);
+ return <><strong>{device.device}</strong><small>{device.browser} · {connection?.ip||network?.ip||'IP unavailable'}</small>
+  <small>{connection?.recentlyActive?'Active now · ':''}{formatTime(connection?.lastSeenAt||network?.checkedAt)}</small>
+  {connection?.path?<small>Page: {connection.path}</small>:null}
+  {typeof network?.vpn==='boolean'?<small>VPN {network.vpn?'detected':'not detected'}</small>:null}</>;
+}
 
 export default function AdminPortal(){
  const {client,pupAccount} = useWebAccount();
@@ -50,9 +60,11 @@ export default function AdminPortal(){
  const [message,setMessage] = useState("");
  const [error,setError] = useState("");
  const [ready,setReady] = useState(false);
- const [showBan,setShowBan] = useState(null);
- const [reason,setReason] = useState("");
- const [expiry,setExpiry] = useState("");
+ const [showRestriction,setShowRestriction] = useState(null);
+ const [reason,setReason]=useState("");
+ const [expiry,setExpiry]=useState("");
+ const [activity,setActivity] = useState({sessions:[],events:[],androidDevices:[],summary:{}});
+ const [activityFilter,setActivityFilter] = useState('all');
  const [selectedRole,setSelectedRole] = useState({});
  const [tabLoading,setTabLoading] = useState(false);
 
@@ -70,16 +82,18 @@ export default function AdminPortal(){
   return result;
  },[client]);
 
- const refresh=useCallback(async(tab)=>{
-  setTabLoading(true);setError("");
+ const refresh=useCallback(async(tab,silent=false)=>{
+  if(!['users','bans','audit','activity'].includes(tab))return;
+  if(!silent){setTabLoading(true);setError("");}
   try {
-   const result=await request({action:tab==="users"?"users":tab==="bans"?"bans":"audit"});
+   const result=await request({action:tab,filter:activityFilter});
    if(tab==="users")setUsers(result.users||[]);
    if(tab==="bans")setBans(result.bans||[]);
    if(tab==="audit")setEvents(result.events||[]);
+   if(tab==="activity")setActivity(result);
   }catch(e){setError(normalizeError(e.message));}
-  finally{setTabLoading(false);}
- },[request]);
+  finally{if(!silent)setTabLoading(false);}
+ },[request,activityFilter]);
 
  useEffect(()=>{
   let alive=true;
@@ -93,7 +107,23 @@ export default function AdminPortal(){
   return ()=>{alive=false;};
  },[request]);
 
- useEffect(()=>{if(staff&&section!=="gifts")void refresh(section);},[staff,section,refresh]);
+ useEffect(()=>{
+  if(!staff)return;
+  void refresh(section);
+  if(section!=='activity')void refresh('activity',true);
+  const timer=setInterval(()=>{
+   if(document.visibilityState==='hidden'||busy)return;
+   void refresh(section,true);
+   if(section!=='activity')void refresh('activity',true);
+  },30000);
+  return ()=>clearInterval(timer);
+ },[staff,section,refresh,busy]);
+ useEffect(()=>{
+  if(!staff)return;
+  if(section!=='users')void refresh('users',true);
+  if(section!=='bans')void refresh('bans',true);
+  if(section!=='audit')void refresh('audit',true);
+ },[staff]);
 
  const navigate=(tab)=>{
   setSection(tab);setMessage("");setError("");
@@ -106,19 +136,26 @@ export default function AdminPortal(){
   try{
    await request(body);
    setMessage(success);
-   setShowBan(null);setReason("");setExpiry("");
-   await Promise.all([refresh("users"),refresh("bans"),refresh("audit")]);
+   setShowRestriction(null);setReason("");setExpiry("");
+   await Promise.all([refresh("users",true),refresh("bans",true),refresh("audit",true)]);
    return true;
   }catch(e){setError(normalizeError(e.message));return false;}
   finally{setBusy(false);}
  };
- const banUser=async(e,target=showBan)=>{
-  e.preventDefault();
+ const restrictUser=body=>run(body,body.action==='suspend-account'?'Account suspended until the selected end time.':'Account ban created.');
+ const liftRestriction=user=>{
+  if(!window.confirm('Lift the current restriction on @'+user.username+'?'))return;
+  void run({action:'unban-account',banId:user.restriction.id},'Restriction lifted.');
+ };
+ const banUser=async(event,target)=>{
+  event.preventDefault();
   if(!target)return;
-  const success=await run({action:"ban-account",targetPlayerId:target.id,
-   reason:reason.trim(),expiresAt:expiry ? new Date(expiry).toISOString():null},
-  "Account ban created. Gameplay is blocked on web and Android; login remains available for viewing the ban notice.");
-  if(success&&banTarget!==null)globalThis.location?.assign?.("/account/admin/bans");
+  const date=expiry?Date.parse(expiry):null;
+  if(expiry&&!Number.isFinite(date)){setError('Choose a valid end date and time.');return;}
+  const success=await run({action:'ban-account',targetPlayerId:target.id,
+   reason:reason.trim(),expiresAt:date===null?null:new Date(date).toISOString()},
+   'Account ban created. Gameplay is blocked on web and Android; the signed-in ban notice remains available.');
+  if(success&&banTarget!==null)globalThis.location?.assign?.('/account/admin/bans');
  };
  const confirmedRole=(user)=>{
   const next=selectedRole[user.id] || user.role;
@@ -127,8 +164,8 @@ export default function AdminPortal(){
   void run({action:"role-update",targetPlayerId:user.id,role:next},"Role updated.");
  };
  const revoke=(ban)=>{
-  if(!window.confirm("Revoke ban "+(ban.public_ban_id||ban.id)+"?"))return;
-  void run({action:"unban-account",banId:ban.id},"Ban revoked.");
+  if(!window.confirm("Lift restriction "+(ban.public_ban_id||ban.id)+"?"))return;
+  void run({action:"unban-account",banId:ban.id},"Restriction lifted.");
  };
  if(!ready)return <section className="pup-admin-container"><h1>🐾 Puppy Clicker Admin</h1><p>Verifying staff permissions…</p></section>;
  if(!staff)return <section className="pup-admin-container pup-admin-locked">
@@ -153,7 +190,7 @@ export default function AdminPortal(){
       {restricted?<p role="alert" className="pup-admin-error">This staff account cannot be banned by your role.</p>:null}
       <form onSubmit={event=>void banUser(event,target)}>
        <label>Reason
-        <textarea required minLength={3} maxLength={2000} value={reason}
+        <textarea required minLength={3} maxLength={300} value={reason}
          onChange={event=>setReason(event.target.value)} placeholder="Explain the account restriction to the player"/>
        </label>
        <label>Expires at (optional)
@@ -188,11 +225,13 @@ export default function AdminPortal(){
   </header>
   <div className="pup-admin-stats">
    <Stat label="Registered Pup Accounts" value={users.length}/>
-   <Stat label="Active bans in history" value={activeBans}/>
-   <Stat label="Recent audit events" value={events.length}/>
+   <Stat label="Active restrictions" value={activeBans}/>
+   <Stat label="Accounts online" value={activity.summary?.onlineAccounts??'—'}/>
+   <Stat label="Browser sessions online" value={activity.summary?.onlineSessions??'—'}/>
+   <Stat label="Errors in 24 hours" value={activity.summary?.errors24h??'—'}/>
   </div>
   <nav className="pup-admin-tabs" aria-label="Administration sections">
-   {[["users","👥 Users"],["bans","🛡️ Bans"],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"]].map(([tab,label])=>
+   {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"]].map(([tab,label])=>
     <button key={tab} type="button" className={section===tab?"is-selected":""}
      aria-current={section===tab?"page":undefined} onClick={()=>navigate(tab)}>{label}</button>)}
    <button type="button" className="pup-admin-refresh" onClick={()=>void refresh(section)} disabled={busy||tabLoading||section==="gifts"}>↻ Refresh</button>
@@ -205,13 +244,14 @@ export default function AdminPortal(){
     <input aria-label="Search users" placeholder="Search username, player ID or friend code…"
       value={query} onChange={e=>setQuery(e.target.value)} type="search" />
    </div>
-   <p className="pup-admin-note">Only registered Pup Accounts appear here. Local Android/PupEye installation identities are not accounts and are excluded. No installation or save records are changed.</p>
+   <p className="pup-admin-note">Registered Pup Accounts only. Manage access and review the latest website connection. Saved progress and Android installation records are preserved.</p>
    <div className="pup-admin-table-wrap"><table className="pup-admin-table">
     <thead><tr><th>Player</th><th>Standing</th><th>Role</th><th>Latest connection</th><th>IP address</th><th>User-Agent</th><th>Actions</th></tr></thead>
     <tbody>{visibleUsers.map(user=>
      <tr key={user.id}>
       <td><strong>{user.displayName||user.username}</strong><small>@{user.username}</small><small>{user.friendCode||"—"}</small>{user.contactEmail?<small>Support email: {user.contactEmail}</small>:null}</td>
-      <td><span className={user.status==="blocked"?"pup-admin-status danger":"pup-admin-status"}>{user.status||"unknown"}</span></td>
+      <td><span className={'pup-admin-status '+(user.status==='active'?'':'danger')}>{user.status||'unknown'}</span>
+       {user.restriction?<><small>{user.restriction.reason}</small><small>{user.restriction.expiresAt?'Until '+formatTime(user.restriction.expiresAt):'Permanent'}</small></>:null}</td>
       <td>{staff.role==="DEVELOPER" && user.role!=="DEVELOPER"?
        <div className="pup-admin-role"><select aria-label={"Role for "+user.username}
        value={selectedRole[user.id]||user.role} onChange={e=>setSelectedRole(prev=>({...prev,[user.id]:e.target.value}))}>
@@ -219,65 +259,51 @@ export default function AdminPortal(){
        <option value="ADMIN">Admin</option><option value="DEVELOPER">Developer</option>
        </select><button type="button" disabled={busy||!selectedRole[user.id]||selectedRole[user.id]===user.role}
        onClick={()=>confirmedRole(user)}>Save</button></div>:user.role}</td>
-      <td>{lastVisit(user)?<><small><strong>{user.connection?.recentlyActive?"Active recently":"Last seen"}:</strong> {formatTime(lastVisit(user))}</small>
-        {user.connection?.path?<small><strong>Page:</strong> {user.connection.path}</small>:null}
-        {!user.connection&&user.network?<small>Network check only</small>:null}
-        {user.network?<small>VPN: {user.network.vpn===null?"Unknown":user.network.vpn?"Detected":"Not detected"}</small>:null}</>:
-        <small>No website visit recorded yet</small>}</td>
-      <td><code className="pup-admin-network-value" data-testid="user-ip">{lastIp(user)||"Not recorded"}</code></td>
-      <td><code className="pup-admin-user-agent" data-testid="user-agent">{lastUserAgent(user)||"Not recorded"}</code></td>
-      <td><button type="button" className="pup-admin-danger-button"
-        disabled={busy||user.id===staff.playerUuid||user.role==="DEVELOPER"||staff.role==="ADMIN"&&user.role==="ADMIN"}
-        onClick={()=>globalThis.location?.assign?.(banAccountUrl(user.username))}>Ban account</button></td>
+      <td><Connection user={user}/></td>
+      <td><code className="pup-admin-network-value" data-testid="user-ip">{lastIp(user)||'Not recorded'}</code></td>
+      <td><code className="pup-admin-user-agent" data-testid="user-agent">{lastUserAgent(user)||'Not recorded'}</code></td>
+      <td><div className="pup-admin-row-actions">
+       <button type="button" disabled={busy||user.id===staff.playerUuid||staff.role==='ADMIN'&&['ADMIN','DEVELOPER'].includes(user.role)}
+        onClick={()=>setShowRestriction({user,type:'suspension'})}>Suspend</button>
+       <button type="button" className="pup-admin-danger-button" disabled={busy||user.id===staff.playerUuid||staff.role==='ADMIN'&&['ADMIN','DEVELOPER'].includes(user.role)}
+        onClick={()=>globalThis.location?.assign?.(banAccountUrl(user.username))}>Ban account</button>
+       {user.restriction?.managedHere?<button type="button" disabled={busy||user.id===staff.playerUuid||staff.role==='ADMIN'&&['ADMIN','DEVELOPER'].includes(user.role)}
+        onClick={()=>liftRestriction(user)}>Lift restriction</button>:null}
+      </div></td>
      </tr>)}
     </tbody></table></div>
    {!visibleUsers.length&&!tabLoading?<p className="pup-admin-empty">No matching Pup Accounts.</p>:null}
-   <p className="pup-admin-note">Directory shows up to 100 registered Pup Accounts. IP addresses and full User-Agent strings are collected server-side from verified website visits, not Android installations. Older network checks are labeled separately. Missing values are never guessed. Restricted to authorized staff.</p>
+   <p className="pup-admin-note">Up to 100 registered accounts. Open Activity & Devices for website sessions, linked Android devices, sign-ins and errors.</p>
   </section>:null}
+  {section==="activity"?<AdminActivity activity={activity} filter={activityFilter} onFilter={setActivityFilter}/>:null}
   {section==="gifts"?<AdminPuppyGifts request={request} role={staff.role}/>:null}
   {section==="bans"?<section className="pup-admin-panel">
-   <h2>Ban history</h2><p className="pup-admin-note">Shared PupEye bans affect Android and the website. Bans issued outside this panel must be managed by their original system.</p>
+   <h2>Suspension & ban history</h2><p className="pup-admin-note">Restrictions apply to Android and the website. Timed restrictions stop applying at their end time. Bans issued outside this panel must be managed by their original system.</p>
    <div className="pup-admin-table-wrap"><table className="pup-admin-table">
-    <thead><tr><th>Ban ID</th><th>Target</th><th>Reason</th><th>Duration</th><th>Status</th><th>Action</th></tr></thead>
+    <thead><tr><th>Ban ID</th><th>Target</th><th>Type & reason</th><th>Ends</th><th>Status</th><th>Action</th></tr></thead>
     <tbody>{bans.map(b=><tr key={b.id}>
      <td><strong>{b.public_ban_id||b.id}</strong><small>{formatTime(b.issued_at)}</small></td>
-     <td>{b.targets?.map(t=>t.playerId||t.targetType).join(", ")||"—"}</td>
-     <td>{b.public_reason||"Not provided"}</td>
+     <td>{b.targets?.map(t=>t.name||t.targetType).join(", ")||"—"}</td>
+     <td><strong>{b.reason_code==="WEB_ADMIN_SUSPENSION"?"Suspension":"Ban"}</strong><small>{b.public_reason||"Not provided"}</small></td>
      <td>{b.kind==="permanent"?"Permanent":formatTime(b.expires_at)}</td>
      <td><span className={b.status==="active"?"pup-admin-status danger":"pup-admin-status"}>{b.status}</span></td>
      <td>{b.status==="active"&&String(b.issued_by||"").startsWith("web_admin:")?
-      <button type="button" disabled={busy} onClick={()=>revoke(b)}>Unban</button>:<small>Managed externally</small>}</td>
+      <button type="button" disabled={busy} onClick={()=>revoke(b)}>Lift restriction</button>:<small>{b.status==="active"?"Managed externally":"—"}</small>}</td>
     </tr>)}</tbody></table></div>
-   {!bans.length?<p className="pup-admin-empty">No bans found.</p>:null}
+   {!bans.length?<p className="pup-admin-empty">No restrictions found.</p>:null}
   </section>:null}
   {section==="audit"?<section className="pup-admin-panel">
-   <h2>Admin audit log</h2><p className="pup-admin-note">Existing PupEye administration events plus changes made through the new website panel. Login and registration auditing needs the separate authentication integration.</p>
+   <h2>Staff audit log</h2><p className="pup-admin-note">Readable records of account and moderation changes. Sign-ins, registrations, and errors appear in Activity & Devices.</p>
    <div className="pup-admin-table-wrap"><table className="pup-admin-table">
-    <thead><tr><th>Timestamp</th><th>Event</th><th>Actor ID</th><th>Target ID</th><th>Details</th></tr></thead>
-    <tbody>{events.map(e=><tr key={e.id}>
-     <td>{formatTime(e.created_at)}</td><td><strong>{e.action_code}</strong></td>
-     <td><small>{e.actor_player_uuid||"—"}</small></td>
-     <td><small>{e.target_player_uuid||"—"}</small></td>
-     <td><code>{JSON.stringify(e.detail||{}).slice(0,350)}</code></td>
-    </tr>)}</tbody></table></div>
+    <thead><tr><th>When</th><th>Action</th><th>Staff member</th><th>Account</th><th>Details</th></tr></thead>
+    <tbody>{events.map(e=>{const view=presentAuditEvent(e);return <tr key={e.id}>
+     <td>{formatTime(e.created_at)}</td><td><strong>{view.title}</strong></td>
+     <td>{view.actor}</td><td>{view.target}</td><td><p className="pup-admin-detail">{view.description}</p></td>
+    </tr>;})}</tbody></table></div>
    {!events.length?<p className="pup-admin-empty">No audit records found.</p>:null}
   </section>:null}
-  {showBan?<div className="pup-admin-modal-backdrop" role="presentation">
-   <div className="pup-admin-modal" role="dialog" aria-modal="true" aria-label={"Ban "+showBan.username}>
-    <h2>Ban @{showBan.username}</h2>
-    <p>This is a registered Pup Account. The player ban is enforced on web and Android.</p>
-    <form onSubmit={banUser}>
-     <label>Reason<textarea required minLength={3} maxLength={300} value={reason}
-       placeholder="Public explanation shown to the player…" onChange={e=>setReason(e.target.value)}/></label>
-     <label>Expires at (optional)<input type="datetime-local" value={expiry}
-       onChange={e=>setExpiry(e.target.value)}/></label>
-     <p className="pup-admin-note">Leave the expiration blank for a permanent ban.</p>
-     <div className="pup-admin-modal-actions">
-      <button type="button" onClick={()=>setShowBan(null)} disabled={busy}>Cancel</button>
-      <button type="submit" className="pup-admin-danger-button" disabled={busy||reason.trim().length<3}>{busy?"Saving…":"Confirm ban"}</button>
-     </div>
-    </form>
-   </div>
-  </div>:null}
+  {showRestriction?<AdminRestrictionDialog key={showRestriction.user.id+showRestriction.type}
+   user={showRestriction.user} type={showRestriction.type} busy={busy}
+   onClose={()=>setShowRestriction(null)} onSubmit={restrictUser}/>:null}
  </div>;
 }

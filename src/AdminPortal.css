@@ -65,3 +65,17 @@
 .pup-admin-ban-actions button{padding:12px 19px;border-radius:12px;font:inherit;font-weight:800;cursor:pointer}
 .pup-admin-ban-actions button.pup-admin-danger-button{border:1px solid #af586c;background:#743444;color:#fff}
 .pup-admin-ban-actions button:disabled{opacity:.5;cursor:not-allowed}
+
+.pup-admin-stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.pup-admin-row-actions{display:flex;gap:7px;flex-wrap:wrap;max-width:230px}
+.pup-admin-status.neutral{background:#273e50;color:#c5d7e3}
+.pup-admin-activity{display:grid;gap:22px}
+.pup-admin-detail{margin:0;line-height:1.65;max-width:340px;overflow-wrap:anywhere}
+.pup-admin-filter{display:flex;align-items:center;gap:10px;color:#aac7d4;font-size:13px}
+.pup-admin-filter select,.pup-admin-modal select{background:#0d1a27;color:#fff;border:1px solid #446578;padding:11px;border-radius:12px}
+.pup-admin-modal{color:#eaf9ff;max-height:90dvh;overflow:auto;margin:auto}
+.pup-admin-modal::backdrop{background:#03080dc9;backdrop-filter:blur(5px)}
+.pup-admin-device-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:18px}
+.pup-admin-device{display:flex;align-items:flex-start;flex-direction:column;gap:9px;border:1px solid #31586c;border-radius:16px;background:#172a38;padding:18px}
+.pup-admin-device small{color:#aac7d4}
+.pup-admin-container button:focus-visible,.pup-admin-container input:focus-visible,.pup-admin-container select:focus-visible,.pup-admin-modal :focus-visible{outline:2px solid #00e5ff;outline-offset:3px}

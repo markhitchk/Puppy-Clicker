@@ -7,6 +7,21 @@ import {
 } from "../src/native/web/puppyOAuth.js";
 
 const ORIGIN="https://puppy-clicker.vercel.app";
+test('caught OAuth callback errors emit safe browser diagnostics without codes or query strings',async()=>{
+ const b=browser('/auth/discord/callback','?code=private-oauth-code&state=invalid');
+ const reports=[];
+ try{
+  globalThis.fetch=async(url,options)=>{
+   assert.equal(url,'/api/activity');reports.push(JSON.parse(options.body));return new Response('{}');
+  };
+  await assert.rejects(completePuppyDiscordCallback({}),/DISCORD_LOGIN_STATE_INVALID/);
+  assert.equal(reports.length,1);
+  assert.equal(reports[0].event,'auth_error');
+  assert.equal(reports[0].errorCode,'DISCORD_LOGIN_STATE_INVALID');
+  assert.equal(reports[0].path,'/auth/discord/callback');
+  assert.doesNotMatch(JSON.stringify(reports),/private-oauth-code|state=invalid/);
+ }finally{b.restore();}
+});
 function browser(path="/",search=""){
  const saved={location:globalThis.location,localStorage:globalThis.localStorage,
   history:globalThis.history,fetch:globalThis.fetch};

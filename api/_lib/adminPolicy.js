@@ -41,6 +41,27 @@ export function validateBanInput(value) {
     throw new AdminError(400,"INVALID_BAN_EXPIRY");
   return {reason,expiresAt:new Date(date).toISOString()};
 }
+export function validateRestrictionInput(value) {
+  if (!["ban-account","suspend-account"].includes(value?.action))
+    throw new AdminError(400,"INVALID_ADMIN_ACTION");
+  const result=validateBanInput(value);
+  const type=value.action==="suspend-account"?"suspension":"ban";
+  if(type==="suspension"&&!result.expiresAt)
+    throw new AdminError(400,"SUSPENSION_EXPIRY_REQUIRED");
+  return {...result,type};
+}
+export function restrictionStanding(bans,now=Date.now()) {
+  const active=bans.filter(b=>b.status==="active"&&!b.revoked_at&&
+    (!b.expires_at||Date.parse(b.expires_at)>now));
+  // Any ban takes precedence over a suspension; within each class prefer
+  // permanent or longest-running enforcement so expiry is never misleading.
+  active.sort((a,b)=>Number(a.reason_code==="WEB_ADMIN_SUSPENSION")-
+    Number(b.reason_code==="WEB_ADMIN_SUSPENSION")||
+    (b.expires_at?Date.parse(b.expires_at):Infinity)-(a.expires_at?Date.parse(a.expires_at):Infinity));
+  const ban=active[0];
+  return ban?{status:ban.reason_code==="WEB_ADMIN_SUSPENSION"?"suspended":"banned",restriction:ban}
+    :{status:"active",restriction:null};
+}
 export function validateIp(value) {
   if (typeof value !== "string" || value.length > 45 || isIP(value.trim()) === 0)
     throw new AdminError(400,"INVALID_IP_ADDRESS");

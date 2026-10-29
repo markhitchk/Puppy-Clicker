@@ -1,8 +1,7 @@
-import {randomUUID} from "node:crypto";
 import {createClient} from "@supabase/supabase-js";
 import {
   AdminError, UUID_PATTERN, isStaff, canModifyRole,
-  canSanction, validateBanInput, safeSearch, filterRegisteredAccountDirectory, noStore
+  canSanction, validateRestrictionInput, restrictionStanding, safeSearch, filterRegisteredAccountDirectory, noStore
 } from "./_lib/adminPolicy.js";
 
 const requireId = (value) => {
@@ -65,7 +64,7 @@ async function users(db,query) {
   // Pup Account membership, not Pupeye installation registration or username,
   // defines what belongs in the Web Account administration directory.
   const accounts=ensure(await db.from("pup_accounts")
-    .select("id,player_uuid,username,display_name,status,contact_email,created_at,updated_at")
+    .select("id,player_uuid,discord_user_id,username,display_name,status,contact_email,created_at,updated_at")
     .order("updated_at",{ascending:false}).limit(200)) || [];
   const ids=accounts.map(a=>a.player_uuid).filter(Boolean);
   if (!ids.length) return [];
@@ -86,31 +85,40 @@ async function users(db,query) {
   }
   const latest=new Map();
   for (const n of network) if (!latest.has(n.account_uuid)) latest.set(n.account_uuid,n);
-  // Website sessions are authoritative for last visit; ProxyCheck is optional.
-  let sessions=[];
-  if(accountIds.length){
-    const response=await db.from("pup_web_sessions")
-      .select("account_uuid,ip_address,user_agent,path,started_at,last_seen_at,ended_at")
-      .in("account_uuid",accountIds).order("last_seen_at",{ascending:false}).limit(500);
-    if(!response.error)sessions=response.data||[];
-    else console.error("Pup web session directory unavailable");
-  }
-  const latestSessions=new Map();
-  for(const s of sessions)if(!latestSessions.has(s.account_uuid))latestSessions.set(s.account_uuid,s);
+  const targets=ensure(await db.from("pupeye_ban_targets").select("ban_uuid,player_uuid,discord_user_id")
+    .in("player_uuid",ids))||[];
+  const discordIds=filtered.map(a=>a.discord_user_id).filter(id=>/^\d{15,22}$/.test(id||""));
+  if(discordIds.length)targets.push(...ensure(await db.from("pupeye_ban_targets")
+    .select("ban_uuid,player_uuid,discord_user_id").in("discord_user_id",discordIds))||[]);
+  const banIds=[...new Set(targets.map(t=>t.ban_uuid))];
+  const restrictions=banIds.length?ensure(await db.from("pupeye_global_bans")
+    .select("id,status,reason_code,public_reason,expires_at,revoked_at,issued_by")
+    .in("id",banIds).eq("status","active"))||[]:[];
+  const sessions=await db.from("pup_web_sessions")
+    .select("account_uuid,ip_address,user_agent,path,started_at,last_seen_at,ended_at")
+    .in("account_uuid",accountIds).order("last_seen_at",{ascending:false}).limit(500);
+  const latestSession=new Map();
+  for(const s of sessions.data||[])if(!latestSession.has(s.account_uuid))latestSession.set(s.account_uuid,s);
   return filtered.map(a=>{
     const p=byPlayer.get(a.player_uuid);
     const n=latest.get(a.id);
-    const s=latestSessions.get(a.id);
+    const session=latestSession.get(a.id);
+    const ownBanIds=new Set(targets.filter(t=>t.player_uuid===p.id||
+      a.discord_user_id&&t.discord_user_id===a.discord_user_id).map(t=>t.ban_uuid));
+    const standing=restrictionStanding(restrictions.filter(b=>ownBanIds.has(b.id)));
+    const restriction=standing.restriction;
     return {
       id:p.id,username:a.username,displayName:a.display_name || null,
       profileType:"registered",
       playerId:p.player_id,friendCode:p.friend_code,role:p.guild_role || "GUEST",
-      status:a.status === "blocked" || p.status === "blocked" ? "blocked" : p.status,
+      status:standing.status!=="active"?standing.status:a.status!=="active"?a.status:p.status,
+      restriction:restriction?{id:restriction.id,reason:restriction.public_reason,
+        expiresAt:restriction.expires_at,managedHere:String(restriction.issued_by||"").startsWith("web_admin:")}:null,
       accountStatus:a.status,createdAt:a.created_at,updatedAt:a.updated_at,
       contactEmail:a.contact_email || null,
-      connection:s ? {ip:s.ip_address,userAgent:s.user_agent,path:s.path,
-        startedAt:s.started_at,lastSeenAt:s.last_seen_at,
-        recentlyActive:!s.ended_at&&Date.parse(s.last_seen_at)>Date.now()-150000} : null,
+      connection:session?{ip:session.ip_address,userAgent:session.user_agent,path:session.path,
+        startedAt:session.started_at,lastSeenAt:session.last_seen_at,
+        recentlyActive:!session.ended_at&&Date.parse(session.last_seen_at)>Date.now()-90000}:null,
       network:n ? {ip:n.ip_address,userAgent:n.user_agent,checkedAt:n.checked_at,
         vpn:n.vpn,proxy:n.proxy,tor:n.tor,hosting:n.hosting,status:n.detection_status} : null
     };
@@ -118,35 +126,54 @@ async function users(db,query) {
 }
 async function bans(db) {
   const records=ensure(await db.from("pupeye_global_bans")
-    .select("id,public_ban_id,kind,status,public_reason,expires_at,issued_at,issued_by,revoked_at")
+    .select("id,public_ban_id,kind,status,reason_code,public_reason,expires_at,issued_at,issued_by,revoked_at")
     .order("issued_at",{ascending:false}).limit(100)) || [];
   const banIds=records.map(b=>b.id);
   if (!banIds.length) return [];
   const targets=ensure(await db.from("pupeye_ban_targets")
     .select("ban_uuid,player_uuid,target_type").in("ban_uuid",banIds)) || [];
-  return records.map(b=>({...b,targets:targets.filter(t=>t.ban_uuid===b.id)
-    .map(t=>({playerId:t.player_uuid,targetType:t.target_type}))}));
+  const names=await playerNames(db,targets.map(t=>t.player_uuid));
+  return records.map(b=>({...b,status:b.status==="active"&&b.expires_at&&Date.parse(b.expires_at)<=Date.now()?"expired":b.status,
+    targets:targets.filter(t=>t.ban_uuid===b.id)
+    .map(t=>({playerId:t.player_uuid,targetType:t.target_type,name:names.get(t.player_uuid)||"Former account"}))}));
 }
-async function action(db,actor,body) {
+async function moderate(db,params){
+ const result=await db.rpc('moderate_registered_pup_account',params);
+ if(result.error){
+  const code=result.error.message;
+  const known={STAFF_ACCESS_REQUIRED:403,ACCOUNT_BANNED:403,CANNOT_SANCTION_STAFF:403,
+   REGISTERED_PUP_ACCOUNT_REQUIRED:409,MANAGE_FROM_ORIGINAL_SYSTEM:403,BAN_NOT_FOUND:404,
+   INVALID_BAN_REASON:400,INVALID_BAN_EXPIRY:400,SUSPENSION_EXPIRY_REQUIRED:400};
+  throw new AdminError(known[code]||503,known[code]?code:'ADMIN_DATA_UNAVAILABLE');
+ }
+ return result.data;
+}
+async function playerNames(db,ids){
+ const selected=[...new Set(ids.filter(Boolean))];
+ if(!selected.length)return new Map();
+ const rows=ensure(await db.from("pup_accounts").select("player_uuid,username,display_name").in("player_uuid",selected))||[];
+ return new Map(rows.map(a=>[a.player_uuid,a.display_name||('@'+a.username)]));
+}
+export async function action(db,actor,body) {
   const type=body?.action;
   if (type==="staff-info") return {role:actor.role,username:actor.player.username,playerUuid:actor.player.id};
   if (type==="users") {
     const listed=await users(db,body.search);
-    await audit(db,actor,null,"WEB_USERS_VIEW",{count:listed.length,filtered:!!safeSearch(body.search)});
     return {users:listed};
   }
   if (type==="audit") {
     const rows=ensure(await db.from("pup_admin_actions")
       .select("id,actor_player_uuid,target_player_uuid,action_code,detail,created_at")
+      .not("action_code","in","(WEB_USERS_VIEW,WEB_BANS_VIEW,WEB_AUDIT_VIEW)")
       .order("created_at",{ascending:false}).limit(150)) || [];
-    await audit(db,actor,null,"WEB_AUDIT_VIEW",{count:rows.length});
-    return {events:rows};
+    const names=await playerNames(db,rows.flatMap(e=>[e.actor_player_uuid,e.target_player_uuid]));
+    return {events:rows.map(e=>({...e,actorName:names.get(e.actor_player_uuid),targetName:names.get(e.target_player_uuid)}))};
   }
   if (type==="bans") {
     const listed=await bans(db);
-    await audit(db,actor,null,"WEB_BANS_VIEW",{count:listed.length});
     return {bans:listed};
   }
+  if(type==="activity")return await activity(db,body.filter);
   if (type==="role-update") {
     const id=requireId(body.targetPlayerId);
     const role=body.role;
@@ -173,9 +200,9 @@ async function action(db,actor,body) {
     await audit(db,actor,id,"WEB_ROLE_CHANGED",{before:target.guild_role,after:role});
     return {updated:true};
   }
-  if (type==="ban-account") {
+  if (type==="ban-account"||type==="suspend-account") {
     const id=requireId(body.targetPlayerId);
-    const {reason,expiresAt}=validateBanInput(body);
+    const {reason,expiresAt}=validateRestrictionInput(body);
     const target=ensure(await db.from("pupeye_players").select("id,guild_role,status").eq("id",id).maybeSingle());
     if (!target) throw new AdminError(404,"TARGET_NOT_FOUND");
     const registered=ensure(await db.from("pup_accounts")
@@ -184,23 +211,8 @@ async function action(db,actor,body) {
     if (!canSanction(actor.role,target.guild_role,actor.player.id,id))
       throw new AdminError(403,"CANNOT_SANCTION_STAFF");
     // Global ban records are used by PupEye / Android and pup-web-auth.
-    const ban=ensure(await db.from("pupeye_global_bans").insert({
-      public_ban_id:"PWEB-"+randomUUID().slice(0,12).toUpperCase(),
-      kind:expiresAt?"temporary":"permanent",status:"active",
-      reason_code:"WEB_ADMIN",public_reason:reason,internal_reason:"Issued through protected web admin",
-      issued_by:"web_admin:"+actor.player.id,expires_at:expiresAt
-    }).select("id").single());
-    try {
-      ensure(await db.from("pupeye_ban_targets").insert({
-        ban_uuid:ban.id,target_type:"PLAYER",player_uuid:id,
-        attached_by:"web_admin:"+actor.player.id
-      }));
-    } catch(error) {
-      await db.from("pupeye_global_bans").update({status:"revoked",revoked_at:new Date().toISOString(),
-        revoked_by:"web_admin_rollback"}).eq("id",ban.id);
-      throw error;
-    }
-    await audit(db,actor,id,"WEB_BAN_CREATED",{banId:ban.id,reason,expiresAt});
+    await moderate(db,{p_actor_player_uuid:actor.player.id,p_target_player_uuid:id,p_action:type,
+      p_reason:reason,p_expires_at:expiresAt,p_ban_uuid:null});
     return {created:true};
   }
   if (type==="unban-account") {
@@ -220,15 +232,46 @@ async function action(db,actor,body) {
       if ((staff||[]).some(t=>isStaff(t.guild_role)))
         throw new AdminError(403,"CANNOT_UNBAN_STAFF");
     }
-    const saved=ensure(await db.from("pupeye_global_bans")
-      .update({status:"revoked",revoked_at:new Date().toISOString(),
-        revoked_by:"web_admin:"+actor.player.id,updated_at:new Date().toISOString()})
-      .eq("id",id).eq("status","active").select("id").maybeSingle());
-    if (!saved) throw new AdminError(409,"BAN_UPDATED_CONCURRENTLY");
-    await audit(db,actor,targetIds[0]||null,"WEB_BAN_REVOKED",{banId:id});
+    await moderate(db,{p_actor_player_uuid:actor.player.id,p_target_player_uuid:null,p_action:type,
+      p_reason:null,p_expires_at:null,p_ban_uuid:id});
     return {revoked:true};
   }
   throw new AdminError(400,"INVALID_ADMIN_ACTION");
+}
+async function activity(db,filter){
+ const day=new Date(Date.now()-86400000).toISOString();
+ const online=new Date(Date.now()-90000).toISOString();
+ let eventsQuery=db.from("pup_web_activity_events").select(
+  "id,account_uuid,event_code,source,outcome,provider,error_code,login_hint,path,ip_address,user_agent,created_at"
+ ).gte("created_at",day).order("created_at",{ascending:false}).limit(200);
+ if(filter==="errors")eventsQuery=eventsQuery.eq("outcome","failure");
+ if(filter==="auth")eventsQuery=eventsQuery.in("event_code",["login_success","login_failed","register_success","register_failed","discord_authorized","discord_registration_required","auth_error"]);
+ if(filter==="connections")eventsQuery=eventsQuery.in("event_code",["page_view","session_end","logout"]);
+ const results=await Promise.all([
+  db.from("pup_web_sessions").select("id,account_uuid,ip_address,user_agent,path,started_at,last_seen_at,ended_at")
+   .gte("last_seen_at",day).order("last_seen_at",{ascending:false}).limit(150),
+  eventsQuery,
+  db.from("pup_web_sessions").select("id",{count:"exact",head:true}).gte("last_seen_at",online).is("ended_at",null),
+  db.from("pup_web_sessions").select("account_uuid").gte("last_seen_at",online).is("ended_at",null).not("account_uuid","is",null),
+  db.from("pup_web_activity_events").select("id",{count:"exact",head:true}).gte("created_at",day).eq("outcome","failure"),
+  db.from("pup_accounts").select("id,username,display_name"),
+  db.from("pup_account_devices").select("id,account_uuid,installation_uuid,last_seen_at").order("last_seen_at",{ascending:false}).limit(100)
+ ]);
+ results.forEach(ensure);
+ const [sessions,events,,, ,accounts,devices]=results.map(r=>r.data||[]);
+ const names=new Map(accounts.map(a=>[a.id,a.display_name||('@'+a.username)]));
+ const installationIds=devices.map(d=>d.installation_uuid).filter(Boolean);
+ const installations=installationIds.length?ensure(await db.from("pupeye_installations")
+  .select("id,device_model,platform,app_version,active,last_seen_at,revoked_at")
+  .in("id",installationIds))||[]:[];
+ const byInstallation=new Map(installations.map(i=>[i.id,i]));
+ return {sessions:sessions.map(s=>({...s,accountName:names.get(s.account_uuid)||null})),
+  events:events.map(e=>({...e,accountName:names.get(e.account_uuid)||null})),
+  androidDevices:devices.filter(d=>names.has(d.account_uuid)&&byInstallation.has(d.installation_uuid))
+   .map(d=>({...byInstallation.get(d.installation_uuid),accountName:names.get(d.account_uuid),linkedLastSeen:d.last_seen_at})),
+  summary:{onlineSessions:results[2].count||0,
+   onlineAccounts:new Set((results[3].data||[]).map(s=>s.account_uuid)).size,
+   errors24h:results[4].count||0},generatedAt:new Date().toISOString()};
 }
 export default async function handler(req,res) {
   noStore(res);

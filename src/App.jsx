@@ -11,6 +11,7 @@ import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
 import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
 import AdminPortal from "./AdminPortal.jsx";
+import WebPrivacy from "./WebPrivacy.jsx";
 import ProfileAvatarEditor from "./ProfileAvatarEditor.jsx";
 import PupGiftRequests from "./PupGiftRequests.jsx";
 import {avatarForAccount} from "./pupWebApi.js";
@@ -72,7 +73,7 @@ function Home(){
    </div>
    <div className="account-preview"><span>🐾</span><strong>Pup Account</strong><p>Verified login · Linked progress · Account settings</p></div>
   </section>
-  <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span><a href="/recovery">Recover Pup Account</a> · Made for puppy fans 🐶</span></footer>
+  <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span><a href="/recovery">Recover Pup Account</a> · <a href="/privacy">Website privacy</a> · Made for puppy fans 🐶</span></footer>
  </div>;
 }
 const accountRole=role=>({DEVELOPER:"Developer",ADMIN:"Administrator",PUP_MEMBER:"Pup Member"})[role]||"Player";
@@ -347,8 +348,8 @@ export default function App(){
  const path=typeof window!=="undefined"?window.location.pathname:"/";
  const callback=path==="/auth/discord/callback";
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
- const page=path==="/"?"home":path==="/puppies"?"puppies":
-  (/^\/account\/admin(?:\/(?:users|audit|bans|gifts))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
+  const page=path==="/"?"home":path==="/privacy"?"privacy":path==="/puppies"?"puppies":
+  (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   callback?"callback":path==="/play"?"play":"error";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
@@ -356,6 +357,7 @@ export default function App(){
   <main className={page==="play"?"game-mount":"page-mount"}>
    {page==="home"?<Home/>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
+    page==="privacy"?<WebPrivacy/>:
     page==="admin"?<AdminPage/>:
     page==="recovery"?<RecoveryPage/>:
     page==="callback"?<DiscordCallbackPage/>:
