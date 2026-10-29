@@ -183,3 +183,68 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #40cc
 .recovery-status-card .profile-form{margin-top:0}
 @media(max-width:850px){.recovery-grid,.recovery-status-card{grid-template-columns:1fr}}
 @media(max-width:760px){.recovery-grid{gap:15px}.recovery-grid h2,.recovery-status-card h2{font-size:21px}}
+
+
+/* Public roster, unified account/game loading and friendly HTTP-style errors. */
+.meet-puppies{padding:50px 24px 70px}
+.meet-puppies-full{padding-top:58px}
+.meet-puppy-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.meet-puppy-card{overflow:hidden;min-width:0;border:1px solid #315466;border-radius:24px;background:linear-gradient(155deg,#163847,#142b3a);box-shadow:0 16px 40px #06151c26}
+.meet-puppy-art{height:235px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 43%,#2b708a 0%,#173647 60%,#112a39 100%);padding:16px}
+.meet-puppy-art img{width:100%;height:100%;max-width:215px;object-fit:contain;transition:transform .2s}
+.meet-puppy-card:hover .meet-puppy-art img{transform:scale(1.06)}
+.meet-puppy-group{position:absolute;right:14px;top:14px;padding:6px 11px;border:1px solid #458399;border-radius:99px;background:#102d3be6;color:#b1eeff;font-size:11px;font-weight:900}
+.meet-puppy-body{padding:20px}
+.meet-puppy-body h3{font-size:19px;margin:0 0 10px}
+.meet-puppy-body p{font-size:13px;line-height:1.65;color:#b7cddd;min-height:43px;margin:0 0 12px}
+.meet-puppy-body>span{font-size:11px;color:#81dffc;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
+.meet-more{text-align:center;margin:32px 0 0}
+.meet-more p{color:#b1d0dd;font-size:14px}
+.meet-puppy-controls{display:flex;flex-direction:column;align-items:center;gap:18px;margin:0 auto 26px}
+.meet-search{display:flex;flex-direction:column;gap:8px;max-width:500px;width:100%;font-size:12px;color:#bcdef0;font-weight:800}
+.meet-search input{width:100%;border:1px solid #548499;border-radius:12px;background:#102b3a;color:#effbff;padding:14px;font-size:15px}
+.meet-puppy-filters{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+.meet-puppy-filters button{padding:10px 16px;border:1px solid #39687e;color:#c8e9f5;background:#153242;border-radius:12px;cursor:pointer;font-weight:800}
+.meet-puppy-filters button.active,.meet-puppy-filters button[aria-pressed=true]{background:#75dffa;border-color:#75dffa;color:#062430}
+.meet-count,.meet-empty{color:#aac9d8;font-size:13px}
+.meet-empty{text-align:center;padding:25px}
+
+.web-loading{position:relative;isolation:isolate;flex:1;display:flex;justify-content:center;align-items:center;min-height:440px;width:100%;padding:32px 16px;overflow:hidden;background:#0b1a24}
+.web-loading-compact{min-height:300px;border-radius:20px;background:transparent;padding:18px}
+.web-loading-glow{position:absolute;z-index:-1;width:min(560px,95vw);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#1a607c66,transparent 68%);filter:blur(24px)}
+.web-loading-panel{max-width:475px;width:100%;border:1px solid #39647a;border-radius:29px;padding:37px 31px 30px;background:linear-gradient(160deg,#183747ee,#0f2634f0);box-shadow:0 24px 80px #0005;text-align:center}
+.web-loading-mascot{position:relative;display:inline-flex;align-items:center;justify-content:center;width:116px;height:116px;border-radius:30px;background:#28536870}
+.web-loading-mascot img{object-fit:contain;max-width:100%;height:auto;animation:pup-bob 2.8s ease-in-out infinite}
+.web-loading-spark{position:absolute;right:0;top:-10px;color:#91eaff;font-size:24px}
+.web-loading-eyebrow{letter-spacing:.15em;font-size:11px;font-weight:900;color:#88e7ff;margin:25px 0 12px}
+.web-loading-panel h1{font-size:clamp(23px,3vw,31px);line-height:1.22;letter-spacing:-.03em;margin:0 0 12px}
+.web-loading-detail{font-size:14px;line-height:1.6;color:#c0d4de;margin:0 auto;max-width:365px}
+.web-loading-track{margin:27px 0 17px;height:6px;border-radius:99px;background:#31586c;overflow:hidden;position:relative}
+.web-loading-indicator{position:absolute;left:0;top:0;height:100%;width:38%;border-radius:99px;background:linear-gradient(90deg,#50d0f4,#a2f5ff);animation:pup-loading-slide 1.6s ease-in-out infinite alternate}
+.web-loading-footnote{margin:0;color:#93b5c5;font-size:11px}
+@keyframes pup-loading-slide{from{transform:translateX(-55%)}to{transform:translateX(210%)}}
+@keyframes pup-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+.web-error-page{display:flex;justify-content:center;align-items:center;min-height:calc(100dvh - 76px);padding:48px 20px;background:radial-gradient(ellipse at 50% 45%,#163c4c,#0b1a24 70%)}
+.web-error-panel{max-width:610px;width:100%;padding:45px 36px;border:1px solid #3a667a;border-radius:30px;background:#122d3ced;text-align:center;box-shadow:0 25px 65px #0004}
+.web-error-panel>img{max-width:100%;object-fit:contain}
+.web-error-panel .eyebrow{margin:16px 0}
+.web-error-code{font-size:clamp(78px,16vw,142px);line-height:1;font-weight:1000;letter-spacing:-.09em;background:linear-gradient(125deg,#7bdffc,#b9f1ff);background-clip:text;-webkit-background-clip:text;color:transparent;margin:3px 0 13px}
+.web-error-panel h1{font-size:clamp(26px,4vw,40px);margin:0 0 14px}
+.web-error-subtitle{color:#d2edf7;font-size:17px;font-weight:700;line-height:1.5;margin:0 0 11px}
+.web-error-help{font-size:14px;line-height:1.65;color:#9fbeca;margin:0}
+.web-error-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:11px;margin:25px 0}
+.web-error-actions .cta{min-width:145px}
+.web-error-footnote{color:#86aebe;font-size:11px;margin:0}
+
+.pup-signin-form{display:flex;flex-direction:column;gap:9px}
+.pup-signin-form label{font-size:12px;font-weight:800;color:#bcdbe8}
+.pup-signin-form input{width:100%;min-height:47px;border-radius:10px;border:1px solid #457789;background:#0d1e29;color:#fff;padding:12px;font-size:15px}
+.pup-signin-form input::placeholder{color:#8fa2ad}
+.pup-signin-submit{background:#00b8f0;color:#001622;border:0;border-radius:13px;min-height:50px;padding:13px;font-weight:900;cursor:pointer;margin-top:9px}
+.pup-signin-submit:disabled{opacity:.6;cursor:not-allowed}
+
+@media(max-width:900px){.meet-puppy-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.meet-puppies{padding:32px 8px 55px}.meet-puppy-art{height:190px}.meet-puppy-body{padding:15px}.meet-puppy-body h3{font-size:16px}.web-error-page{min-height:calc(100dvh - 62px)}}
+@media(max-width:480px){.meet-puppy-grid{gap:10px}.meet-puppy-art{height:154px;padding:10px}.meet-puppy-body{padding:12px}.meet-puppy-body p{font-size:12px;min-height:0}.meet-puppy-group{right:7px;top:7px;font-size:9px;padding:5px 7px}.web-loading-panel,.web-error-panel{padding:25px 17px}.web-error-actions .cta{width:100%}}
+@media(prefers-reduced-motion:reduce){.web-loading-mascot img,.web-loading-indicator,.meet-puppy-art img{animation:none;transition:none}}
