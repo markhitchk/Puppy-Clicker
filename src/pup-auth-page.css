@@ -7,6 +7,7 @@
 .pup-auth-form>div[role="tablist"]{flex-shrink:0}
 .pup-auth-form .android-auth-provider{background:#161A25;border-color:rgba(0,229,255,.23)}
 .pup-auth-form :is(input,button,a):focus-visible{outline:2px solid #00e5ff;outline-offset:3px}
+.pup-discord-login-icon{width:23px;height:23px;object-fit:contain;flex-shrink:0}
 .pup-discord-button-icon{width:22px;height:22px;display:inline-block;vertical-align:middle;margin-right:9px;object-fit:contain}
 @media(min-width:960px){
  .pup-auth-page{display:grid;grid-template-columns:minmax(320px,.86fr) minmax(0,1.14fr);align-items:stretch;padding:0;background:#0A0C12;overflow:visible}
