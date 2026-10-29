@@ -1,7 +1,7 @@
 import {randomUUID} from "node:crypto";
 import {createClient} from "@supabase/supabase-js";
 import {
-  AdminError, UUID_PATTERN, isStaff, classifyPlayerProfile, canModifyRole,
+  AdminError, UUID_PATTERN, isStaff, canModifyRole,
   canSanction, validateBanInput, safeSearch, noStore
 } from "./_lib/adminPolicy.js";
 
@@ -62,20 +62,26 @@ async function audit(db, actor, target, action, detail={}) {
 }
 async function users(db,query) {
   const q=safeSearch(query);
+  // Pup Account membership, not Pupeye installation registration or username,
+  // defines what belongs in the Web Account administration directory.
+  const accounts=ensure(await db.from("pup_accounts")
+    .select("id,player_uuid,username,display_name,status,contact_email,created_at,updated_at")
+    .order("updated_at",{ascending:false}).limit(200)) || [];
+  const ids=accounts.map(a=>a.player_uuid).filter(Boolean);
+  if (!ids.length) return [];
   const players=ensure(await db.from("pupeye_players")
     .select("id,username,player_id,friend_code,guild_role,status,created_at,updated_at")
-    .order("updated_at",{ascending:false}).limit(200)) || [];
-  const filtered=players.filter(p=>!q || [p.username,p.player_id,p.friend_code].some(v=>
-    typeof v==="string" && v.toLowerCase().includes(q))).slice(0,100);
-  const ids=filtered.map(p=>p.id);
-  if (!ids.length) return [];
-  const accounts=ensure(await db.from("pup_accounts")
-    .select("id,player_uuid,username,display_name,status,contact_email")
-    .in("player_uuid",ids)) || [];
-  const byPlayer=new Map(accounts.map(a=>[a.player_uuid,a]));
-  // Network telemetry schema is staged separately; missing table must not break panel.
+    .in("id",ids)) || [];
+  const byPlayer=new Map(players.map(p=>[p.id,p]));
+  const filtered=accounts.filter(a=>{
+    const p=byPlayer.get(a.player_uuid);
+    return p && (!q || [a.username,a.display_name,p.username,p.player_id,p.friend_code]
+      .some(v=>typeof v==="string" && v.toLowerCase().includes(q)));
+  }).slice(0,100);
+  // Network telemetry is optional and has a separate migration; its absence
+  // must never hide registered Pup Accounts or expose installation identities.
   let network=[];
-  const accountIds=accounts.map(a=>a.id);
+  const accountIds=filtered.map(a=>a.id);
   if (accountIds.length) {
     const response=await db.from("pup_web_network_checks")
       .select("account_uuid,ip_address,user_agent,checked_at,vpn,proxy,tor,hosting,detection_status")
@@ -84,16 +90,16 @@ async function users(db,query) {
   }
   const latest=new Map();
   for (const n of network) if (!latest.has(n.account_uuid)) latest.set(n.account_uuid,n);
-  return filtered.map(p=>{
-    const a=byPlayer.get(p.id);
-    const n=a&&latest.get(a.id);
+  return filtered.map(a=>{
+    const p=byPlayer.get(a.player_uuid);
+    const n=latest.get(a.id);
     return {
-      id:p.id,username:a?.username || p.username || "", displayName:a?.display_name || null,
-      profileType:classifyPlayerProfile(p.id,byPlayer),
+      id:p.id,username:a.username,displayName:a.display_name || null,
+      profileType:"registered",
       playerId:p.player_id,friendCode:p.friend_code,role:p.guild_role || "GUEST",
-      status:a?.status === "blocked" || p.status === "blocked" ? "blocked" : p.status,
-      accountStatus:a?.status || null,createdAt:p.created_at,updatedAt:p.updated_at,
-      contactEmail:a?.contact_email || null,
+      status:a.status === "blocked" || p.status === "blocked" ? "blocked" : p.status,
+      accountStatus:a.status,createdAt:a.created_at,updatedAt:a.updated_at,
+      contactEmail:a.contact_email || null,
       network:n ? {ip:n.ip_address,userAgent:n.user_agent,checkedAt:n.checked_at,
         vpn:n.vpn,proxy:n.proxy,tor:n.tor,hosting:n.hosting,status:n.detection_status} : null
     };
@@ -161,6 +167,9 @@ async function action(db,actor,body) {
     const {reason,expiresAt}=validateBanInput(body);
     const target=ensure(await db.from("pupeye_players").select("id,guild_role,status").eq("id",id).maybeSingle());
     if (!target) throw new AdminError(404,"TARGET_NOT_FOUND");
+    const registered=ensure(await db.from("pup_accounts")
+      .select("id").eq("player_uuid",id).maybeSingle());
+    if (!registered) throw new AdminError(409,"REGISTERED_PUP_ACCOUNT_REQUIRED");
     if (!canSanction(actor.role,target.guild_role,actor.player.id,id))
       throw new AdminError(403,"CANNOT_SANCTION_STAFF");
     // Global ban records are used by PupEye / Android and pup-web-auth.
