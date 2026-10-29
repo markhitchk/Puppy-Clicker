@@ -52,7 +52,16 @@ function Home(){
   </section>
   <MeetPuppies preview/>
   <section className="home-section split-cta">
-   <div><p className="eyebrow">YOUR GAME · YOUR ACCOUNT</p><h2>Manage your Pup Account</h2><p>Sign in with a Pup username or the Puppy Clicker Discord login, check your account, and update your display name without opening the game.</p><a href="/account" className="cta cta-secondary">Open Account Management</a> <a href="/account?mode=register" className="cta cta-primary">Create Pup Account</a><a href="/recovery" className="recovery-home-link">Forgot your login? Recover your Pup Account</a></div>
+   <div className="home-account-copy">
+    <p className="eyebrow">YOUR GAME · YOUR ACCOUNT</p>
+    <h2>Manage your Pup Account</h2>
+    <p>Sign in with a Pup username or the Puppy Clicker Discord login, check your account, and update your display name without opening the game.</p>
+    <div className="home-account-actions">
+     <a href="/account" className="cta cta-secondary">Open Account Management</a>
+     <a href="/account?mode=register" className="cta cta-primary">Create Pup Account</a>
+    </div>
+    <a href="/recovery" className="home-account-recovery">Forgot your login? Recover your Pup Account</a>
+   </div>
    <div className="account-preview"><span>🐾</span><strong>Pup Account</strong><p>Verified login · Linked progress · Account settings</p></div>
   </section>
   <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span><a href="/recovery">Recover Pup Account</a> · Made for puppy fans 🐶</span></footer>
@@ -232,7 +241,15 @@ function AccountDashboard(){
      {credentialMessage?<p className="portal-message" role="status">{credentialMessage}</p>:null}
      <p className="account-security-note">Use a unique password. Sign-in details are sent to Supabase Auth over HTTPS and are not stored in the website's source code or local preferences.</p>
     </section>
-    <section className="portal-card"><h3>Account management</h3><p>Refresh your verified account connection, reset a forgotten password, or request account recovery.</p><a href="/recovery" className="cta cta-secondary stretch">🔐 Account recovery</a><button type="button" className="small-action" onClick={()=>void refresh()} disabled={refreshing}>{refreshing?"Refreshing…":"Refresh account details"}</button><button className="cta cta-secondary stretch" type="button" onClick={()=>void signOut()}>Sign out</button></section>
+    <section className="portal-card account-management-card" aria-labelledby="account-management-title">
+     <h3 id="account-management-title">Account management</h3>
+     <p>Refresh your verified account connection, reset a forgotten password, or request account recovery.</p>
+     <div className="account-management-actions">
+      <a href="/recovery" className="cta cta-secondary">🔐 Account recovery</a>
+      <button type="button" className="cta cta-secondary" onClick={()=>void refresh()} disabled={refreshing}>{refreshing?"Refreshing…":"Refresh account details"}</button>
+      <button type="button" className="cta cta-secondary" onClick={()=>void signOut()}>Sign out</button>
+     </div>
+    </section>
    </div>
   </div>
  </div>;
