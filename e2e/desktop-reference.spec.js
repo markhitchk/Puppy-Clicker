@@ -6,7 +6,10 @@ test('desktop follows the reference layout with real controls and three live goa
  await expect(page.getByTestId('desktop-navigation')).toBeVisible();
  await expect(page.locator('.desktop-play .puppy-identity')).toBeVisible();
  await expect(page.getByRole('button',{name:'Rename current puppy',exact:true})).toBeVisible();
- await expect(page.locator('.desktop-play')).toHaveCSS('background-image',/night-yard/);
+ await expect(page.locator('.desktop-play')).toHaveCSS('background-color','rgb(10, 12, 18)');
+ expect(await page.locator('.desktop-play').evaluate(el=>getComputedStyle(el).backgroundImage)).not.toContain('night-yard');
+ await expect(page.locator('.platform-arrow')).toHaveCount(0);
+ await expect(page.getByRole('button',{name:/Switch Puppy/})).toBeVisible();
  await expect(page.locator('.reference-goal')).toHaveCount(3);
  await expect(page.locator('.reference-care .care-bonus-box')).toBeVisible();
  const viewport=page.getByTestId('play-viewport');
