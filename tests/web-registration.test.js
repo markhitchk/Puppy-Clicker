@@ -52,7 +52,7 @@ test("web-only exception does not bypass existing Android ownership enforcement"
  await assert.rejects(crossPlay(android.admin,android.account,{action:"cloud-save-read"}),{
   message:"PUP_OWNER_DEVICE_UNAVAILABLE"
  });
- const forged=crossplayDb(seed,{webOnly:true});
+ const forged=crossplayDb(seed,{webOnly:true,owner:false});
  forged.account.origin_platform="android";
  await assert.rejects(crossPlay(forged.admin,forged.account,{action:"cloud-save-read"}),{
   message:"PUP_OWNER_DEVICE_UNAVAILABLE"
