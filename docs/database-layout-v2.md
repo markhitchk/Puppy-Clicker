@@ -1,5 +1,14 @@
 # Puppy Clicker database layout v2 (non-destructive rollout)
 
+## Status: PupEye Web enabled; physical-table cutover still staged
+
+The active Android product is **React Native**, in `markhitchk/pup-clinker/Mobile`. The old `App/` Kotlin implementation is an archived historical reference, not a deployment target. React Native uses its signed PupEye NativeModules/Edge Functions. No Android app may be forced to upgrade by a database rename.
+
+**Live protection:** physical tables `puppy_pupeye.web_rate_buckets` and `puppy_pupeye.web_security_events`, and service-role-only RPCs `public.pupeye_web_gate` / `public.pupeye_web_admin_events`. Supabase `pup-web-auth` v17 enforces server-calculated account action limits; the Vercel web APIs enforce trusted-proxy IP blocks and their own budgets. Native hardware attestation is not available in a browser. The web activity/network tables still provide IP and User-Agent history for staff.
+
+**Physical cutover not yet safe:** current production has 17 database functions with references to the original `public.pup_*`, `public.pupeye_*` or `public.puppy_web_*` objects, 12 functions using `ON CONFLICT` (not necessarily all on Puppy tables), and 64 Puppy-table foreign keys. Simply relocating 36 tables and recreating `public` as views would break PostgreSQL upserts and may break Supabase Realtime filters, client REST access, and references in active Edge Functions. The safe rollout must update SQL routines, server clients, Realtime publications, grants/RLS, and old-client compatibility before applying a single transactional physical cutover with backups and rollback rehearsals. Do NOT run a direct `ALTER TABLE ... SET SCHEMA` in production without this work.
+
+
 **Phase 1 implemented:** six schemas with read-only `security_invoker` views.
 The physical production tables, primary keys, FKs, triggers, permissions,
 functions and RLS policies remain unchanged in `public` to avoid breaking
