@@ -124,6 +124,7 @@ export function projectKotlinCloudSave(raw,username=''){
  const projected=sanitizeGame(g);
  // Server-redacted metadata only; the native shoe never enters browser state.
  projected.nativeCasinoPending=document.webCompanion?.nativeCasinoPending===true;
+ projected.nativeCasinoRefund=Number.isSafeInteger(document.webCompanion?.nativeCasinoRefund)?document.webCompanion.nativeCasinoRefund:null;
  // The guest sanitizer deliberately rejects protected puppy prizes. Keep
  // verified signed wheel rounds for display/reveal without relaxing guest rules.
  const secureWheel=pending?.type==='LUCKY_WHEEL'?{...pending,authority:'PUPEYE'}:null;

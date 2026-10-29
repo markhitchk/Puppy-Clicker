@@ -863,8 +863,8 @@ function BlackjackV6Panel({g,act,state,onBack}){
    {Array.from({length:oneRow?1:2},(_,row)=><View key={row} style={styles.blackjackActionRow}>
     {buttons.slice(row*(oneRow?4:2),(row+1)*(oneRow?4:2)).map(([label,key,type,backgroundColor,color])=>
      <Pressable key={key} accessibilityRole="button"
-      accessibilityState={{disabled:!controls[key]}}
-      disabled={!controls[key]} onPress={()=>move(type)}
+      accessibilityState={{disabled:g.gameplayBusy||!controls[key]}}
+      disabled={g.gameplayBusy||!controls[key]} onPress={()=>move(type)}
       style={({pressed})=>[styles.blackjackAction,{backgroundColor},!controls[key]&&styles.buttonDisabled,pressed&&{transform:[{scale:.97}]}]}>
       <Text style={[styles.blackjackActionText,{color}]}>{label}</Text>
      </Pressable>)}
@@ -880,7 +880,7 @@ function BlackjackV6Panel({g,act,state,onBack}){
      <Txt style={[styles.filterText,wager===preset&&styles.filterTextSelected]}>{preset}</Txt>
     </Pressable>)}
    </View>
-   <Button disabled={!canDealBlackjack(g.casinoChips,wager,active,g.nativeCasinoPending||g.pendingScratch||g.pendingSlots||g.pendingRoulette||g.pendingPlinko||g.pendingWheel)}
+   <Button disabled={g.gameplayBusy||!canDealBlackjack(g.casinoChips,wager,active,g.nativeCasinoPending||g.pendingScratch||g.pendingSlots||g.pendingRoulette||g.pendingPlinko||g.pendingWheel)}
     onPress={()=>{setSelectedHand(0);act({type:'blackjackStart',wager,now:Date.now()});}}>
     {g.pendingScratch||g.pendingSlots||g.pendingRoulette||g.pendingPlinko||g.pendingWheel?'Finish the current Casino round first':g.casinoChips<wager?'Not Enough Chips':'Deal for '+wager+' Chips'}
    </Button>
@@ -908,7 +908,10 @@ function CasinoScreen({g,act,state,bet,setBet,onBack}){
  const visiblePage=CASINO_PAGES.find(p=>p[0]===page);
  if(!accepted)return <CasinoIntroDialog onBack={onBack} onContinue={()=>setAccepted(true)}/>;
  return <View style={styles.gamePage}>
-  {g.nativeCasinoPending?<View accessibilityRole="alert" style={styles.notice}><Txt>Finish your saved Casino round in the registered Android app, let it sync, then refresh here. Your wager is preserved.</Txt></View>:null}
+  {g.nativeCasinoPending?<View accessibilityRole="alert" style={styles.notice}>
+   <Txt>{g.nativeCasinoRefund?'An unfinished round from the old app is blocking the Casino. Recover it to return the reserved Chips and start playing.':'Finish your saved Casino round in the registered Android app, let it sync, then refresh here. Your wager is preserved.'}</Txt>
+   {g.nativeCasinoRefund?<Button disabled={g.gameplayBusy} onPress={()=>act({type:'casinoRecoverLegacy'})}>{g.gameplayBusy?'Recovering old round…':'Recover old round · Return '+g.nativeCasinoRefund+' Chips'}</Button>:null}
+  </View>:null}
   {page!=='blackjack'&&page!=='slots'&&page!=='roulette'&&page!=='plinko'&&page!=='scratchers'&&page!=='wheel'?<><View style={styles.pair}>
    <Button compact secondary onPress={()=>page==='hub'?onBack():setPage('hub')}>{page==='hub'?'‹ Rewards':'‹ Casino'}</Button>
    <Txt style={styles.pageTitle}>{visiblePage?.[2]||'Puppy Casino'}</Txt>
@@ -1092,7 +1095,7 @@ export function PuppyApp({betaMode=false}){
   }
   if(secondary==='rewards'||tab==='rewards'&&!secondary)return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} readOnly={betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
   if(secondary==='gacha')return <GachaScreen g={{...g,gameplayBusy}} act={act} state={state} registry={registry} onBack={()=>openScreen('rewards')}/>;
-  if(secondary==='casino')return <CasinoScreen g={g} act={act} bet={bet} setBet={setBet} state={state} onBack={()=>openScreen('rewards')}/>;
+  if(secondary==='casino')return <CasinoScreen g={{...g,gameplayBusy}} act={act} bet={bet} setBet={setBet} state={state} onBack={()=>openScreen('rewards')}/>;
   if(tab==='play')return desktop?<DesktopPlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>:<PlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>
   if(tab==='care')return <CareScreen g={g} act={act} viewportHeight={contentHeight-6}/>;
   if(tab==='shop')return <ShopScreen g={g} act={act} onOpen={openScreen}/>;

@@ -5,7 +5,7 @@ const fixtureSecret='e2e-only-secret-no-production-authority-123456';
 export function gameplayFixtureServer(){return {
  name:'isolated-gameplay-fixture',
  configureServer(server){
-  server.middlewares.use('/__e2e/gameplay',async(req,res)=>{
+  const handle=async(req,res)=>{
    res.setHeader('Content-Type','application/json');
    try{
     let input='';for await(const chunk of req)input+=chunk;
@@ -33,6 +33,8 @@ export function gameplayFixtureServer(){return {
     const next=db.row();next.revision=receipt.cloud.revision;
     res.end(JSON.stringify({receipt,record:{revision:next.revision,saveData:next.save_data,updatedAt:next.updated_at}}));
    }catch(error){res.statusCode=error.status||409;res.end(JSON.stringify({error:error.code||error.message}));}
-  });
+  };
+  server.middlewares.use('/__e2e/gameplay',handle);
+  server.middlewares.use('/__e2e/snapshot',handle);
  }
 }};

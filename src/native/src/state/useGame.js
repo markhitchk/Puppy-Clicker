@@ -10,7 +10,7 @@ import {puppyFunctionError} from '../../web/puppyOAuth.js';
 // The browser is now a Pup Account companion, not a separate economy.
 // Never read or write puppy_web_saves, never forge a PupEye signed envelope.
 const LIVE_ACTIONS=new Set([
- "tap","care","purchase","ticket","accessory","equip","exchange","skill",
+ "casinoRecoverLegacy","tap","care","purchase","ticket","accessory","equip","exchange","skill",
  "daily","claimDailyGoal","parkStart","parkClaim","prestige",
  "slotsStart","slotsReveal","rouletteStart","rouletteReveal",
  "plinkoStart","plinkoReveal","scratchStart","scratchReveal",
@@ -112,7 +112,7 @@ export function useGame(){
   const intent=normalizeIntent(action);
   // A wager/pull is a single transaction. Other actions (e.g. feed then wash,
   // or two different upgrade purchases) must retain their existing queue order.
-  const exclusive=action.type==='gacha'||/^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(action.type);
+  const exclusive=action.type==='gacha'||action.type==='casinoRecoverLegacy'||/^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(action.type);
   if(exclusive&&inFlight.current.has(action.type))return;
   if(exclusive)inFlight.current.add(action.type);
   const captured=generation.current;
@@ -135,6 +135,7 @@ export function useGame(){
     const game=projectKotlinCloudSave(data.cloud.saveJson,pupAccount?.displayName||pupAccount?.username);
     dispatch({type:"hydrate",game:withWebPreferences(game,preferences.current),now:Date.now(),readOnly:true});
     setCloudState("LIVE_SYNCED");
+    if(intent.type==='casinoRecoverLegacy')dispatch({type:'webActionFailed',message:'Old round recovered. Your reserved Chips have been returned. You can play again.'});
    }catch{
     setSyncStatus({state:"SAVED_DISPLAY_ERROR",revision:revision.current,errorCode:"SAVED_BUT_DISPLAY_REFRESH_FAILED"});
    }
@@ -199,6 +200,7 @@ export function useGame(){
 
 function gameplayMessage(code){
  return ({
+  PUP_CASINO_RECOVERY_UNAVAILABLE:'This saved round cannot be recovered here. Finish it in the registered Android app, then refresh.',
   PUP_CASINO_ANDROID_ROUND_PENDING:'Finish your saved Casino round in the registered Android app, let it sync, then refresh here. Your wager has been preserved.',
   GACHA_INSUFFICIENT_TREATS:'You need 2,500 Treats for a capsule. Refresh if your balance changed on Android.',
   GACHA_INSUFFICIENT_TICKET:'You need one Common Ticket for a capsule. Refresh to check your current inventory.',

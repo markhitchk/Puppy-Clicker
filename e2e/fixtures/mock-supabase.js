@@ -45,7 +45,10 @@ export const client={
   if(body.action==="cloud-save-read"){
    if(new URLSearchParams(location.search).has('nocloud'))return {data:{verified:true,account:pup,cloud:{exists:false}},error:null};
    if(new URLSearchParams(location.search).has('ownerrevoked'))return failure('PUP_OWNER_DEVICE_UNAVAILABLE');
-   return {data:{verified:true,account:pup,cloud:cloud(record())},error:null};
+   const response=await fetch('/__e2e/snapshot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({record:record(),body})});
+   const result=await response.json();
+   if(!response.ok)return failure(result.error);
+   return {data:{...result.receipt,account:pup},error:null};
   }
   if(body.action==="account-update"){
    pup.displayName=body.displayName;return{data:{updated:true,displayName:pup.displayName},error:null};

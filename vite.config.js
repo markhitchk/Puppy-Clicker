@@ -17,5 +17,6 @@ export default defineConfig(({command})=>({
    ]:[])
   ]
  },
+ build:{sourcemap:false,minify:true},
  server:{host:true}
 }));
