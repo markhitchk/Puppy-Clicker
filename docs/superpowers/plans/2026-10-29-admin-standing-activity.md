@@ -58,10 +58,12 @@
 
 - Task 1 complete: future expiry, timed/permanent options, shared enforcement, transactional audit and staff guards verified.
 - Task 2 complete: migration applied, RLS/client privileges checked; synthetic SQL integration tests and service-role checks rolled back successfully. No installation or save records were committed by tests.
-- Task 3 implementation complete: 208 unit/render tests pass; production build passes. Independent review found no remaining Important/Critical issues. Browser interaction QA is unavailable: browser download archives were invalid and the cloud browser cannot reach the local preview.
+- Task 3 implementation complete: 210 unit/render tests pass; production build passes. Independent review found no remaining Important/Critical issues. Browser interaction QA is unavailable: browser download archives were invalid and the cloud browser cannot reach the local preview.
 - Ruling: preserve the concurrent main-branch signup permission migration when integrating; it is independent of this work.
 
 - Final performance check: successful gameplay response streams are not consumed by optional auth auditing. Regression failed before the guard and passed afterward.
 
 - Integration ruling: preserved concurrent main changes cb7c6aa/280bd92, including /api/presence, its path/UUID safety tests, account privacy notice, and separate connection response contract. The richer reporter supersedes the older heartbeat while preserving opt-in ProxyCheck behavior.
 - Release blocked: automatic approval review rejected updating main without explicit authorization. Prepared draft PR #39 instead; production auth instrumentation is unchanged.
+
+- User explicitly approved pushing to main. Integrated main through 7d36961, preserving signed-in standing notice, dedicated staff ban editor, full IP/User-Agent columns and notification actions. 210 tests and production build pass; independent integration review reports no Important/Critical defects.

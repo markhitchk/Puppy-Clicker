@@ -166,7 +166,7 @@ export function puppyAuthMessage(error){
   PUP_DISCORD_PROFILE_SYNC_FAILED:"Discord profile sync is temporarily unavailable. Retry sign-in.",
   PUP_ACCOUNT_LEGAL_REQUIRED:"Open Puppy Clicker on Android and accept the current terms and privacy policy, then retry here.",
   PUP_OWNER_DEVICE_UNAVAILABLE:"Your Android PupEye owner installation is unavailable. Open the registered Android app or use account recovery.",
-  PUP_ACCOUNT_BLOCKED:"Your Pup Account is blocked. Contact Puppy Clicker support to review its standing.",
+  PUP_ACCOUNT_BLOCKED:"Your Pup Account is restricted. Keep this session signed in and open your account to view the ban notice.",
   PUP_ACCOUNT_NOT_AVAILABLE:"Your Pup Account is unavailable. Contact Puppy Clicker support.",
   PUP_WEB_ORIGIN_NOT_ALLOWED:"Sign in at https://puppy-clicker.vercel.app. This website address is not approved for Discord sign-in.",
   PUP_USERNAME_TAKEN:"That Pup Account username is already registered.",

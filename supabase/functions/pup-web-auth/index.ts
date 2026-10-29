@@ -42,28 +42,40 @@ if(!url||!key||!publicKey)throw Error("Puppy Clicker Auth server configuration m
 const admin=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
 const auth=createClient(url,publicKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 
-async function accountAllowed(account){
- if(!account||account.status!=="active")throw new PublicError(403,"PUP_ACCOUNT_NOT_AVAILABLE");
+// Banned users may authenticate to view a restricted standing notice;
+// all gameplay and account mutations still fail closed on the server.
+async function accountAllowed(account,allowSanctioned=false){
+ if(!account || !["active","blocked"].includes(account.status))
+  throw new PublicError(403,"PUP_ACCOUNT_NOT_AVAILABLE");
  if(Number(account.terms_version)<1||Number(account.privacy_version)<1
    ||!account.terms_accepted_at||!account.privacy_accepted_at)
   throw new PublicError(403,"PUP_ACCOUNT_LEGAL_REQUIRED");
- // Global player/Discord bans are shared with Android; browser sessions cannot
- // be a backdoor after an account or Discord ban.
  const playerId=required(account.player_uuid,/^[0-9a-f-]{36}$/i,"PUP_ID_INVALID");
  const predicates=["player_uuid.eq."+playerId];
  if(account.discord_user_id)predicates.push("discord_user_id.eq."+
-  required(account.discord_user_id,/^\d{15,22}$/,"DISCORD_ID_INVALID"));
+   required(account.discord_user_id,/^\d{15,22}$/,"DISCORD_ID_INVALID"));
  const {data:targets,error:te}=await admin.from("pupeye_ban_targets")
   .select("ban_uuid").or(predicates.join(","));
  if(te)throw new PublicError(503,"PUP_ENFORCEMENT_UNAVAILABLE");
  const ids=[...new Set((targets||[]).map(t=>t.ban_uuid).filter(Boolean))];
+ let active=[];
  if(ids.length){
   const {data:bans,error:be}=await admin.from("pupeye_global_bans")
-    .select("id,status,expires_at,revoked_at").in("id",ids).eq("status","active");
+   .select("id,public_ban_id,kind,public_reason,issued_at,status,expires_at,revoked_at")
+   .in("id",ids).eq("status","active");
   if(be)throw new PublicError(503,"PUP_ENFORCEMENT_UNAVAILABLE");
-  if((bans||[]).some(b=>!b.revoked_at&&(!b.expires_at||Date.parse(b.expires_at)>Date.now())))
-   throw new PublicError(403,"PUP_ACCOUNT_BLOCKED");
+  active=(bans||[]).filter(b=>!b.revoked_at&&(!b.expires_at||Date.parse(b.expires_at)>Date.now()));
  }
+ if(account.status!=="blocked"&&!active.length)return null;
+ const ban=active.sort((a,b)=>Date.parse(b.issued_at||0)-Date.parse(a.issued_at||0))[0];
+ if(!allowSanctioned)throw new PublicError(403,"PUP_ACCOUNT_BLOCKED");
+ return {
+  id:ban?.public_ban_id||null,
+  reason:ban?.public_reason||"Your Pup Account has been restricted.",
+  issuedAt:ban?.issued_at||null,
+  expiresAt:ban?.expires_at||null,
+  permanent:!ban?.expires_at
+ };
 }
 async function accountForDiscord(discordId){
  const {data,error}=await admin.from("pup_accounts").select(
@@ -71,7 +83,7 @@ async function accountForDiscord(discordId){
  ).eq("discord_user_id",discordId).maybeSingle();
  if(error)throw new PublicError(503,"PUP_ACCOUNT_LOOKUP_FAILED");
  if(!data)throw new PublicError(403,"PUP_ACCOUNT_LINK_REQUIRED");
- await accountAllowed(data);
+ await accountAllowed(data,true);
  return data;
 }
 async function accountForCredentials(login){
@@ -80,7 +92,7 @@ async function accountForCredentials(login){
  ).ilike("username",login).maybeSingle();
  if(error)throw new PublicError(503,"PUP_ACCOUNT_LOOKUP_FAILED");
  if(!data)throw new PublicError(401,"PUP_SIGNIN_INVALID");
- await accountAllowed(data);
+ await accountAllowed(data,true);
  return data;
 }
 async function linkedAuthUser(account){
@@ -117,7 +129,7 @@ async function linkedAuthUser(account){
  }
  return targetId;
 }
-async function currentSession(req){
+async function currentSession(req,allowSanctioned=false){
  const bearer=req.headers.get("Authorization")||"";
  if(!/^Bearer\s+\S+$/.test(bearer))throw new PublicError(401,"PUP_AUTH_REQUIRED");
  const token=bearer.replace(/^Bearer\s+/,"");
@@ -131,8 +143,8 @@ async function currentSession(req){
   "id,player_uuid,active_installation_uuid,discord_user_id,username,display_name,contact_email,status,terms_version,privacy_version,terms_accepted_at,privacy_accepted_at,origin_platform"
  ).eq("id",link.account_uuid).maybeSingle();
  if(ae)throw new PublicError(503,"PUP_ACCOUNT_LOOKUP_FAILED");
- await accountAllowed(account);
- return {account,user:data.user};
+ const sanction=await accountAllowed(account,allowSanctioned);
+ return {account,user:data.user,sanction};
 }
 
 // Web signup is for NEW identities only: never claim Android installations.
@@ -204,8 +216,46 @@ async function handleAuthRequest(req,auditContext){
    if(body.action==="discord-register")return await registerDiscordWebAccount({
     req,body,origin,admin,json,PublicError,key,newBetaKotlinSave
    });
+   if(body.action==="notifications-read"){
+    // Derive recipient exclusively from the verified Supabase Auth session.
+    // A browser cannot select another player's inbox by supplying an ID.
+    const {account}=await currentSession(req);
+    const {data,error}=await admin.from("pup_system_notifications")
+     .select("id,kind,title,body,created_at,read_at")
+     .eq("player_uuid",account.player_uuid)
+     .is("dismissed_at",null)
+     .order("created_at",{ascending:false}).limit(100);
+    if(error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
+    return json(200,{notifications:(data||[]).map(row=>({
+     id:row.id,kind:row.kind,title:row.title,body:row.body,
+     createdAt:row.created_at,read:row.read_at!==null
+    }))},origin);
+   }
+   if(body.action==="notifications-mark"){
+    const {account}=await currentSession(req);
+    const mode=body.mode;
+    if(!["read-one","read-all","clear-read"].includes(mode))
+     throw new PublicError(400,"PUP_NOTIFICATION_ACTION_INVALID");
+    const now=new Date().toISOString();
+    let update=admin.from("pup_system_notifications")
+     .update(mode==="clear-read"?{dismissed_at:now}:{read_at:now})
+     .eq("player_uuid",account.player_uuid).is("dismissed_at",null);
+    if(mode==="read-one"){
+     if(typeof body.id!=="string"||!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(body.id))
+      throw new PublicError(400,"PUP_NOTIFICATION_ID_INVALID");
+     update=update.eq("id",body.id).is("read_at",null);
+    }else if(mode==="read-all")update=update.is("read_at",null);
+    else update=update.not("read_at","is",null);
+    const {error}=await update;
+    if(error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
+    return json(200,{updated:true},origin);
+   }
    if(body.action==="status"){
-   const {account,user}=await currentSession(req);
+    const {account,user,sanction}=await currentSession(req,true);
+    if(sanction)return json(200,{verified:true,account:{
+      id:account.id,username:account.username,displayName:account.display_name||account.username,
+      status:"BANNED",ban:sanction,gameplayWritable:false
+    }},origin);
    // These public-facing details are read only from the authenticated owner's
    // authoritative player and save records, never from browser-supplied IDs.
    const [{data:player,error:pe},{data:installation,error:ie},

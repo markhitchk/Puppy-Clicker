@@ -64,14 +64,19 @@ export default async function handler(req,res){
       .eq("identity_key",identityKey).maybeSingle();
     const {data:existing,error:readError}=await match;
     if(readError)throw readError;
-    const update={path,user_agent:userAgent,ip_address:ip,last_seen_at:seen,ended_at:null};
+    // A later request without an IP or User-Agent must not erase previously
+    // observed connection details for the same verified web session.
+    const update={path,last_seen_at:seen,ended_at:null};
+    if(ip)update.ip_address=ip;
+    if(userAgent)update.user_agent=userAgent;
     let error;
     if(existing){
       ({error}=await db.from("pup_web_sessions").update(update).eq("id",existing.id));
     } else {
       ({error}=await db.from("pup_web_sessions").insert({
         browser_session_id:browserSessionId,identity_key:identityKey,
-        account_uuid:account.id,auth_user_id:authUserId,...update
+        account_uuid:account.id,auth_user_id:authUserId,
+        ip_address:ip,user_agent:userAgent,...update
       }));
       // Two simultaneous first heartbeats for the same browser are harmless.
       if(error?.code==="23505")

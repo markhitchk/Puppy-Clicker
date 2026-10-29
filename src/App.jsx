@@ -349,7 +349,7 @@ export default function App(){
  const callback=path==="/auth/discord/callback";
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
   const page=path==="/"?"home":path==="/privacy"?"privacy":path==="/puppies"?"puppies":
-  /^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity))?\/?$/.test(path)?"admin":
+  (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   callback?"callback":path==="/play"?"play":"error";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>

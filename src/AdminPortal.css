@@ -20,12 +20,14 @@
 .pup-admin-section-heading h2{margin:0}
 .pup-admin-section-heading input{min-width:min(100%,320px);max-width:100%;border:1px solid #3c667b;background:#0a1420;color:#fff;padding:13px 15px;border-radius:13px}
 .pup-admin-table-wrap{overflow:auto;max-width:100%}
-.pup-admin-table{width:100%;min-width:840px;border-collapse:collapse;font-size:13px;text-align:left}
+.pup-admin-table{width:100%;min-width:1120px;border-collapse:collapse;font-size:13px;text-align:left}
 .pup-admin-table th{background:#182e3d;color:#97c6d6;text-transform:uppercase;letter-spacing:.05em;font-size:11px}
 .pup-admin-table th,.pup-admin-table td{padding:14px 12px;border-bottom:1px solid #2b4558;vertical-align:top}
 .pup-admin-table td strong{font-size:13px}
 .pup-admin-table small{font-size:11px;display:block;color:#b0c6d4;max-width:260px;overflow-wrap:anywhere;margin-top:6px}
 .pup-admin-table code{display:block;max-width:280px;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere;color:#d3e6f1}
+.pup-admin-table .pup-admin-network-value{min-width:100px;font-size:12px;color:#9deeff}
+.pup-admin-table .pup-admin-user-agent{min-width:230px;max-width:420px;line-height:1.6;color:#d1dde9;user-select:text}
 .pup-admin-table button,.pup-admin-modal button{padding:9px 13px;border-radius:11px;border:1px solid #42687c;background:#23475c;color:#f5fbff;cursor:pointer}
 .pup-admin-table button:disabled,.pup-admin-modal button:disabled{opacity:.45;cursor:not-allowed}
 .pup-admin-table .pup-admin-danger-button,.pup-admin-modal .pup-admin-danger-button{background:#713341;border-color:#a85562;color:#fff}
@@ -49,6 +51,21 @@
 .pup-admin-modal textarea{min-height:96px}
 .pup-admin-modal-actions{display:flex;justify-content:flex-end;gap:10px}
 @media(max-width:650px){.pup-admin-stats{gap:8px}.pup-admin-stat{padding:12px}.pup-admin-stat strong{font-size:22px}.pup-admin-panel{padding:12px}.pup-admin-tabs button{padding:10px 13px}.pup-admin-tabs .pup-admin-refresh{margin-left:0}}
+
+/* Dedicated registered-account ban editor (/account/bansys/user=?@username). */
+.pup-admin-ban-page{max-width:880px}
+.pup-admin-ban-editor{margin-top:24px;padding:clamp(20px,4vw,34px)}
+.pup-admin-ban-editor h1{font-size:clamp(27px,5vw,38px);margin:8px 0 12px}
+.pup-admin-ban-editor>p{color:#b6cfdb;line-height:1.6}
+.pup-admin-ban-editor form{margin-top:24px}
+.pup-admin-ban-editor label{display:flex;flex-direction:column;gap:9px;margin:18px 0;color:#d8ecf6;font-size:14px;font-weight:700}
+.pup-admin-ban-editor textarea,.pup-admin-ban-editor input{width:100%;min-height:46px;border:1px solid #527084;border-radius:14px;background:#0e1927;color:#fff;padding:13px;font:inherit}
+.pup-admin-ban-editor textarea{min-height:132px;resize:vertical}
+.pup-admin-ban-actions{display:flex;gap:18px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:24px}
+.pup-admin-ban-actions button{padding:12px 19px;border-radius:12px;font:inherit;font-weight:800;cursor:pointer}
+.pup-admin-ban-actions button.pup-admin-danger-button{border:1px solid #af586c;background:#743444;color:#fff}
+.pup-admin-ban-actions button:disabled{opacity:.5;cursor:not-allowed}
+
 .pup-admin-stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .pup-admin-row-actions{display:flex;gap:7px;flex-wrap:wrap;max-width:230px}
 .pup-admin-status.neutral{background:#273e50;color:#c5d7e3}
