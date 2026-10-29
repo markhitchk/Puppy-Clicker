@@ -12,6 +12,9 @@ const formatTime=value=>{
  const date=new Date(value);
  return Number.isNaN(date.getTime())?"—":date.toLocaleString();
 };
+const lastIp=user=>(user.connection?user.connection.ip:user.network?.ip)||null;
+const lastUserAgent=user=>(user.connection?user.connection.userAgent:user.network?.userAgent)||null;
+const lastVisit=user=>user.connection?.lastSeenAt||user.network?.checkedAt||null;
 const normalizeError=(code)=>{
  const errors={
   SIGN_IN_REQUIRED:"Sign in to your Pup Account to continue.",
@@ -165,7 +168,7 @@ export default function AdminPortal(){
    </div>
    <p className="pup-admin-note">Only registered Pup Accounts appear here. Local Android/PupEye installation identities are not accounts and are excluded. No installation or save records are changed.</p>
    <div className="pup-admin-table-wrap"><table className="pup-admin-table">
-    <thead><tr><th>Player</th><th>Standing</th><th>Role</th><th>Latest connection</th><th>Actions</th></tr></thead>
+    <thead><tr><th>Player</th><th>Standing</th><th>Role</th><th>Latest connection</th><th>IP address</th><th>User-Agent</th><th>Actions</th></tr></thead>
     <tbody>{visibleUsers.map(user=>
      <tr key={user.id}>
       <td><strong>{user.displayName||user.username}</strong><small>@{user.username}</small><small>{user.friendCode||"—"}</small>{user.contactEmail?<small>Support email: {user.contactEmail}</small>:null}</td>
@@ -177,22 +180,20 @@ export default function AdminPortal(){
        <option value="ADMIN">Admin</option><option value="DEVELOPER">Developer</option>
        </select><button type="button" disabled={busy||!selectedRole[user.id]||selectedRole[user.id]===user.role}
        onClick={()=>confirmedRole(user)}>Save</button></div>:user.role}</td>
-      <td>{user.connection?<><small><strong>{user.connection.recentlyActive?"Active recently":"Last seen"}:</strong> {formatTime(user.connection.lastSeenAt)}</small>
-        <small><strong>Page:</strong> {user.connection.path||"/"}</small>
-        <small><strong>IP:</strong> {user.connection.ip||"Not available"}</small>
-        <small title={user.connection.userAgent}><strong>Browser:</strong> {user.connection.userAgent||"Not available"}</small>
+      <td>{lastVisit(user)?<><small><strong>{user.connection?.recentlyActive?"Active recently":"Last seen"}:</strong> {formatTime(lastVisit(user))}</small>
+        {user.connection?.path?<small><strong>Page:</strong> {user.connection.path}</small>:null}
+        {!user.connection&&user.network?<small>Network check only</small>:null}
         {user.network?<small>VPN: {user.network.vpn===null?"Unknown":user.network.vpn?"Detected":"Not detected"}</small>:null}</>:
-        user.network?<><small><strong>Last network check:</strong> {formatTime(user.network.checkedAt)}</small>
-          <small><strong>IP:</strong> {user.network.ip}</small>
-          <small title={user.network.userAgent}><strong>Browser:</strong> {user.network.userAgent}</small></>:
         <small>No website visit recorded yet</small>}</td>
+      <td><code className="pup-admin-network-value" data-testid="user-ip">{lastIp(user)||"Not recorded"}</code></td>
+      <td><code className="pup-admin-user-agent" data-testid="user-agent">{lastUserAgent(user)||"Not recorded"}</code></td>
       <td><button type="button" className="pup-admin-danger-button"
         disabled={busy||user.id===staff.playerUuid||user.role==="DEVELOPER"||staff.role==="ADMIN"&&user.role==="ADMIN"}
         onClick={()=>{setShowBan(user);setReason("");setExpiry("");}}>Ban account</button></td>
      </tr>)}
     </tbody></table></div>
    {!visibleUsers.length&&!tabLoading?<p className="pup-admin-empty">No matching Pup Accounts.</p>:null}
-   <p className="pup-admin-note">Directory shows up to 100 registered Pup Accounts. Verified website visits appear after a user signs in or returns to the site. VPN checks are optional. Access is restricted to staff and audited.</p>
+   <p className="pup-admin-note">Directory shows up to 100 registered Pup Accounts. IP addresses and full User-Agent strings are collected server-side from verified website visits, not Android installations. Older network checks are labeled separately. Missing values are never guessed. Restricted to authorized staff.</p>
   </section>:null}
   {section==="gifts"?<AdminPuppyGifts request={request} role={staff.role}/>:null}
   {section==="bans"?<section className="pup-admin-panel">

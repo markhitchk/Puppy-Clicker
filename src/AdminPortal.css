@@ -20,12 +20,14 @@
 .pup-admin-section-heading h2{margin:0}
 .pup-admin-section-heading input{min-width:min(100%,320px);max-width:100%;border:1px solid #3c667b;background:#0a1420;color:#fff;padding:13px 15px;border-radius:13px}
 .pup-admin-table-wrap{overflow:auto;max-width:100%}
-.pup-admin-table{width:100%;min-width:840px;border-collapse:collapse;font-size:13px;text-align:left}
+.pup-admin-table{width:100%;min-width:1120px;border-collapse:collapse;font-size:13px;text-align:left}
 .pup-admin-table th{background:#182e3d;color:#97c6d6;text-transform:uppercase;letter-spacing:.05em;font-size:11px}
 .pup-admin-table th,.pup-admin-table td{padding:14px 12px;border-bottom:1px solid #2b4558;vertical-align:top}
 .pup-admin-table td strong{font-size:13px}
 .pup-admin-table small{font-size:11px;display:block;color:#b0c6d4;max-width:260px;overflow-wrap:anywhere;margin-top:6px}
 .pup-admin-table code{display:block;max-width:280px;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere;color:#d3e6f1}
+.pup-admin-table .pup-admin-network-value{min-width:100px;font-size:12px;color:#9deeff}
+.pup-admin-table .pup-admin-user-agent{min-width:230px;max-width:420px;line-height:1.6;color:#d1dde9;user-select:text}
 .pup-admin-table button,.pup-admin-modal button{padding:9px 13px;border-radius:11px;border:1px solid #42687c;background:#23475c;color:#f5fbff;cursor:pointer}
 .pup-admin-table button:disabled,.pup-admin-modal button:disabled{opacity:.45;cursor:not-allowed}
 .pup-admin-table .pup-admin-danger-button,.pup-admin-modal .pup-admin-danger-button{background:#713341;border-color:#a85562;color:#fff}
