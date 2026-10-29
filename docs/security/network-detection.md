@@ -26,5 +26,6 @@ This feature applies to **the Vercel website only** and does not edit the Androi
 
 ## Troubleshooting
 - `recorded:false` means Vercel did not persist a record (e.g. missing Supabase secrets/schema or no trusted public client IP).
-- Without an API key, proxycheck.io still performs VPN/proxy/Tor checks using its free anonymous tier (100 checks/day per requesting IP). Provider outages, malformed responses or exhausted quotas are recorded as `unknown`, never \"not detected\".\n- The free keyless limit may be exhausted by other requests sharing a Vercel outbound address. Add WAF rate limits and caching before enabling in production. Browser localStorage is not a security boundary.
+- Without an API key, proxycheck.io still performs VPN/proxy/Tor checks using its free anonymous tier (100 checks/day per requesting IP). Provider outages, malformed responses or exhausted quotas are recorded as `unknown`, never \"not detected\".
+- The free keyless limit may be exhausted by other requests sharing a Vercel outbound address. Add WAF rate limits and caching before enabling in production. Browser localStorage is not a security boundary.
 - Never put `SUPABASE_SECRET_KEY` or an optional `PROXYCHECK_API_KEY` in a `VITE_` variable. Treat IPs, UA strings, and reputation results as personal data. These IPs are also sent to the reputation provider.
