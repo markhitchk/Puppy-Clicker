@@ -2,6 +2,8 @@ import React,{useEffect,useState} from "react";
 import {client} from "./supabase.js";
 import {beginPuppyDiscord,verifyPuppySession} from "./native/web/puppyOAuth.js";
 
+import {completeRecoveryCallback} from "./native/web/recoveryCallback.js";
+
 const ISSUES=[
  ["lost_password","Forgot my Pup password"],
  ["lost_discord","Lost access to Discord"],
@@ -43,7 +45,7 @@ export default function RecoveryPage(){
  const [emailMessage,setEmailMessage]=useState("");
  const [emailResetMessage,setEmailResetMessage]=useState("");
  useEffect(()=>{
-  let active=true;
+  let active=true,starting=true;
   const readSession=async()=>{
    if(!client){if(active){setChecking(false);setAuthMessage("Pup Account service is temporarily unavailable.");}return;}
    try{
@@ -57,25 +59,18 @@ export default function RecoveryPage(){
     if(active)setChecking(false);
    }
   };
-  // Supabase Auth PKCE links return with a short-lived code. Exchange only
-  // on /recovery and scrub it from browser history before any other request.
-  const params=new URLSearchParams(globalThis.location?.search||"");
-  const code=params.get("code");
-  if(code){
-   globalThis.history.replaceState(globalThis.history.state,"","/recovery");
-   if(/^[A-Za-z0-9._~-]{8,1024}$/.test(code)){
-    void client.auth.exchangeCodeForSession(code).then(({error})=>{
-     if(!active)return;
-     if(error)setAuthMessage("The email link could not be verified. Open the latest recovery email in the same browser, or use Discord recovery.");
-     else{setAuthMessage("Email link verified. You can change the password for your linked Pup Account below.");void readSession();}
-    }).catch(()=>{
-     if(active)setAuthMessage("The email link could not be verified. Request a new recovery email.");
-    });
-   }else if(active)setAuthMessage("Invalid recovery link. Request a new email.");
-  }
-  void readSession();
+  const start=async()=>{
+   try{
+    const result=await completeRecoveryCallback(client);
+    if(active&&result.status==='complete')setAuthMessage("Email link verified. You can change the password for your linked Pup Account below.");
+   }catch{
+    if(active)setAuthMessage("The email link could not be verified. Open the latest recovery email in the same browser, or request a new link. You can also use Discord recovery.");
+   }
+   if(active){starting=false;await readSession();}
+  };
+  void start();
   const {data}=client?.auth.onAuthStateChange(()=>{
-   queueMicrotask(()=>{if(active)void readSession();});
+   setTimeout(()=>{if(active&&!starting)void readSession();},0);
   })||{};
   return()=>{active=false;data?.subscription?.unsubscribe();};
  },[]);

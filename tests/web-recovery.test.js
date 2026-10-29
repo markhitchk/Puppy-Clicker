@@ -47,8 +47,8 @@ test("email recovery is restricted to Supabase-verified addresses with PKCE call
  const backend=read("supabase/functions/pup-web-auth/index.ts");
  assert.match(page,/client\.auth\.updateUser\(\{email\}/);
  assert.match(page,/client\.auth\.resetPasswordForEmail\(address/);
- assert.match(page,/client\.auth\.exchangeCodeForSession\(code\)/);
- assert.match(page,/globalThis\.history\.replaceState/);
+ assert.match(read("src/native/web/recoveryCallback.js"),/client\.auth\.exchangeCodeForSession\(code\)/);
+ assert.match(read("src/native/web/recoveryCallback.js"),/globalThis\.history\.replaceState/);
  assert.match(page,/await verifyPuppySession\(client\)/);
  assert.match(backend,/user\.email_confirmed_at/);
  assert.match(backend,/@accounts\.puppyclicker\.invalid/);

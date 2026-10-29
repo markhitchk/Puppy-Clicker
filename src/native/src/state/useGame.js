@@ -5,6 +5,7 @@ import {freshGame} from "../engine/game.js";
 import {projectKotlinCloudSave} from "../production/kotlinCloudPreview.js";
 import {fallbackSchedule,parseMonthlySchedule,monthKey} from "../engine/monthlyRewards.js";
 import {useWebAccount} from "../../web/AccountGate.jsx";
+import {puppyFunctionError} from '../../web/puppyOAuth.js';
 
 // The browser is now a Pup Account companion, not a separate economy.
 // Never read or write puppy_web_saves, never forge a PupEye signed envelope.
@@ -32,14 +33,7 @@ const normalizeIntent=action=>Object.fromEntries(
  ["type","kind","id","payment","upgradeId","rarity","name","skill",
  "goalId","amount","wager","bet"].filter(k=>action[k]!==undefined).map(k=>[k,action[k]])
 );
-async function functionError(error){
- let code="PUP_CLOUD_UNAVAILABLE";
- try{
-  const json=await error?.context?.json?.();
-  if(typeof json?.error==="string"&&/^[A-Z0-9_]{3,80}$/.test(json.error))code=json.error;
- }catch{}
- return code;
-}
+const functionError=puppyFunctionError;
 export function useGame(){
  const {user,client,pupAccount}=useWebAccount();
  const [state,dispatch]=useReducer(transition,undefined,()=>({...initialState(),ready:false,notice:""}));
@@ -49,7 +43,7 @@ export function useGame(){
  const preferences=useRef(null);
  if(!preferences.current)preferences.current=loadWebPreferences();
  const revision=useRef(0),loaded=useRef(false),generation=useRef(0);
- const pending=useRef(0),queue=useRef(Promise.resolve());
+ const pending=useRef(0),queue=useRef(Promise.resolve()),inFlight=useRef(new Set());
  const latest=useRef(state);latest.current=state;
  const reload=useCallback(async()=>{
   if(pending.current>0)return false;
@@ -72,7 +66,6 @@ export function useGame(){
    revision.current=data.cloud.revision;
    loaded.current=true;
    dispatch({type:"hydrate",game:withWebPreferences(game,preferences.current),now:Date.now(),readOnly:true});
-   dispatch({type:"dismiss"});
    setCloudState("LIVE_SYNCED");
    setSyncStatus({state:"READY",revision:revision.current,errorCode:null});
    return true;
@@ -117,6 +110,11 @@ export function useGame(){
    return;
   }
   const intent=normalizeIntent(action);
+  // A wager/pull is a single transaction. Other actions (e.g. feed then wash,
+  // or two different upgrade purchases) must retain their existing queue order.
+  const exclusive=action.type==='gacha'||/^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(action.type);
+  if(exclusive&&inFlight.current.has(action.type))return;
+  if(exclusive)inFlight.current.add(action.type);
   const captured=generation.current;
   pending.current++;setPendingActions(pending.current);
   setSyncStatus(old=>({...old,state:"SAVING",errorCode:null}));
@@ -149,7 +147,9 @@ export function useGame(){
     setCloudState("CONNECTION_ERROR");
    }
    setSyncStatus({state:"BLOCKED",revision:revision.current,errorCode:code});
+   dispatch({type:'webActionFailed',message:gameplayMessage(code)});
   }).finally(()=>{
+   if(exclusive)inFlight.current.delete(action.type);
    pending.current=Math.max(0,pending.current-1);setPendingActions(pending.current);
    if(pending.current===0&&!loaded.current)void reload();
   });
@@ -195,4 +195,18 @@ export function useGame(){
   gameplayBusy:pendingActions>0,
   startupError:syncStatus.errorCode?{code:syncStatus.errorCode}:null,syncStatus,
   refreshAccount:reload,updateAccountName};
+}
+
+function gameplayMessage(code){
+ return ({
+  PUP_CASINO_ANDROID_ROUND_PENDING:'Finish your saved Casino round in the registered Android app, let it sync, then refresh here. Your wager has been preserved.',
+  GACHA_INSUFFICIENT_TREATS:'You need 2,500 Treats for a capsule. Refresh if your balance changed on Android.',
+  GACHA_INSUFFICIENT_TICKET:'You need one Common Ticket for a capsule. Refresh to check your current inventory.',
+  NOT_ENOUGH_CASINO_CHIPS:'Not enough Casino Chips. Choose a smaller wager or exchange Treats.',
+  BLACKJACK_INSUFFICIENT_CHIPS:'Not enough Casino Chips for this Blackjack wager.',
+  CASINO_ROUND_ALREADY_ACTIVE:'Finish your current Casino round before starting another.',
+  CLOUD_SAVE_CONFLICT:'Your progress changed on another device. Refreshing your cloud save; check the current result before trying again.',
+  PUP_OWNER_DEVICE_UNAVAILABLE:'Your Android PupEye installation could not be verified. Open the registered Android app or use Account recovery.',
+  CLOUD_SAVE_REQUIRED:'Open Puppy Clicker on Android and upload its cloud save before playing here.'
+ })[code]||'The action could not complete. Refresh your cloud progress and check the saved result before trying again.';
 }

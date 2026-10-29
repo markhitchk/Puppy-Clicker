@@ -1,11 +1,13 @@
 // Website OAuth must return to an HTTPS route in this browser.
+import {puppyService} from '../../supabaseConfig.js';
 // Android retains its own app-only redirect; never use it for browser login.
 export const PUPPY_DISCORD_CLIENT_ID="1547982688898777118";
 export const PUPPY_DISCORD_REDIRECT_URI="https://puppy-clicker.vercel.app/auth/discord/callback";
 export const PUPPY_ANDROID_DISCORD_REDIRECT_URI="discord-1547982688898777118:/authorize/callback";
-const AUTH_URL="https://damcmyqusdxucwozkoeh.supabase.co/functions/v1/pup-web-auth";
-const PUBLISHABLE_KEY="sb_publishable_id7zKwH7BPmmohc7T3RZmA_DTjMaFVU";
+const AUTH_URL=puppyService.url+"/functions/v1/pup-web-auth";
+const PUBLISHABLE_KEY=puppyService.key;
 const PENDING_KEY="puppy-web-discord-pkce-pending-v3";
+let callbackAttempts=new WeakMap();
 const ALLOWED_WEB_ORIGINS=new Set([
  "https://puppy-clicker.vercel.app",
  "http://localhost:5173",
@@ -43,6 +45,7 @@ export function getPendingDiscord(){
 export function clearPendingDiscord(){globalThis.localStorage?.removeItem(PENDING_KEY);}
 
 export async function beginPuppyDiscord(){
+ callbackAttempts=new WeakMap();
  if(!globalThis.crypto?.subtle||!globalThis.crypto?.getRandomValues||!globalThis.localStorage)
   throw new Error("SECURE_BROWSER_REQUIRED");
  const redirectUri=callbackUri();
@@ -60,7 +63,16 @@ export async function beginPuppyDiscord(){
  return url.toString();
 }
 
-export async function completePuppyDiscordCallback(client){
+export function completePuppyDiscordCallback(client){
+ // React Strict Mode and auth events can revisit the same one-use callback.
+ // Share the entire attempt, including failure, until an explicit new login.
+ if(callbackAttempts.has(client))return callbackAttempts.get(client);
+ if(!hasPuppyDiscordCallback())return Promise.resolve({status:"none"});
+ const attempt=finishPuppyDiscordCallback(client);
+ callbackAttempts.set(client,attempt);
+ return attempt;
+}
+async function finishPuppyDiscordCallback(client){
  if(!hasPuppyDiscordCallback())return {status:"none"};
  const params=new URLSearchParams(globalThis.location.search);
  const pending=getPendingDiscord();
@@ -75,7 +87,7 @@ export async function completePuppyDiscordCallback(client){
   if(previous==="/account"||previous==="/recovery")next=previous;
   globalThis.sessionStorage?.removeItem("puppy-web-discord-return-v1");
  }catch{}
- globalThis.history.replaceState(globalThis.history.state,"",next);
+ globalThis.history.replaceState(globalThis.history.state,"","/auth/discord/callback");
  clearPendingDiscord();
  if(denied)throw new Error("DISCORD_LOGIN_CANCELLED");
  if(!pending||!state||state!==pending.state)
@@ -91,6 +103,7 @@ export async function completePuppyDiscordCallback(client){
   throw new Error("PUP_WEB_SESSION_INVALID");
  const {error}=await client.auth.verifyOtp({token_hash:data.token_hash,type:"magiclink"});
  if(error)throw new Error("PUP_WEB_SESSION_INVALID");
+ await verifyPuppySession(client);
  // Refresh the selected protected page after Supabase installs the session.
  if(typeof globalThis.location?.replace==="function")globalThis.location.replace(next);
  return {status:"complete"};
@@ -99,8 +112,32 @@ export async function completePuppyDiscordCallback(client){
 export async function verifyPuppySession(client){
  const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"status"}});
  if(error||!data?.verified||!data?.account?.id)
-  throw new Error(data?.error||"PUP_ACCOUNT_SESSION_REQUIRED");
+  throw new Error(data?.error||await puppyFunctionError(error,"PUP_ACCOUNT_SESSION_REQUIRED"));
  return data.account;
+}
+
+export async function puppyFunctionError(error,fallback="PUP_CLOUD_UNAVAILABLE"){
+ try{
+  const body=await (error?.context?.clone?.()||error?.context)?.json?.();
+  if(/^[A-Z0-9_]{3,80}$/.test(body?.error||""))return body.error;
+ }catch{}
+ return fallback;
+}
+export function puppyAuthMessage(error){
+ const code=error?.message||error;
+ return ({
+  DISCORD_LOGIN_CANCELLED:"Discord sign-in was cancelled. Choose Continue with Puppy Clicker Discord to try again.",
+  DISCORD_LOGIN_STATE_INVALID:"This sign-in link does not match this browser. Start Discord sign-in again here; keep the same browser open.",
+  DISCORD_LOGIN_EXPIRED:"Discord sign-in expired. Start sign-in again and complete it within five minutes.",
+  PUP_ACCOUNT_LINK_REQUIRED:"This Discord account has no linked Pup Account. Link it in the Android app first, then sign in here.",
+  PUP_ACCOUNT_LEGAL_REQUIRED:"Open Puppy Clicker on Android and accept the current terms and privacy policy, then retry here.",
+  PUP_OWNER_DEVICE_UNAVAILABLE:"Your Android PupEye owner installation is unavailable. Open the registered Android app or use account recovery.",
+  PUP_ACCOUNT_BLOCKED:"Your Pup Account is blocked. Contact Puppy Clicker support to review its standing.",
+  PUP_ACCOUNT_NOT_AVAILABLE:"Your Pup Account is unavailable. Contact Puppy Clicker support.",
+  PUP_WEB_ORIGIN_NOT_ALLOWED:"Sign in at https://puppy-clicker.vercel.app. This website address is not approved for Discord sign-in.",
+  PUP_SIGNIN_INVALID:"Incorrect Pup username or password.",
+  PUP_WEB_SESSION_INVALID:"The sign-in session could not be saved. Allow website storage and start sign-in again in the same browser."
+ })[code]||"Pup Account verification could not complete. Retry sign-in in this browser. If it keeps failing, use Account recovery or contact support.";
 }
 export async function signInPupUsername(client,login,password){
  const data=await requestPuppyAuth("password-login",{login,password});
