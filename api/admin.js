@@ -95,7 +95,7 @@ async function users(db,query) {
     .select("id,status,reason_code,public_reason,expires_at,revoked_at,issued_by")
     .in("id",banIds).eq("status","active"))||[]:[];
   const sessions=await db.from("pup_web_sessions")
-    .select("account_uuid,ip_address,user_agent,last_seen_at,ended_at")
+    .select("account_uuid,ip_address,user_agent,path,started_at,last_seen_at,ended_at")
     .in("account_uuid",accountIds).order("last_seen_at",{ascending:false}).limit(500);
   const latestSession=new Map();
   for(const s of sessions.data||[])if(!latestSession.has(s.account_uuid))latestSession.set(s.account_uuid,s);
@@ -116,10 +116,11 @@ async function users(db,query) {
         expiresAt:restriction.expires_at,managedHere:String(restriction.issued_by||"").startsWith("web_admin:")}:null,
       accountStatus:a.status,createdAt:a.created_at,updatedAt:a.updated_at,
       contactEmail:a.contact_email || null,
-      network:session||n ? {ip:session?.ip_address||n?.ip_address,
-        userAgent:session?.user_agent||n?.user_agent,checkedAt:session?.last_seen_at||n?.checked_at,
-        last_seen_at:session?.last_seen_at,ended_at:session?.ended_at,
-        vpn:n?.vpn??null,proxy:n?.proxy??null,tor:n?.tor??null,hosting:n?.hosting??null,status:n?.detection_status||"unknown"} : null
+      connection:session?{ip:session.ip_address,userAgent:session.user_agent,path:session.path,
+        startedAt:session.started_at,lastSeenAt:session.last_seen_at,
+        recentlyActive:!session.ended_at&&Date.parse(session.last_seen_at)>Date.now()-90000}:null,
+      network:n ? {ip:n.ip_address,userAgent:n.user_agent,checkedAt:n.checked_at,
+        vpn:n.vpn,proxy:n.proxy,tor:n.tor,hosting:n.hosting,status:n.detection_status} : null
     };
   });
 }

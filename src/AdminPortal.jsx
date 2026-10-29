@@ -4,7 +4,7 @@ import "./AdminPortal.css";
 import AdminPuppyGifts from "./AdminPuppyGifts.jsx";
 import AdminActivity from "./AdminActivity.jsx";
 import AdminRestrictionDialog from "./AdminRestrictionDialog.jsx";
-import {formatTime,describeDevice,presentAuditEvent,sessionIsOnline} from "./adminPresentation.js";
+import {formatTime,describeDevice,presentAuditEvent} from "./adminPresentation.js";
 
 const initialSection=()=> {
  const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit|gifts|activity)\/?$/);
@@ -34,6 +34,15 @@ const normalizeError=(code)=>{
  return errors[code] || (code?"Request failed: "+code:"The administration service is temporarily unavailable.");
 };
 function Stat({label,value}) {return <div className="pup-admin-stat"><span>{label}</span><strong>{value}</strong></div>;}
+function Connection({user}){
+ const connection=user.connection,network=user.network;
+ if(!connection&&!network)return <small>No website connection recorded yet</small>;
+ const device=describeDevice(connection?.userAgent||network?.userAgent);
+ return <><strong>{device.device}</strong><small>{device.browser} · {connection?.ip||network?.ip||'IP unavailable'}</small>
+  <small>{connection?.recentlyActive?'Active now · ':''}{formatTime(connection?.lastSeenAt||network?.checkedAt)}</small>
+  {connection?.path?<small>Page: {connection.path}</small>:null}
+  {typeof network?.vpn==='boolean'?<small>VPN {network.vpn?'detected':'not detected'}</small>:null}</>;
+}
 
 export default function AdminPortal(){
  const {client,pupAccount} = useWebAccount();
@@ -198,11 +207,7 @@ export default function AdminPortal(){
        <option value="ADMIN">Admin</option><option value="DEVELOPER">Developer</option>
        </select><button type="button" disabled={busy||!selectedRole[user.id]||selectedRole[user.id]===user.role}
        onClick={()=>confirmedRole(user)}>Save</button></div>:user.role}</td>
-      <td>{user.network?<><strong>{describeDevice(user.network.userAgent).device}</strong>
-       <small>{describeDevice(user.network.userAgent).browser} · {user.network.ip||'IP unavailable'}</small>
-       <small>{sessionIsOnline(user.network)?'Active now · ':''}{formatTime(user.network.checkedAt)}</small>
-       {user.network.vpn!==null?<small>VPN {user.network.vpn?'detected':'not detected'}</small>:null}</>:
-       <small>No website connection recorded yet</small>}</td>
+      <td><Connection user={user}/></td>
       <td><div className="pup-admin-row-actions">
        <button type="button" disabled={busy||user.id===staff.playerUuid||staff.role==='ADMIN'&&['ADMIN','DEVELOPER'].includes(user.role)}
         onClick={()=>setShowRestriction({user,type:'suspension'})}>Suspend</button>

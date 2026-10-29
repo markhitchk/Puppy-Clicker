@@ -15,7 +15,7 @@ export default function NetworkCheckReporter(){
    identity=nextIdentity;
    void reportWebActivity(changed?'page_view':event,{token});
    // Presence does not depend on the optional network-risk lookup.
-   if(networkIdentity===nextIdentity)return;
+   if(import.meta.env.VITE_NETWORK_CHECK_ENABLED!=='true'||networkIdentity===nextIdentity)return;
    networkIdentity=nextIdentity;
    try{await fetch('/api/network-check',{method:'POST',credentials:'same-origin',cache:'no-store',
     headers:token?{Authorization:'Bearer '+token}:{},signal:AbortSignal.timeout(5000)});}catch{}
