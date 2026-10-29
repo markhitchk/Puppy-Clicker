@@ -1,3 +1,4 @@
+import {checkWebPupEye,WebPupEyeError} from './_lib/webPupEye.js';
 import {createHash} from "node:crypto";
 import {dbClient,ensure,validateRequest,getPupIdentity,PupError,fail,isStaff,canonicalJson} from "./_lib/pupIdentity.js";
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -129,6 +130,7 @@ export default async function handler(req,res){
   validateRequest(req,res);
   const db=dbClient();
   const actor=await getPupIdentity(req,db);
+  await checkWebPupEye(db,actor.account.id,'gift',req.headers,{vercel:process.env.VERCEL==='1'});
   const {action}=req.body||{};
   let result;
   if(action==="catalog"){
@@ -160,5 +162,7 @@ export default async function handler(req,res){
    result=await review(db,actor,req.body);
   }else throw new PupError(400,"INVALID_GIFT_ACTION");
   return res.status(200).json({ok:true,...result});
- }catch(error){return fail(res,error);}
+ }catch(error){
+  return fail(res,error instanceof WebPupEyeError?new PupError(error.status,error.code):error);
+ }
 }
