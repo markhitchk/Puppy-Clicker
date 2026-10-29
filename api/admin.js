@@ -112,14 +112,23 @@ async function bans(db) {
 async function action(db,actor,body) {
   const type=body?.action;
   if (type==="staff-info") return {role:actor.role,username:actor.player.username};
-  if (type==="users") return {users:await users(db,body.search)};
+  if (type==="users") {
+    const listed=await users(db,body.search);
+    await audit(db,actor,null,"WEB_USERS_VIEW",{count:listed.length,filtered:!!safeSearch(body.search)});
+    return {users:listed};
+  }
   if (type==="audit") {
     const rows=ensure(await db.from("pup_admin_actions")
       .select("id,actor_player_uuid,target_player_uuid,action_code,detail,created_at")
       .order("created_at",{ascending:false}).limit(150)) || [];
+    await audit(db,actor,null,"WEB_AUDIT_VIEW",{count:rows.length});
     return {events:rows};
   }
-  if (type==="bans") return {bans:await bans(db)};
+  if (type==="bans") {
+    const listed=await bans(db);
+    await audit(db,actor,null,"WEB_BANS_VIEW",{count:listed.length});
+    return {bans:listed};
+  }
   if (type==="role-update") {
     const id=requireId(body.targetPlayerId);
     const role=body.role;
@@ -129,11 +138,10 @@ async function action(db,actor,body) {
       .eq("id",id).maybeSingle());
     if (!target || target.status !== "active") throw new AdminError(409,"TARGET_NOT_ACTIVE");
     if (target.guild_role === role) return {updated:true,unchanged:true};
-    if (target.guild_role==="DEVELOPER") {
-      const developers=ensure(await db.from("pupeye_players")
-        .select("id").eq("guild_role","DEVELOPER").eq("status","active").limit(2));
-      if ((developers||[]).length < 2) throw new AdminError(409,"LAST_DEVELOPER_PROTECTED");
-    }
+    // Developer demotion requires a dedicated privileged, transactional
+    // owner workflow. Never risk demoting the final developer via web requests.
+    if (target.guild_role==="DEVELOPER" && role!=="DEVELOPER")
+      throw new AdminError(403,"DEVELOPER_ROLE_PROTECTED");
     // Conditional write to reject concurrent changes.
     let update=db.from("pupeye_players").update({guild_role:role,updated_at:new Date().toISOString()})
       .eq("id",id);
