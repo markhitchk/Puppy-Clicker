@@ -1,3 +1,4 @@
+import {puppyReadFrom} from "../../src/dbSchemaLayout.js";
 import {createClient} from "@supabase/supabase-js";
 
 export class PupError extends Error {
@@ -27,29 +28,31 @@ export function validateRequest(req,res){
  if(Number(req.headers["content-length"]||0)>8192)throw new PupError(413,"REQUEST_TOO_LARGE");
 }
 export async function getPupIdentity(req,db){
+ // Opt-in grouped read views only; no writes/upserts or RPC changes.
+ const read = table => puppyReadFrom(db,table,{useGrouped:process.env.PUPPY_GROUPED_DB_READS==='true'});
  const auth=String(req.headers.authorization||"");
  if(!/^Bearer\s+[^\s]+$/.test(auth)||auth.length>5000)throw new PupError(401,"SIGN_IN_REQUIRED");
  const user=await db.auth.getUser(auth.replace(/^Bearer\s+/,""));
  if(user.error||!user.data?.user)throw new PupError(401,"SIGN_IN_REQUIRED");
  const uid=user.data.user.id;
- const link=ensure(await db.from("pup_web_auth_links")
+ const link=ensure(await read("pup_web_auth_links")
   .select("account_uuid").eq("auth_user_id",uid).maybeSingle());
  if(!link)throw new PupError(403,"PUP_ACCOUNT_REQUIRED");
- const account=ensure(await db.from("pup_accounts")
+ const account=ensure(await read("pup_accounts")
   .select("id,player_uuid,username,status,profile_avatar_path,updated_at,discord_user_id")
   .eq("id",link.account_uuid).maybeSingle());
  if(!account||account.status!=="active")throw new PupError(403,"ACCOUNT_NOT_ACTIVE");
- const player=ensure(await db.from("pupeye_players")
+ const player=ensure(await read("pupeye_players")
   .select("id,guild_role,status").eq("id",account.player_uuid).maybeSingle());
  if(!player||player.status!=="active")throw new PupError(403,"ACCOUNT_NOT_ACTIVE");
  // Player or Discord bans also block staff actions and gifts.
  const predicates=["player_uuid.eq."+player.id];
  if(account.discord_user_id&&/^\\d{15,22}$/.test(account.discord_user_id))
   predicates.push("discord_user_id.eq."+account.discord_user_id);
- const bans=ensure(await db.from("pupeye_ban_targets")
+ const bans=ensure(await read("pupeye_ban_targets")
   .select("ban_uuid").or(predicates.join(",")))||[];
  if(bans.length){
-  const active=ensure(await db.from("pupeye_global_bans")
+  const active=ensure(await read("pupeye_global_bans")
    .select("id,revoked_at,expires_at").in("id",[...new Set(bans.map(x=>x.ban_uuid))])
    .eq("status","active"))||[];
   if(active.some(x=>!x.revoked_at&&(!x.expires_at||Date.parse(x.expires_at)>Date.now())))
