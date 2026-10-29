@@ -184,18 +184,12 @@ function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen}){
   ]).start();
  };
  const label=cooldown?'Fair-play cooldown · '+cooldown+'s':g.energy<=10?g.puppyName+' is tired · Care needed':'Tap '+g.puppyName;
- const cycle=direction=>{
-  const owned=ROSTER.filter(p=>g.unlockedPuppies.includes(p.id));
-  if(owned.length<2)return;
-  const index=owned.findIndex(p=>p.id===g.puppyStyle);
-  act({type:'switch',id:owned[(index+direction+owned.length)%owned.length].id,now:Date.now()});
- };
  return <section className={'cyber-play '+(desktop?'desktop-play':'mobile-play')} data-reduced-motion={!g.idleAnimationsEnabled}>
-  <div className="play-heading"><div><h1>Play</h1><p>Tap your puppy and earn treats.</p></div>{desktop?<button className="cyber-button secondary small" onClick={()=>onOpen('roster')}>⇄ Switch Puppy</button>:null}</div>
+  <div className="play-heading"><div><h1>Play</h1><p>Tap your puppy and earn treats.</p></div><button className="cyber-button secondary small switch-puppy-action" onClick={()=>onOpen('roster')}>⇄ Switch Puppy</button></div>
   {!desktop?<Wallet game={g}/>:<div className="puppy-identity"><div className="identity-portrait"><Portrait puppy={pup} size={64} accessory={g.accessory}/></div><div><strong>{g.puppyName}</strong><p>{pup.id.startsWith('v2_')?pup.id:'v1_'+pup.id} · {pup.id.startsWith('v2_')?'V2':'V1'} Puppies</p><span className="current-puppy-badge">Current Puppy</span><button className="cyber-button secondary small" aria-label="Rename current puppy" onClick={()=>setRenameOpen(true)}>✎ Rename</button></div></div>}
   {renameOpen?<RenamePuppyDialog name={g.puppyName} onClose={()=>setRenameOpen(false)} onSave={name=>{act({type:'rename',name});setRenameOpen(false);}}/>:null}
   <div className="cyber-play-stage">
-   <PuppyPlatform name={g.puppyName} onPrevious={()=>cycle(-1)} onNext={()=>cycle(1)}>
+   <PuppyPlatform name={g.puppyName}>
     <Pressable accessibilityRole="button" accessibilityLabel={'Tap '+g.puppyName+' to earn Treats'} accessibilityState={{disabled:cooldown>0}} disabled={cooldown>0} onPress={doTap}>
      <Animated.View style={{transform:[{scale:tapScale},{rotate:rotation.interpolate({inputRange:[-4,4],outputRange:['-4deg','4deg']})},{translateY:lift}]}}>
       <Portrait puppy={pup} size={layout.portrait} accessory={g.accessory}/>
