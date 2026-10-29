@@ -108,6 +108,7 @@ export default function WebAccountGate({children}){
    {recovery?<Text style={{...text,fontSize:12,color:"#bbccdc",lineHeight:20}}>
     No access to Discord or your password? Use the Android app’s Settings → Support or another official Puppy Clicker support channel. Support requires independent proof of ownership; an unverified email address is not enough.
    </Text>:null}
+   {!recovery?<a href="/register" style={{color:"#8ce9ff",fontSize:15,fontWeight:900,textAlign:"center",padding:8}}>New player? Create a Pup Account 🐾</a>:null}
    <a href={recovery?"/account":"/recovery"} style={{color:"#8ce9ff",fontSize:14,fontWeight:800,textAlign:"center",padding:7}}>
     {recovery?"← Back to Pup Account sign-in":"Forgot your username or password? Recover account"}
    </a>
