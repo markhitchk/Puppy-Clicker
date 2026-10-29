@@ -22,7 +22,8 @@ test("web Account Details exposes the same signed-in public metadata as Android"
 test("status endpoint returns server-owned fields for only the authenticated player",()=>{
  const auth=read("supabase/functions/pup-web-auth/index.ts");
  assert.match(auth,/const \{account\}=await currentSession\(req\)/);
- assert.match(auth,/admin\.from\("pupeye_players"\)\.select\("friend_code,guild_role"\)/);
+ assert.match(auth,/admin\.from\("pupeye_players"\)\.select\("friend_code,guild_role,discord_username,discord_global_name,discord_avatar_hash,discord_email"\)/);
+ assert.match(auth,/discordProfile:account\.discord_user_id/);
  assert.match(auth,/\.eq\("id",account\.player_uuid\)/);
  assert.match(auth,/\.eq\("player_uuid",account\.player_uuid\)/);
  assert.match(auth,/friendCode:player\?\.friend_code/);
