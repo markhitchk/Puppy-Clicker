@@ -262,7 +262,7 @@ function AccountDashboard(){
      {credentialMessage?<p className="portal-message" role="status">{credentialMessage}</p>:null}
      <p className="account-security-note">Use a unique password. Sign-in details are sent to Supabase Auth over HTTPS and are not stored in the website's source code or local preferences.</p>
     </section>
-    <section className="portal-card account-management-card" aria-labelledby="account-management-title">
+    <section className="portal-card account-management-card" aria-labelledby="account-management">
      <h3 id="account-management">Account management</h3>
      <p>Refresh your verified account connection, reset a forgotten password, or request account recovery.</p>
      <div className="account-management-actions">
