@@ -2,10 +2,9 @@ import {randomUUID} from "node:crypto";
 import {createClient} from "@supabase/supabase-js";
 import {
   AdminError, UUID_PATTERN, isStaff, canModifyRole,
-  canSanction, validateBanInput, validateIp, safeSearch, noStore
+  canSanction, validateBanInput, safeSearch, noStore
 } from "./_lib/adminPolicy.js";
 
-const pick = (value, fallback=null) => value == null ? fallback : value;
 const requireId = (value) => {
   if (typeof value !== "string" || !UUID_PATTERN.test(value)) throw new AdminError(400,"INVALID_TARGET");
   return value;
@@ -32,12 +31,26 @@ async function authorize(req,db) {
     .select("account_uuid").eq("auth_user_id",uid).maybeSingle());
   if (!link) throw new AdminError(403,"PUP_ACCOUNT_REQUIRED");
   const account=ensure(await db.from("pup_accounts")
-    .select("id,player_uuid,status").eq("id",link.account_uuid).maybeSingle());
+    .select("id,player_uuid,discord_user_id,status").eq("id",link.account_uuid).maybeSingle());
   if (!account || account.status !== "active") throw new AdminError(403,"ACCOUNT_NOT_ACTIVE");
   const player=ensure(await db.from("pupeye_players")
     .select("id,guild_role,status,username").eq("id",account.player_uuid).maybeSingle());
   if (!player || player.status !== "active" || !isStaff(player.guild_role))
     throw new AdminError(403,"STAFF_ACCESS_REQUIRED");
+  // Mirror pup-web-auth's global ban check so a sanctioned staff account
+  // cannot bypass gameplay bans through the privileged web administration API.
+  const predicates=["player_uuid.eq."+account.player_uuid];
+  if (account.discord_user_id && /^\d{15,22}$/.test(account.discord_user_id))
+    predicates.push("discord_user_id.eq."+account.discord_user_id);
+  const targets=ensure(await db.from("pupeye_ban_targets")
+    .select("ban_uuid").or(predicates.join(","))) || [];
+  const ids=[...new Set(targets.map(t=>t.ban_uuid).filter(Boolean))];
+  if (ids.length) {
+    const bans=ensure(await db.from("pupeye_global_bans")
+      .select("id,expires_at,revoked_at").in("id",ids).eq("status","active")) || [];
+    if (bans.some(b=>!b.revoked_at && (!b.expires_at || Date.parse(b.expires_at)>Date.now())))
+      throw new AdminError(403,"ACCOUNT_BANNED");
+  }
   // Re-read roles from the authoritative database on EVERY request, not a JWT claim.
   return {uid,account,player,role:player.guild_role};
 }
