@@ -1,3 +1,4 @@
+import {checkWebPupEye,WebPupEyeError} from './_lib/webPupEye.js';
 import {createClient} from "@supabase/supabase-js";
 import {
   AdminError, UUID_PATTERN, isStaff, canModifyRole,
@@ -288,11 +289,14 @@ export default async function handler(req,res) {
   try {
     const db=dbClient();
     const actor=await authorize(req,db);
+    // PupEye Web protects privileged actions with the same account identity.
+    await checkWebPupEye(db,actor.account.id,'admin',req.headers,{vercel:process.env.VERCEL==='1'});
     const result=await action(db,actor,req.body || {});
     return res.status(200).json({ok:true,...result});
   } catch(e) {
-    const status=e instanceof AdminError?e.status:503;
-    if(!(e instanceof AdminError)) console.error("Web admin request error; details withheld");
-    return res.status(status).json({error:e instanceof AdminError?e.code:"ADMIN_UNAVAILABLE"});
+    const known=e instanceof AdminError||e instanceof WebPupEyeError;
+    const status=known?e.status:503;
+    if(!known)console.error("Web admin request error; details withheld");
+    return res.status(status).json({error:known?e.code:"ADMIN_UNAVAILABLE"});
   }
 }
