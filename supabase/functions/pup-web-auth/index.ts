@@ -311,6 +311,7 @@ async function handleAuthRequest(req,auditContext){
     friendCode:player?.friend_code||null,
     guildRole:player?.guild_role||null,
     status:"VERIFIED",
+    pupeyeWeb:{mode:"server-verified",deviceAttestation:false},
     linkedFromPlay:webOnly?null:connected,
     webOnly,
     gameplayWritable:webOnly||connected,
