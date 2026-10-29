@@ -1,0 +1,61 @@
+.puppy-android-banner {
+  position: fixed;
+  z-index: 1100;
+  left: max(12px, env(safe-area-inset-left));
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  max-width: 600px;
+  margin-inline: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 44px 16px 16px;
+  color: #f4fbff;
+  background: linear-gradient(135deg, #12151f 0%, #1a1e2b 100%);
+  border: 1px solid rgba(0, 229, 255, .45);
+  border-radius: 20px;
+  box-shadow: 0 18px 48px rgba(0,0,0,.65), 0 0 26px rgba(0,229,255,.12);
+  font-family: Inter, system-ui, sans-serif;
+}
+.puppy-android-banner-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: rgba(0,229,255,.12);
+  font-size: 25px;
+}
+.puppy-android-banner-body {min-width: 0; flex: 1;}
+.puppy-android-banner-body strong {font-size: 15px; font-weight: 800; color: #fff;}
+.puppy-android-banner-body p {font-size: 13px; margin: 4px 0 12px; line-height: 1.5; color: #c5cfdd;}
+.puppy-android-banner-actions {display:flex; align-items:center; flex-wrap:wrap; gap:9px;}
+.puppy-android-banner-actions a, .puppy-android-banner-actions button {
+  padding: 9px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  border: 1px solid rgba(196,215,226,.3);
+}
+.puppy-android-banner-download {
+  color: #05141c;
+  background: linear-gradient(100deg,#00e5ff,#81f5ff);
+  text-decoration: none;
+  border-color: transparent !important;
+}
+.puppy-android-banner-actions button {color: #cfdeea; background: rgba(255,255,255,.035);}
+.puppy-android-banner-actions button:hover {border-color:#00e5ff;}
+.puppy-android-banner-unavailable {font-size:12px;color:#bdccdb;}
+.puppy-android-banner-close {position:absolute;top:8px;right:10px;color:#c4d2de;background:transparent;border:0;font-size:24px;cursor:pointer;}
+@media(max-width:420px) {
+ .puppy-android-banner {gap:10px;padding:14px 36px 14px 12px;border-radius:16px;}
+ .puppy-android-banner-icon {width:34px;height:34px;font-size:20px;}
+ .puppy-android-banner-actions {gap:6px;}
+ .puppy-android-banner-actions a,.puppy-android-banner-actions button {padding:8px 10px;font-size:11px;}
+}
+@media (prefers-reduced-motion: no-preference) {
+ .puppy-android-banner {animation:puppy-android-in .24s ease-out;}
+ @keyframes puppy-android-in {from {opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+}
