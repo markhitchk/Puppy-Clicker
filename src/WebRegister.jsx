@@ -87,9 +87,9 @@ export default function WebRegister({onAuthenticated,onSignIn}){
  return <div className="account-auth-register android-auth-register">
   <div className="android-auth-title"><span className="android-auth-step">PUP ACCOUNT · SET UP YOUR ACCOUNT</span><h2>Create Pup Account</h2><p>Choose a username and password, or continue with Discord. Both legal policies require acceptance.</p></div>
   <section className="android-auth-provider">
-   <div className="android-auth-provider-heading"><img src={DISCORD_ICON_URL} alt="" /><div><strong>Discord</strong><small>Alternative account registration or sign-in</small></div></div>
+   <div className="android-auth-provider-heading"><img src={DISCORD_ICON_URL} alt="" onError={event=>{event.currentTarget.onerror=null;event.currentTarget.src="/assets/logos/discord.png";}} /><div><strong>Discord</strong><small>Alternative account registration or sign-in</small></div></div>
    <p>Register using your Discord identity and optionally import your verified Discord email as a support contact.</p>
-   {!discordSignup?<button type="button" className="cta cta-secondary stretch" onClick={()=>void registerWithDiscord()} disabled={discordBusy}><img className="pup-discord-button-icon" src={DISCORD_ICON_URL} alt="" />{discordBusy?"Connecting to Discord…":"Register with Discord"}</button>:null}
+   {!discordSignup?<button type="button" className="cta cta-secondary stretch" onClick={()=>void registerWithDiscord()} disabled={discordBusy}><img className="pup-discord-button-icon" src={DISCORD_ICON_URL} alt="" onError={event=>{event.currentTarget.onerror=null;event.currentTarget.src="/assets/logos/discord.png";}} />{discordBusy?"Connecting to Discord…":"Register with Discord"}</button>:null}
   </section>
   {discordSignup?<DiscordSignupForm signup={discordSignup} onAuthenticated={onAuthenticated} onSignIn={onSignIn}/>:
   <section className="android-auth-provider">
