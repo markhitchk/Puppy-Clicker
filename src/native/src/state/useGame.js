@@ -6,6 +6,7 @@ import {projectKotlinCloudSave} from "../production/kotlinCloudPreview.js";
 import {fallbackSchedule,parseMonthlySchedule,monthKey} from "../engine/monthlyRewards.js";
 import {useWebAccount} from "../../web/AccountGate.jsx";
 import {puppyFunctionError} from '../../web/puppyOAuth.js';
+import {mapSystemNotifications,combineNotificationInbox} from '../../web/systemNotificationInbox.js';
 
 // The browser is now a Pup Account companion, not a separate economy.
 // Never read or write puppy_web_saves, never forge a PupEye signed envelope.
@@ -45,10 +46,7 @@ export function useGame(){
   try{
    const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"notifications-read"}});
    if(error||!Array.isArray(data?.notifications))return false;
-   const rows=data.notifications.filter(n=>n&&typeof n.id==="string"&&
-    typeof n.title==="string"&&typeof n.body==="string"&&Number.isFinite(Date.parse(n.createdAt)))
-    .map(n=>({id:"staff:"+n.id,category:"system",title:n.title,body:n.body,
-     createdAt:Date.parse(n.createdAt),read:n.read===true,action:null}));
+   const rows=mapSystemNotifications(data.notifications);
    setServerInbox({accountId:pupAccount.id,rows});
    return true;
   }catch{return false;}
@@ -239,10 +237,7 @@ export function useGame(){
   displayName:pupAccount?.displayName||pupAccount?.username,
   discordUserId:pupAccount?.discordUserId||null,
   id:pupAccount?.id,authUserId:user.id,gameplayWritable:loaded.current};
- const accountServerInbox=serverInbox.accountId===pupAccount.id?serverInbox.rows:[];
- const gameForDisplay={...state.game,notificationInbox:[
-  ...accountServerInbox,...(state.game.notificationInbox||[]).filter(n=>!accountServerInbox.some(s=>s.id===n.id))
- ]};
+ const gameForDisplay=combineNotificationInbox(state.game,serverInbox,pupAccount.id);
  return {state,gameForDisplay,act,account,cloudState,
   gameplayBusy:pendingActions>0,
   startupError:syncStatus.errorCode?{code:syncStatus.errorCode}:null,syncStatus,
