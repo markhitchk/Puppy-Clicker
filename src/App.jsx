@@ -269,19 +269,28 @@ export default function App(){
  useEffect(()=>installInspectionDeterrent(),[]);
  useEffect(()=>{
   // Root-level styling includes Home, Play, Account, and all website routes.
+  const systemTheme=window.matchMedia('(prefers-color-scheme: dark)');
   const syncPawCursor=event=>{
+   const saved=loadWebPreferences();
+   // An in-tab settings change also works when browser storage is unavailable.
    const enabled=typeof event?.detail?.puppyPointerEnabled==='boolean'
     ?event.detail.puppyPointerEnabled
-    :loadWebPreferences().puppyPointerEnabled!==false;
+    :saved.puppyPointerEnabled!==false;
+   const mode=event?.detail?.themeMode??saved.themeMode;
+   const dark=mode==='dark'||(mode!=='light'&&systemTheme.matches);
    document.documentElement.dataset.puppyCursor=enabled?'enabled':'disabled';
+   document.documentElement.dataset.puppyCursorTheme=dark?'dark':'light';
   };
   syncPawCursor();
   window.addEventListener(WEB_PREFERENCES_CHANGED,syncPawCursor);
   window.addEventListener('storage',syncPawCursor);
+  systemTheme.addEventListener('change',syncPawCursor);
   return()=>{
    window.removeEventListener(WEB_PREFERENCES_CHANGED,syncPawCursor);
    window.removeEventListener('storage',syncPawCursor);
+   systemTheme.removeEventListener('change',syncPawCursor);
    delete document.documentElement.dataset.puppyCursor;
+   delete document.documentElement.dataset.puppyCursorTheme;
   };
  },[]);
  // Keep historical /register bookmarks, but make /account the one auth endpoint.
