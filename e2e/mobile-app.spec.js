@@ -27,7 +27,7 @@ for(const width of [360,768,1280,1920]){
   await page.getByRole("link",{name:"Account",exact:true}).click();
   await expect(page).toHaveURL(/\/account$/);
   await expect(page.getByRole("heading",{name:"Your account"})).toBeVisible();
-  await expect(page.getByText("Existing cloud save found")).toBeVisible();
+  await expect(page.getByText("Cloud backup found")).toBeVisible();
   await expect(page.getByRole("button",{name:"Edit name"})).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
   expect(errors).toEqual([]);

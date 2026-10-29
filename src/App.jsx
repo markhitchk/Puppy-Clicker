@@ -1,3 +1,4 @@
+import {installInspectionDeterrent} from "./inspectionDeterrent.js";
 import React,{useEffect,useState} from "react";
 import NativeApp from "./native/App.jsx";
 import RecoveryPage from "./RecoveryPage.jsx";
@@ -237,6 +238,7 @@ function DiscordCallbackPage(){
  return <WebAccountGate><div className="account-content"><p role="status">Completing secure Pup Account sign-in…</p></div></WebAccountGate>;
 }
 export default function App(){
+ useEffect(()=>installInspectionDeterrent(),[]);
  const path=typeof window!=="undefined"?window.location.pathname:"/";
  const callback=path==="/auth/discord/callback";
  const page=path==="/account"?"account":path==="/recovery"?"recovery":

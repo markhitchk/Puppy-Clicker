@@ -25,7 +25,7 @@ import PuppyPointer from './src/components/PuppyPointer.jsx';
 import {useNotifications} from './src/state/useNotifications.js';
 import {themedStyles} from './src/theme.js';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
-import {Alert,Animated,Easing,Image,ImageBackground,Modal,NativeModules,Pressable,ScrollView,StatusBar,Text,TextInput,Vibration,View,BackHandler,useColorScheme,useWindowDimensions} from 'react-native';
+import {ActivityIndicator,Alert,Animated,Easing,Image,ImageBackground,Modal,NativeModules,Pressable,ScrollView,StatusBar,Text,TextInput,Vibration,View,BackHandler,useColorScheme,useWindowDimensions} from 'react-native';
 import {colors as C} from './src/theme.js';
 import {useGame} from './src/state/useGame.js';
 import {useRoster} from './src/state/useRoster.js';
@@ -55,14 +55,6 @@ import {PUPPY_IMAGES} from './src/assets/puppies.js';
 const webExchangeRequest=(operation,fields)=>requestWebPuppyExchange(webClient,operation,fields);
 const TABS=MAIN_TABS;
 const skillNames={TAP_TRAINING:'Tap Training',AUTO_TRAINING:'Bonus Training',SMART_SHOPPER:'Smart Shopper',TICKET_SENSE:'Ticket Sense'};
-const die=()=>1+Math.floor(Math.random()*13);
-const roll=()=>Math.floor(Math.random()*100);
-const number=()=>Math.floor(Math.random()*37);
-const shuffledBlackjackDeck=()=>{
- const deck=Array.from({length:52},(_,i)=>i);
- for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
- return deck;
-};
 function Txt({children,muted=false,style={},numberOfLines,...textProps}){return <Text {...textProps} numberOfLines={numberOfLines} style={[styles.text,muted&&styles.muted,style]}>{children}</Text>;}
 function Card({title,children,subtitle}){return <View style={styles.card}><View style={styles.cardTitle}><Txt style={styles.heading}>{title}</Txt>{subtitle?<Txt muted style={styles.tiny}>{subtitle}</Txt>:null}</View>{children}</View>;}
 const AnimatedPressable=Animated.createAnimatedComponent(Pressable);
@@ -178,7 +170,7 @@ function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen}){
  const doTap=()=>{
   if(v6CooldownSeconds(g,Date.now()))return;
   if(g.energy<=10){Alert.alert('😴 '+g.puppyName+' is tired','Rest in Pup Care to keep playing.');return;}
-  act({type:'tap',now:Date.now(),randoms:[Math.random(),Math.random()]});
+  act({type:'tap',now:Date.now()});
   if(g.hapticsEnabled)Vibration.vibrate(12);
   if(!animate)return;
   tapScale.stopAnimation();rotation.stopAnimation();lift.stopAnimation();
@@ -541,7 +533,7 @@ function GachaScreen({g,act,state,registry,onBack}){
   ||ROSTER.find(p=>p.id===result?.puppyId);
  const pool=gachaPool(ROSTER,g.unlockedPuppies);
  const missing=pool.filter(p=>!g.unlockedPuppies.includes(p.id));
- const purchasesAllowed=stage===0&&!result?.success&&pool.length>0;
+ const purchasesAllowed=!g.gameplayBusy&&stage===0&&!result?.success&&pool.length>0;
  useEffect(()=>{
   if(!result?.success){
    setStage(0);return;
@@ -556,7 +548,7 @@ function GachaScreen({g,act,state,registry,onBack}){
   ]);
   motion.start(({finished})=>{if(finished)setStage(2);});
   return ()=>{motion.stop();if(revealTimer.current)clearTimeout(revealTimer.current);};
- },[result,turn,drop,opening,g.animationsEnabled]);
+ },[result?.id,turn,drop,opening,g.animationsEnabled]);
  const openCapsule=()=>{
   if(stage!==2||!result?.success)return;
   if(g.animationsEnabled===false){opening.setValue(1);setStage(4);return;}
@@ -573,7 +565,7 @@ function GachaScreen({g,act,state,registry,onBack}){
   const affordable=payment==='TREATS'?g.treats>=GACHA_TREAT_COST:(g.ticketInventory.COMMON||0)>=1;
   if(!affordable){setMessage(payment==='TREATS'?'You need 2500 Treats.':'You need 1 Common Ticket.');return;}
   setMessage('');
-  act({type:'gacha',payment,roll:Math.floor(Math.random()*0x7fffffff)});
+  act({type:'gacha',payment});
  };
  const turnDegrees=turn.interpolate({inputRange:[0,1],outputRange:['0deg','360deg']});
  const tiltOpacity=opening.interpolate({inputRange:[0,0.12,0.62,1],outputRange:[0,1,1,0]});
@@ -871,8 +863,8 @@ function BlackjackV6Panel({g,act,state,onBack}){
    {Array.from({length:oneRow?1:2},(_,row)=><View key={row} style={styles.blackjackActionRow}>
     {buttons.slice(row*(oneRow?4:2),(row+1)*(oneRow?4:2)).map(([label,key,type,backgroundColor,color])=>
      <Pressable key={key} accessibilityRole="button"
-      accessibilityState={{disabled:!controls[key]}}
-      disabled={!controls[key]} onPress={()=>move(type)}
+      accessibilityState={{disabled:g.gameplayBusy||!controls[key]}}
+      disabled={g.gameplayBusy||!controls[key]} onPress={()=>move(type)}
       style={({pressed})=>[styles.blackjackAction,{backgroundColor},!controls[key]&&styles.buttonDisabled,pressed&&{transform:[{scale:.97}]}]}>
       <Text style={[styles.blackjackActionText,{color}]}>{label}</Text>
      </Pressable>)}
@@ -888,8 +880,8 @@ function BlackjackV6Panel({g,act,state,onBack}){
      <Txt style={[styles.filterText,wager===preset&&styles.filterTextSelected]}>{preset}</Txt>
     </Pressable>)}
    </View>
-   <Button disabled={!canDealBlackjack(g.casinoChips,wager,active,g.pendingScratch||g.pendingSlots||g.pendingRoulette||g.pendingPlinko||g.pendingWheel)}
-    onPress={()=>{setSelectedHand(0);act({type:'blackjackStart',wager,deck:shuffledBlackjackDeck(),now:Date.now()});}}>
+   <Button disabled={g.gameplayBusy||!canDealBlackjack(g.casinoChips,wager,active,g.nativeCasinoPending||g.pendingScratch||g.pendingSlots||g.pendingRoulette||g.pendingPlinko||g.pendingWheel)}
+    onPress={()=>{setSelectedHand(0);act({type:'blackjackStart',wager,now:Date.now()});}}>
     {g.pendingScratch||g.pendingSlots||g.pendingRoulette||g.pendingPlinko||g.pendingWheel?'Finish the current Casino round first':g.casinoChips<wager?'Not Enough Chips':'Deal for '+wager+' Chips'}
    </Button>
   </>:null}
@@ -912,10 +904,14 @@ function CasinoScreen({g,act,state,bet,setBet,onBack}){
  const {width}=useWindowDimensions();
  const casino=(gameType,extra={})=>act({type:'casino',gameType,wager:bet,...extra});
  const choices=[20,50,100,500,1000];
- const inBlackjack=Boolean(state.blackjack||g.pendingSlots||g.pendingRoulette||g.pendingPlinko||g.pendingScratch||g.pendingWheel);
+ const inBlackjack=Boolean(g.nativeCasinoPending||state.blackjack||g.pendingSlots||g.pendingRoulette||g.pendingPlinko||g.pendingScratch||g.pendingWheel);
  const visiblePage=CASINO_PAGES.find(p=>p[0]===page);
  if(!accepted)return <CasinoIntroDialog onBack={onBack} onContinue={()=>setAccepted(true)}/>;
  return <View style={styles.gamePage}>
+  {g.nativeCasinoPending?<View accessibilityRole="alert" style={styles.notice}>
+   <Txt>{g.nativeCasinoRefund?'An unfinished round from the old app is blocking the Casino. Recover it to return the reserved Chips and start playing.':'Finish your saved Casino round in the registered Android app, let it sync, then refresh here. Your wager is preserved.'}</Txt>
+   {g.nativeCasinoRefund?<Button disabled={g.gameplayBusy} onPress={()=>act({type:'casinoRecoverLegacy'})}>{g.gameplayBusy?'Recovering old round…':'Recover old round · Return '+g.nativeCasinoRefund+' Chips'}</Button>:null}
+  </View>:null}
   {page!=='blackjack'&&page!=='slots'&&page!=='roulette'&&page!=='plinko'&&page!=='scratchers'&&page!=='wheel'?<><View style={styles.pair}>
    <Button compact secondary onPress={()=>page==='hub'?onBack():setPage('hub')}>{page==='hub'?'‹ Rewards':'‹ Casino'}</Button>
    <Txt style={styles.pageTitle}>{visiblePage?.[2]||'Puppy Casino'}</Txt>
@@ -1091,15 +1087,15 @@ export function PuppyApp({betaMode=false}){
   if(secondary==='settings')return <SettingsScreen g={saved} act={act} onOpen={openScreen} registry={registry} notifications={notifications} betaMode={betaMode} webMode account={account} onConnectAccount={()=>webClient.auth.signOut()} onUpdateAccountName={updateAccountName} onUpdateBirthday={onboarding.update} cloudState={cloudState} syncStatus={syncStatus} gameplayBusy={gameplayBusy} onRefreshAccount={refreshAccount}/>;
   if(secondary==='account-details')return <AccountDetailsScreen account={account} cloudState={cloudState}
    onBack={()=>setSecondary('settings')} onManage={()=>openAccount('signin')} onRefresh={refreshAccount}/>;
-  if(secondary==='prestige')return <PrestigeScreen g={g} act={act} activeCasinoRound={Boolean(state.blackjack||g.pendingScratch||g.pendingSlots||g.pendingRoulette||g.pendingPlinko||g.pendingWheel)}/>;
+  if(secondary==='prestige')return <PrestigeScreen g={g} act={act} activeCasinoRound={Boolean(state.blackjack||g.nativeCasinoPending||g.pendingScratch||g.pendingSlots||g.pendingRoulette||g.pendingPlinko||g.pendingWheel)}/>;
   if(secondary==='exchange')return <PuppyExchangeScreen game={g} registry={registry} account={account} onBack={()=>setSecondary(null)} onRefresh={refreshAccount} webRequest={webExchangeRequest}/>;
   if(secondary==='roster'||tab==='roster'&&!secondary){
    const roster=<RosterScreen g={g} act={act} registry={registry} onUse={usePuppy} onOpenExchange={()=>setSecondary('exchange')}/>;
    return desktop?<div className="desktop-roster-shop" data-testid="desktop-roster-shop"><section>{roster}</section><aside><ShopScreen g={g} act={act} onOpen={openScreen}/></aside></div>:roster;
   }
   if(secondary==='rewards'||tab==='rewards'&&!secondary)return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} readOnly={betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
-  if(secondary==='gacha')return <GachaScreen g={g} act={act} state={state} registry={registry} onBack={()=>openScreen('rewards')}/>;
-  if(secondary==='casino')return <CasinoScreen g={g} act={act} bet={bet} setBet={setBet} state={state} onBack={()=>openScreen('rewards')}/>;
+  if(secondary==='gacha')return <GachaScreen g={{...g,gameplayBusy}} act={act} state={state} registry={registry} onBack={()=>openScreen('rewards')}/>;
+  if(secondary==='casino')return <CasinoScreen g={{...g,gameplayBusy}} act={act} bet={bet} setBet={setBet} state={state} onBack={()=>openScreen('rewards')}/>;
   if(tab==='play')return desktop?<DesktopPlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>:<PlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>
   if(tab==='care')return <CareScreen g={g} act={act} viewportHeight={contentHeight-6}/>;
   if(tab==='shop')return <ShopScreen g={g} act={act} onOpen={openScreen}/>;
@@ -1109,6 +1105,16 @@ export function PuppyApp({betaMode=false}){
  // No account banner, cached preview or unverified account can enter gameplay.
  const startPhase=betaMode?startupGate({account,cloudState,setupReady:onboarding.ready,
   setupProblem:onboarding.problem,gameReady:state.ready}):'ready';
+ if(!betaMode&&cloudState!=='LIVE_SYNCED')return <View style={{padding:28,gap:16}}>
+  {cloudState==='LOADING'?<><ActivityIndicator/><Txt>Loading verified Pup Account progress…</Txt></>:
+   <><View accessibilityRole="alert"><Txt>{cloudState==='NO_CLOUD_SAVE'
+    ?'Open Puppy Clicker on Android and upload its cloud save before playing on the website.'
+    :startupError?.code==='PUP_OWNER_DEVICE_UNAVAILABLE'
+     ?'Your Android PupEye owner installation is unavailable. Open the registered Android app or use Account recovery.'
+     :'Cloud progress could not be verified. Check your connection and refresh. Your Android save has not been replaced.'}</Txt></View>
+    <Button onPress={()=>void refreshAccount()}>Refresh cloud progress</Button>
+    <a href="/recovery">Account recovery</a></>}
+ </View>;
  if(betaMode&&!crashChecked)return <PuppyStartupScreen phase="loading"/>;
  if(betaMode&&previousCrash)return <PuppyStartupScreen phase="crash" issue={previousCrash}
   busy={startupRetryBusy} retry={retryPreviousCrash}/>;
@@ -1136,7 +1142,7 @@ export function PuppyApp({betaMode=false}){
    <Pressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={()=>setSecondary('settings')} style={styles.headerButton}><Txt style={{fontSize:23}}>⚙️</Txt></Pressable></div></>}
   </View>:null}
 
-{state.notice?<Pressable accessibilityRole="button" onPress={()=>act({type:'dismiss'})} style={styles.notice}><Txt style={styles.small}>{state.notice}  ✕</Txt></Pressable>:null}
+{state.notice?<Pressable accessibilityRole="alert" onPress={()=>act({type:'dismiss'})} style={styles.notice}><Txt style={styles.small}>{state.notice}  ✕</Txt></Pressable>:null}
   {state.ready&&g.onboardingComplete&&!secondary&&tab==='play'?<View testID="play-viewport" onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={{flex:1,minHeight:0,minWidth:0,padding:8}}>{main()}</View>:<>
   <ScrollView key={secondary||tab} onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={styles.scroll} contentContainerStyle={[styles.content,(secondary==='settings'||['play','care','roster'].includes(tab)&&!secondary)&&{paddingTop:2,paddingBottom:0,paddingHorizontal:secondary==='settings'?16:tab==='roster'?12:14,gap:0},{maxWidth:desktop?1800:width>650?700:undefined,paddingHorizontal:desktop?24:14,paddingVertical:desktop?18:12}]} keyboardShouldPersistTaps="handled">
    {secondary&&secondary!=='exchange'&&secondary!=='account-details'?<View style={styles.back}><Button compact secondary onPress={()=>setSecondary(null)}>← Back to {TABS.find(x=>x[0]===tab)?.[2]}</Button><Txt style={styles.heading}>{secondary.toUpperCase()}</Txt></View>:null}

@@ -50,7 +50,7 @@ GitHub Actions builds a release-mode preview APK, verifies the embedded JS bundl
 
 The website now uses the same authoritative `pup_account_saves` row as Android. The browser no longer uses the web-only `puppy_web_save_commit` RPC. Guest sessions are intentionally not saved. Supabase publishable URL/key configuration is in `.env.example` (web) and `mobile/.env.example` (Android).
 
-**Website Discord authentication:** The independent Puppy Clicker Discord application (client ID `1547982688898777118`) must register `https://puppy-clicker.vercel.app/auth/discord/callback` as an **additional OAuth2 redirect URL in the Discord Developer Portal**. The browser sends a Discord PKCE authorization request to that exact HTTPS callback, validates its state, exchanges the code through `pup-web-auth`, verifies the linked Pup Account, and then returns to `https://puppy-clicker.vercel.app/`. The `discord-1547982688898777118:/authorize/callback` deep link remains app-only and is not a valid website redirect. Local development callbacks may be registered separately. Do not use ARC Raiders' Discord application or generic Supabase Discord OAuth: both risk linking the wrong identity. No server secrets belong in either public environment.
+**Website Discord authentication:** The independent Puppy Clicker Discord application (client ID `1547982688898777118`) must register `https://puppy-clicker.vercel.app/auth/discord/callback` as an **additional OAuth2 redirect URL in the Discord Developer Portal**. The browser sends a Discord PKCE authorization request to that exact HTTPS callback, validates its state, exchanges the code through `pup-web-auth`, verifies the linked Pup Account, and then returns to `/play` (or the explicitly selected `/account` or `/recovery` page). The `discord-1547982688898777118:/authorize/callback` deep link remains app-only and is not a valid website redirect. Local development callbacks may be registered separately. Do not use ARC Raiders' Discord application or generic Supabase Discord OAuth: both risk linking the wrong identity. No server secrets belong in either public environment.
 
 Native Discord OAuth continues to use its separate PKCE callbacks, including `puppyclicker-reactpreview://auth/callback` (preview) and `puppyclicker://auth/callback` (production), with Android cold-start and warm callbacks. Add these to the existing Supabase redirect allowlist when testing native sign-in.
 
@@ -78,3 +78,15 @@ The scheduled/manual `Sync mobile game engine` workflow proposes upstream update
 ### Browser E2E testing without real account writes
 
 `npm run test:e2e` serves Vite with `PUPPY_E2E_FIXTURE=1`, which swaps **only the dev server's** Supabase import for an isolated in-browser mock account and localStorage-backed test save. The normal Vercel production build uses the real Supabase client; the fixture alias is disabled for `vite build` even if the environment variable is set. This lets Playwright exercise authenticated gameplay without a real user's Pup Account or Supabase data.
+
+## Web auth and casino repair
+
+See [the diagnostic report and QA checklist](docs/reports/web-auth-casino-repair.md).
+
+The Discord callback is **only** `/auth/discord/callback`; Supabase email enrollment and reset links return to **`/recovery`**. Register `https://puppy-clicker.vercel.app/recovery` in Supabase Auth's redirect allowlist and keep the HTTPS Discord callback registered in the Puppy Clicker Discord application. These callback types are handled separately; neither is an Android deep link. Keep using the same browser for PKCE email links.
+
+Both the session client and the public web auth exchange now use `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. They must point to the same project hosting the existing Pup Account links and saves. Auth persists in browser storage, with no application session cookie or cookie-domain/SameSite setting. The server still verifies the bearer session, account standing and legal acceptance; every gameplay request also verifies the active PupEye owner installation and existing Android save.
+
+A saved legacy Android casino round blocks new website wagers until that original round is finished and synchronized. The website now explains this and withholds the legacy deck. It never clears, refunds, re-rolls or settles that wager from browser input. Gacha and all supported casino transactions continue to use server RNG and revision-checked saves.
+
+No new environment variable or database migration is required. Release the updated website and `pup-web-auth` together, retaining the function's existing authentication configuration. Do not rotate the existing server casino seed while Blackjack hands are open. No Android source or build configuration is changed by this repair.

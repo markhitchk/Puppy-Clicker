@@ -2,7 +2,7 @@ import React,{createContext,useContext,useEffect,useState} from "react";
 import {View,Text,TextInput,Pressable,Image,ActivityIndicator} from "react-native";
 import {client} from "../../supabase.js";
 import {beginPuppyDiscord,completePuppyDiscordCallback,hasPuppyDiscordCallback,
- clearPendingDiscord,verifyPuppySession,signInPupUsername} from "./puppyOAuth.js";
+ clearPendingDiscord,verifyPuppySession,signInPupUsername,puppyAuthMessage} from "./puppyOAuth.js";
 
 const C=createContext(null);
 export const useWebAccount=()=>useContext(C);
@@ -14,35 +14,38 @@ export default function WebAccountGate({children}){
  const [user,setUser]=useState(null),[pupAccount,setPupAccount]=useState(null);
  const [loading,setLoading]=useState(true),[login,setLogin]=useState(""),[password,setPassword]=useState("");
  const [busy,setBusy]=useState(false),[error,setError]=useState("");
+ const [callbackFailed,setCallbackFailed]=useState(false);
  useEffect(()=>{
-  let alive=true;
+  let alive=true,starting=true,verification=0;
   const verify=async()=>{
+   const request=++verification;
    if(!client){if(alive){setLoading(false);setError("Puppy account service is unavailable.");}return;}
    try{
     const result=await client.auth.getUser();
     if(result.error||!result.data?.user){
-     if(alive){setUser(null);setPupAccount(null);setLoading(false);}return;
+     if(alive&&request===verification){setUser(null);setPupAccount(null);setLoading(false);}return;
     }
     // Supabase Auth also hosts users of other services. Only the verified Pup
     // Account server link can grant access to this game's website.
     const account=await verifyPuppySession(client);
-    if(alive){setUser(result.data.user);setPupAccount(account);setLoading(false);setError("");}
+    if(alive&&request===verification){setUser(result.data.user);setPupAccount(account);setLoading(false);setError("");}
    }catch(e){
-    if(alive){setUser(null);setPupAccount(null);setLoading(false);
-     setError("Could not verify a Puppy Clicker Pup Account. Use Puppy Discord or your Pup username.");}
+    if(alive&&request===verification){setUser(null);setPupAccount(null);setLoading(false);
+     setError(puppyAuthMessage(e));}
    }
   };
   const {data}=client?.auth.onAuthStateChange(()=>{
-   queueMicrotask(()=>{if(alive)void verify();});
+   setTimeout(()=>{if(alive&&!starting)void verify();},0);
   })||{};
   const start=async()=>{
    if(client&&hasPuppyDiscordCallback()){
     try{await completePuppyDiscordCallback(client);}
     catch(e){
-     if(alive)setError(String(e?.message||"PUP_DISCORD_LOGIN_FAILED").replace(/_/g," "));
+     if(alive){setError(puppyAuthMessage(e));setCallbackFailed(true);setLoading(false);}
+     return;
     }
    }
-   if(alive)await verify();
+   if(alive){starting=false;await verify();}
   };
   void start();
   return()=>{alive=false;data?.subscription?.unsubscribe();};
@@ -59,7 +62,7 @@ export default function WebAccountGate({children}){
    // Android, iOS, and desktop, never to the Android app's custom URI.
    window.location.assign(url);
   }catch(e){
-   setError(String(e?.message||"PUP_DISCORD_AUTH_FAILED").replace(/_/g," "));
+   setError(puppyAuthMessage(e));
    setBusy(false);
   }
  };
@@ -71,9 +74,15 @@ export default function WebAccountGate({children}){
    const account=await signInPupUsername(client,login.trim(),password);
    const {data}=await client.auth.getUser();
    if(data?.user){setUser(data.user);setPupAccount(account);}
-  }catch(e){setError(e?.message==="PUP_SIGNIN_INVALID"?"Incorrect Pup username or password.":String(e?.message||"PUP_SIGNIN_FAILED").replace(/_/g," "));}
+  }catch(e){setError(puppyAuthMessage(e));}
   finally{setBusy(false);setPassword("");}
  };
+ if(callbackFailed)return <View style={{padding:28,backgroundColor:'#19313e',gap:16}}>
+  <Text accessibilityRole="header" style={{...text,fontSize:24}}>Pup Account sign-in could not complete</Text>
+  <Text accessibilityRole="alert" style={text}>{error}</Text>
+  <a href="/play" style={{color:'#8ce9ff'}}>Return to sign-in</a>
+  <a href="/recovery" style={{color:'#8ce9ff'}}>Account recovery</a>
+ </View>;
  if(loading)return <View style={{flex:1,justifyContent:"center",alignItems:"center",backgroundColor:"#0d1e29",gap:12}}>
   <ActivityIndicator color="#00b8f0" size="large"/><Text style={text}>Verifying Pup Account…</Text>
  </View>;

@@ -1,3 +1,4 @@
+import {legacyCasinoRefund,recoverLegacyCasino} from "./legacyCasinoRecovery.ts";
 import {createHash} from "node:crypto";
 import {applyBetaLiveGameplay} from "../_shared/beta-live-gameplay.ts";
 import {applyBetaEconomy} from "../_shared/beta-economy.ts";
@@ -11,7 +12,7 @@ export class CrossPlayError extends Error {
 }
 type Dict=Record<string,any>;
 const allowed=new Set([
- "tap","care","purchase","ticket","accessory","equip","exchange","skill",
+ "casinoRecoverLegacy","tap","care","purchase","ticket","accessory","equip","exchange","skill",
  "daily","claimDailyGoal","parkStart","parkClaim","prestige",
  "slotsStart","slotsReveal","rouletteStart","rouletteReveal",
  "plinkoStart","plinkoReveal","scratchStart","scratchReveal",
@@ -32,9 +33,12 @@ export function publicCloudSnapshot(save:Dict|null){
   reject(409,"CLOUD_SAVE_UNSUPPORTED");
  // Do not deliver device attestations or private save identity to the browser.
  const values=Object.fromEntries(Object.entries(main.values).filter(([k])=>
+  k!=="casino_active_round_v1"&&
   !/^(pup_eye_strikes|pupeye_|private_|device_|secret_|auth_|discord_token)/i.test(k)));
  return {exists:true,revision:Number(save.revision),updatedAt:save.updated_at,
   saveJson:JSON.stringify({format:source.format,version:1,
+   webCompanion:{nativeCasinoPending:!!main.values.casino_active_round_v1,
+    ...(legacyCasinoRefund(main.values)!==null?{nativeCasinoRefund:legacyCasinoRefund(main.values)}:{})},
    stores:{puppy_clicker_save:{values,types:main.types||{}}}})};
 }
 async function authoritativeSave(admin:any,account:Dict){
@@ -98,16 +102,27 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
   reject(400,"CLOUD_REVISION_REQUIRED");
  if(Number(current.revision)!==body.expectedRevision)reject(409,"CLOUD_SAVE_CONFLICT");
  const intent=validatedIntent(body.intent);
+ if(/^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent.type)&&
+    current.save_data?.stores?.puppy_clicker_save?.values?.casino_active_round_v1)
+  reject(409,"PUP_CASINO_ANDROID_ROUND_PENDING");
  let next;
  try{
-  next=intent.type==="tap"||intent.type==="care"
+  next=intent.type==="casinoRecoverLegacy"?recoverLegacyCasino(current.save_data):intent.type==="tap"||intent.type==="care"
    ?applyBetaLiveGameplay(current.save_data,intent)
    :intent.type.startsWith("blackjack")
     ?await applyBetaBlackjack(current.save_data,intent)
     :await applyBetaEconomy(current.save_data,intent);
  }catch(e){
-  if(String((e as Error)?.message||"")==="PUP_TAP_RATE_LIMIT")
+  const code=String((e as Error)?.message||"");
+  if(code==="PUP_TAP_RATE_LIMIT")
    reject(429,"PUP_TAP_RATE_LIMIT");
+  // Only known, non-sensitive rule failures may reach the UI.
+  if(new Set(["GACHA_INSUFFICIENT_TREATS","GACHA_INSUFFICIENT_TICKET",
+   "NOT_ENOUGH_CASINO_CHIPS","BLACKJACK_INSUFFICIENT_CHIPS",
+   "PUP_CASINO_RECOVERY_UNAVAILABLE","CASINO_ROUND_ALREADY_ACTIVE","CASINO_ROUND_NOT_FOUND","BLACKJACK_ROUND_NOT_FOUND",
+   "INVALID_WAGER","BLACKJACK_INVALID_WAGER","BLACKJACK_CANNOT_DOUBLE",
+   "BLACKJACK_CANNOT_SPLIT","BLACKJACK_MOVE_UNAVAILABLE"]).has(code))
+   reject(409,code);
   reject(409,"PUP_GAMEPLAY_REJECTED");
  }
  const savedAt=new Date().toISOString();

@@ -1,0 +1,13 @@
+# Web casino release — 2026-10-28
+
+The production save had an accepted legacy Blackjack wager from the old Kotlin app. Both casino server reducers refuse new wagers while this reservation is present. The website previously omitted the reservation and hid rejected requests in Settings, so every game appeared unresponsive.
+
+This release includes the earlier unreleased web authentication/casino repair and adds a web-only recovery intent. The Casino shows a recovery control when the server verifies an incomplete legacy Blackjack round older than 24 hours. Recovery returns the saved reserved Chips, records the original completed-round ID, removes the reservation, and writes a receipt in one revision-checked update. It does not draw cards, pay winnings, award bonuses, or accept a browser-supplied refund. Current web rounds, committed outcomes, malformed decks/ledgers, duplicate IDs, unsafe balances and revoked owners are rejected. The original Kotlin refund semantics and completed-ID encoding are preserved. No Android source or shared server reducer changed.
+
+The server removes the old round/deck from browser responses and returns only a pending hint and eligible refund amount. Casino controls are disabled during requests; known failures are visible; duplicate casino submissions are suppressed. All six existing games retain server RNG, stored outcomes, and one-time settlement.
+
+Right-click, F12, View Source and common DevTools shortcuts are deterred on every route. Ordinary text entry and clipboard shortcuts remain usable. Production source maps are explicitly disabled. Browsers still receive the client bundle; these handlers cannot prevent source inspection or conceal a public GitHub repository. Economic authority and service secrets remain on the server.
+
+Validation: 137 unit/integration tests passed; 62 browser tests passed; production Vite build passed. Tests cover all six game controls, mouse/touch scratching, recovery followed by a new wager, duplicate/concurrent recovery, insufficient funds, ownership/revision failures, authentication callbacks and responsive layouts. Source-map and fixture/secret leakage checks passed. Live authenticated gameplay was not exercised because the browser has no Pup Account session; production save inspection was read-only.
+
+Deploy the website with the updated `pup-web-auth` bundle. Keep its existing internal bearer/session checks and `verify_jwt:false` gateway setting. No migrations, secret rotation, Android rebuild or direct production save reset is needed. Players with the verified old reservation choose **Recover old round · Return 100 Chips** in Casino once.
