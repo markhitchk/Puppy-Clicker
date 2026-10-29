@@ -129,6 +129,15 @@ async function linkedAuthUser(account){
  }
  return targetId;
 }
+// PupEye Web: verified-account rate limiting for server-authoritative actions.
+// Browser telemetry is never treated as Android Keystore/device attestation.
+async function enforceWebPupEye(account,action){
+ const {data,error}=await admin.rpc('pupeye_web_gate',{
+  p_account_uuid:account.id,p_action:action
+ });
+ if(error)throw new PublicError(503,'PUPEYE_WEB_ENFORCEMENT_UNAVAILABLE');
+ if(data!==true)throw new PublicError(429,'PUPEYE_WEB_RATE_LIMIT');
+}
 async function currentSession(req,allowSanctioned=false){
  const bearer=req.headers.get("Authorization")||"";
  if(!/^Bearer\s+\S+$/.test(bearer))throw new PublicError(401,"PUP_AUTH_REQUIRED");
@@ -220,6 +229,7 @@ async function handleAuthRequest(req,auditContext){
     // Derive recipient exclusively from the verified Supabase Auth session.
     // A browser cannot select another player's inbox by supplying an ID.
     const {account}=await currentSession(req);
+    await enforceWebPupEye(account,'notifications');
     const {data,error}=await admin.from("pup_system_notifications")
      .select("id,kind,title,body,created_at,read_at")
      .eq("player_uuid",account.player_uuid)
@@ -233,6 +243,7 @@ async function handleAuthRequest(req,auditContext){
    }
    if(body.action==="notifications-mark"){
     const {account}=await currentSession(req);
+    await enforceWebPupEye(account,'notifications');
     const mode=body.mode;
     if(!["read-one","read-all","clear-read"].includes(mode))
      throw new PublicError(400,"PUP_NOTIFICATION_ACTION_INVALID");
@@ -324,6 +335,7 @@ async function handleAuthRequest(req,auditContext){
    // another account. The password itself is changed through the signed-in
    // Supabase Auth client, not through this endpoint or a SQL statement.
    const {account,user}=await currentSession(req);
+   await enforceWebPupEye(account,'profile');
    const username=required(body.username,/^[A-Za-z0-9_-]{3,20}$/,"PUP_USERNAME_INVALID");
    const [{data:taken,error:te},{data:pending,error:pe},
     {data:credential,error:ce},{data:identityLink,error:ie}]=await Promise.all([
@@ -367,6 +379,7 @@ async function handleAuthRequest(req,auditContext){
   }
   if(["cloud-save-read","gameplay","account-update"].includes(body.action)){
    const {account}=await currentSession(req);
+   await enforceWebPupEye(account,body.action==='gameplay'?'gameplay':'profile');
    const outcome=await crossPlay(admin,account,body);
    return json(200,outcome,origin);
   }
