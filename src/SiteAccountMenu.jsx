@@ -6,7 +6,7 @@ import "./site-account-menu.css";
 export const PUP_ACCOUNT_CHANGED="puppy-clicker:pup-account-changed";
 
 const displayName=account=>account?.displayName?.trim()||account?.username||"Pup Member";
-const roleLabel=role=>({DEVELOPER:"Developer",ADMIN:"Administrator",PUP_MEMBER:"Pup Member"})[role]||"Pup Member";
+const roleLabel=role=>({DEVELOPER:"Developer",ADMIN:"Administrator",PUP_MEMBER:"Pup Member",GUEST:"Guest"})[role]||"Player";
 
 function discordAvatar(account){
  const url=account?.discordProfile?.avatarUrl;
