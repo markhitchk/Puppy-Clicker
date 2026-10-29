@@ -3,6 +3,7 @@ import {View,Text,Pressable,Image} from "react-native";
 import WebLoading from "../../WebLoading.jsx";
 import {client} from "../../supabase.js";
 import WebRegister from "../../WebRegister.jsx";
+import {DISCORD_ICON_URL} from "../../discordIcon.js";
 import {beginPuppyDiscord,completePuppyDiscordCallback,hasPuppyDiscordCallback,
  clearPendingDiscord,verifyPuppySession,signInPupUsername,puppyAuthMessage} from "./puppyOAuth.js";
 
@@ -98,8 +99,19 @@ export default function WebAccountGate({children}){
   <a href="/recovery" style={{color:'#8ce9ff'}}>Account recovery</a>
  </View>;
  if(loading)return <WebLoading stage={hasPuppyDiscordCallback()?"callback":"account"}/>;
- if(!user||!pupAccount)return <View style={{flex:1,minHeight:0,backgroundColor:"#0d1e29",alignItems:"center",justifyContent:"center",padding:20}}>
-  <View ref={panelRef} style={{backgroundColor:"#19313e",padding:28,borderRadius:24,maxWidth:500,width:"100%",minHeight:0,maxHeight:"calc(100dvh - 112px)",overflowY:"auto",overscrollBehavior:"contain",gap:13,borderWidth:1,borderColor:"#315466"}}>
+ if(!user||!pupAccount)return <div className="pup-auth-page" data-testid="pup-auth-page">
+  <aside className="pup-auth-intro" aria-label="Welcome to Pup Account">
+   <a className="pup-auth-home" href="/">← Back to Puppy Clicker Home</a>
+   <div className="pup-auth-intro-body">
+    <img className="pup-auth-intro-logo" src="/assets/logos/puppy_clicker.png" alt="" />
+    <p className="pup-auth-eyebrow">PUPPY CLICKER · PUP ACCOUNT</p>
+    <h1>{recovery?"Recover your Pup Account":mode==="register"?"Your puppy journey starts here.":"Welcome back to your puppy world."}</h1>
+    <p>One Pup Account for your puppies, rewards and linked progress across the website and Android.</p>
+    <div className="pup-auth-benefits"><span>🐾 Your puppy collection</span><span>🔒 Verified account protection</span><span>☁️ Linked cloud progress</span></div>
+   </div>
+   <p className="pup-auth-intro-foot">Harley's Studios · Puppy Clicker</p>
+  </aside>
+  <section ref={panelRef} className="pup-auth-form" aria-label="Pup Account authentication" data-testid="pup-auth-form">
    <Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{height:85,width:110,alignSelf:"center"}}/>
    <Text style={{...text,fontSize:11,color:"#00e5ff",fontWeight:"900",textAlign:"center"}}>PUPPY CLICKER · SET UP YOUR ACCOUNT</Text>
    <Text accessibilityRole="header" style={{fontSize:27,fontWeight:"900",color:"#fff",textAlign:"center"}}>{recovery?"🔐 Pup Account Recovery":"🐶 Puppy Clicker · Pup Account"}</Text>
@@ -138,9 +150,10 @@ export default function WebAccountGate({children}){
     </form>
     </section>
     <section className="android-auth-provider">
-     <div className="android-auth-provider-heading"><img src="/assets/logos/discord.png" alt="" /><div><strong>Discord</strong><small>Alternative login or optional linked account</small></div></div>
+     <div className="android-auth-provider-heading"><img src={DISCORD_ICON_URL} alt="" /><div><strong>Discord</strong><small>Alternative login or optional linked account</small></div></div>
      <p>Sign in with the Discord identity linked to your Pup Account. New Discord users are offered registration.</p>
-     <Pressable accessibilityRole="button" disabled={busy||!client} onPress={loginDiscord} style={action}>
+     <Pressable accessibilityRole="button" disabled={busy||!client} onPress={loginDiscord} style={{...action,flexDirection:"row",justifyContent:"center",gap:10}}>
+      <Image source={{uri:DISCORD_ICON_URL}} resizeMode="contain" style={{width:23,height:23}} />
       <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Opening Discord…":recovery?"Recover with linked Discord":"Sign in with Discord"}</Text>
      </Pressable>
     </section>
@@ -157,7 +170,7 @@ export default function WebAccountGate({children}){
     if(globalThis.location?.pathname==="/register")
      globalThis.history?.replaceState?.(globalThis.history.state,"","/account");
    }} onSignIn={()=>chooseMode("signin")}/>}
-  </View>
- </View>;
+  </section>
+ </div>;
  return <C.Provider value={{user,client,pupAccount,signOut:()=>client.auth.signOut()}}>{children}</C.Provider>;
 }
