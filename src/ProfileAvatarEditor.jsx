@@ -51,3 +51,4 @@ export default function ProfileAvatarEditor({account,onChanged}){
   <small>Use a public direct image link. The image host may see visitors' IP addresses when avatars load.</small>
   {message?<p role="status" className="portal-message">{message}</p>:null}
  </section>;
+}
