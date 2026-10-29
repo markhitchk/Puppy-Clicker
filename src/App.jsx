@@ -7,6 +7,9 @@ import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
+import AndroidAppBanner from "./AndroidAppBanner.jsx";
+import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
+import AdminPortal from "./AdminPortal.jsx";
 import "./styles.css";
 
 const logo="/assets/logos/puppy_clicker.png";
@@ -204,6 +207,7 @@ function AccountDashboard(){
      {profile.recoveryEmail?detail("Verified recovery email",profile.recoveryEmail,"Confirmed by Supabase Auth. Used for password-reset links."):detail("Verified recovery email","Not configured","Visit /recovery to link and verify an email address.")}
      {profile.contactEmail?detail("Support contact email",profile.contactEmail,"Visible only to your signed-in account."):null}
     </dl>
+    {["ADMIN","DEVELOPER"].includes(profile.guildRole)?<div className="account-actions"><a className="cta cta-secondary" href="/account/admin">🛡️ Open Admin Panel</a></div>:null}
     {profile.friendCode?<div className="account-actions"><button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button></div>:null}
     <div className="portal-divider"></div>
     <h3>✏️ Profile settings</h3>
@@ -255,6 +259,7 @@ function AccountDashboard(){
  </div>;
 }
 function AccountPortal(){return <WebAccountGate><AccountDashboard/></WebAccountGate>;}
+function AdminPage(){return <WebAccountGate><AdminPortal/></WebAccountGate>;}
 function DiscordCallbackPage(){
  // Process the browser PKCE callback using the verified website account gate.
  return <WebAccountGate><WebLoading stage="callback"/></WebAccountGate>;
@@ -273,16 +278,20 @@ export default function App(){
  const callback=path==="/auth/discord/callback";
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
  const page=path==="/"?"home":path==="/puppies"?"puppies":
+  /^\/account\/admin(?:\/(?:users|audit|bans))?\/?$/.test(path)?"admin":
   path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   callback?"callback":path==="/play"?"play":"error";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
-  <Header page={callback?"account":page}/>
+  <Header page={callback||page==="admin"?"account":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
    {page==="home"?<Home/>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
+    page==="admin"?<AdminPage/>:
     page==="recovery"?<RecoveryPage/>:
     page==="callback"?<DiscordCallbackPage/>:
     page==="error"?<WebErrorPage code={errorRoute?Number(errorRoute[1]):404}/>:<NativeApp/>}
   </main>
+  <NetworkCheckReporter/>
+  <AndroidAppBanner/>
  </div>;
 }
