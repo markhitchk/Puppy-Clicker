@@ -77,3 +77,23 @@ test("puppy roster and home showcase use transparent optimized portraits",async(
   await expect.poll(()=>first.evaluate(node=>node.complete&&node.naturalWidth>0)).toBe(true);
  }
 });
+
+
+test("Meet the Puppies includes both missing test puppies and their transparent artwork",async({page})=>{
+ await page.goto("/puppies");
+ await expect(page.getByText("32 of 32 puppies")).toBeVisible();
+ await page.getByRole("button",{name:"Test puppies"}).click();
+ const cards=page.locator(".meet-puppy-card");
+ await expect(cards).toHaveCount(2);
+ await expect(page.getByRole("heading",{name:/Crash Test Pup V1/})).toBeVisible();
+ await expect(page.getByRole("heading",{name:/Crash Test Pup V2/})).toBeVisible();
+ await expect(page.getByText("2 of 32 puppies")).toBeVisible();
+ await expect(cards.locator("img.puppy-artwork")).toHaveCount(2);
+ const ids=await cards.locator("img.puppy-artwork").evaluateAll(items=>items.map(img=>img.getAttribute("src")));
+ expect(ids.some(src=>src.includes("test_v1_crash_dummy"))).toBe(true);
+ expect(ids.some(src=>src.includes("test_v2_crash_dummy"))).toBe(true);
+ await page.getByRole("button",{name:"V2 puppies"}).click();
+ await expect(page.getByRole("heading",{name:/Dev Pup/})).toBeVisible();
+ await page.getByRole("button",{name:"Special"}).click();
+ await expect(page.getByRole("heading",{name:/Dev Pup/})).toBeVisible();
+});
