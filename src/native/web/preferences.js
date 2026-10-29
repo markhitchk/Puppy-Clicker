@@ -17,7 +17,7 @@ export function saveWebPreferences(preferences,storage){
  // Notify the website cursor controller immediately, even if storage is blocked.
  if(typeof window!=='undefined'){
   window.dispatchEvent(new CustomEvent(WEB_PREFERENCES_CHANGED,{
-   detail:{puppyPointerEnabled:cleaned.puppyPointerEnabled}
+   detail:{puppyPointerEnabled:cleaned.puppyPointerEnabled,themeMode:cleaned.themeMode}
   }));
  }
  return saved;
