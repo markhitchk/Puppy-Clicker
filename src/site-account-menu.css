@@ -1,0 +1,83 @@
+/* Verified Pup Account identity in the website header and desktop game sidebar. */
+.site-account{position:relative;min-width:0;flex-shrink:0;z-index:10}
+.site-account-trigger{appearance:none;display:flex;align-items:center;gap:10px;min-height:48px;max-width:260px;padding:5px 10px 5px 5px;
+ border:1px solid rgba(0,229,255,.26);border-radius:999px;background:#161A25;color:#f3fbff;cursor:pointer;text-align:left;
+ box-shadow:0 1px 10px #0003;transition:border-color .16s,background .16s}
+.site-account-trigger:hover,.site-account-trigger[aria-expanded="true"]{background:#1A1E2B;border-color:#00e5ff}
+.site-account-trigger:focus-visible{outline:3px solid #00e5ff;outline-offset:3px}
+.pup-avatar{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;
+ border:1px solid rgba(0,229,255,.65);border-radius:50%;background:linear-gradient(140deg,#7B5CFF,#00B9D6);
+ color:white;vertical-align:middle}
+.pup-avatar img{display:block;width:100%;height:100%;object-fit:cover;min-width:0;min-height:0}
+.pup-avatar-initial{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:1em;font-weight:900}
+.site-account-trigger-avatar{width:38px;height:38px;font-size:20px}
+.site-account-trigger-identity{display:flex;flex-direction:column;align-items:flex-start;min-width:0;max-width:142px;gap:2px}
+.site-account-trigger-identity strong,.site-account-trigger-identity small{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.site-account-trigger-identity strong{font-size:13px;line-height:1.25;font-weight:850}
+.site-account-trigger-identity small{font-size:11px;color:#a6c8d9;line-height:1.2;font-weight:600}
+.site-account-chevron{color:#00e5ff;font-size:18px;line-height:1;margin-left:1px}
+.site-account-dropdown{position:absolute;right:0;top:calc(100% + 12px);width:min(335px,calc(100vw - 20px));
+ max-height:min(640px,calc(100dvh - 82px));overflow-y:auto;overscroll-behavior:contain;
+ z-index:50;padding:12px;background:#12151F;color:#edfaff;
+ border:1px solid rgba(0,229,255,.35);border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.62)}
+.site-account-up .site-account-dropdown{top:auto;bottom:calc(100% + 10px);right:0}
+.site-account-preview{display:flex;align-items:center;gap:12px;padding:10px 9px 15px;border-bottom:1px solid #293f4c}
+.site-account-preview-avatar{width:62px;height:62px;font-size:30px}
+.site-account-preview-info{display:flex;flex-direction:column;gap:4px;min-width:0}
+.site-account-preview-info>strong{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.site-account-preview-info>span{font-size:12px;color:#9cbccf;overflow-wrap:anywhere}
+.site-account-preview-info>small{font-size:11px;color:#8fe3c7;line-height:1.4}
+.site-account-friend-code{display:flex;justify-content:space-between;gap:8px;padding:11px 10px;
+ border-bottom:1px solid #293f4c;color:#9cbccf;font-size:11px}
+.site-account-friend-code strong{font-size:11px;color:#d9f7ff;overflow-wrap:anywhere;text-align:right}
+.site-account-dropdown-links{display:flex;flex-direction:column;gap:3px;padding:10px 0}
+.site-account-dropdown-links a,.site-account-dropdown-footer button{display:flex;align-items:center;gap:12px;min-height:43px;
+ padding:10px 12px;border:0;border-radius:12px;background:transparent;color:#deeff9;font-size:13px;line-height:1.4;
+ font-weight:750;text-align:left;text-decoration:none;cursor:pointer}
+.site-account-dropdown-links a:hover,.site-account-dropdown-footer button:hover{background:#203747;color:white}
+.site-account-dropdown-links a[aria-current="page"]{background:#133847;color:#79eaff}
+.site-account-dropdown-links a>span,.site-account-dropdown-footer button>span{font-size:19px;width:21px;text-align:center}
+.site-account-dropdown-footer{border-top:1px solid #293f4c;padding-top:8px}
+.site-account-dropdown-footer button{width:100%;color:#ffa9b8}
+.site-account-dropdown-footer button:disabled{opacity:.55;cursor:not-allowed}
+.site-account-dropdown-footer p{margin:4px 10px;color:#ffb0b0;font-size:12px}
+.site-account-dropdown :is(a,button):focus-visible{outline:2px solid #00e5ff;outline-offset:2px}
+.site-nav>.site-account-signed-out{display:flex;align-items:center}
+.site-account-compact{width:100%;max-width:225px}
+.site-account-compact .site-account-trigger{width:100%;max-width:none;padding-right:9px;border-radius:14px}
+.site-account-compact .site-account-trigger-identity{max-width:135px}
+.site-account-compact .site-account-chevron{margin-left:auto}
+.desktop-account-slot{width:100%;padding:8px 8px 2px;display:flex;justify-content:center}
+.desktop-account-slot>.site-account-signed-out{padding:12px 14px;color:#b8c4d8;font-size:14px;font-weight:750;text-align:center}
+.desktop-account-slot>.site-account-signed-out:hover{color:#00e5ff}
+.profile-avatar-large{width:76px;height:76px;font-size:37px;border-width:2px;
+ box-shadow:0 0 0 5px rgba(0,229,255,.07)}
+.profile-head .pup-avatar{border-radius:50%;padding:0;background:linear-gradient(140deg,#7B5CFF,#00B9D6)}
+.profile-head{background:radial-gradient(circle at 15% 10%,rgba(0,229,255,.12),transparent 58%),#161A25;
+ border:1px solid rgba(0,229,255,.22);padding:18px;border-radius:20px}
+.profile-head .pup-avatar img{padding:0;width:100%;height:100%;background:transparent}
+.profile-head h2{overflow-wrap:anywhere}
+.profile-main{scroll-margin-top:22px}
+#profile-settings,#account-security,#account-management{scroll-margin-top:24px}
+@media(max-width:1050px){
+ .site-account-trigger-identity{max-width:105px}
+ .site-account-trigger{gap:7px}
+}
+@media(max-width:760px){
+ .site-nav{margin-left:auto}
+ .site-account-trigger{padding:4px;min-width:44px;min-height:44px;justify-content:center}
+ .site-account-trigger-avatar{height:36px;width:36px}
+ .site-account-trigger-identity,.site-account-chevron{display:none}
+ .site-account-dropdown{right:0;top:calc(100% + 9px)}
+ .profile-avatar-large{width:62px;height:62px;font-size:31px}
+ .profile-head{padding:12px}
+}
+@media(max-width:440px){
+ .site-nav a{padding:9px 6px}
+ .site-brand small{display:none}
+ .site-header{gap:4px}
+ .site-account-trigger{min-width:40px;min-height:40px}
+ .site-account-trigger-avatar{width:34px;height:34px}
+ .site-account-dropdown{right:0;width:min(335px,calc(100vw - 12px))}
+}
+@media(prefers-reduced-motion:reduce){.site-account-trigger{transition:none}}
