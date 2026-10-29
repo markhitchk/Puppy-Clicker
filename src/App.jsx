@@ -201,13 +201,13 @@ function AccountDashboard(){
      {detail("Friend Code",profile.friendCode,"Share this code to connect with players in Puppy Exchange.")}
      {detail("Account standing",standing)}
      {detail("Role",profile.guildRole===undefined?"Checking…":accountRole(profile.guildRole))}
-     {["ADMIN","DEVELOPER"].includes(profile.guildRole)?<a className="cta cta-secondary" href="/account/admin">🛡️ Open Admin Panel</a>:null}
      {detail("Account connection",connection)}
      {detail("Gameplay access",gameplay)}
      {detail("Discord",connected)}
      {profile.recoveryEmail?detail("Verified recovery email",profile.recoveryEmail,"Confirmed by Supabase Auth. Used for password-reset links."):detail("Verified recovery email","Not configured","Visit /recovery to link and verify an email address.")}
      {profile.contactEmail?detail("Support contact email",profile.contactEmail,"Visible only to your signed-in account."):null}
     </dl>
+    {["ADMIN","DEVELOPER"].includes(profile.guildRole)?<div className="account-actions"><a className="cta cta-secondary" href="/account/admin">🛡️ Open Admin Panel</a></div>:null}
     {profile.friendCode?<div className="account-actions"><button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button></div>:null}
     <div className="portal-divider"></div>
     <h3>✏️ Profile settings</h3>
