@@ -49,8 +49,3 @@
 .pup-admin-modal textarea{min-height:96px}
 .pup-admin-modal-actions{display:flex;justify-content:flex-end;gap:10px}
 @media(max-width:650px){.pup-admin-stats{gap:8px}.pup-admin-stat{padding:12px}.pup-admin-stat strong{font-size:22px}.pup-admin-panel{padding:12px}.pup-admin-tabs button{padding:10px 13px}.pup-admin-tabs .pup-admin-refresh{margin-left:0}}
-
-.pup-admin-directory-switch{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px}
-.pup-admin-directory-switch button{border:1px solid #375d6d;border-radius:999px;padding:10px 16px;background:#172b39;color:#bdd7e3;cursor:pointer;font-weight:800}
-.pup-admin-directory-switch button.is-selected{background:#045a73;border-color:#00e5ff;color:#e7fdff;box-shadow:0 0 14px #00e5ff22}
-.pup-admin-directory-switch button:focus-visible{outline:3px solid #00e5ff;outline-offset:2px}

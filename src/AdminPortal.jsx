@@ -24,6 +24,7 @@ const normalizeError=(code)=>{
   ACCOUNT_BANNED:"This account is banned from Puppy Clicker.",
   CANNOT_SANCTION_STAFF:"You cannot ban this staff account.",
   DEVELOPER_ROLE_REQUIRED:"Only Developers can change staff roles.",
+  REGISTERED_PUP_ACCOUNT_REQUIRED:"This player does not have a registered Pup Account.",
   MANAGE_FROM_ORIGINAL_SYSTEM:"This ban must be managed in the original PupEye support system.",
   ROLE_CHANGED_CONCURRENTLY:"This account's role was changed. Refresh and try again."
  };
@@ -39,7 +40,6 @@ export default function AdminPortal(){
  const [bans,setBans] = useState([]);
  const [events,setEvents] = useState([]);
  const [query,setQuery] = useState("");
- const [directoryView,setDirectoryView] = useState("registered");
  const [busy,setBusy] = useState(false);
  const [message,setMessage] = useState("");
  const [error,setError] = useState("");
@@ -128,10 +128,7 @@ export default function AdminPortal(){
   <p role="alert">{error}</p>
   <a className="pup-admin-link" href="/account">Return to your Pup Account</a>
  </section>;
- const registeredCount=users.filter(u=>u.profileType==="registered").length;
- const localCount=users.filter(u=>u.profileType!=="registered").length;
  const visibleUsers=users.filter(u=>
-   (directoryView==="registered" ? u.profileType==="registered" : u.profileType!=="registered") &&
    [u.username,u.displayName,u.playerId,u.friendCode].some(v=>
      String(v||"").toLowerCase().includes(query.trim().toLowerCase())));
  const activeBans=bans.filter(b=>b.status==="active"&&!b.revoked_at&&
@@ -147,9 +144,9 @@ export default function AdminPortal(){
    </div>
   </header>
   <div className="pup-admin-stats">
-   <Stat label="Registered Pup Accounts" value={registeredCount}/>
+   <Stat label="Registered Pup Accounts" value={users.length}/>
    <Stat label="Active bans in history" value={activeBans}/>
-   <Stat label="Local / unlinked profiles" value={localCount}/>
+   <Stat label="Recent audit events" value={events.length}/>
   </div>
   <nav className="pup-admin-tabs" aria-label="Administration sections">
    {[["users","👥 Users"],["bans","🛡️ Bans"],["audit","📋 Audit Log"]].map(([tab,label])=>
@@ -161,52 +158,36 @@ export default function AdminPortal(){
   {message?<p className="pup-admin-success" role="status">{message}</p>:null}
   {tabLoading?<p className="pup-admin-loading" role="status">Loading {section}…</p>:null}
   {section==="users"?<section className="pup-admin-panel" aria-label="Player management">
-   <div className="pup-admin-section-heading"><h2>{directoryView==="registered"?"Registered Pup Accounts":"Local / Unlinked Players"}</h2>
+   <div className="pup-admin-section-heading"><h2>Registered Pup Accounts</h2>
     <input aria-label="Search users" placeholder="Search username, player ID or friend code…"
       value={query} onChange={e=>setQuery(e.target.value)} type="search" />
    </div>
-   <div className="pup-admin-directory-switch" role="group" aria-label="Choose player directory">
-    <button type="button" aria-pressed={directoryView==="registered"}
-      className={directoryView==="registered"?"is-selected":""}
-      onClick={()=>{setDirectoryView("registered");setQuery("");}}>
-      🐶 Pup Accounts ({registeredCount})
-    </button>
-    <button type="button" aria-pressed={directoryView==="local"}
-      className={directoryView==="local"?"is-selected":""}
-      onClick={()=>{setDirectoryView("local");setQuery("");}}>
-      🗃️ Local / Unlinked ({localCount})
-    </button>
-   </div>
-   <p className="pup-admin-note">
-    {directoryView==="registered"
-      ?"Verified account identities are identified by their link in the Pup Account database, regardless of the legacy player name."
-      :"These are stored player profiles without a linked Pup Account. They may come from older installs, offline play, or testing. Each may have a Friend Code, but that does not make it a separately registered user. No data is deleted."}
-   </p>
+   <p className="pup-admin-note">Only registered Pup Accounts appear here. Local Android/PupEye installation identities are not accounts and are excluded. No installation or save records are changed.</p>
    <div className="pup-admin-table-wrap"><table className="pup-admin-table">
     <thead><tr><th>Player</th><th>Standing</th><th>Role</th><th>Latest connection</th><th>Actions</th></tr></thead>
     <tbody>{visibleUsers.map(user=>
      <tr key={user.id}>
       <td><strong>{user.displayName||user.username}</strong><small>@{user.username}</small><small>{user.friendCode||"—"}</small>{user.contactEmail?<small>Support email: {user.contactEmail}</small>:null}</td>
       <td><span className={user.status==="blocked"?"pup-admin-status danger":"pup-admin-status"}>{user.status||"unknown"}</span></td>
-      <td>{user.profileType==="registered" && staff.role==="DEVELOPER" && user.role!=="DEVELOPER"?
+      <td>{staff.role==="DEVELOPER" && user.role!=="DEVELOPER"?
        <div className="pup-admin-role"><select aria-label={"Role for "+user.username}
        value={selectedRole[user.id]||user.role} onChange={e=>setSelectedRole(prev=>({...prev,[user.id]:e.target.value}))}>
        <option value="GUEST">Guest</option><option value="PUP_MEMBER">Pup Member</option>
        <option value="ADMIN">Admin</option><option value="DEVELOPER">Developer</option>
        </select><button type="button" disabled={busy||!selectedRole[user.id]||selectedRole[user.id]===user.role}
-       onClick={()=>confirmedRole(user)}>Save</button></div>:user.profileType==="registered"?user.role:"Local profile"}</td>
+       onClick={()=>confirmedRole(user)}>Save</button></div>:user.role}</td>
       <td>{user.network?<><small><strong>IP:</strong> {user.network.ip}</small>
         <small title={user.network.userAgent}>UA: {user.network.userAgent}</small>
         <small>VPN: {user.network.vpn===null?"Unknown":user.network.vpn?"Detected":"Not detected"}
          {" · "}{formatTime(user.network.checkedAt)}</small></>:
-        <small>{user.profileType==="registered"?"No web connection record yet":"Not linked to a Pup Account"}</small>}</td>
+        <small>No web connection record yet</small>}</td>
       <td><button type="button" className="pup-admin-danger-button"
         disabled={busy||user.id===staff.playerUuid||user.role==="DEVELOPER"||staff.role==="ADMIN"&&user.role==="ADMIN"}
-        onClick={()=>{setShowBan(user);setReason("");setExpiry("");}}>{user.profileType==="registered"?"Ban account":"Ban player"}</button></td>
+        onClick={()=>{setShowBan(user);setReason("");setExpiry("");}}>Ban account</button></td>
      </tr>)}
     </tbody></table></div>
-   {!visibleUsers.length&&!tabLoading?<p className="pup-admin-empty">No matching {directoryView==="registered"?"Pup Accounts":"unlinked player profiles"}.</p>:null}
-   <p className="pup-admin-note">Directory shows the most recent player records (up to 100). Web connection details appear only if the optional network telemetry service has records. Access is restricted to staff and audited.</p>
+   {!visibleUsers.length&&!tabLoading?<p className="pup-admin-empty">No matching Pup Accounts.</p>:null}
+   <p className="pup-admin-note">Directory shows up to 100 registered Pup Accounts. Web connection details appear only if the optional network telemetry service has records. Access is restricted to staff and audited.</p>
   </section>:null}
   {section==="bans"?<section className="pup-admin-panel">
    <h2>Ban history</h2><p className="pup-admin-note">Shared PupEye bans affect Android and the website. Bans issued outside this panel must be managed by their original system.</p>
@@ -238,9 +219,7 @@ export default function AdminPortal(){
   {showBan?<div className="pup-admin-modal-backdrop" role="presentation">
    <div className="pup-admin-modal" role="dialog" aria-modal="true" aria-label={"Ban "+showBan.username}>
     <h2>Ban @{showBan.username}</h2>
-    <p>{showBan.profileType==="registered"?
-     "This is a linked Pup Account. The player ban is enforced on web and Android.":
-     "This is an unlinked player profile, not a registered Pup Account. A player-target ban applies to this player identity; it may not cover another installation."}</p>
+    <p>This is a registered Pup Account. The player ban is enforced on web and Android.</p>
     <form onSubmit={banUser}>
      <label>Reason<textarea required minLength={3} maxLength={300} value={reason}
        placeholder="Public explanation shown to the player…" onChange={e=>setReason(e.target.value)}/></label>

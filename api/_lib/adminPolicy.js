@@ -8,6 +8,15 @@ export class AdminError extends Error {
   constructor(status, code) { super(code); this.status=status; this.code=code; }
 }
 export function isStaff(role) { return STAFF_ROLES.has(role); }
+export function filterRegisteredAccountDirectory(accounts, players, query, limit=100) {
+  const byPlayer=new Map(players.map(p=>[p.id,p]));
+  const q=safeSearch(query);
+  return accounts.filter(a=>{
+    const p=byPlayer.get(a.player_uuid);
+    return p && (!q || [a.username,a.display_name,p.username,p.player_id,p.friend_code]
+      .some(v=>typeof v==="string" && v.toLowerCase().includes(q)));
+  }).slice(0,limit);
+}
 // A display name of "localplayer" is not proof that an account is unregistered.
 // Only the authoritative pup_accounts.player_uuid association establishes this.
 export function classifyPlayerProfile(playerId, linkedAccountByPlayer) {
