@@ -16,7 +16,7 @@ export function getClientIp(headers, trustedVercel = false) {
   return isIP(candidate) && isPublicIp(candidate) ? candidate : null;
 }
 
-function isPublicIp(ip) {
+export function isPublicIp(ip) {
   const version = isIP(ip);
   if (version === 4) {
     const [a,b] = ip.split(".").map(Number);

@@ -1,5 +1,6 @@
 import {createClient} from "@supabase/supabase-js";
 import {detectNetworkRisk, getClientIp} from "./_lib/networkRisk.js";
+import {findActiveIpBan} from "./_lib/ipBan.js";
 
 function respond(res, status, body) {
   res.setHeader("Cache-Control", "private, no-store, max-age=0");
@@ -29,9 +30,13 @@ export default async function handler(req, res) {
 
   const ip = getClientIp(req.headers, process.env.VERCEL === "1");
   const userAgent = String(req.headers["user-agent"] ?? "").slice(0, 2048);
-  const result = await detectNetworkRisk(ip, {key:process.env.PROXYCHECK_API_KEY});
   let recorded = false;
   const db = databaseClient();
+  if(db){
+   try{if(await findActiveIpBan(db,req.headers))return respond(res,403,{ok:false,error:"IP_BANNED"});}
+   catch{return respond(res,503,{ok:false,error:"NETWORK_ACCESS_UNAVAILABLE"});}
+  }
+  const result = await detectNetworkRisk(ip, {key:process.env.PROXYCHECK_API_KEY});
 
   if (db && ip) {
     // Only the server can associate an authenticated identity with the record.

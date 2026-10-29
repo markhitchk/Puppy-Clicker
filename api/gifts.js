@@ -1,5 +1,6 @@
 import {createHash} from "node:crypto";
 import {dbClient,ensure,validateRequest,getPupIdentity,PupError,fail,isStaff,canonicalJson} from "./_lib/pupIdentity.js";
+import {findActiveIpBan} from "./_lib/ipBan.js";
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const validId=value=>typeof value==="string"&&UUID.test(value);
 const validPuppy=value=>typeof value==="string"&&/^[a-z0-9_]{2,80}$/.test(value);
@@ -128,6 +129,7 @@ export default async function handler(req,res){
  try{
   validateRequest(req,res);
   const db=dbClient();
+  if(await findActiveIpBan(db,req.headers))throw new PupError(403,"IP_BANNED");
   const actor=await getPupIdentity(req,db);
   const {action}=req.body||{};
   let result;

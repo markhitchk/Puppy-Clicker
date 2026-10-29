@@ -1,7 +1,7 @@
 import {createClient} from "@supabase/supabase-js";
 import {
   AdminError, UUID_PATTERN, isStaff, canModifyRole,
-  canSanction, validateRestrictionInput, restrictionStanding, safeSearch, filterRegisteredAccountDirectory, noStore
+  canSanction, validateRestrictionInput, validatePublicIp, restrictionStanding, safeSearch, filterRegisteredAccountDirectory, noStore
 } from "./_lib/adminPolicy.js";
 
 const requireId = (value) => {
@@ -124,6 +124,14 @@ async function users(db,query) {
     };
   });
 }
+async function ipBans(db) {
+ const rows=ensure(await db.from("pup_web_ip_bans").select(
+  "id,ip_address,reason,expires_at,revoked_at,created_at,updated_at")
+  .order("updated_at",{ascending:false}).limit(200))||[];
+ return rows.map(r=>({id:r.id,ip:r.ip_address,reason:r.reason,
+  expiresAt:r.expires_at,createdAt:r.created_at,updatedAt:r.updated_at,
+  status:r.revoked_at?"revoked":r.expires_at&&Date.parse(r.expires_at)<=Date.now()?"expired":"active"}));
+}
 async function bans(db) {
   const records=ensure(await db.from("pupeye_global_bans")
     .select("id,public_ban_id,kind,status,reason_code,public_reason,expires_at,issued_at,issued_by,revoked_at")
@@ -172,6 +180,35 @@ export async function action(db,actor,body) {
   if (type==="bans") {
     const listed=await bans(db);
     return {bans:listed};
+  }
+
+  if(type==="ip-bans")return {ipBans:await ipBans(db)};
+  if(type==="ban-ip"){
+   const ip=validatePublicIp(body.ip);
+   const {reason,expiresAt}=validateRestrictionInput({...body,action:"ban-account"});
+   if(ip===actor.requestIp)throw new AdminError(403,"CANNOT_BAN_OWN_IP");
+   const previous=ensure(await db.from("pup_web_ip_bans")
+    .select("id").eq("ip_address",ip).maybeSingle());
+   const values={reason,expires_at:expiresAt,revoked_at:null,
+    actor_player_uuid:actor.player.id,updated_at:new Date().toISOString()};
+   if(previous)ensure(await db.from("pup_web_ip_bans")
+    .update(values).eq("id",previous.id).select("id").single());
+   else ensure(await db.from("pup_web_ip_bans")
+    .insert({...values,ip_address:ip}).select("id").single());
+   await audit(db,actor,null,"WEB_IP_BAN_CREATED",{ip,reason,expiresAt});
+   return {created:true};
+  }
+  if(type==="unban-ip"){
+   const id=requireId(body.ipBanId);
+   const record=ensure(await db.from("pup_web_ip_bans")
+    .select("id,ip_address,revoked_at").eq("id",id).maybeSingle());
+   if(!record)throw new AdminError(404,"IP_BAN_NOT_FOUND");
+   if(record.revoked_at)return {revoked:true,unchanged:true};
+   ensure(await db.from("pup_web_ip_bans").update({
+    revoked_at:new Date().toISOString(),updated_at:new Date().toISOString()
+   }).eq("id",id).is("revoked_at",null).select("id").maybeSingle());
+   await audit(db,actor,null,"WEB_IP_BAN_REVOKED",{ip:record.ip_address});
+   return {revoked:true};
   }
   if(type==="activity")return await activity(db,body.filter);
   if (type==="role-update") {
@@ -288,6 +325,8 @@ export default async function handler(req,res) {
   try {
     const db=dbClient();
     const actor=await authorize(req,db);
+    const {getClientIp}=await import("./_lib/networkRisk.js");
+    actor.requestIp=getClientIp(req.headers,process.env.VERCEL==="1");
     const result=await action(db,actor,req.body || {});
     return res.status(200).json({ok:true,...result});
   } catch(e) {

@@ -8,3 +8,8 @@
 .pup-avatar-editor-actions label{cursor:pointer}
 .pup-avatar-editor-actions label[aria-disabled=true]{pointer-events:none;opacity:.5}
 .pup-avatar-editor-actions button,.pup-avatar-editor-actions label{font-size:13px;text-align:center}
+
+.pup-avatar-url-form{display:grid;gap:9px;margin-top:18px}
+.pup-avatar-url-form label{font-size:13px;font-weight:750;color:#cfeaf6}
+.pup-avatar-url-form input{width:100%;min-height:46px;padding:12px 14px;background:#0b1925;color:#fff;border:1px solid #426b82;border-radius:12px;font:inherit}
+.pup-avatar-url-form input:focus-visible{outline:2px solid #00e5ff;outline-offset:2px}
