@@ -7,6 +7,7 @@ import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
+import AndroidAppBanner from "./AndroidAppBanner.jsx";
 import "./styles.css";
 
 const logo="/assets/logos/puppy_clicker.png";
@@ -284,5 +285,6 @@ export default function App(){
     page==="callback"?<DiscordCallbackPage/>:
     page==="error"?<WebErrorPage code={errorRoute?Number(errorRoute[1]):404}/>:<NativeApp/>}
   </main>
+  <AndroidAppBanner/>
  </div>;
 }
