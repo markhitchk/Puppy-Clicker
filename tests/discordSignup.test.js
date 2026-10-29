@@ -26,7 +26,7 @@ test("short-lived signed ticket works with valid identity and expires",()=>{
  assert.throws(()=>verifyDiscordSignupTicket(ticket,secret,1_600_001));
  assert.throws(()=>verifyDiscordSignupTicket(ticket,secret+"mismatch",1_000_100));
  const [head,tail]=ticket.split(".");
- assert.throws(()=>verifyDiscordSignupTicket(head+"."+tail.slice(0,-1)+"Z",secret,1_000_100));
+ assert.throws(()=>verifyDiscordSignupTicket(head+"."+(tail[0]==="A"?"B":"A")+tail.slice(1),secret,1_000_100));
 });
 test("web OAuth always requests identify and email, never shared Supabase OAuth",()=>{
  const web=readFileSync(new URL("../src/native/web/puppyOAuth.js",import.meta.url),"utf8");
