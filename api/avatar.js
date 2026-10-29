@@ -18,12 +18,9 @@ export default async function handler(req,res){
      (typeof path!=="string"||!AVATAR_NAME.test(path)||!path.startsWith(actor.uid+"/")))
     throw new PupError(400,"AVATAR_PATH_INVALID");
    if(path){
-    const object=ensure(await db.schema("storage").from("objects")
-     .select("name,metadata,owner_id").eq("bucket_id",BUCKET).eq("name",path).maybeSingle());
-    if(!object||object.owner_id!==actor.uid)throw new PupError(403,"AVATAR_NOT_OWNED");
-    const mime=object.metadata?.mimetype;
-    if(!["image/jpeg","image/png","image/webp"].includes(mime))
-     throw new PupError(400,"AVATAR_TYPE_INVALID");
+    const info=await db.storage.from(BUCKET).info(path);
+    if(info.error||!info.data)throw new PupError(404,"AVATAR_NOT_FOUND");
+    if(Number(info.data.size||0)>2097152)throw new PupError(400,"AVATAR_TOO_LARGE");
    }
    ensure(await db.from("pup_accounts").update({
     profile_avatar_path:path,updated_at:new Date().toISOString()
