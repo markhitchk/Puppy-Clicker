@@ -87,6 +87,7 @@ function PublicPuppyDetails({puppy,onDismiss}){
     <h2 id="meet-puppy-dialog-title">Puppy Details</h2>
     <button type="button" className="meet-detail-close" onClick={onDismiss} aria-label="Close puppy details">×</button>
    </header>
+   <div className="meet-detail-main">
    <div className="meet-detail-identity">
     <div className="meet-detail-artwork">
      <PuppyArtwork key={assetId+"-"+artVersion} id={puppy.id}
@@ -101,6 +102,7 @@ function PublicPuppyDetails({puppy,onDismiss}){
      </div>
     </div>
    </div>
+   <div className="meet-detail-aside">
    <section className="meet-detail-about" aria-labelledby="meet-detail-about-heading">
     <h3 id="meet-detail-about-heading">About</h3>
     <p id="meet-puppy-dialog-info">{puppy.description||"No additional puppy details are available yet."}</p>
@@ -114,6 +116,8 @@ function PublicPuppyDetails({puppy,onDismiss}){
    <p className="meet-detail-disclaimer">Public roster preview. Ownership and unlock status are checked in your Pup Account when playing.</p>
    <a className="meet-detail-primary" href="/play">Use Puppy in Game</a>
    <button type="button" className="meet-detail-primary" onClick={onDismiss}>Done</button>
+   </div>
+   </div>
   </div>
  </dialog>;
 }
