@@ -246,8 +246,11 @@ export default function App(){
  useEffect(()=>installInspectionDeterrent(),[]);
  // Keep historical /register bookmarks, but make /account the one auth endpoint.
  useEffect(()=>{
-  if(globalThis.location?.pathname==="/register")
-   globalThis.history?.replaceState?.(globalThis.history.state,"","/account?mode=register");
+  if(globalThis.location?.pathname==="/register"){
+   const params=new URLSearchParams(globalThis.location.search);
+   params.set("mode","register");
+   globalThis.history?.replaceState?.(globalThis.history.state,"","/account?"+params.toString());
+  }
  },[]);
  const path=typeof window!=="undefined"?window.location.pathname:"/";
  const callback=path==="/auth/discord/callback";
