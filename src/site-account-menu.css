@@ -43,6 +43,13 @@
 .site-account-dropdown-footer p{margin:4px 10px;color:#ffb0b0;font-size:12px}
 .site-account-dropdown :is(a,button):focus-visible{outline:2px solid #00e5ff;outline-offset:2px}
 .site-nav>.site-account-signed-out{display:flex;align-items:center}
+.site-nav .site-account-dropdown-links a{
+ display:flex;align-items:center;gap:12px;min-height:43px;
+ padding:10px 12px;border:0;border-radius:12px;
+ background:transparent;color:#deeff9;font-size:13px;font-weight:750;text-align:left
+}
+.site-nav .site-account-dropdown-links a:hover{background:#203747;color:#fff}
+.site-nav .site-account-dropdown-links a[aria-current="page"]{background:#133847;color:#79eaff}
 .site-account-compact{width:100%;max-width:225px}
 .site-account-compact .site-account-trigger{width:100%;max-width:none;padding-right:9px;border-radius:14px}
 .site-account-compact .site-account-trigger-identity{max-width:135px}
