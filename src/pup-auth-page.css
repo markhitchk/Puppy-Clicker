@@ -1,0 +1,41 @@
+/* Full-page website Pup Account authentication.
+   Mobile keeps a narrow readable form; desktop becomes a split page, not a dialog. */
+.pup-auth-page{flex:1;min-width:0;min-height:calc(100dvh - 76px);width:100%;display:flex;flex-direction:column;align-items:center;padding:26px 16px 42px;background:#0A0C12;color:#f3fbff}
+.site-frame-game .pup-auth-page{height:100%;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.pup-auth-intro{display:none}
+.pup-auth-form{width:min(100%,530px);min-width:0;display:flex;flex-direction:column;gap:15px;padding:24px;background:#12151F;border:1px solid rgba(0,229,255,.22);border-radius:23px}
+.pup-auth-form>div[role="tablist"]{flex-shrink:0}
+.pup-auth-form .android-auth-provider{background:#161A25;border-color:rgba(0,229,255,.23)}
+.pup-auth-form :is(input,button,a):focus-visible{outline:2px solid #00e5ff;outline-offset:3px}
+.pup-discord-button-icon{width:22px;height:22px;display:inline-block;vertical-align:middle;margin-right:9px;object-fit:contain}
+@media(min-width:960px){
+ .pup-auth-page{display:grid;grid-template-columns:minmax(320px,.86fr) minmax(0,1.14fr);align-items:stretch;padding:0;background:#0A0C12;overflow:visible}
+ .site-frame-game .pup-auth-page{overflow-y:auto;align-items:stretch}
+ .pup-auth-intro{display:flex;flex-direction:column;justify-content:space-between;gap:40px;position:sticky;top:0;min-height:calc(100dvh - 76px);max-height:calc(100dvh - 76px);padding:36px clamp(28px,4vw,76px);background:radial-gradient(circle at 35% 34%,rgba(0,229,255,.14),transparent 52%),linear-gradient(146deg,#131b2c,#0a0c12);border-right:1px solid rgba(0,229,255,.14)}
+ .pup-auth-home{display:inline-flex;align-self:flex-start;padding:12px 0;color:#9beeff;font-weight:800;font-size:14px;text-decoration:none}
+ .pup-auth-home:hover{text-decoration:underline}
+ .pup-auth-intro-body{margin:auto 0;max-width:480px}
+ .pup-auth-intro-logo{width:116px;height:116px;object-fit:contain;margin:0 0 24px}
+ .pup-auth-eyebrow{font-size:12px;letter-spacing:.14em;color:#00e5ff;font-weight:900}
+ .pup-auth-intro h1{font-size:clamp(32px,3.5vw,58px);letter-spacing:-.045em;line-height:1.08;margin:16px 0 20px;overflow-wrap:break-word}
+ .pup-auth-intro-body>p:not(.pup-auth-eyebrow){font-size:16px;line-height:1.7;color:#b2c9d7}
+ .pup-auth-benefits{display:flex;flex-direction:column;gap:12px;margin-top:26px;color:#c4e7ef;font-size:14px;font-weight:750}
+ .pup-auth-intro-foot{color:#8fa2b7;font-size:12px;margin:0}
+ .pup-auth-form{width:min(100%,800px);max-width:800px;margin:0 auto;padding:clamp(32px,4vw,64px);border:0;border-radius:0;background:transparent;box-shadow:none;gap:18px;align-self:start}
+ .pup-auth-form>div[role="tablist"]{margin:10px 0}
+ .pup-auth-form .android-auth-provider{padding:24px;border-radius:20px}
+ .pup-auth-form .android-auth-provider-heading img{width:48px;height:48px}
+ .pup-auth-form .android-auth-provider-heading strong{font-size:18px}
+ .pup-auth-form .android-auth-provider>p{font-size:14px}
+ .pup-auth-form .pup-signin-form{gap:12px}
+ .pup-auth-form .pup-signin-form input{min-height:50px}
+ .pup-auth-form .account-auth-register{gap:18px}
+}
+@media(max-width:959px){
+ .pup-auth-page .pup-auth-form{margin:auto}
+}
+@media(max-width:480px){
+ .pup-auth-page{padding:12px 10px 30px}
+ .pup-auth-form{padding:19px 14px;border-radius:18px}
+}
+@media(prefers-reduced-motion:reduce){.pup-auth-page *{scroll-behavior:auto}}
