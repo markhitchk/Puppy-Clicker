@@ -1,0 +1,12 @@
+.pup-request-card p{color:#aec6d6;line-height:1.6}
+.pup-request-form{display:grid;gap:10px;margin-top:16px}
+.pup-request-form label{color:#b9d8e7;font-size:13px;font-weight:750}
+.pup-request-form select,.pup-request-form textarea{width:100%;max-width:100%;border:1px solid #3b6c80;border-radius:12px;background:#0e2633;color:#f6fcff;padding:12px;font:inherit}
+.pup-request-form button{justify-self:start}
+.pup-request-error{color:#ffb7bd!important}
+.pup-request-history{display:grid;gap:8px}
+.pup-request-row{border:1px solid #294e60;padding:11px;border-radius:12px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.pup-request-row small{color:#a8bfcd}
+.pup-request-state{padding:3px 9px;border-radius:10px;background:#253b4e;text-transform:capitalize}
+.pup-request-approved{color:#9ef5c8}.pup-request-declined{color:#ffb6b6}.pup-request-pending{color:#ffd688}
+.pup-request-muted{font-size:13px}
