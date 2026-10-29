@@ -1,0 +1,90 @@
+/* Original paw artwork: pup-clinker/assets/cursors (already in public/assets/cursors).
+ * Site-wide on mouse/trackpad only; touchscreen pointers remain unchanged.
+ * Browser preference: Settings > Play & performance > Puppy mouse pointer.
+ */
+@media (any-hover: hover) and (any-pointer: fine) {
+  html[data-puppy-cursor='enabled'] body,
+  html[data-puppy-cursor='enabled'] body * {
+    cursor: url('/assets/cursors/paw_default.svg') 16 16, auto !important;
+  }
+
+  /* Include descendants, so text and icons inside controls keep the right state. */
+  html[data-puppy-cursor='enabled'] :is(
+    a, button, summary, select, label,
+    [role='button'], [role='link'], [role='tab'],
+    [role='menuitem'], [role='checkbox'], [role='switch'],
+    [role='radio'], [role='option']
+  ),
+  html[data-puppy-cursor='enabled'] :is(
+    a, button, summary, select, label,
+    [role='button'], [role='link'], [role='tab'],
+    [role='menuitem'], [role='checkbox'], [role='switch'],
+    [role='radio'], [role='option']
+  ) * {
+    cursor: url('/assets/cursors/paw_link.svg') 16 16, pointer !important;
+  }
+
+  html[data-puppy-cursor='enabled'] :is(
+    a, button, summary, select, label,
+    [role='button'], [role='link'], [role='tab'],
+    [role='menuitem'], [role='checkbox'], [role='switch'],
+    [role='radio'], [role='option']
+  ):hover,
+  html[data-puppy-cursor='enabled'] :is(
+    a, button, summary, select, label,
+    [role='button'], [role='link'], [role='tab'],
+    [role='menuitem'], [role='checkbox'], [role='switch'],
+    [role='radio'], [role='option']
+  ):hover * {
+    cursor: url('/assets/cursors/paw_hover.svg') 16 16, pointer !important;
+  }
+
+  html[data-puppy-cursor='enabled'] :is(
+    a, button, summary, select, label,
+    [role='button'], [role='link'], [role='tab'],
+    [role='menuitem'], [role='checkbox'], [role='switch'],
+    [role='radio'], [role='option']
+  ):active,
+  html[data-puppy-cursor='enabled'] :is(
+    a, button, summary, select, label,
+    [role='button'], [role='link'], [role='tab'],
+    [role='menuitem'], [role='checkbox'], [role='switch'],
+    [role='radio'], [role='option']
+  ):active * {
+    cursor: url('/assets/cursors/paw_click.svg') 16 16, pointer !important;
+  }
+
+  html[data-puppy-cursor='enabled'] :is(
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='button']):not([type='submit']):not([type='reset']),
+    textarea, [contenteditable='true'], [role='textbox']
+  ),
+  html[data-puppy-cursor='enabled'] :is(
+    textarea, [contenteditable='true'], [role='textbox']
+  ) * {
+    cursor: url('/assets/cursors/paw_text.svg') 16 16, text !important;
+  }
+
+  html[data-puppy-cursor='enabled'] :is(
+    [draggable='true']:active, [aria-grabbed='true'],
+    [role='slider']:active, input[type='range']:active
+  ),
+  html[data-puppy-cursor='enabled'] :is(
+    [draggable='true']:active, [aria-grabbed='true'], [role='slider']:active
+  ) * {
+    cursor: url('/assets/cursors/paw_drag.svg') 16 16, grabbing !important;
+  }
+
+  /* Coin hotspot is centered on the scratch card coating. */
+  html[data-puppy-cursor='enabled'] [data-testid='puppy-scratch-coating'],
+  html[data-puppy-cursor='enabled'] [data-testid='puppy-scratch-coating'] * {
+    cursor: url('/assets/cursors/paw_casino.svg') 32 32, crosshair !important;
+  }
+
+  /* Disabled wins over hover/active, including on nested button content. */
+  html[data-puppy-cursor='enabled'] body :is(:disabled,[disabled],[aria-disabled='true']),
+  html[data-puppy-cursor='enabled'] body :is(:disabled,[disabled],[aria-disabled='true']) *,
+  html[data-puppy-cursor='enabled'] body :is(:disabled,[disabled],[aria-disabled='true']):hover,
+  html[data-puppy-cursor='enabled'] body :is(:disabled,[disabled],[aria-disabled='true']):hover * {
+    cursor: url('/assets/cursors/paw_disabled.svg') 16 16, not-allowed !important;
+  }
+}
