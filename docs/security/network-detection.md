@@ -15,7 +15,7 @@ This feature applies to **the Vercel website only** and does not edit the Androi
 1. Review the privacy policy and inform players that IP / User-Agent and third-party network reputation information are processed. Set a bounded retention policy (30 days suggested). Check compliance with applicable privacy law.
 2. Apply the reviewed `docs/security/web-network-detection.sql` to the correct Puppy Clicker Supabase project. This should be migrated through the normal schema release process, not run ad hoc against other games' data.
 3. Add SERVER-ONLY environment variables in the Puppy Clicker Vercel project:
-   - `PROXYCHECK_API_KEY` (created at https://proxycheck.io/)
+   - `PROXYCHECK_API_KEY` (OPTIONAL: keyless requests are free for 100 lookups/day per Vercel egress IP; a free registered key allows 1,000/day). Sign up at https://proxycheck.io/ only if the keyless quota is insufficient.
    - `SUPABASE_URL` (Pup Account project)
    - `SUPABASE_SECRET_KEY` (secret/service-role key **only on the server**)
 4. Set frontend `VITE_NETWORK_CHECK_ENABLED=true` in that project's environment and rebuild.
@@ -26,5 +26,5 @@ This feature applies to **the Vercel website only** and does not edit the Androi
 
 ## Troubleshooting
 - `recorded:false` means Vercel did not persist a record (e.g. missing Supabase secrets/schema or no trusted public client IP).
-- If the provider key is missing or network lookup fails, the database can still record `unknown` rather than guessing that the visitor is VPN-free.
-- Never put `SUPABASE_SECRET_KEY` or `PROXYCHECK_API_KEY` in a `VITE_` variable. Treat IPs, UA strings, and reputation results as personal data.
+- Without an API key, proxycheck.io still performs VPN/proxy/Tor checks using its free anonymous tier (100 checks/day per requesting IP). Provider outages, malformed responses or exhausted quotas are recorded as `unknown`, never \"not detected\".\n- The free keyless limit may be exhausted by other requests sharing a Vercel outbound address. Add WAF rate limits and caching before enabling in production. Browser localStorage is not a security boundary.
+- Never put `SUPABASE_SECRET_KEY` or an optional `PROXYCHECK_API_KEY` in a `VITE_` variable. Treat IPs, UA strings, and reputation results as personal data. These IPs are also sent to the reputation provider.
