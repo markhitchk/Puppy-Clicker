@@ -2,7 +2,6 @@ import {installInspectionDeterrent} from "./inspectionDeterrent.js";
 import React,{useEffect,useState} from "react";
 import NativeApp from "./native/App.jsx";
 import RecoveryPage from "./RecoveryPage.jsx";
-import WebRegister from "./WebRegister.jsx";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import "./styles.css";
@@ -17,7 +16,6 @@ function Header({page}){
    <a href="/" aria-current={page==="home"?"page":undefined}>Home</a>
    <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 Play</a>
    <a href="/account" aria-current={page==="account"?"page":undefined}>Account</a>
-    <a href="/register" aria-current={page==="register"?"page":undefined}>Register</a>
   </nav>
  </header>;
 }
@@ -49,7 +47,7 @@ function Home(){
    </div>
   </section>
   <section className="home-section split-cta">
-   <div><p className="eyebrow">YOUR GAME · YOUR ACCOUNT</p><h2>Manage your Pup Account</h2><p>Sign in with a Pup username or the Puppy Clicker Discord login, check your account, and update your display name without opening the game.</p><a href="/account" className="cta cta-secondary">Open Account Management</a> <a href="/register" className="cta cta-primary">Create Pup Account</a><a href="/recovery" className="recovery-home-link">Forgot your login? Recover your Pup Account</a></div>
+   <div><p className="eyebrow">YOUR GAME · YOUR ACCOUNT</p><h2>Manage your Pup Account</h2><p>Sign in with a Pup username or the Puppy Clicker Discord login, check your account, and update your display name without opening the game.</p><a href="/account" className="cta cta-secondary">Open Account Management</a> <a href="/account?mode=register" className="cta cta-primary">Create Pup Account</a><a href="/recovery" className="recovery-home-link">Forgot your login? Recover your Pup Account</a></div>
    <div className="account-preview"><span>🐾</span><strong>Pup Account</strong><p>Verified login · Linked progress · Account settings</p></div>
   </section>
   <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span><a href="/recovery">Recover Pup Account</a> · Made for puppy fans 🐶</span></footer>
@@ -244,13 +242,13 @@ export default function App(){
  useEffect(()=>installInspectionDeterrent(),[]);
  const path=typeof window!=="undefined"?window.location.pathname:"/";
  const callback=path==="/auth/discord/callback";
- const page=path==="/account"?"account":path==="/register"?"register":path==="/recovery"?"recovery":
+ const page=path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   callback?"callback":path==="/play"?"play":"home";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
   <Header page={callback?"account":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
    {page==="home"?<Home/>:page==="account"?<AccountPortal/>:
-    page==="recovery"?<RecoveryPage/>:page==="register"?<WebRegister/>:
+    page==="recovery"?<RecoveryPage/>:
     page==="callback"?<DiscordCallbackPage/>:<NativeApp/>}
   </main>
  </div>;

@@ -88,6 +88,22 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #40cc
 .portal-message,.cloud-status{background:#1e4252;border:1px solid #3b7286;border-radius:12px;padding:12px}
 .portal-card .stretch{width:100%;margin-top:18px}
 .portal-card .small-action+.cta{margin-top:12px}
+/* Unified Pup Account sign-in / registration panel (desktop and mobile). */
+.account-auth-register{display:flex;flex-direction:column;gap:14px;min-width:0}
+.account-auth-description{font-size:13px;line-height:1.65;color:#bed6e2;margin:2px 0 4px}
+.account-auth-register .profile-form{gap:9px}
+.account-auth-register .profile-form label:not(.account-auth-consent){font-size:13px}
+.account-auth-register .profile-form input:not([type=checkbox]){font-size:15px;min-height:46px}
+.account-auth-consent{display:flex;gap:10px;align-items:flex-start;line-height:1.55;font-size:13px;cursor:pointer}
+.account-auth-consent input[type=checkbox]{width:18px;height:18px;flex:0 0 18px;margin:3px 0 0;padding:0;accent-color:#00b8f0}
+.account-auth-consent span{flex:1}
+.account-auth-consent a,.account-auth-text-button{color:#8ce9ff;text-decoration:underline;text-underline-offset:3px}
+.account-auth-register .account-security-note{font-size:12px;line-height:1.5;color:#a9c7d7;margin:0 0 5px}
+.account-auth-register .stretch{width:100%;margin-top:10px}
+.account-auth-register .portal-message{line-height:1.5;font-size:13px}
+.account-auth-text-button{background:transparent;border:0;font:inherit;font-weight:800;cursor:pointer;padding:8px}
+.account-auth-register input:focus-visible,.account-auth-text-button:focus-visible{outline:2px solid #8ce9ff;outline-offset:2px}
+
 @media(max-width:1100px){.feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{grid-template-columns:1fr .82fr;gap:15px}.hero h1{font-size:50px}.tag-left{left:0}}
 @media(max-width:760px){
  .site-header{height:62px;padding:0 10px;gap:7px}

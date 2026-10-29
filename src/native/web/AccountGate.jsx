@@ -1,6 +1,7 @@
 import React,{createContext,useContext,useEffect,useState} from "react";
 import {View,Text,TextInput,Pressable,Image,ActivityIndicator} from "react-native";
 import {client} from "../../supabase.js";
+import WebRegister from "../../WebRegister.jsx";
 import {beginPuppyDiscord,completePuppyDiscordCallback,hasPuppyDiscordCallback,
  clearPendingDiscord,verifyPuppySession,signInPupUsername,puppyAuthMessage} from "./puppyOAuth.js";
 
@@ -14,6 +15,14 @@ export default function WebAccountGate({children}){
  const [user,setUser]=useState(null),[pupAccount,setPupAccount]=useState(null);
  const [loading,setLoading]=useState(true),[login,setLogin]=useState(""),[password,setPassword]=useState("");
  const [busy,setBusy]=useState(false),[error,setError]=useState("");
+ const [mode,setMode]=useState(()=>(
+  globalThis.location?.pathname==="/register"||
+  new URLSearchParams(globalThis.location?.search||"").get("mode")==="register"
+ )?"register":"signin");
+ const chooseMode=next=>{
+  if(busy||recovery)return;
+  setError("");setPassword("");setMode(next);
+ };
  const [callbackFailed,setCallbackFailed]=useState(false);
  useEffect(()=>{
   let alive=true,starting=true,verification=0;
@@ -56,7 +65,7 @@ export default function WebAccountGate({children}){
   setBusy(true);setError("");
   try{
    try{globalThis.sessionStorage?.setItem("puppy-web-discord-return-v1",
-    recovery?"/recovery":globalThis.location?.pathname==="/account"?"/account":"/play");}catch{}
+    recovery?"/recovery":["/account","/register"].includes(globalThis.location?.pathname)?"/account":"/play");}catch{}
    const url=await beginPuppyDiscord();
    // Discord returns to /auth/discord/callback in this same browser on
    // Android, iOS, and desktop, never to the Android app's custom URI.
@@ -87,32 +96,51 @@ export default function WebAccountGate({children}){
   <ActivityIndicator color="#00b8f0" size="large"/><Text style={text}>Verifying Pup Account…</Text>
  </View>;
  if(!user||!pupAccount)return <View style={{flex:1,backgroundColor:"#0d1e29",alignItems:"center",justifyContent:"center",padding:20}}>
-  <View style={{backgroundColor:"#19313e",padding:28,borderRadius:24,maxWidth:460,width:"100%",gap:13}}>
-   <Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{height:95,width:120,alignSelf:"center"}}/>
-   <Text style={{fontSize:27,fontWeight:"900",color:"#fff",textAlign:"center"}}>{recovery?"🔐 Pup Account Recovery":"🐶 Puppy Clicker · Pup Account"}</Text>
-   <Text style={{...text,color:"#bcd1df",textAlign:"center"}}>{recovery
-    ?"Use the Discord account already linked to your Pup Account. We will verify ownership before showing the username and password reset form."
-    :"Sign in using your existing Pup Account. Discord returns to this website after authorization."}</Text>
-   <Pressable accessibilityRole="button" disabled={busy||!client} onPress={loginDiscord} style={action}>
-    <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Opening Discord…":recovery?"Recover with linked Discord":"Continue with Puppy Clicker Discord"}</Text>
-   </Pressable>
-   <Text style={{...text,textAlign:"center"}}>Or sign in with your Pup username</Text>
-   <TextInput accessibilityLabel="Pup username" placeholder="Pup Account username" placeholderTextColor="#8fa2ad" autoCapitalize="none"
-     value={login} onChangeText={setLogin} style={{backgroundColor:"#0d1e29",color:"#fff",padding:12,borderRadius:10}}/>
-   <TextInput accessibilityLabel="Pup password" placeholder="Password" placeholderTextColor="#8fa2ad" secureTextEntry value={password} onChangeText={setPassword}
+  <View style={{backgroundColor:"#19313e",padding:28,borderRadius:24,maxWidth:500,width:"100%",gap:13,borderWidth:1,borderColor:"#315466"}}>
+   <Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{height:85,width:110,alignSelf:"center"}}/>
+   <Text accessibilityRole="header" style={{fontSize:27,fontWeight:"900",color:"#fff",textAlign:"center"}}>{recovery?"🔐 Pup Account Recovery":"🐶 Puppy Clicker · Pup Account"}</Text>
+   {!recovery?<View style={{flexDirection:"row",backgroundColor:"#0d1e29",borderRadius:14,padding:4,gap:5}} accessibilityRole="tablist">
+    <button type="button" role="tab" aria-selected={mode==="signin"}
+     disabled={busy} onClick={()=>chooseMode("signin")}
+     style={{flex:1,padding:"13px 8px",border:0,borderRadius:11,backgroundColor:mode==="signin"?"#00b8f0":"transparent",color:mode==="signin"?"#001622":"#bcd1df",fontWeight:900,cursor:"pointer"}}>
+     Sign In
+    </button>
+    <button type="button" role="tab" aria-selected={mode==="register"}
+     disabled={busy} onClick={()=>chooseMode("register")}
+     style={{flex:1,padding:"13px 8px",border:0,borderRadius:11,backgroundColor:mode==="register"?"#00b8f0":"transparent",color:mode==="register"?"#001622":"#bcd1df",fontWeight:900,cursor:"pointer"}}>
+     Create Account
+    </button>
+   </View>:null}
+   {(mode==="signin"||recovery)?<>
+    <Text style={{...text,color:"#bcd1df",textAlign:"center"}}>{recovery
+     ?"Use the Discord account already linked to your Pup Account. Ownership is verified before recovery."
+     :"Sign in with your existing Pup Account. Discord returns to this website after authorization."}</Text>
+    <Pressable accessibilityRole="button" disabled={busy||!client} onPress={loginDiscord} style={action}>
+     <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Opening Discord…":recovery?"Recover with linked Discord":"Continue with Puppy Clicker Discord"}</Text>
+    </Pressable>
+    <Text style={{...text,textAlign:"center"}}>Or sign in with your Pup username</Text>
+    <TextInput accessibilityLabel="Pup username" autoComplete="username" placeholder="Pup Account username"
+     placeholderTextColor="#8fa2ad" autoCapitalize="none" value={login} onChangeText={setLogin}
      style={{backgroundColor:"#0d1e29",color:"#fff",padding:12,borderRadius:10}}/>
-   <Pressable accessibilityRole="button" disabled={busy||!client} onPress={loginPup} style={action}>
-    <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Verifying…":"Sign in to Pup Account"}</Text>
-   </Pressable>
-   {!!error&&<Text accessibilityRole="alert" style={{color:"#ffb4ad"}}>{error}</Text>}
-   {recovery?<Text style={{...text,fontSize:12,color:"#bbccdc",lineHeight:20}}>
-    No access to Discord or your password? Use the Android app’s Settings → Support or another official Puppy Clicker support channel. Support requires independent proof of ownership; an unverified email address is not enough.
-   </Text>:null}
-   {!recovery?<a href="/register" style={{color:"#8ce9ff",fontSize:15,fontWeight:900,textAlign:"center",padding:8}}>New player? Create a Pup Account 🐾</a>:null}
-   <a href={recovery?"/account":"/recovery"} style={{color:"#8ce9ff",fontSize:14,fontWeight:800,textAlign:"center",padding:7}}>
-    {recovery?"← Back to Pup Account sign-in":"Forgot your username or password? Recover account"}
-   </a>
-   <Text style={{...text,fontSize:11,color:"#adc1ce"}}>Discord returns to the website. Your Pup Account identity and protected cloud progress are verified before gameplay.</Text>
+    <TextInput accessibilityLabel="Pup password" autoComplete="current-password" placeholder="Password"
+     placeholderTextColor="#8fa2ad" secureTextEntry value={password} onChangeText={setPassword}
+     style={{backgroundColor:"#0d1e29",color:"#fff",padding:12,borderRadius:10}}/>
+    <Pressable accessibilityRole="button" disabled={busy||!client} onPress={loginPup} style={action}>
+     <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Verifying…":"Sign in to Pup Account"}</Text>
+    </Pressable>
+    {!!error&&<Text accessibilityRole="alert" style={{color:"#ffb4ad"}}>{error}</Text>}
+    {recovery?<Text style={{...text,fontSize:12,color:"#bbccdc",lineHeight:20}}>
+     No access to Discord or your password? Use the Android app's Settings → Support or another official Puppy Clicker support channel. Support requires independent proof of ownership.
+    </Text>:null}
+    <a href={recovery?"/account":"/recovery"} style={{color:"#8ce9ff",fontSize:14,fontWeight:800,textAlign:"center",padding:7}}>
+     {recovery?"← Back to Pup Account sign-in":"Forgot your username or password? Recover account"}
+    </a>
+    <Text style={{...text,fontSize:11,color:"#adc1ce"}}>Pup Account verification protects your identity and cloud progress on web and Android.</Text>
+   </>:<WebRegister onAuthenticated={(newUser,account)=>{
+    setUser(newUser);setPupAccount(account);setError("");
+    if(globalThis.location?.pathname==="/register")
+     globalThis.history?.replaceState?.(globalThis.history.state,"","/account");
+   }} onSignIn={()=>chooseMode("signin")}/>}
   </View>
  </View>;
  return <C.Provider value={{user,client,pupAccount,signOut:()=>client.auth.signOut()}}>{children}</C.Provider>;

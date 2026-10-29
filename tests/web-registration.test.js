@@ -7,12 +7,18 @@ import {crossplayDb} from "./helpers/crossplay-db.js";
 
 const read=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
 
-test("registration is reachable from Home, navigation and account sign-in",()=>{
+test("sign-in and registration use the same Pup Account screen",()=>{
  const app=read("src/App.jsx"),gate=read("src/native/web/AccountGate.jsx");
- assert.match(app,/path==="\/register"\?"register"/);
- assert.match(app,/page==="register"\?<WebRegister\/>/);
- assert.match(app,/href="\/register"/);
- assert.match(gate,/href="\/register"/);
+ assert.match(app,/path==="\/account"\|\|path==="\/register"\?"account"/);
+ assert.match(app,/href="\/account\?mode=register"/);
+ assert.doesNotMatch(app,/page==="register"\?<WebRegister\/>/);
+ assert.match(gate,/accessibilityRole="tablist"/);
+ assert.match(gate,/role="tab" aria-selected=/);
+ assert.match(gate,/Sign In/);
+ assert.match(gate,/Create Account/);
+ assert.match(gate,/<WebRegister onAuthenticated=/);
+ assert.match(gate,/get\("mode"\)==="register"/);
+ assert.match(gate,/globalThis\.location\?\.pathname==="\/register"/);
 });
 
 test("public registration enforces both legal consents and server owned save",()=>{
