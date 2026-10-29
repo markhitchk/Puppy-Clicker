@@ -10,7 +10,7 @@ import {
 } from "./androidBannerPolicy.js";
 import "./AndroidAppBanner.css";
 
-const androidUrl = getConfiguredAndroidUrl(import.meta.env.VITE_ANDROID_APP_URL);
+const androidUrl = getConfiguredAndroidUrl(\n  import.meta.env.VITE_ANDROID_APP_URL ||\n  "https://play.google.com/store/apps/details?id=com.harleytg.puppyclicker"\n);
 
 export default function AndroidAppBanner() {
   const [visible, setVisible] = useState(false);
