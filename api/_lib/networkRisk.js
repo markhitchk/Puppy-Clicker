@@ -63,11 +63,11 @@ export function parseProxycheckV3(response, ip) {
 }
 
 export async function detectNetworkRisk(ip, {key, fetcher = fetch, now = Date.now()} = {}) {
-  if (!ip || !isIP(ip) || !isPublicIp(ip) || !key) return {...UNKNOWN};
+  if (!ip || !isIP(ip) || !isPublicIp(ip)) return {...UNKNOWN};
   const cached = cache.get(ip);
   if (cached && cached.expiresAt > now) return {...cached.value};
   const url = new URL("https://proxycheck.io/v3/" + encodeURIComponent(ip));
-  url.searchParams.set("key", key);
+  // proxycheck.io supports free keyless requests (100/day per server IP).\n  // A registered FREE API key raises the quota to 1,000/day.\n  if (typeof key === "string" && key.trim()) url.searchParams.set("key", key.trim());
   url.searchParams.set("tag", "0"); // Do not store extra provider-side query history.
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 2200);
