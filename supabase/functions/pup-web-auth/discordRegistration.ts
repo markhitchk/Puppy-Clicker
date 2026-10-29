@@ -1,7 +1,7 @@
 import {createHash} from "node:crypto";
 import {sanitizeDiscordIdentity,makeDiscordSignupTicket,verifyDiscordSignupTicket} from "./discordSignup.ts";
 
-export async function offerDiscordRegistration({profile,origin,admin,json,PublicError,key}){
+export async function offerDiscordRegistration({profile,origin,admin,json,PublicError,key}:any){
  let identity;
  try{identity=sanitizeDiscordIdentity(profile);}
  catch{throw new PublicError(401,"PUP_DISCORD_PROFILE_FAILED");}
@@ -33,7 +33,7 @@ export async function offerDiscordRegistration({profile,origin,admin,json,Public
  }},origin);
 }
 
-export async function registerDiscordWebAccount({req,body,origin,admin,json,PublicError,key,newBetaKotlinSave}){
+export async function registerDiscordWebAccount({req,body,origin,admin,json,PublicError,key,newBetaKotlinSave}:any){
  if(typeof body.username!=="string"||!/^[A-Za-z0-9_-]{3,20}$/.test(body.username))
   throw new PublicError(400,"PUP_USERNAME_INVALID");
  if(body.termsAccepted!==true||body.privacyAccepted!==true)
