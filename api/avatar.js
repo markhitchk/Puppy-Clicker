@@ -1,3 +1,4 @@
+import {checkWebPupEye,WebPupEyeError} from './_lib/webPupEye.js';
 import {dbClient,ensure,validateRequest,getPupIdentity,PupError,fail} from "./_lib/pupIdentity.js";
 const BUCKET="pup-profile-avatars";
 const AVATAR_NAME=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/avatar\.(png|jpg|webp)$/;
@@ -7,6 +8,7 @@ export default async function handler(req,res){
   validateRequest(req,res);
   const db=dbClient();
   const actor=await getPupIdentity(req,db);
+  await checkWebPupEye(db,actor.account.id,'profile',req.headers,{vercel:process.env.VERCEL==='1'});
   const action=req.body?.action;
   if(action==="read"){
    return res.status(200).json({ok:true,avatarPath:actor.account.profile_avatar_path||null,
@@ -28,5 +30,5 @@ export default async function handler(req,res){
    return res.status(200).json({ok:true,updated:true,avatarPath:path,avatarUrl:safeUrl(db,path,changed.updated_at)});
   }
   throw new PupError(400,"INVALID_AVATAR_ACTION");
- }catch(error){return fail(res,error);}
+ }catch(error){return fail(res,error instanceof WebPupEyeError?new PupError(error.status,error.code):error);}
 }
