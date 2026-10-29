@@ -3,7 +3,7 @@ import React from 'react';
 export default function DesktopNavigation({tabs,route,onOpen}){
  return <aside className="desktop-navigation" data-testid="desktop-navigation">
   <a href="/" className="desktop-brand" aria-label="Puppy Clicker home"><img src="/assets/logos/puppy_clicker.png" alt=""/><span>Puppy<br/>Clicker</span></a>
-  <nav aria-label="Game navigation" className="desktop-main-nav">{tabs.map(([id,icon,label])=><button type="button" key={id} aria-label={label} aria-current={route===id?'page':undefined} onClick={()=>onOpen(id)}><span aria-hidden="true">{icon}</span><strong>{label}</strong></button>)}</nav>
+  <nav aria-label="Game navigation" className="desktop-main-nav"><a href="/" className="desktop-home-link" aria-label="Home"><span aria-hidden="true">🏠</span><strong>Home</strong></a>{tabs.map(([id,icon,label])=><button type="button" key={id} aria-label={label} aria-current={route===id?'page':undefined} onClick={()=>onOpen(id)}><span aria-hidden="true">{icon}</span><strong>{label}</strong></button>)}</nav>
   <div className="desktop-nav-spacer"/>
   <nav aria-label="Support and more" className="desktop-support-nav">
    <details className="desktop-more"><summary>More game modes</summary><div><button type="button" aria-label="Casino" onClick={()=>onOpen('casino')}>🎰 Casino</button><button type="button" aria-label="Exchange" onClick={()=>onOpen('exchange')}>🎁 Exchange</button></div></details>
