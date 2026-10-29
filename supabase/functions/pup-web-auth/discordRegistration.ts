@@ -65,7 +65,7 @@ export async function registerDiscordWebAccount({req,body,origin,admin,json,Publ
   p_auth_user_id:created.user.id,p_username:body.username,p_email:internalEmail,
   p_discord_user_id:profile.id,p_discord_username:profile.username,
   p_discord_global_name:profile.globalName,p_discord_avatar_hash:profile.avatarHash,
-  p_contact_email:contactEmail,p_save_data:save,p_payload_hash:hash
+  p_discord_email:profile.email,p_contact_email:contactEmail,p_save_data:save,p_payload_hash:hash
  });
  if(registrationError){
   // Only delete the Auth user created in this request.
