@@ -150,10 +150,10 @@ export default function WebAccountGate({children}){
     </form>
     </section>
     <section className="android-auth-provider">
-     <div className="android-auth-provider-heading"><img src={DISCORD_ICON_URL} alt="" /><div><strong>Discord</strong><small>Alternative login or optional linked account</small></div></div>
+     <div className="android-auth-provider-heading"><img src={DISCORD_ICON_URL} alt="" onError={event=>{event.currentTarget.onerror=null;event.currentTarget.src="/assets/logos/discord.png";}} /><div><strong>Discord</strong><small>Alternative login or optional linked account</small></div></div>
      <p>Sign in with the Discord identity linked to your Pup Account. New Discord users are offered registration.</p>
      <Pressable accessibilityRole="button" disabled={busy||!client} onPress={loginDiscord} style={{...action,flexDirection:"row",justifyContent:"center",gap:10}}>
-      <Image source={{uri:DISCORD_ICON_URL}} resizeMode="contain" style={{width:23,height:23}} />
+      <img className="pup-discord-login-icon" src={DISCORD_ICON_URL} alt="" onError={event=>{event.currentTarget.onerror=null;event.currentTarget.src="/assets/logos/discord.png";}} />
       <Text style={{fontWeight:"900",color:"#001622"}}>{busy?"Opening Discord…":recovery?"Recover with linked Discord":"Sign in with Discord"}</Text>
      </Pressable>
     </section>
