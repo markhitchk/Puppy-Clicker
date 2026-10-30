@@ -9,6 +9,7 @@ import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
 import {loadWebPreferences,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
+import HomePlayDemo from "./HomePlayDemo.jsx";
 import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
 import AdminPortal from "./AdminPortal.jsx";
 import WebPrivacy from "./WebPrivacy.jsx";
@@ -50,6 +51,7 @@ function Home(){
     <span className="hero-art-caption">One puppy world. Your progress.</span>
    </div>
   </section>
+  <HomePlayDemo/>
   <section className="home-section">
    <div className="section-intro"><p className="eyebrow">THE ADVENTURE</p><h2>More than a clicker game</h2><p>Discover every part of the Puppy Clicker experience.</p></div>
    <div className="feature-grid">
