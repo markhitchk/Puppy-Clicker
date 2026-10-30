@@ -10,6 +10,7 @@ import {loadWebPreferences,WEB_PREFERENCES_CHANGED} from "./native/web/preferenc
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
 import HomePlayDemo from "./HomePlayDemo.jsx";
+import {useDemoAccess} from "./useDemoAccess.js";
 import {isPlayDemoRoute} from "./playDemoRoute.js";
 import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
 import AdminPortal from "./AdminPortal.jsx";
@@ -34,6 +35,16 @@ function Header({page}){
   </nav>
  </header>;
 }
+function TryDemoLink(){
+ const access=useDemoAccess();
+ return access==="guest"?<a className="cta cta-secondary" href="/play?=demo">🎮 Try Demo</a>:null;
+}
+function DemoPage(){
+ const access=useDemoAccess();
+ useEffect(()=>{if(access==="member")window.location.replace("/play");},[access]);
+ if(access!=="guest")return <WebLoading stage="account" detail="Checking your account before opening the game."/>;
+ return <div className="landing"><HomePlayDemo standalone/></div>;
+}
 function Home(){
  return <div className="landing">
   <section className="hero">
@@ -41,7 +52,7 @@ function Home(){
     <p className="eyebrow">🐾 PUPPY CLICKER · WEB EDITION</p>
     <h1>Tap. Care. Collect.<br/><span>Grow your puppy world.</span></h1>
     <p className="hero-lede">Meet adorable puppies, earn Treats by tapping, grow your collection, take care of your companions, and unlock new rewards. Play in your browser with your Pup Account.</p>
-    <div className="hero-actions"><a className="cta cta-primary" href="/play">🐶 Play Puppy Clicker</a><a className="cta cta-secondary" href="/play?=demo">🎮 Try Demo</a><a className="cta cta-secondary" href="/account">Manage Pup Account</a></div>
+    <div className="hero-actions"><a className="cta cta-primary" href="/play">🐶 Play Puppy Clicker</a><TryDemoLink/><a className="cta cta-secondary" href="/account">Manage Pup Account</a></div>
     <p className="hero-note">Already play on Android? Use your existing Pup Account to access your linked cloud progression. Gameplay access depends on your account's verified save.</p>
    </div>
    <div className="hero-art">
@@ -52,7 +63,6 @@ function Home(){
     <span className="hero-art-caption">One puppy world. Your progress.</span>
    </div>
   </section>
-  <HomePlayDemo/>
   <section className="home-section">
    <div className="section-intro"><p className="eyebrow">THE ADVENTURE</p><h2>More than a clicker game</h2><p>Discover every part of the Puppy Clicker experience.</p></div>
    <div className="feature-grid">
@@ -361,7 +371,7 @@ export default function App(){
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
   <Header page={callback||page==="admin"?"account":page==="demo"?"play":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
-   {page==="home"?<Home/>:page==="demo"?<div className="landing"><HomePlayDemo standalone/></div>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
+   {page==="home"?<Home/>:page==="demo"?<DemoPage/>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
     page==="privacy"?<WebPrivacy/>:
     page==="admin"?<AdminPage/>:
