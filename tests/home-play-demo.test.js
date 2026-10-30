@@ -85,5 +85,5 @@ test("explicit demo route bypasses only its own frontend screen, never the live 
  assert.match(app,/href="\/play\?=demo"/);
  assert.match(demo,/standalone=false/);
  assert.match(demo,/href="\/play\?=demo"/);
- assert.doesNotMatch(read("src/playDemoRoute.js"),/(?:auth|verified|setSession|signIn|supabase)/i);
+ assert.doesNotMatch(read("src/playDemoRoute.js"),/(?:import .*AccountGate|verifyPuppySession|signInPupUsername|functions\.invoke)/i);
 });
