@@ -53,13 +53,13 @@ do $migration$
 declare m record; f record; definition text; v int; moved int:=0;
 begin
  -- Stop if the project has changed since the reviewed 36-table inventory.
- select count(*) into v from puppy_cutover_map m
- join pg_class c on c.relname=m.table_name and c.relkind in ('r','p')
+ select count(*) into v from puppy_cutover_map srcmap
+ join pg_class c on c.relname=srcmap.table_name and c.relkind in ('r','p')
  join pg_namespace n on n.oid=c.relnamespace and n.nspname='public';
  if v<>36 then raise exception 'PUPPY_PREFLIGHT_SOURCE_TABLES_MISMATCH expected 36 got %',v; end if;
- select count(*) into v from puppy_cutover_map m
- join pg_namespace n on n.nspname=m.target_schema
- join pg_class c on c.relnamespace=n.oid and c.relname=m.table_name;
+ select count(*) into v from puppy_cutover_map dstmap
+ join pg_namespace n on n.nspname=dstmap.target_schema
+ join pg_class c on c.relnamespace=n.oid and c.relname=dstmap.table_name;
  if v>0 then raise exception 'PUPPY_PREFLIGHT_DESTINATION_OCCUPIED %',v; end if;
  perform pg_advisory_xact_lock(hashtext('puppy-clicker-physical-cutover-v3'));
  for m in select * from puppy_cutover_map order by target_schema,table_name loop
@@ -80,8 +80,8 @@ begin
   select p.oid
   from pg_proc p join pg_namespace n on n.oid=p.pronamespace
   where n.nspname='public' and p.prokind in ('f','p')
-   and exists(select 1 from puppy_cutover_map m
-              where position('public.'||m.table_name in p.prosrc)>0)
+   and exists(select 1 from puppy_cutover_map refmap
+              where position('public.'||refmap.table_name in p.prosrc)>0)
  loop
   definition:=pg_get_functiondef(f.oid);
   for m in select * from puppy_cutover_map order by length(table_name) desc loop
