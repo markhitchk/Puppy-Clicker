@@ -46,12 +46,17 @@ test("homepage demo changes puppies, restores energy, and resets without an acco
  assert.equal(game.treats,20);
 });
 
-test("home route displays a clearly isolated responsive demo",()=>{
+test("the demo exists only on /play?=demo and is not embedded in the homepage",()=>{
  const app=read("src/App.jsx"),demo=read("src/HomePlayDemo.jsx");
  const state=read("src/homePlayDemoState.js"),styles=read("src/HomePlayDemo.css");
+ const home=app.slice(app.indexOf("function Home(){"),app.indexOf("const accountRole="));
  assert.match(app,/import HomePlayDemo from "\.\/HomePlayDemo\.jsx"/);
- assert.match(app,/<HomePlayDemo\/>/);
- assert.ok(app.indexOf("<HomePlayDemo/>")<app.indexOf("<MeetPuppies preview/>"));
+ assert.match(app,/function TryDemoLink\(\)/);
+ assert.match(app,/access==="guest"\?<a className="cta cta-secondary" href="\/play\?=demo"/);
+ assert.match(app,/function DemoPage\(\)/);
+ assert.match(app,/page==="demo"\?<DemoPage\/>/);
+ assert.match(app,/window.location.replace\("\/play"\)/);
+ assert.doesNotMatch(home,/<HomePlayDemo/);
  assert.match(demo,/data-testid="home-play-demo"/);
  assert.match(demo,/href="\/play"/);
  assert.match(demo,/Reset demo/);
@@ -80,7 +85,7 @@ test("explicit demo route bypasses only its own frontend screen, never the live 
  const app=read("src/App.jsx");
  const demo=read("src/HomePlayDemo.jsx");
  assert.match(app,/demo\?"demo":path==="\/play"\?"play"/);
- assert.match(app,/page==="demo"\?<div className="landing"><HomePlayDemo standalone\/>/);
+ assert.match(app,/page==="demo"\?<DemoPage\/>/);
  assert.match(app,/page==="error"\?<WebErrorPage[^\n]+:<NativeApp\/>/);
  assert.match(app,/href="\/play\?=demo"/);
  assert.match(demo,/standalone=false/);
