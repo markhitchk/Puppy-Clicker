@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {PUPPY_SCHEMA_LAYOUT_VERSION,PUPPY_SCHEMA_TABLES,puppyReadFrom,puppyTableLocation} from '../src/dbSchemaLayout.js';
 
 test('all Puppy Clicker public tables have unique grouped read-only destinations', () => {
- assert.equal(PUPPY_SCHEMA_LAYOUT_VERSION,2);
+ assert.equal(PUPPY_SCHEMA_LAYOUT_VERSION,3);
  assert.equal(Object.keys(PUPPY_SCHEMA_TABLES).length,36);
  const names=Object.values(PUPPY_SCHEMA_TABLES).map(v=>v.schema+'.'+v.view);
  assert.equal(new Set(names).size,names.length);
