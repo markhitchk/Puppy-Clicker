@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {cost} from "../src/native/src/engine/game.js";
+import {isPlayDemoRoute} from "../src/playDemoRoute.js";
 import {
  createHomePlayDemo,reduceHomePlayDemo,HOME_DEMO_PUPPIES,
  HOME_DEMO_UPGRADE,HOME_DEMO_GOAL,
@@ -62,4 +63,27 @@ test("home route displays a clearly isolated responsive demo",()=>{
   const executable=source.split("\n").filter(line=>!line.trimStart().startsWith("//")).join("\n");
   assert.doesNotMatch(executable,/(?:localStorage|sessionStorage|supabase|functions\.invoke|fetch\()/i);
  }
+});
+
+test("only the explicit /play?=demo query opens the public demo",()=>{
+ assert.equal(isPlayDemoRoute("/play","?=demo"),true);
+ assert.equal(isPlayDemoRoute("/play","?=demo&source=home"),true);
+ for(const [path,search] of [
+  ["/play",""],["/play","?demo"],["/play","?demo=true"],
+  ["/play","?=Demo"],["/play","?=demo&=demo"],
+  ["/account","?=demo"],["/puppies","?=demo"],["/play/","?=demo"],
+  ["/play","?=demo%20"]
+ ])assert.equal(isPlayDemoRoute(path,search),false,path+" "+search);
+});
+
+test("explicit demo route bypasses only its own frontend screen, never the live game gate",()=>{
+ const app=read("src/App.jsx");
+ const demo=read("src/HomePlayDemo.jsx");
+ assert.match(app,/demo\?"demo":path==="\/play"\?"play"/);
+ assert.match(app,/page==="demo"\?<div className="landing"><HomePlayDemo standalone\/>/);
+ assert.match(app,/page==="error"\?<WebErrorPage[^\n]+:<NativeApp\/>/);
+ assert.match(app,/href="\/play\?=demo"/);
+ assert.match(demo,/standalone=false/);
+ assert.match(demo,/href="\/play\?=demo"/);
+ assert.doesNotMatch(read("src/playDemoRoute.js"),/(?:auth|verified|setSession|signIn|supabase)/i);
 });
