@@ -39,7 +39,7 @@ export async function getPupIdentity(req,db){
   .select("account_uuid").eq("auth_user_id",uid).maybeSingle());
  if(!link)throw new PupError(403,"PUP_ACCOUNT_REQUIRED");
  const account=ensure(await read("pup_accounts")
-  .select("id,player_uuid,username,status,profile_avatar_path,updated_at,discord_user_id")
+  .select("id,player_uuid,username,status,profile_avatar_path,profile_avatar_url,updated_at,discord_user_id")
   .eq("id",link.account_uuid).maybeSingle());
  if(!account||account.status!=="active")throw new PupError(403,"ACCOUNT_NOT_ACTIVE");
  const player=ensure(await read("pupeye_players")

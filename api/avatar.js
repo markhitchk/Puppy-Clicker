@@ -1,8 +1,13 @@
 import {checkWebPupEye,WebPupEyeError} from './_lib/webPupEye.js';
 import {dbClient,ensure,validateRequest,getPupIdentity,PupError,fail} from "./_lib/pupIdentity.js";
+import {normalizeAvatarUrl} from "../src/avatarUrl.js";
+
 const BUCKET="pup-profile-avatars";
-const AVATAR_NAME=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/avatar\.(png|jpg|webp)$/;
+const AVATAR_NAME=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/avatar\.(png|jpg|webp)$/;
 const safeUrl=(db,path,version)=>path?db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl+'?v='+encodeURIComponent(version||'1'):null;
+const accountAvatar=(db,account)=>normalizeAvatarUrl(account.profile_avatar_url)||
+ safeUrl(db,account.profile_avatar_path,account.updated_at);
+
 export default async function handler(req,res){
  try{
   validateRequest(req,res);
@@ -12,9 +17,20 @@ export default async function handler(req,res){
   const action=req.body?.action;
   if(action==="read"){
    return res.status(200).json({ok:true,avatarPath:actor.account.profile_avatar_path||null,
-    avatarUrl:safeUrl(db,actor.account.profile_avatar_path,actor.account.updated_at)});
+    avatarUrl:accountAvatar(db,actor.account)});
   }
   if(action==="update"){
+   // New web clients store a public HTTPS URL in the dedicated account field.
+   if(Object.prototype.hasOwnProperty.call(req.body||{},"avatarUrl")){
+    const submitted=req.body.avatarUrl;
+    const url=submitted===null?null:normalizeAvatarUrl(submitted);
+    if(submitted!==null&&!url)throw new PupError(400,"AVATAR_URL_INVALID");
+    const changed=ensure(await db.from("pup_accounts").update({
+     profile_avatar_url:url,profile_avatar_path:null,updated_at:new Date().toISOString()
+    }).eq("id",actor.account.id).eq("status","active").select("id,updated_at").single());
+    return res.status(200).json({ok:true,updated:true,avatarPath:null,avatarUrl:url});
+   }
+   // Preserve compatibility for previously shipped clients with storage avatars.
    const path=req.body?.avatarPath;
    if(path!==null&&
      (typeof path!=="string"||!AVATAR_NAME.test(path)||!path.startsWith(actor.uid+"/")))
@@ -25,7 +41,7 @@ export default async function handler(req,res){
     if(Number(info.data.size||0)>2097152)throw new PupError(400,"AVATAR_TOO_LARGE");
    }
    const changed=ensure(await db.from("pup_accounts").update({
-    profile_avatar_path:path,updated_at:new Date().toISOString()
+    profile_avatar_url:null,profile_avatar_path:path,updated_at:new Date().toISOString()
    }).eq("id",actor.account.id).eq("status","active").select("id,updated_at").single());
    return res.status(200).json({ok:true,updated:true,avatarPath:path,avatarUrl:safeUrl(db,path,changed.updated_at)});
   }
