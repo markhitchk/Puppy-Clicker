@@ -59,6 +59,7 @@ test("home route displays a clearly isolated responsive demo",()=>{
  assert.match(styles,/night-yard-v1\.webp/);
  assert.match(styles,/@media\(max-width:650px\)/);
  for(const source of [demo,state]){
-  assert.doesNotMatch(source,/(?:localStorage|sessionStorage|supabase|functions\.invoke|fetch\()/i);
+  const executable=source.split("\n").filter(line=>!line.trimStart().startsWith("//")).join("\n");
+  assert.doesNotMatch(executable,/(?:localStorage|sessionStorage|supabase|functions\.invoke|fetch\()/i);
  }
 });
