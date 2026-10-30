@@ -8,7 +8,7 @@ import "./HomePlayDemo.css";
 
 // A self-contained playable preview of /play. Do not mount NativeApp or the
 // authenticated game here: the demo must never read/write a real player's save.
-export default function HomePlayDemo(){
+export default function HomePlayDemo({standalone=false}){
  const [game,dispatch]=useReducer(reduceHomePlayDemo,undefined,createHomePlayDemo);
  const puppy=HOME_DEMO_PUPPIES.find(p=>p.id===game.puppyStyle)||HOME_DEMO_PUPPIES[0];
  const tapGain=game.clickPower+careTapBonus(game);
@@ -26,7 +26,7 @@ export default function HomePlayDemo(){
  return <section className="home-section home-play-demo" id="try-play" aria-labelledby="home-demo-heading" data-testid="home-play-demo">
   <div className="home-play-demo__intro">
    <div><p className="eyebrow">🐾 TRY BEFORE YOU SIGN IN</p>
-    <h2 id="home-demo-heading">Try Puppy Clicker right here</h2>
+    <h2 id="home-demo-heading">{standalone?"Puppy Clicker · Play Demo":"Try Puppy Clicker right here"}</h2>
     <p>Tap a puppy, earn sample Treats, explore the roster and try an upgrade. This interactive preview uses the game's tap, care and shop rules.</p>
    </div>
    <span className="home-play-demo__badge">DEMO · NO LOGIN</span>
@@ -96,7 +96,7 @@ export default function HomePlayDemo(){
   </div>
   <div className="home-play-demo__footer">
    <p><strong>🔒 Demo only.</strong> All Treats, upgrades and puppy care here are temporary and stay on this page. No Pup Account is needed or changed, and demo progress is never saved.</p>
-   <a href="/play" className="cta cta-primary">🐾 Play the full game</a>
+   <div className="home-play-demo__footer-actions">{!standalone?<a href="/play?=demo" className="cta cta-secondary">🎮 Open demo page</a>:<a href="/" className="cta cta-secondary">← Homepage</a>}<a href="/play" className="cta cta-primary">🐾 Play the full game</a></div>
   </div>
  </section>;
 }
