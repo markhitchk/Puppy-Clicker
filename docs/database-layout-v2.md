@@ -1,5 +1,8 @@
 # Puppy Clicker database layout v2 (non-destructive rollout)
 
+> **Historical migration plan (v2):** All 36 original physical tables were moved successfully in v3 on October 29, 2026. The non-destructive read-view proposal below is obsolete. See [the verified v3 database architecture](database-layout-v3.md).
+
+
 ## Status: PupEye Web enabled; physical-table cutover still staged
 
 The active Android product is **React Native**, in `markhitchk/pup-clinker/Mobile`. The old `App/` Kotlin implementation is an archived historical reference, not a deployment target. React Native uses its signed PupEye NativeModules/Edge Functions. No Android app may be forced to upgrade by a database rename.
