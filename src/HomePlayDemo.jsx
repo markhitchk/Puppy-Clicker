@@ -1,5 +1,5 @@
 import React,{useReducer} from "react";
-import {careTapBonus,cost,boneCost,format} from "./game.js";
+import {careTapBonus,cost,boneCost,format} from "./native/src/engine/game.js";
 import {
  createHomePlayDemo,reduceHomePlayDemo,HOME_DEMO_PUPPIES,
  HOME_DEMO_UPGRADE,HOME_DEMO_GOAL,
