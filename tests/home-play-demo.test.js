@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {cost} from "../src/game.js";
+import {cost} from "../src/native/src/engine/game.js";
 import {
  createHomePlayDemo,reduceHomePlayDemo,HOME_DEMO_PUPPIES,
  HOME_DEMO_UPGRADE,HOME_DEMO_GOAL,
