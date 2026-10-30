@@ -1,7 +1,10 @@
-// Puppy Clicker schema catalog v2. Canonical data still lives in public.
-// New grouped schemas are security-invoker read-only views until final cutover.
-// Never route INSERT, UPDATE, UPSERT, DELETE or RPC to a grouped view.
-export const PUPPY_SCHEMA_LAYOUT_VERSION = 2;
+// Puppy Clicker schema catalog v3.
+// All 36 physical canonical tables live in their grouped Postgres schemas.
+// The original public.<table> names are security-invoker updatable views
+// preserving the old browser/React Native/Edge Function REST contract.
+// Do NOT use upsert on a view; use the restricted public RPCs instead.
+// Grouped schemas are not exposed to the public Data API by default.
+export const PUPPY_SCHEMA_LAYOUT_VERSION = 3;
 export const PUPPY_SCHEMA_TABLES = Object.freeze({
   "pup_accounts": {
     "schema": "puppy_accounts",
