@@ -52,8 +52,8 @@ begin
  end loop;
  for f in select p.oid from pg_proc p join pg_namespace n on n.oid=p.pronamespace
   where n.nspname='public' and p.prokind in ('f','p')
-    and exists(select 1 from puppy_rollback_map m
-         where position(m.target_schema||'.'||m.table_name in p.prosrc)>0)
+    and exists(select 1 from puppy_rollback_map refmap
+         where position(refmap.target_schema||'.'||refmap.table_name in p.prosrc)>0)
  loop
   definition:=pg_get_functiondef(f.oid);
   for m in select * from puppy_rollback_map order by length(table_name) desc loop
