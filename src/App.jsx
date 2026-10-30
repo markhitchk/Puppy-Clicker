@@ -10,6 +10,7 @@ import {loadWebPreferences,WEB_PREFERENCES_CHANGED} from "./native/web/preferenc
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
 import HomePlayDemo from "./HomePlayDemo.jsx";
+import {isPlayDemoRoute} from "./playDemoRoute.js";
 import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
 import AdminPortal from "./AdminPortal.jsx";
 import WebPrivacy from "./WebPrivacy.jsx";
@@ -40,7 +41,7 @@ function Home(){
     <p className="eyebrow">🐾 PUPPY CLICKER · WEB EDITION</p>
     <h1>Tap. Care. Collect.<br/><span>Grow your puppy world.</span></h1>
     <p className="hero-lede">Meet adorable puppies, earn Treats by tapping, grow your collection, take care of your companions, and unlock new rewards. Play in your browser with your Pup Account.</p>
-    <div className="hero-actions"><a className="cta cta-primary" href="/play">🐶 Play Puppy Clicker</a><a className="cta cta-secondary" href="/account">Manage Pup Account</a></div>
+    <div className="hero-actions"><a className="cta cta-primary" href="/play">🐶 Play Puppy Clicker</a><a className="cta cta-secondary" href="/play?=demo">🎮 Try Demo</a><a className="cta cta-secondary" href="/account">Manage Pup Account</a></div>
     <p className="hero-note">Already play on Android? Use your existing Pup Account to access your linked cloud progression. Gameplay access depends on your account's verified save.</p>
    </div>
    <div className="hero-art">
@@ -351,15 +352,16 @@ export default function App(){
  },[]);
  const path=typeof window!=="undefined"?window.location.pathname:"/";
  const callback=path==="/auth/discord/callback";
+ const demo=isPlayDemoRoute(path,typeof window!=="undefined"?window.location.search:"");
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
   const page=path==="/"?"home":path==="/privacy"?"privacy":path==="/puppies"?"puppies":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
-  callback?"callback":path==="/play"?"play":"error";
+  callback?"callback":demo?"demo":path==="/play"?"play":"error";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
-  <Header page={callback||page==="admin"?"account":page}/>
+  <Header page={callback||page==="admin"?"account":page==="demo"?"play":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
-   {page==="home"?<Home/>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
+   {page==="home"?<Home/>:page==="demo"?<div className="landing"><HomePlayDemo standalone/></div>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
     page==="privacy"?<WebPrivacy/>:
     page==="admin"?<AdminPage/>:
