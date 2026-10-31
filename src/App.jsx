@@ -1,5 +1,5 @@
 import {installInspectionDeterrent} from "./inspectionDeterrent.js";
-import React,{useEffect,useState} from "react";
+import React,{useEffect,useId,useRef,useState} from "react";
 import NativeApp from "./native/App.jsx";
 import RecoveryPage from "./RecoveryPage.jsx";
 import MeetPuppies from "./MeetPuppies.jsx";
@@ -29,20 +29,55 @@ import "./styles.css";
 const logo="/assets/logos/puppy_clicker.png";
 function Header({page}){
  const {t:tr}=useLanguage();
+ const [menuOpen,setMenuOpen]=useState(false);
+ const navId=useId(),navRef=useRef(null),menuButton=useRef(null);
+ useEffect(()=>{
+  if(!menuOpen)return;
+  const keyDown=event=>{
+   if(event.key==="Escape"){
+    setMenuOpen(false);
+    menuButton.current?.focus();
+   }
+  };
+  const pointerDown=event=>{
+   if(!navRef.current?.contains(event.target)&&!menuButton.current?.contains(event.target)){
+    setMenuOpen(false);
+   }
+  };
+  const resized=()=>{if(window.innerWidth>=1280)setMenuOpen(false);};
+  document.addEventListener("keydown",keyDown);
+  document.addEventListener("pointerdown",pointerDown);
+  window.addEventListener("resize",resized);
+  return()=>{
+   document.removeEventListener("keydown",keyDown);
+   document.removeEventListener("pointerdown",pointerDown);
+   window.removeEventListener("resize",resized);
+  };
+ },[menuOpen]);
  return <header className="site-header">
   <a className="site-brand" href="/" aria-label="Puppy Clicker home">
    <img src={logo} alt="" /><span><strong>Puppy Clicker</strong><small>Harley's Studios</small></span>
   </a>
-  <nav className="site-nav" aria-label="Website">
+  <nav ref={navRef} id={navId} className={"site-nav"+(menuOpen?" is-open":"")} aria-label="Website"
+   onClick={event=>{if(event.target.closest("a[href]"))setMenuOpen(false);}}>
    <a href="/" aria-current={page==="home"?"page":undefined}>{tr("home")}</a>
    <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 {tr("play")}</a>
    <a href="/puppies" aria-current={page==="puppies"?"page":undefined}>{tr("puppies")}</a>
    <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>{tr("policies")}</a>
    <a href="/leaderboard" aria-current={page==="leaderboard"?"page":undefined}>🏆 {tr("leaderboard")}</a>
    <a href="/chat" aria-current={page==="chat"?"page":undefined}>💬 {tr("chat")}</a>
-   <SiteAccountMenu active={page==="account"}/>
    <LanguagePicker compact/>
   </nav>
+  <div className="site-header-tools">
+   <button ref={menuButton} type="button" className="site-nav-toggle"
+    aria-controls={navId} aria-expanded={menuOpen}
+    aria-label={menuOpen?tr("closeMenu"):tr("openMenu")}
+    onClick={()=>setMenuOpen(open=>!open)}>
+    <span className="site-nav-toggle-icon" aria-hidden="true">{menuOpen?"✕":"☰"}</span>
+    <span className="site-nav-toggle-text">{tr("menu")}</span>
+   </button>
+   <SiteAccountMenu active={page==="account"}/>
+  </div>
  </header>;
 }
 function TryDemoLink(){
