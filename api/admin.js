@@ -1,3 +1,4 @@
+import {publicAvatarUrl} from "./_lib/publicAvatar.js";
 import {validatePrivacyReview} from "./_lib/privacyReview.js";
 import {checkWebPupEye,WebPupEyeError} from './_lib/webPupEye.js';
 import {createClient} from "@supabase/supabase-js";
@@ -66,7 +67,7 @@ async function users(db,query) {
   // Pup Account membership, not Pupeye installation registration or username,
   // defines what belongs in the Web Account administration directory.
   const accounts=ensure(await db.from("pup_accounts")
-    .select("id,player_uuid,discord_user_id,username,display_name,status,contact_email,created_at,updated_at")
+    .select("id,player_uuid,discord_user_id,username,display_name,status,contact_email,created_at,updated_at,profile_avatar_url,profile_avatar_path")
     .order("updated_at",{ascending:false}).limit(200)) || [];
   const ids=accounts.map(a=>a.player_uuid).filter(Boolean);
   if (!ids.length) return [];
@@ -111,6 +112,7 @@ async function users(db,query) {
     const restriction=standing.restriction;
     return {
       id:p.id,username:a.username,displayName:a.display_name || null,
+      avatarUrl:publicAvatarUrl(db,a),
       profileType:"registered",
       playerId:p.player_id,friendCode:p.friend_code,role:p.guild_role || "GUEST",
       status:standing.status!=="active"?standing.status:a.status!=="active"?a.status:p.status,

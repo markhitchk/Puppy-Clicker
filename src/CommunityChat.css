@@ -33,3 +33,21 @@
 .community-chat-history-title button,.community-chat-staff-queue>button{border:1px solid #3c8390;border-radius:14px;background:#173748;color:#dffaff;min-height:42px;padding:9px 16px;cursor:pointer;font-weight:700}
 .community-chat-history-title button:disabled,.community-chat-staff-queue>button:disabled{opacity:.55;cursor:not-allowed}
 .community-chat-staff-queue>p{color:#b8ced9;line-height:1.6}
+
+/* Linked chat identities and in-server mentions. */
+.community-chat-message>.chat-message-author{display:flex;justify-content:flex-start;flex-wrap:nowrap;align-items:center;gap:10px}
+.chat-message-author-meta{display:flex;flex-direction:column;gap:3px;min-width:0}
+.chat-message-author-meta small{overflow-wrap:anywhere}
+.chat-author-mention{border:0!important;background:transparent!important;padding:0!important;text-align:left;min-height:24px}
+.chat-author-mention:hover strong{text-decoration:underline}
+.chat-mention-inline{display:inline!important;padding:0 2px!important;margin:0 1px!important;border:0!important;border-radius:5px!important;background:rgba(0,229,255,.12)!important;color:#79eafe!important;font:inherit!important;font-weight:750!important;line-height:inherit!important}
+.chat-mention-inline:hover{text-decoration:underline}
+.chat-mention-suggestions{display:grid;gap:4px;padding:8px;background:#0e2536;border:1px solid #3e788b;border-radius:14px;max-height:240px;overflow:auto}
+.chat-mention-suggestions button{min-width:0;border:0;border-radius:10px;background:transparent;color:#e6f9ff;display:flex;align-items:center;text-align:left;gap:10px;padding:8px;cursor:pointer}
+.chat-mention-suggestions button:hover,.chat-mention-suggestions button:focus-visible{background:#205063;outline:1px solid #00e5ff}
+.chat-mention-suggestions button .chat-user-avatar{width:32px;height:32px}
+.chat-mention-suggestions button span:last-child{display:grid;min-width:0;gap:2px}
+.chat-mention-suggestions button small{color:#b9d3de}
+
+/* Override the generic first-child message row without spreading avatars apart. */
+.community-chat-message>div.chat-message-author:first-child{justify-content:flex-start;flex-wrap:nowrap}

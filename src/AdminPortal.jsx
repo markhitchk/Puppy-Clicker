@@ -1,6 +1,7 @@
 import React,{useCallback,useEffect,useState} from "react";
 import {useWebAccount} from "./native/web/AccountGate.jsx";
 import "./AdminPortal.css";
+import UserAvatar from "./UserAvatar.jsx";
 import AdminPuppyGifts from "./AdminPuppyGifts.jsx";
 import {banTargetFromLocation,banAccountUrl} from "./banRoute.js";
 import AdminActivity from "./AdminActivity.jsx";
@@ -253,7 +254,8 @@ export default function AdminPortal(){
     <thead><tr><th>Player</th><th>Standing</th><th>Role</th><th>Latest connection</th><th>IP address</th><th>User-Agent</th><th>Actions</th></tr></thead>
     <tbody>{visibleUsers.map(user=>
      <tr key={user.id}>
-      <td><strong>{user.displayName||user.username}</strong><small>@{user.username}</small><small>{user.friendCode||"—"}</small>{user.contactEmail?<small>Support email: {user.contactEmail}</small>:null}</td>
+      <td><div className="pup-admin-player"><UserAvatar src={user.avatarUrl} name={user.displayName||user.username} className="pup-admin-avatar"/>
+        <div><strong>{user.displayName||user.username}</strong><small>@{user.username}</small><small>{user.friendCode||"—"}</small>{user.contactEmail?<small>Support email: {user.contactEmail}</small>:null}</div></div></td>
       <td><span className={'pup-admin-status '+(user.status==='active'?'':'danger')}>{user.status||'unknown'}</span>
        {user.restriction?<><small>{user.restriction.reason}</small><small>{user.restriction.expiresAt?'Until '+formatTime(user.restriction.expiresAt):'Permanent'}</small></>:null}</td>
       <td>{staff.role==="DEVELOPER" && user.role!=="DEVELOPER"?

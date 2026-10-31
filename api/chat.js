@@ -1,5 +1,7 @@
 import {createClient} from "@supabase/supabase-js";
 import {normalizedChatBody,screenPupEyeChat} from "./_lib/chatScreening.js";
+import {extractChatMentions} from "../src/chatMentions.js";
+import {publicAvatarUrl} from "./_lib/publicAvatar.js";
 // Requires private social migration + reviewed retention schedule and privacy disclosures.
 // Deliberately OFF by default, including direct API access.
 const CHAT_ENABLED=process.env.PUPPY_SOCIAL_ENABLED==="true";
@@ -90,7 +92,7 @@ async function listMessages(db,account,query){
   .order("created_at",{ascending:false}).limit(20))||[];
  const senderIds=[...new Set(messages.map(m=>m.account_uuid))];
  const senders=senderIds.length?need(await db.from("pup_accounts")
-  .select("id,username,display_name").in("id",senderIds))||[]:[];
+  .select("id,username,display_name,profile_avatar_url,profile_avatar_path,updated_at").in("id",senderIds))||[]:[];
  const senderMap=new Map(senders.map(a=>[a.id,a]));
  const blocks=need(await db.from("pup_social_blocks")
   .select("blocked_account_uuid").eq("blocker_account_uuid",account.id))||[];
@@ -98,7 +100,8 @@ async function listMessages(db,account,query){
  return {channelId:channel.id,items:messages.filter(m=>!blocked.has(m.account_uuid)).map(m=>({
   id:m.id,body:m.body,createdAt:m.created_at,
   sender:senderMap.get(m.account_uuid)?.display_name||senderMap.get(m.account_uuid)?.username||"Player",
-  username:senderMap.get(m.account_uuid)?.username||"player"
+  username:senderMap.get(m.account_uuid)?.username||"player",
+  avatarUrl:publicAvatarUrl(db,senderMap.get(m.account_uuid))
  })),own:own.map(m=>({id:m.id,body:m.body,status:m.state,
   createdAt:m.created_at,reason:m.state==="rejected"?m.moderation_reason:null}))};
 }
@@ -193,10 +196,45 @@ async function joinServer(db,account,id){
  }
  return {joined:true,serverId:id};
 }
+async function mentionSuggestions(db,account,query){
+ const channel=await channelById(db,query.channelId);
+ await requireMember(db,account,channel.server_id);
+ const prefix=typeof query.prefix==="string"?query.prefix.trim():"";
+ if(!/^[A-Za-z0-9_-]{1,20}$/.test(prefix))return {users:[]};
+ const people=need(await db.from("pup_accounts")
+  .select("id,username,display_name,profile_avatar_url,profile_avatar_path,updated_at")
+  .ilike("username",prefix+"%").eq("status","active").order("username").limit(16))||[];
+ if(!people.length)return {users:[]};
+ const memberships=need(await db.from("pup_social_memberships")
+  .select("account_uuid").eq("server_id",channel.server_id)
+  .in("account_uuid",people.map(p=>p.id)))||[];
+ const members=new Set(memberships.map(m=>m.account_uuid));
+ return {users:people.filter(p=>members.has(p.id)).slice(0,8).map(p=>({
+  username:p.username,displayName:p.display_name||p.username,avatarUrl:publicAvatarUrl(db,p)
+ }))};
+}
+async function resolvedMentions(db,channel,text){
+ const handles=extractChatMentions(text);
+ if(handles.length>5)throw new ChatError(400,"CHAT_TOO_MANY_MENTIONS");
+ if(!handles.length)return [];
+ const results=await Promise.all(handles.map(async handle=>need(await db.from("pup_accounts")
+  .select("id,username").eq("status","active").ilike("username",handle).limit(2))||[]));
+ if(results.some(rows=>rows.length!==1))throw new ChatError(400,"CHAT_UNKNOWN_MENTION");
+ const matching=results.map(rows=>rows[0]);
+ const memberships=need(await db.from("pup_social_memberships")
+  .select("account_uuid").eq("server_id",channel.server_id)
+  .in("account_uuid",matching.map(a=>a.id)))||[];
+ const allowed=new Set(memberships.map(m=>m.account_uuid));
+ if(matching.some(a=>!allowed.has(a.id)))throw new ChatError(400,"CHAT_UNKNOWN_MENTION");
+ return handles;
+}
 async function submit(db,account,body){
  if(!isId(body.channelId)||!isId(body.clientKey))throw new ChatError(400,"CHAT_INVALID_INPUT");
+ const room=await channelById(db,body.channelId);
+ await requireMember(db,account,room.server_id);
+ const allowedMentions=await resolvedMentions(db,room,body.text);
  let screening;
- try{screening=screenPupEyeChat(body.text);}catch(e){
+ try{screening=screenPupEyeChat(body.text,{allowedMentions});}catch(e){
   throw new ChatError(400,["CHAT_EMPTY_MESSAGE","CHAT_MESSAGE_TOO_LONG","CHAT_INVALID_CHARACTERS"].includes(e.message)?e.message:"CHAT_INVALID_INPUT");
  }
  const result=await db.rpc("pup_social_submit",{
@@ -285,6 +323,7 @@ export default async function handler(req,res){
    switch(req.query?.action){
     case "channels":result=await listChannels(db,actor.account);break;
     case "messages":result=await listMessages(db,actor.account,req.query);break;
+    case "mentions":result=await mentionSuggestions(db,actor.account,req.query);break;
     case "queue":result=await moderationQueue(db,actor);break;
     case "reports":result=await moderationReports(db,actor);break;
     case "history":result=await moderationHistory(db,actor,req.query);break;

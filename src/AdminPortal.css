@@ -79,3 +79,18 @@
 .pup-admin-device{display:flex;align-items:flex-start;flex-direction:column;gap:9px;border:1px solid #31586c;border-radius:16px;background:#172a38;padding:18px}
 .pup-admin-device small{color:#aac7d4}
 .pup-admin-container button:focus-visible,.pup-admin-container input:focus-visible,.pup-admin-container select:focus-visible,.pup-admin-modal :focus-visible{outline:2px solid #00e5ff;outline-offset:3px}
+
+/* Navigation is a consistent grid, including linked modules. */
+.pup-admin-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.pup-admin-tabs button, .pup-admin-tabs a.pup-admin-link{display:flex;align-items:center;justify-content:center;min-width:0;min-height:48px;padding:10px 12px;border:1px solid #35596c;border-radius:16px;background:#152736;color:#e7f6ff;font:inherit;font-size:14px;font-weight:800;text-decoration:none;text-align:center;line-height:1.25;white-space:normal;overflow-wrap:anywhere;cursor:pointer}
+.pup-admin-tabs button.is-selected{background:#00d0ef;border-color:#00e5ff;color:#08202d}
+.pup-admin-tabs button:hover:not(:disabled),.pup-admin-tabs a.pup-admin-link:hover{border-color:#00bcd5;background:#1b4455;color:#fff}
+.pup-admin-tabs button:disabled{opacity:.55;cursor:not-allowed}
+.pup-admin-tabs .pup-admin-refresh{grid-column:1/-1;width:100%;margin-left:0;background:#193c4c}
+.pup-admin-player{display:flex;align-items:flex-start;gap:11px;min-width:180px}
+.pup-admin-player>div{min-width:0}
+.pup-admin-player .pup-admin-avatar{width:38px;height:38px}
+@media(max-width:900px){.pup-admin-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.pup-admin-tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.pup-admin-tabs button,.pup-admin-tabs a.pup-admin-link{font-size:13px;min-height:52px;padding:10px 8px;border-radius:13px}.pup-admin-tabs .pup-admin-refresh{grid-column:1/-1}.pup-admin-player .pup-admin-avatar{width:34px;height:34px}}
+
+.pup-admin-tabs a.pup-admin-link:focus-visible{outline:2px solid #00e5ff;outline-offset:3px}

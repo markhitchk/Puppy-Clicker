@@ -1,0 +1,35 @@
+name: Chat Mentions and Mobile Admin Validation
+on:
+  push:
+    branches: [feat/chat-avatars-mentions-mobile-admin]
+  pull_request:
+    paths:
+      - 'api/chat.js'
+      - 'api/admin.js'
+      - 'api/_lib/chatScreening.js'
+      - 'src/chatMentions.js'
+      - 'src/UserAvatar*'
+      - 'src/CommunityChat*'
+      - 'src/AdminPortal*'
+      - 'tests/chatMentions*.test.js'
+      - 'tests/chatMobileAdmin.test.js'
+      - 'supabase/migrations/*mentions*'
+      - '.github/workflows/chat-mobile-admin-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: chat-mobile-admin-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  website:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - run: npm run build

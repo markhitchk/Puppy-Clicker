@@ -26,13 +26,19 @@ export function normalizedChatBody(text){
   throw Error("CHAT_INVALID_CHARACTERS");
  return trimmed;
 }
-export function screenPupEyeChat(body){
+export function screenPupEyeChat(body,{allowedMentions=[]}={}){
  const text=normalizedChatBody(body);
  const normalized=text.normalize("NFKC").toLowerCase()
    .replace(/[\u0300-\u036f]/gu,"")
    .normalize("NFD").replace(/[\u0300-\u036f]/gu,"").normalize("NFC")
    .replace(/[\u200b-\u200f\u2060\ufeff]/gu,"").replace(/\s+/gu," ");
- const codes=rules.filter(([,pattern])=>pattern.test(normalized)).map(([code])=>code);
+ const validMentions=new Set(allowedMentions.filter(x=>typeof x==="string"&&/^[a-z0-9_-]{3,20}$/i.test(x)).map(x=>x.toLowerCase()));
+ // Mask only server-authorized Pup Account mentions. Unknown @handles and
+ // external contact information remain subject to the full PupEye filters.
+ const screened=normalized.replace(/(?<![\w@])@[a-z0-9_-]{3,20}(?![\w.-])/gu,
+  token=>validMentions.has(token.slice(1))?" ":token);
+ const codes=rules.filter(([,pattern])=>pattern.test(screened)).map(([code])=>code);
+ if(/\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b/iu.test(normalized))codes.push("CONTACT");
  if(/[a-z]{30,}/iu.test(normalized))codes.push("NEEDS_CONTEXT");
  return {body:text,screeningVersion:SCREENING_VERSION,
   screeningCodes:[...new Set(codes)],
