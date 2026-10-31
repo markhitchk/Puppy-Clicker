@@ -15,7 +15,12 @@ function CommunityChatBody(){
  },[request]);
  useEffect(()=>{void load();},[load]);
  const refresh=useCallback(async()=>{
-  const selected=catalog?.channels.find(c=>c.id===channel);
+  const blockAuthor=async id=>{
+  if(!window.confirm("Hide messages from this player? You can ask support to reverse a block."))return;
+  await action("block",{messageId:id,blocked:true});
+  await refresh();
+ };
+ const selected=catalog?.channels.find(c=>c.id===channel);
   if(!selected||!catalog.joinedServerIds.includes(selected.server_id))return;
   try{setMessages(await request("messages",{channelId:channel}));}
   catch(e){setError(e.message);}
@@ -70,7 +75,7 @@ function CommunityChatBody(){
      <div className="community-chat-messages" role="log" aria-live="off">
       {messages.items.length?messages.items.slice().reverse().map(m=><article className="community-chat-message" key={m.id}>
        <div><strong>{m.sender}</strong><small>{new Date(m.createdAt).toLocaleString()}</small></div>
-       <p>{m.body}</p><button type="button" onClick={()=>void report(m.id)}>Report</button>
+       <p>{m.body}</p><div className="community-chat-message-actions"><button type="button" onClick={()=>void report(m.id)}>Report</button><button type="button" onClick={()=>void blockAuthor(m.id)}>Block</button></div>
       </article>):<p>No approved messages here yet.</p>}
      </div>
      {messages.own.length?<details className="community-chat-own"><summary>Your held messages ({messages.own.length})</summary>
