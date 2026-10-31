@@ -4,15 +4,15 @@ Status: proposed design for owner review. No application or production database 
 
 ## Intent and decisions
 
-Improve the existing website at https://puppy-clicker.vercel.app with public chat, English and Spanish support, a leaderboard, a styled policy reader, and a Rewards page organized into sections. Keep the established Puppy Clicker appearance and current gameplay economy.
+Improve Puppy Clicker on Android, the website at https://puppy-clicker.vercel.app, and its browser gameplay/web app with server-based group chat, English and Spanish support, a leaderboard, a styled policy reader, and a Rewards page organized into sections. Use a shared React Native + React Native Web codebase and a common backend. Keep the established Puppy Clicker appearance and current gameplay economy.
 
 The owner clarified that chat is open to users, every message must be visible to staff in `/admin`, and moderation must be strict for an all-ages community. Staff-readable public chat replaces the original end-to-end encryption request. Do not describe this feature as end-to-end encrypted or promise that filtering guarantees safety.
 
-This document covers all five requested website changes. Android packaging and updates to the separate Android repository are outside this request. Existing website/native gameplay integration must continue working.
+The owner expanded the request to include the Android app and asked for “one size fits all” coding. This revision covers all five features on Android and web, shared source organization, and Android beta verification. It supersedes the prior website-only scope and single-room chat assumption. Existing saves, account identity, native services and released-client API contracts must continue working.
 
 ## Current project evidence
 
-Inspected `main` at commit `cc5acd29438943f4397c587a34b2affd68e6c179` and the Puppy Clicker DB schema metadata.
+Inspected `markhitchk/Puppy-Clicker` main at `cc5acd29438943f4397c587a34b2affd68e6c179`, `markhitchk/pup-clinker` main at `dc08d683a669d2b017f62e7f2ca8d77c42ea1aa4`, and the Puppy Clicker DB schema metadata.
 
 - `src/App.jsx` mounts the website and the React Native Web game. `/privacy` currently displays a separate website-activity privacy notice.
 - The active Rewards implementation is `RewardsScreen` in `src/native/App.jsx`, rather than the older `src/app/Rewards.jsx`. It renders level, streak, goals, claimed rewards, activities, prestige and achievements in one stack.
@@ -22,19 +22,60 @@ Inspected `main` at commit `cc5acd29438943f4397c587a34b2affd68e6c179` and the Pu
 - `src/native/web/preferences.js` persists browser preferences but has no language selector.
 - `public/assets/legal/privacy-policy.md` and `terms-of-use.md` are the current website-served legal source files. The policy contains Android-specific historical descriptions. Rendering it does not establish that those descriptions cover new social features.
 
+- Production Android source is `pup-clinker/Mobile`; its index preserves queue-before-startup and its build configuration isolates `com.harleytg.puppyclicker.beta`.
+- The website's `src/native/SOURCE.json` records a copied Android snapshot at `f35ad86ea874671bc05a3ab3dedde5bf97bbc06b`. The active website app also contains browser-only imports and DOM-based desktop screens, so pointing Android at that file is insufficient.
+- The scheduled website sync copies only `balancedProgression.js` and `playV6.js`. It does not provide one common UI or complete engine.
+- The website repository also has `mobile/App.jsx` and an older `src/app/UniversalApp.jsx`. They do not mount the current website game or replace production Android, so that starter is not the migration target.
+
 ## Approaches
 
 1. **Fully moderated public chat:** staff can read all submissions. Use HTTPS and verify the hosting/database storage-encryption configuration. This fits the owner's clarified choice.
 2. **Moderated public chat plus encrypted private messages:** separates moderation and private messaging but introduces a second privacy model and reporting flow. Not selected after the owner's clarification.
 3. **End-to-end encrypted chat only:** prevents routine staff access to all message bodies. Incompatible with the clarified requirement.
 
-Build on the existing React, React Native Web, Vercel API and Supabase stack. Do not introduce a paid moderation provider or another hosting service.
+Build on the existing React, React Native Web and Supabase stack. Retain Vercel for the website. Do not introduce a paid moderation provider or another hosting service.
+
+## One shared codebase across Android and web
+
+### Repository and build structure
+
+The recommended approach is a single workspace repository with separate thin launchers and shared packages. The proposed canonical repository is `markhitchk/pup-clinker`, preserving its established production Android code and build/signing integrations. Repository placement is a builder recommendation, not a prior owner decision. Preserve the public website URL and current Vercel project.
+
+- `Mobile/`: existing Expo Android launcher, native modules/plugins and Android build configuration.
+- `Web/`: website launcher, routes, public landing/account/admin shell, browser-specific desktop presentation and Vercel deployment configuration.
+- `packages/game-core/`: engine, state transitions, progression rules and validated shared models.
+- `packages/game-ui/`: shared React Native screens/components, including chat, leaderboard, Rewards sections and policy reader structure. React Native Web renders the same components in browsers.
+- `packages/services/`: shared API contracts, error codes, pagination and feature clients with injected authentication/transport.
+- `packages/i18n/`: English/Spanish dictionaries, formatting and translation hooks.
+- `packages/design/`: shared theme tokens, spacing, breakpoints and assets/catalog metadata.
+- `supabase/`: one canonical, reviewed set of Puppy Clicker migrations, Edge Functions and server authorization/moderation logic.
+
+A single responsive feature implementation must support narrow phones, tablets, desktop browsers and Android large-window/DeX/Chromebook layouts. Layout responds to available window dimensions, not an “Android means phone” test. Share design tokens and layout rules; CSS cannot be imported as Android native styling.
+
+Keep small `.native`/`.web` adapters for secure/session storage, notifications, haptics, sound, safe areas, file operations, browser routes/deep links, document printing and native PupEye authentication. Do not force DOM elements, window/localStorage, service-worker code, browser auth adapters, or device keys into shared components. Platform-specific layouts may compose the same feature components rather than duplicating their business logic.
+
+### Migration and release behavior
+
+Extract shared modules from the actual production Android implementation and compare current web-specific fixes before replacing either copy. Preserve Android's native services, account verification, queue/startup order, save revision rules and signed gameplay operations. Resolve existing behavioral differences deliberately; do not revert web fixes by copying an old snapshot or switch Android to the older universal starter.
+
+Move the website into the workspace on an isolated branch and prove the existing routes/game/admin on a preview before changing the production Vercel Git source/root. Keep the existing `Puppy-Clicker` repository serving production until the new source is verified; then switch the existing deployment project to the canonical workspace while retaining its hostname and environment configuration. Retire the two-file copying workflow only after both targets consume shared packages. No deleting either repository, rewriting history, deleting the historical Kotlin archive, or changing production Android signing/package identity is implied.
+
+Use one compatible React version and a locked dependency graph supported by both web and Expo. Configure Metro and Vite workspace resolution so each app loads one React runtime. CI must run shared tests, web build/browser checks, Android bundle/build checks, and produce a downloadable standalone beta APK from the same source commit. Keep production Play release separate from beta validation.
+
+### Shared backend and identity
+
+Use one Supabase-backed feature service for Android and web. Shared feature code talks to the same message/channel/moderation and leaderboard contracts. Prefer common Edge Functions rather than making Android depend on a browser-origin-only Vercel route.
+
+Keep platform authentication differences in trusted server adapters: web verifies its Supabase session and Pup Account link; Android verifies its existing signed PupEye/native account credential path. Both resolve a canonical Pup Account identity server-side before running common authorization logic. Never accept an account ID, role or device-verification claim merely because a client supplied it, and never remove native signing/attestation requirements to make clients look identical. Re-read authoritative bans, memberships and staff roles for privileged operations. Website `/admin` can call the same moderation service without shipping staff capabilities to ordinary app users.
 
 ## Public chat
 
 ### Access and interaction
 
-- One shared community room at `/chat`, linked from website navigation and in-game desktop/mobile navigation.
+- Server-style group messaging at `/chat` and in the Android app: a server/group contains named text channels with shared message history. Both platforms see the same server, channels, membership, published messages and moderation outcomes.
+- Start with an official Puppy Clicker community server and proposed channels `#general`, `#espanol`, `#help`, and staff-posted `#announcements`. Keep the initial choices small and renameable by staff. Data/API models support multiple servers, channels and memberships.
+- Proposed initial creation policy: only global ADMIN/DEVELOPER staff create/manage servers and channels. Ordinary active Pup Account users can join the official community and participate in writable channels. **Owner choice still open:** whether ordinary players may also create servers. Do not silently implement player-created communities or user-assigned moderators before this is resolved.
+- Official channel visibility is shared by active community members; membership and channel access are enforced server-side. Enforce read-only announcements on both platforms and on the server. Archived/disabled channels cannot accept new messages. Every request/subscription binds to an authorized server/channel, not an arbitrary client-supplied room ID.
 - Every active, registered, signed-in Pup Account can read and submit. Membership, Discord connection, and paid status are not required. Signed-out visitors see the sign-in prompt; they cannot read message bodies or post anonymously.
 - No private messaging, uploads, images, clickable links, or attachments in this release. Messages are plain text, at most 300 Unicode code points, with a server-side byte limit.
 - Before first use, display short community rules and a clear notice that staff can read every submission. Store the accepted chat-rules version.
@@ -48,33 +89,33 @@ Build on the existing React, React Native Web, Vercel API and Supabase stack. Do
 ### Admin workflow
 
 - Support `/admin` and `/admin/chat` as authenticated entry points into the existing administration portal; retain `/account/admin` and add `/account/admin/chat` as compatible routes.
-- Show clean tabs for Pending, Published, Rejected/Removed, Reports, and Muted Players. Display message text, player identity, submission time, screening flags, and moderation history in readable cards/table rows rather than raw JSON.
-- Authorized ADMIN and DEVELOPER roles can review all submitted message bodies, including rejected and removed messages. Ordinary accounts can never enumerate this history or read another account's pending messages.
+- Show server/channel filters and clean tabs for Pending, Published, Rejected/Removed, Reports, and Muted Players. Display message text, player identity, submission time, screening flags, and moderation history in readable cards/table rows rather than raw JSON.
+- Authorized global ADMIN and DEVELOPER roles can review all submitted message bodies from both platforms and every server/channel, including rejected and removed messages. Any future community/room owner role must not be confused with a global admin role. Ordinary accounts can never enumerate this history or read another account's pending messages.
 - Actions: approve, reject, remove, restore through approval, resolve report, issue/revoke a chat mute, and open existing account sanctions. Reuse existing staff hierarchy rules for restrictions.
 - Moderation requires a reason and records actor, target, time, previous state, new state, and reason. Use conditional transitions to reject conflicting decisions. A message must not publish unless its approval and audit record both commit.
 - Staff-written messages also enter approval by default; no hidden filter or audit bypass.
 
 ### Storage and API
 
-- Add private canonical relations in a `puppy_social` schema for messages, reports, blocks, mutes, chat-rules acceptance, and moderation history. These are proposed names; implementation may refine them consistently.
-- Use same-origin server endpoints following the existing Pup Account identity checks. Restrict database/API privileges; use RLS as defense in depth. Browser clients cannot write moderation states, staff roles, sender IDs, or timestamps.
+- Add private canonical relations in a `puppy_social` schema for servers, channels, memberships, messages, reports, blocks, mutes, chat-rules acceptance, and moderation history. Every message belongs to an authorized server/channel and canonical sender. These are proposed names; implementation may refine them consistently.
+- Use the shared authenticated service described above, with thin web/native transport adapters. Restrict database/API privileges; use RLS as defense in depth. Clients cannot write moderation states, staff roles, sender IDs, membership privileges, or timestamps.
 - Keep message bodies out of generic application logs, network telemetry, and error responses. Expose only published messages and the caller's own submission status through the player API.
-- Use cursor pagination with bounded page sizes. Start with visible-tab polling every 5 seconds and slower polling for hidden tabs; authenticated responses use private/no-store caching. Avoid exposing a realtime channel that could leak unapproved bodies.
+- Use cursor pagination with bounded page sizes. Shared hooks poll every 5 seconds only while the chat screen is active and connected; pause on browser-hidden/native-background states and refresh on resume. Authenticated responses use private/no-store caching. Reconnect with cursors and idempotency keys; show pending/offline/error states and never show a failed send as delivered. Do not silently queue outgoing messages after logout or an account change. Avoid exposing a realtime channel that could leak unapproved bodies.
 - Proposed retention: pending submissions expire after 24 hours with an “Expired before review” status for the sender; staff cannot approve an expired submission. Published/rejected/removed message bodies expire after 30 days from submission; unresolved report evidence remains for up to 90 days from the report, then expires even if unresolved. Retain body-free staff audit metadata for 180 days. Show these periods in the chat privacy notice. Implement and verify scheduled cleanup; do not merely document it.
 - Verify actual transport and provider storage encryption before making encryption claims. The service and authorized staff can read stored chat bodies.
 
 ## English and Spanish
 
-- Add shared keyed English and Spanish dictionaries and a React translation context. Avoid brittle DOM text replacement or changing internal game identifiers.
+- Add one shared set of keyed English and Spanish dictionaries and a React translation context, consumed directly by Android and web. Avoid brittle DOM text replacement or changing internal game identifiers.
 - Scope includes website navigation and pages, account/login/recovery flows, admin controls, chat, leaderboard, game tabs and screens, settings, rewards/goals, help text, accessibility labels, and common user-facing errors.
-- Default to the saved language, then a supported browser language, then English. Add an English / Español selector in the site header and game settings. Update document language and locale-aware dates/numbers immediately. Persist the choice locally without changing a cloud gameplay save.
+- Default to the saved language, then a supported device/browser language, then English. Add an English / Español selector in the site header and shared game settings. Update web document language and shared locale-aware dates/numbers immediately. Persist the choice through each platform's preference adapter without changing a cloud gameplay save.
 - Translate dynamic goals and achievements by stable IDs. Keep usernames, message bodies, puppy IDs, brand names, and player-written content unchanged. No automatic translation of chat messages.
 - Render existing legal source text in its authored language. Translate the reader controls; do not silently machine-translate legal text or label it an approved Spanish policy. The reader states the document language when it differs from the UI language.
 - Missing keys fall back to English. CI verifies dictionary key parity and interpolation placeholders.
 
 ## Leaderboard
 
-- Add `/leaderboard` and a matching in-game entry. Default to all-time lifetime Treats, with XP and puppies-owned tabs. These metrics are the builder's proposed defaults.
+- Add `/leaderboard` and the same shared leaderboard screen in the Android app and web game. Default to all-time lifetime Treats, with XP and puppies-owned tabs. These metrics are the builder's proposed defaults.
 - Participation is opt-in, initially off for all accounts (builder's proposed privacy default). Before joining, show exactly which profile fields and scores become public. Store this server-side as a profile preference; leaving removes the account from all rankings immediately. The leaderboard ranks participating eligible accounts only, says so in its introduction, and presents a join invitation/empty state when none have joined. Self-rank is available only while participating.
 - Display rank, display name/username, sanitized avatar, and the selected score. Signed-in players can see their own rank even when outside the displayed top 100. Return explicit empty/error states.
 - Read only validated canonical server progression through a dedicated projection/query, never local storage or client-submitted scores. During implementation, verify which canonical save fields are authoritative and their handling of staff gifts/imports; reject malformed or unverifiable values rather than guessing a score.
@@ -85,7 +126,7 @@ Build on the existing React, React Native Web, Vercel API and Supabase stack. Do
 
 ## Policy reader
 
-- Add `/legal/privacy` and `/legal/terms` using a shared safe Markdown reader with Puppy Clicker styling, a document switcher, table of contents, anchor links, authored/effective date when present, print control, and access to the raw Markdown source.
+- Add `/legal/privacy` and `/legal/terms` plus Android in-app policy navigation using one safe Markdown content/model pipeline with Puppy Clicker styling, a document switcher, table of contents, section links, authored/effective date when present, and access to the raw Markdown source. Use a platform rendering adapter where needed; printing is a web capability. Share the legal document versions and content source.
 - Preserve `/privacy` and its website-activity disclosure. Link it to the full policy reader and ensure new navigation does not conceal that disclosure. Keep old raw asset URLs available.
 - Desktop: readable content column plus sticky contents sidebar. Mobile: expandable contents panel. Keyboard navigation and focus must work.
 - Disable raw HTML execution and unsafe link schemes. Do not use unsanitized `dangerouslySetInnerHTML` for Markdown or translations. Include loading, not-found, and fetch-error states.
@@ -93,7 +134,7 @@ Build on the existing React, React Native Web, Vercel API and Supabase stack. Do
 
 ## Rewards sections
 
-Refactor the active `RewardsScreen`, preserving action handlers and calculations:
+Extract the active production Android Rewards implementation and reconcile the website `RewardsScreen` into one shared screen, preserving action handlers and calculations through the common game contract:
 
 1. **Overview:** level, XP progress, daily streak and its existing limits.
 2. **Daily rewards:** daily gift, today's goals, clear progress bars and ready-to-claim states.
@@ -108,12 +149,14 @@ Use desktop section cards and mobile accordions with accessible expanded states.
 
 - Confirm current repository instructions and schema dependencies before implementation. Keep changes isolated on a feature branch and avoid unrelated repositories/tables.
 - Test chat as anonymous, ordinary user, muted user, banned user, and staff. Verify that pending/rejected/removed messages never leak publicly, identity cannot be forged, concurrency cannot bypass limits, duplicate submissions do not duplicate messages, and failed screening/audit/approval operations fail closed.
-- Test report/block ownership, staff permission changes, expired mutes, contradictory moderation decisions, cleanup expiry, and Markdown/chat XSS payloads.
+- Test report/block ownership, staff permission changes, expired mutes, contradictory moderation decisions, cleanup expiry, and Markdown/chat XSS payloads. Test cross-server/channel ID tampering, membership changes, read-only channels and unapproved-message leakage.
+- Verify an Android submission and website submission appear in the same admin queue, publish exactly once after approval and display on both clients. A removal/mute/ban from `/admin` must take effect on both clients. Test reconnect/background/resume and expired credentials independently.
+- Verify the workspace uses one source module for each shared feature and that web bundling cannot include native secrets/modules or fail from imports of unavailable native APIs. Test phone, tablet, desktop browser and Android large-window layouts.
 - Test leaderboard eligibility, score validation, ties, paging, self-rank, and exclusion changes. Verify responses contain only the allowed projection.
-- Check English/Spanish dictionary coverage, interpolation, immediate language switching, storage failure fallback, accented input, locale formatting, and document language.
+- Check English/Spanish dictionary coverage, interpolation, immediate language switching, native/browser storage failure fallback, accented input, locale formatting, and web document language. Exercise the actual shared components in both builds.
 - Check Rewards in mobile and desktop layouts: all actions still reach their current handlers; claim locks, rewards, XP, timers and prestige remain unchanged.
 - Check legal routes, existing links, accessible contents navigation, mobile overflow, source retrieval failures and print output.
-- Run existing repository tests and production build, plus targeted behavior tests and browser checks. Verify live database changes with queries and security advisors. Deployment must expose real moderation-backed behavior rather than placeholder chat or fake rankings.
+- Run the relevant existing tests from both repositories, shared feature tests, the web production build/browser checks, and Android Expo export/native beta build and launch checks. Publish a downloadable beta APK when those checks succeed; do not claim an APK exists before an artifact is verified. Verify live database changes with queries and security advisors. Deployment must expose real moderation-backed behavior rather than placeholder chat or fake rankings.
 - Do not advertise chat as safe for every age, continuously staffed, or end-to-end encrypted. Explain prepublication approval and staff visibility plainly.
 - Keep chat disabled until the moderation workflow, retention cleanup and accurate disclosures are verified. The other four features may deploy independently if chat checks are incomplete.
 
@@ -123,4 +166,4 @@ Exact component boundaries, safe Markdown dependency choice, migration-generated
 
 ## Builder review
 
-A fresh engineer reviewed this design for consequential gaps. The review identified pending-message retention and leaderboard participation as unspecified. Both are now resolved above as builder-proposed defaults: pending submissions expire after 24 hours; leaderboard participation requires opt-in. No additional owner decision is required to understand the proposed design; the owner may change those defaults during review.
+A fresh engineer reviewed the cross-platform/server-channel revision. Two consequential owner choices remain: whether ordinary players may create servers, and whether every message (including staff messages) requires manual prepublication approval or automatic screening publishes acceptable messages while holding flagged submissions for staff. The current draft uses staff-created servers and manual approval of every message as proposed defaults, not separately confirmed owner instructions. Other architectural and implementation details have explicit defaults or are delegated to the builder. The prior review resolved pending-message retention and leaderboard participation as builder-proposed defaults: pending submissions expire after 24 hours; leaderboard participation requires opt-in.
