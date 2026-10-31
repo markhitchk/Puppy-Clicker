@@ -1,3 +1,4 @@
+import {validatePrivacyReview} from "./_lib/privacyReview.js";
 import {checkWebPupEye,WebPupEyeError} from './_lib/webPupEye.js';
 import {createClient} from "@supabase/supabase-js";
 import {
@@ -194,16 +195,13 @@ export async function action(db,actor,body) {
   }
   if (type==="privacy-review") {
     const id=requireId(body.requestId);
-    const state=String(body.state||"");
-    const reason=String(body.reason||"").trim();
-    if(!["in_progress","awaiting_review","completed","denied"].includes(state)||reason.length<5||reason.length>500)
-      throw new AdminError(400,"PRIVACY_REVIEW_INVALID");
+
     const row=ensure(await db.from("pup_privacy_requests").select("id,type,state")
       .eq("id",id).maybeSingle());
     if(!row)throw new AdminError(404,"PRIVACY_REQUEST_NOT_FOUND");
-    if(["completed","denied","cancelled"].includes(row.state))throw new AdminError(409,"PRIVACY_REQUEST_CLOSED");
-    // Erasure is never marked complete merely because a staff member clicked a button.
-    if(row.type==="erase"&&state==="completed")throw new AdminError(409,"PRIVACY_ERASURE_VERIFICATION_REQUIRED");
+    let state,reason;
+    try{({state,reason}=validatePrivacyReview(row.type,row.state,body.state,body.reason));}
+    catch(error){throw new AdminError(error.message==="PRIVACY_REVIEW_INVALID"?400:409,error.message);}
     await audit(db,actor,null,"PRIVACY_REVIEW_ATTEMPT",{requestId:id,from:row.state,to:state});
     const now=new Date().toISOString();
     const updated=ensure(await db.from("pup_privacy_requests").update({
