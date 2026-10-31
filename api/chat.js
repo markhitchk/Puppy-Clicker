@@ -201,15 +201,29 @@ async function review(db,actor,body){
 }
 async function report(db,actor,body){
  if(!isId(body.messageId)||typeof body.reason!=="string"||
- body.reason.trim().length<3||body.reason.trim().length>300)throw new ChatError(400,"CHAT_INVALID_REPORT");
- const message=need(await db.from("pup_social_messages")
-  .select("server_id,channel_id,state").eq("id",body.messageId).maybeSingle());
- if(!message||message.state!=="published")throw new ChatError(404,"MESSAGE_UNAVAILABLE");
- await requireMember(db,actor.account,message.server_id);
- const created=await db.from("pup_social_reports")
-  .insert({reporter_account_uuid:actor.account.id,message_id:body.messageId,reason:body.reason.trim()});
- if(created.error&&created.error.code!=="23505")throw new ChatError(503,"CHAT_REPORT_UNAVAILABLE");
+ body.reason.trim().length<3||body.reason.trim().length>300)
+  throw new ChatError(400,"CHAT_INVALID_REPORT");
+ const result=await db.rpc("pup_social_report",{
+  p_account:actor.account.id,p_message:body.messageId,p_reason:body.reason.trim()
+ });
+ if(result.error){
+  const code=result.error.message.split(" ")[0];
+  const publicErrors=new Set(["CHAT_INVALID_REPORT","MESSAGE_UNAVAILABLE","CHAT_JOIN_REQUIRED","CHAT_REPORT_RATE_LIMIT"]);
+  throw new ChatError(publicErrors.has(code)?409:503,publicErrors.has(code)?code:"CHAT_REPORT_UNAVAILABLE");
+ }
  return {reported:true};
+}
+async function mute(db,actor,body){
+ if(!actor.staff)throw new ChatError(403,"STAFF_ACCESS_REQUIRED");
+ if(!isId(body.messageId)||!Number.isInteger(body.hours)||body.hours<0||body.hours>168||
+ typeof body.reason!=="string"||body.reason.trim().length<3||body.reason.length>300)
+  throw new ChatError(400,"CHAT_INVALID_MODERATION");
+ const result=await db.rpc("pup_social_manage_mute",{
+  p_actor:actor.account.id,p_message:body.messageId,
+  p_hours:body.hours,p_reason:body.reason.trim()
+ });
+ if(result.error)throw new ChatError(409,"CHAT_MUTE_UNAVAILABLE");
+ return {updated:true,muted:body.hours>0};
 }
 async function block(db,actor,body){
  if(!isId(body.messageId))throw new ChatError(400,"INVALID_BLOCK");
@@ -256,6 +270,7 @@ export default async function handler(req,res){
     case "send":result=await submit(db,actor.account,body);break;
     case "review":result=await review(db,actor,body);break;
     case "report":result=await report(db,actor,body);break;
+    case "mute":result=await mute(db,actor,body);break;
     case "resolve-report":result=await resolveReport(db,actor,body);break;
     case "block":result=await block(db,actor,body);break;
     default:throw new ChatError(400,"INVALID_ACTION");
