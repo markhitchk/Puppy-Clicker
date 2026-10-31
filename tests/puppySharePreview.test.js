@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readFileSync,existsSync} from "node:fs";
+import roster from "../src/data/roster.js";
+import {puppyAssetId} from "../src/puppyLinks.js";
 import {applyPuppySharePreview,getPuppySharePreview} from "../src/puppySharePreview.js";
 import middleware,{config} from "../middleware.js";
 
@@ -14,7 +16,18 @@ test("Aurora social link uses actual roster name, description and artwork",()=>{
  assert.match(puppy.description,/Aurora-purple and teal fur glow/);
  assert.match(puppy.description,/V1 puppy/);
  assert.equal(puppy.url,"https://puppy-clicker.vercel.app/puppies?pup=v1_aurora");
- assert.equal(puppy.image,"https://puppy-clicker.vercel.app/assets/transparent/v1/v1_aurora.png");
+ assert.equal(puppy.image,"https://puppy-clicker.vercel.app/assets/v1/v1_aurora.png");
+});
+
+
+test("all roster preview images are the exact existing original puppy asset",()=>{
+ for(const puppy of roster){
+  const preview=getPuppySharePreview("?pup="+encodeURIComponent(puppyAssetId(puppy)));
+  assert.ok(preview,"Missing preview for "+puppy.id);
+  assert.equal(preview.image,"https://puppy-clicker.vercel.app"+puppy.image,puppy.id);
+  assert.ok(existsSync(new URL("../public"+puppy.image,import.meta.url)),"Missing original art for "+puppy.id);
+  assert.doesNotMatch(preview.image,/\\/transparent\\/|puppy_clicker\\.png/);
+ }
 });
 
 test("other puppy links use their own metadata and accept legacy link forms",()=>{
@@ -36,9 +49,9 @@ test("static HTML gets Open Graph, Twitter, canonical and SEO metadata for a pup
  assert.match(result,/<meta property="og:title" content="🌌 Aurora \| Puppy Clicker"/);
  assert.match(result,/<meta property="og:description" content="Aurora-purple and teal fur glow/);
  assert.match(result,/<meta property="og:url" content="https:\/\/puppy-clicker\.vercel\.app\/puppies\?pup=v1_aurora"/);
- assert.match(result,/<meta property="og:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/transparent\/v1\/v1_aurora\.png"/);
+ assert.match(result,/<meta property="og:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/v1\/v1_aurora\.png"/);
  assert.match(result,/<meta name="twitter:card" content="summary_large_image"/);
- assert.match(result,/<meta name="twitter:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/transparent\/v1\/v1_aurora\.png"/);
+ assert.match(result,/<meta name="twitter:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/v1\/v1_aurora\.png"/);
  assert.match(result,/<link rel="canonical" href="https:\/\/puppy-clicker\.vercel\.app\/puppies\?pup=v1_aurora"/);
  assert.match(result,/script type="module" src="\/src\/main\.jsx"/);
  assert.equal((result.match(/<meta property="og:title"/g)||[]).length,1);
@@ -62,7 +75,7 @@ test("middleware serves preview metadata in HTML to all user agents",async()=>{
   assert.equal(fetched,"https://puppy-clicker.vercel.app/index.html");
   const body=await response.text();
   assert.match(body,/og:title" content="🌌 Aurora \| Puppy Clicker"/);
-  assert.match(body,/og:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/transparent\/v1\/v1_aurora\.png"/);
+  assert.match(body,/og:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/v1\/v1_aurora\.png"/);
   const generic=await middleware(new Request("https://puppy-clicker.vercel.app/puppies"));
   assert.equal(await generic.text(),html);
   const head=await middleware(new Request("https://puppy-clicker.vercel.app/puppies?pup=v1_aurora",{method:"HEAD"}));
