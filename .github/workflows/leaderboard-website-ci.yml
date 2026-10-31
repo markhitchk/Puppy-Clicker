@@ -1,0 +1,30 @@
+name: Leaderboard Website Validation
+on:
+  push:
+    branches: [fix/leaderboard-developer-view]
+  pull_request:
+    paths:
+      - 'api/leaderboard.js'
+      - 'api/_lib/leaderboardAccess.js'
+      - 'src/Leaderboard.jsx'
+      - 'src/communityI18n.js'
+      - 'tests/leaderboardAccess.test.js'
+      - '.github/workflows/leaderboard-website-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: leaderboard-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - run: npm run build

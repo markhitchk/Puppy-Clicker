@@ -1,5 +1,6 @@
 import {createClient} from "@supabase/supabase-js";
 import {LEADERBOARD_METRICS,scoreFromVerifiedSave,publicLeaderboard} from "./_lib/leaderboardCore.js";
+import {isLeaderboardActionAllowed,leaderboardParticipation} from "./_lib/leaderboardAccess.js";
 class Failure extends Error{constructor(status,code){super(code);this.status=status;}}
 const validId=id=>typeof id==="string"&&/^[\da-f]{8}-[\da-f]{4}-[1-8][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(id);
 function need(data){if(data.error)throw new Failure(503,"LEADERBOARD_UNAVAILABLE");return data.data;}
@@ -8,19 +9,19 @@ function database(){
  if(!url||!key)throw new Failure(503,"LEADERBOARD_UNAVAILABLE");
  return createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
 }
-async function blocked(db,account){
- if(account.status!=="active")return true;
+async function ineligibilityReason(db,account){
+ if(account.status!=="active")return "account";
  const p=need(await db.from("pupeye_players").select("id,guild_role,status").eq("id",account.player_uuid).maybeSingle());
- if(!p||p.status!=="active")return true;
+ if(!p||p.status!=="active")return "player";
  const predicates=["player_uuid.eq."+account.player_uuid];
  if(/^\d{15,22}$/.test(account.discord_user_id||""))predicates.push("discord_user_id.eq."+account.discord_user_id);
  const targets=need(await db.from("pupeye_ban_targets").select("ban_uuid").or(predicates.join(",")))||[];
  const ids=[...new Set(targets.map(t=>t.ban_uuid).filter(validId))];
  if(ids.length){
   const bans=need(await db.from("pupeye_global_bans").select("id,status,expires_at,revoked_at").in("id",ids).eq("status","active"))||[];
-  if(bans.some(b=>!b.revoked_at&&(!b.expires_at||Date.parse(b.expires_at)>Date.now())))return true;
+  if(bans.some(b=>!b.revoked_at&&(!b.expires_at||Date.parse(b.expires_at)>Date.now())))return "banned";
  }
- return p.guild_role==="DEVELOPER";
+ return p.guild_role==="DEVELOPER"?"developer":null;
 }
 async function current(db,req){
  const bearer=String(req.headers?.authorization||"");
@@ -31,8 +32,9 @@ async function current(db,req){
  if(!link||!validId(link.account_uuid))throw new Failure(403,"PUP_ACCOUNT_REQUIRED");
  const account=need(await db.from("pup_accounts").select("id,player_uuid,discord_user_id,status").eq("id",link.account_uuid).maybeSingle());
  if(!account||!validId(account.player_uuid)||account.status!=="active")throw new Failure(403,"ACCOUNT_NOT_ACTIVE");
- if(await blocked(db,account))throw new Failure(403,"ACCOUNT_INELIGIBLE");
- return account;
+ const reason=await ineligibilityReason(db,account);
+ if(!isLeaderboardActionAllowed({reason,method:req.method}))throw new Failure(403,"ACCOUNT_INELIGIBLE");
+ return {...account,leaderboardReason:reason};
 }
 async function list(db,account,metric){
  if(!LEADERBOARD_METRICS.includes(metric))throw new Failure(400,"INVALID_METRIC");
@@ -41,7 +43,8 @@ async function list(db,account,metric){
  const ids=rows.map(r=>r.account_uuid).filter(validId);
  const mine=need(await db.from("pup_leaderboard_participants")
    .select("opted_in,excluded").eq("account_uuid",account.id).maybeSingle());
- if(!ids.length)return {metric,participating:mine?.opted_in===true&&mine?.excluded!==true,top:[],self:null,total:0};
+ const participation=leaderboardParticipation({reason:account.leaderboardReason,optedIn:mine?.opted_in,excluded:mine?.excluded});
+ if(!ids.length)return {metric,...participation,top:[],self:null,total:0};
  const accounts=need(await db.from("pup_accounts")
   .select("id,player_uuid,discord_user_id,username,display_name,status").in("id",ids))||[];
  const players=need(await db.from("pupeye_players")
@@ -60,7 +63,7 @@ async function list(db,account,metric){
  const eligible=accounts.filter(a=>a.status==="active"&&pmap.get(a.player_uuid)?.status==="active"&&pmap.get(a.player_uuid)?.guild_role!=="DEVELOPER"&&!excludedPlayers.has(a.player_uuid))
   .map(a=>({key:a.id,username:a.username,displayName:a.display_name||a.username,score:scoreFromVerifiedSave(saves.get(a.id),metric)}))
   .filter(a=>a.score!==null&&typeof a.username==="string");
- return {metric,participating:mine?.opted_in===true&&mine?.excluded!==true,...publicLeaderboard(eligible,account.id,100)};
+ return {metric,...participation,...publicLeaderboard(eligible,account.id,100)};
 }
 async function change(db,account,join){
  const relation=db.from("pup_leaderboard_participants");
