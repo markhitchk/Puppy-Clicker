@@ -217,11 +217,10 @@ async function resolvedMentions(db,channel,text){
  const handles=extractChatMentions(text);
  if(handles.length>5)throw new ChatError(400,"CHAT_TOO_MANY_MENTIONS");
  if(!handles.length)return [];
- const accounts=need(await db.from("pup_accounts")
-  .select("id,username,status").eq("status","active"))||[];
- // This lookup is intentionally scoped to matching names and verified server membership.
- const matching=accounts.filter(a=>handles.includes(a.username?.toLowerCase()));
- if(matching.length!==handles.length)throw new ChatError(400,"CHAT_UNKNOWN_MENTION");
+ const results=await Promise.all(handles.map(async handle=>need(await db.from("pup_accounts")
+  .select("id,username").eq("status","active").ilike("username",handle).limit(2))||[]));
+ if(results.some(rows=>rows.length!==1))throw new ChatError(400,"CHAT_UNKNOWN_MENTION");
+ const matching=results.map(rows=>rows[0]);
  const memberships=need(await db.from("pup_social_memberships")
   .select("account_uuid").eq("server_id",channel.server_id)
   .in("account_uuid",matching.map(a=>a.id)))||[];

@@ -1,7 +1,9 @@
-import React,{useCallback,useEffect,useMemo,useState} from "react";
+import React,{useCallback,useEffect,useMemo,useRef,useState} from "react";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
 import {createChatClient} from "./communityChatClient.js";
 import {useLanguage} from "./LanguagePicker.jsx";
+import {activeMentionQuery,splitChatText} from "./chatMentions.js";
+import UserAvatar from "./UserAvatar.jsx";
 import "./CommunityChat.css";
 function CommunityChatBody(){
  const {client}=useWebAccount(),request=useMemo(()=>createChatClient(client),[client]);
@@ -9,6 +11,8 @@ function CommunityChatBody(){
  const [catalog,setCatalog]=useState(null),[channel,setChannel]=useState(null);
  const [messages,setMessages]=useState({items:[],own:[]});
  const [body,setBody]=useState(""),[busy,setBusy]=useState(false);
+ const [suggestions,setSuggestions]=useState([]);
+ const composerRef=useRef(null);
  const [error,setError]=useState(""),[notice,setNotice]=useState("");
  const load=useCallback(async()=>{
   try{const data=await request("channels");setCatalog(data);
@@ -52,6 +56,28 @@ function CommunityChatBody(){
  };
  const selected=catalog?.channels.find(c=>c.id===channel);
  const joined=catalog?.joinedServerIds.includes(selected?.server_id);
+ const mentionPrefix=activeMentionQuery(body);
+ useEffect(()=>{
+  if(!mentionPrefix||!joined||!selected?.writable){setSuggestions([]);return;}
+  let live=true;
+  const handle=setTimeout(()=>{
+   request("mentions",{channelId:channel,prefix:mentionPrefix})
+    .then(response=>{if(live)setSuggestions(response.users||[]);})
+    .catch(()=>{if(live)setSuggestions([]);});
+  },180);
+  return ()=>{live=false;clearTimeout(handle);};
+ },[mentionPrefix,channel,joined,selected?.writable,request]);
+ const insertMention=username=>{
+  if(!/^[A-Za-z0-9_-]{3,20}$/.test(username))return;
+  setBody(old=>{
+   const query=activeMentionQuery(old);
+   const next=query===null?(old.trimEnd()?old+" ":"")+"@"+username+" ":
+    old.replace(/(^|\s)@[A-Za-z0-9_-]{1,20}$/,(_,lead)=>lead+"@"+username+" ");
+   return next.length<=300?next:old;
+  });
+  setSuggestions([]);
+  composerRef.current?.focus();
+ };
  return <div className="community-chat-page">
   <header className="community-chat-header"><p className="eyebrow">🐾 PUPPY CLICKER · PUPEYE</p>
    <h1>💬 {tr("chat")}</h1>
@@ -76,8 +102,11 @@ function CommunityChatBody(){
     </div>:<>
      <div className="community-chat-messages" role="log" aria-live="off">
       {messages.items.length?messages.items.slice().reverse().map(m=><article className="community-chat-message" key={m.id}>
-       <div><strong>{m.sender}</strong><small>{new Date(m.createdAt).toLocaleString()}</small></div>
-       <p>{m.body}</p><div className="community-chat-message-actions"><button type="button" onClick={()=>void report(m.id)}>{tr("report")}</button><button type="button" onClick={()=>void blockAuthor(m.id)}>{tr("block")}</button></div>
+       <div className="chat-message-author"><UserAvatar src={m.avatarUrl} name={m.sender} className="chat-user-avatar-chat"/>
+        <div className="chat-message-author-meta"><button type="button" className="chat-author-mention" onClick={()=>insertMention(m.username)} title={"Mention @"+m.username}><strong>{m.sender}</strong></button>
+         <small>@{m.username} · {new Date(m.createdAt).toLocaleString()}</small></div></div>
+       <p>{splitChatText(m.body).map((part,index)=>part.type==="mention"?<button type="button" className="chat-mention-inline" key={index}
+        onClick={()=>insertMention(part.username)} title={"Mention "+part.value}>{part.value}</button>:<React.Fragment key={index}>{part.value}</React.Fragment>)}</p><div className="community-chat-message-actions"><button type="button" onClick={()=>void report(m.id)}>{tr("report")}</button><button type="button" onClick={()=>void blockAuthor(m.id)}>{tr("block")}</button></div>
       </article>):<p>{tr("noMessages")}</p>}
      </div>
      {messages.own.length?<details className="community-chat-own"><summary>{tr("heldMessages")} ({messages.own.length})</summary>
@@ -85,8 +114,13 @@ function CommunityChatBody(){
      </details>:null}
      {selected.writable?<form onSubmit={send} className="community-chat-form">
       <label htmlFor="chat-text">{tr("yourMessage")}</label>
-      <textarea id="chat-text" rows={3} maxLength={300} required value={body}
+      <textarea ref={composerRef} id="chat-text" rows={3} maxLength={300} required value={body}
        onChange={e=>setBody(e.target.value)} placeholder={tr("writeMessage")}/>
+      {mentionPrefix&&suggestions.length?<div className="chat-mention-suggestions" role="listbox" aria-label="Mention community members">
+       {suggestions.map(user=><button key={user.username} role="option" aria-selected="false" type="button"
+        onClick={()=>insertMention(user.username)}><UserAvatar src={user.avatarUrl} name={user.displayName}/>
+        <span><strong>{user.displayName}</strong><small>@{user.username}</small></span></button>)}
+      </div>:null}
       <button className="cta cta-primary" type="submit" disabled={!body.trim()||busy}>{tr("sendReview")}</button>
       <small>{tr("approvalNotice")}</small>
      </form>:<p className="community-chat-note">{tr("announcementsReadonly")}</p>}
