@@ -1,6 +1,6 @@
-// PupEye Chat Screening v1. These checks prioritize review; they do NOT
-// guarantee safety or replace human approval. ALL submissions remain pending.
-export const SCREENING_VERSION=1;
+// PupEye Chat Screening v2: unflagged messages may publish automatically.
+// Staff can still remove and review messages; text screening is not infallible.
+export const SCREENING_VERSION=2;
 const rules=[
  ["PROFANITY",/\b(?:fuck|fucking|shit|bitch|asshole|mierda|puta|pendej[oa]|cabron|chingad[oa])\b/iu],
  ["SEXUAL",/\b(?:sex|sexual|nudes?|naked|porn(?:ography)?|sexting|sexo|sexual(?:es)?|desnud[oa]s?|pornografia|intim[oa]s?)\b/iu],
@@ -11,7 +11,11 @@ const rules=[
  ["SCAM",/\b(?:free gift ?cards?|send money|give me your password|contrasena|passcode|codigo de acceso)\b/iu],
  ["CONTACT",/\b(?:discord\.gg|https?:\/\/|www\.|\w+@\w+\.[a-z]{2,}|@(?:gmail|hotmail|outlook)\b)\b/iu],
  ["PHONE",/(?:\+?\d[\s().-]?){10,15}/u],
- ["SPAM",/(.)\1{10,}/iu]
+ ["SPAM",/(.)\1{10,}/iu],
+ // Keep off-platform handles, platforms and deliberately split wording in staff review.
+ ["CONTACT",/@[\p{L}\p{N}_.-]{2,}|\b(?:discord|instagram|snapchat|telegram|whatsapp|tiktok)\b|(?:\b[a-z0-9]\.){3,}[a-z0-9]/iu],
+ ["NEEDS_CONTEXT",/\b(?:f[.\s*_\-]+u[.\s*_\-]+c[.\s*_\-]+k|s[.\s*_\-]+e[.\s*_\-]+x)\b/iu],
+ ["NEEDS_CONTEXT",/[\u200b-\u200f\u2060\ufeff]/u]
 ];
 export function normalizedChatBody(text){
  if(typeof text!=="string"||!text.trim())throw Error("CHAT_EMPTY_MESSAGE");
@@ -32,5 +36,5 @@ export function screenPupEyeChat(body){
  if(/[a-z]{30,}/iu.test(normalized))codes.push("NEEDS_CONTEXT");
  return {body:text,screeningVersion:SCREENING_VERSION,
   screeningCodes:[...new Set(codes)],
-  state:"pending",automaticPublication:false};
+  state:codes.length?"pending":"published",automaticPublication:codes.length===0};
 }

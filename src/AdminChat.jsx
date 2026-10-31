@@ -67,7 +67,7 @@ function StaffChat(){
  return <div className="community-chat-page staff-chat-page">
   <header className="community-chat-header"><p className="eyebrow">PUPPY CLICKER · PUPEYE</p>
    <h1>🛡️ Chat moderation</h1>
-   <p>Approve or reject each held message after reviewing its meaning and context. Automatic flags are review aids, not a substitute for moderation. All decisions require a recorded reason.</p>
+   <p>PupEye automatically publishes messages that pass screening. Review flagged or uncertain messages here, and remove reported content when necessary. Automated screening can miss harmful content; staff decisions still require a recorded reason.</p>
    <a href="/account/admin">Back to Administration</a>
   </header>
   {error?<p className="community-chat-alert" role="alert">{error}</p>:null}
@@ -76,7 +76,7 @@ function StaffChat(){
    {!queue.length?<p>No pending messages returned.</p>:queue.map(m=><article key={m.id} className="community-chat-message staff-chat-item">
     <div><strong>{m.displayName||m.username} (@{m.username})</strong>
      <small>{new Date(m.createdAt).toLocaleString()}</small></div>
-    <p>{m.body}</p><p>Screening: {m.codes?.length?m.codes.join(", "):"No rule matched. Manual review still required."}</p>
+    <p>{m.body}</p><p>Screening: {m.codes?.length?m.codes.join(", "):"Legacy or uncertain message awaiting review."}</p>
     <label>Reason
      <textarea rows={2} maxLength={300} value={reasons[m.id]||""}
       onChange={e=>setReasons(old=>({...old,[m.id]:e.target.value}))}/>
