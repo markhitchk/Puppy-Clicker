@@ -48,3 +48,6 @@
 .chat-mention-suggestions button .chat-user-avatar{width:32px;height:32px}
 .chat-mention-suggestions button span:last-child{display:grid;min-width:0;gap:2px}
 .chat-mention-suggestions button small{color:#b9d3de}
+
+/* Override the generic first-child message row without spreading avatars apart. */
+.community-chat-message>div.chat-message-author:first-child{justify-content:flex-start;flex-wrap:nowrap}

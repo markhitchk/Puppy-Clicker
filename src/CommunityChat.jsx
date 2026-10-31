@@ -37,7 +37,9 @@ function CommunityChatBody(){
   setBusy(true);setError("");
   try{const result=await request(name,params,"POST");setNotice(result.notice||"Action completed.");
    await load();await refresh();return true;}
-  catch(e){setError(e.message==="CHAT_RATE_LIMIT"?"Please slow down before submitting another message.":e.message);return false;}
+  catch(e){setError(e.message==="CHAT_RATE_LIMIT"?"Please slow down before submitting another message.":
+    e.message==="CHAT_UNKNOWN_MENTION"?tr("chatUnknownMention"):
+    e.message==="CHAT_TOO_MANY_MENTIONS"?tr("chatTooManyMentions"):e.message);return false;}
   finally{setBusy(false);}
  };
  const send=async event=>{

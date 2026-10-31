@@ -92,3 +92,5 @@
 .pup-admin-player .pup-admin-avatar{width:38px;height:38px}
 @media(max-width:900px){.pup-admin-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.pup-admin-tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.pup-admin-tabs button,.pup-admin-tabs a.pup-admin-link{font-size:13px;min-height:52px;padding:10px 8px;border-radius:13px}.pup-admin-tabs .pup-admin-refresh{grid-column:1/-1}.pup-admin-player .pup-admin-avatar{width:34px;height:34px}}
+
+.pup-admin-tabs a.pup-admin-link:focus-visible{outline:2px solid #00e5ff;outline-offset:3px}
