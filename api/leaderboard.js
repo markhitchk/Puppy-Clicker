@@ -36,10 +36,10 @@ async function current(db,req){
 }
 async function list(db,account,metric){
  if(!LEADERBOARD_METRICS.includes(metric))throw new Failure(400,"INVALID_METRIC");
- const rows=need(await db.schema("puppy_leaderboard").from("participants")
+ const rows=need(await db.from("pup_leaderboard_participants")
   .select("account_uuid,opted_in,excluded").eq("opted_in",true).eq("excluded",false).limit(5000))||[];
  const ids=rows.map(r=>r.account_uuid).filter(validId);
- const mine=need(await db.schema("puppy_leaderboard").from("participants")
+ const mine=need(await db.from("pup_leaderboard_participants")
    .select("opted_in,excluded").eq("account_uuid",account.id).maybeSingle());
  if(!ids.length)return {metric,participating:mine?.opted_in===true&&mine?.excluded!==true,top:[],self:null,total:0};
  const accounts=need(await db.from("pup_accounts")
@@ -63,7 +63,7 @@ async function list(db,account,metric){
  return {metric,participating:mine?.opted_in===true&&mine?.excluded!==true,...publicLeaderboard(eligible,account.id,100)};
 }
 async function change(db,account,join){
- const relation=db.schema("puppy_leaderboard").from("participants");
+ const relation=db.from("pup_leaderboard_participants");
  const prior=need(await relation.select("account_uuid,excluded").eq("account_uuid",account.id).maybeSingle());
  if(prior?.excluded)throw new Failure(403,"ACCOUNT_INELIGIBLE");
  const when=new Date().toISOString();
