@@ -63,7 +63,7 @@ create table if not exists puppy_social.moderation_actions(
  id bigint generated always as identity primary key,
  message_id uuid not null references puppy_social.messages(id) on delete cascade,
  actor_account_uuid uuid not null references puppy_accounts.pup_accounts(id),
- action text not null check(action in ('approve','reject','remove','restore')),
+ action text not null check(action in ('approve','reject','remove','restore','report_resolve')),
  before_state text not null,
  after_state text not null,
  reason text not null check(char_length(reason) between 3 and 300),
@@ -75,6 +75,9 @@ create table if not exists puppy_social.reports(
  reporter_account_uuid uuid not null references puppy_accounts.pup_accounts(id),
  reason text not null check(char_length(reason) between 3 and 300),
  state text not null default 'open' check(state in ('open','resolved')),
+ resolved_at timestamptz,
+ resolved_by uuid references puppy_accounts.pup_accounts(id),
+ resolution_reason text,
  created_at timestamptz not null default now(),
  unique(message_id,reporter_account_uuid)
 );
@@ -199,6 +202,29 @@ declare v_previous text;v_next text;v_created timestamptz;begin
   before_state,after_state,reason) values(p_message,p_actor,p_action,v_previous,v_next,trim(p_reason));
  return v_next;
 end $fn$;
+-- Resolve a report with an atomic, staff-only action and retained audit.
+create or replace function public.pup_social_resolve_report(
+ p_actor uuid,p_report uuid,p_reason text
+) returns boolean language plpgsql security definer set search_path='' as $fn$
+declare v_message uuid;v_state text;begin
+ if p_actor is null or p_report is null or p_reason is null
+ or char_length(trim(p_reason)) not between 3 and 300
+ then raise exception 'CHAT_INVALID_MODERATION';end if;
+ if not exists(select 1 from puppy_accounts.pup_accounts a
+ join puppy_pupeye.pupeye_players p on p.id=a.player_uuid
+ where a.id=p_actor and a.status='active' and p.status='active'
+ and p.guild_role in ('ADMIN','DEVELOPER')) then raise exception 'CHAT_STAFF_REQUIRED';end if;
+ select message_id into v_message from puppy_social.reports
+ where id=p_report and state='open' for update;
+ if v_message is null then raise exception 'CHAT_REPORT_UNAVAILABLE';end if;
+ select state into v_state from puppy_social.messages where id=v_message;
+ update puppy_social.reports set state='resolved',resolved_at=now(),
+  resolved_by=p_actor,resolution_reason=trim(p_reason) where id=p_report;
+ insert into puppy_social.moderation_actions(message_id,actor_account_uuid,action,
+  before_state,after_state,reason)
+ values(v_message,p_actor,'report_resolve',v_state,v_state,trim(p_reason));
+ return true;
+end $fn$;
 -- Retention must be scheduled/verified separately before any community launch.
 create or replace function public.pup_social_cleanup()
  returns jsonb language plpgsql security definer set search_path='' as $fn$
@@ -224,6 +250,8 @@ end $fn$;
 revoke all on function public.pup_social_submit(uuid,uuid,text,uuid,text[],integer) from public,anon,authenticated;
 revoke all on function public.pup_social_review(uuid,uuid,text,text) from public,anon,authenticated;
 revoke all on function public.pup_social_cleanup() from public,anon,authenticated;
+revoke all on function public.pup_social_resolve_report(uuid,uuid,text) from public,anon,authenticated;
 grant execute on function public.pup_social_submit(uuid,uuid,text,uuid,text[],integer) to service_role;
 grant execute on function public.pup_social_review(uuid,uuid,text,text) to service_role;
 grant execute on function public.pup_social_cleanup() to service_role;
+grant execute on function public.pup_social_resolve_report(uuid,uuid,text) to service_role;
