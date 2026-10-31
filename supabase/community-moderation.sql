@@ -178,7 +178,7 @@ end $fn$;
 create or replace function public.pup_social_review(
  p_actor uuid,p_message uuid,p_action text,p_reason text
 ) returns text language plpgsql security definer set search_path='' as $fn$
-declare v_previous text;v_next text;v_created timestamptz;begin
+declare v_previous text;v_next text;v_created timestamptz;v_flags text[];v_author uuid;begin
  if p_actor is null or p_message is null
  or p_reason is null or char_length(trim(p_reason)) not between 3 and 300
  then raise exception 'CHAT_INVALID_MODERATION';end if;
@@ -186,9 +186,18 @@ declare v_previous text;v_next text;v_created timestamptz;begin
  join puppy_pupeye.pupeye_players p on p.id=a.player_uuid
  where a.id=p_actor and a.status='active' and p.status='active'
  and p.guild_role in ('ADMIN','DEVELOPER')) then raise exception 'CHAT_STAFF_REQUIRED';end if;
- select state,created_at into v_previous,v_created
+ select state,created_at,screening_codes,account_uuid into v_previous,v_created,v_flags,v_author
  from puppy_social.messages where id=p_message for update;
  if v_previous is null then raise exception 'CHAT_MESSAGE_NOT_FOUND';end if;
+ -- A flagged message is never permitted to bypass a hard safety rule, even by staff.
+ if p_action in ('approve','restore') and
+   (coalesce(v_flags,array[]::text[]) && array['SEXUAL','SOLICITATION','THREAT','HATE','CONTACT','PHONE','SCAM']::text[])
+ then raise exception 'CHAT_HIGH_RISK_REJECT_REQUIRED';end if;
+ if p_action in ('approve','restore') and not exists(
+  select 1 from puppy_accounts.pup_accounts a
+  join puppy_pupeye.pupeye_players p on p.id=a.player_uuid
+  where a.id=v_author and a.status='active' and p.status='active'
+ ) then raise exception 'CHAT_AUTHOR_INACTIVE';end if;
  v_next:=case
  when p_action='approve' and v_previous='pending' and v_created>now()-interval '24 hours' then 'published'
  when p_action='reject' and v_previous='pending' then 'rejected'
@@ -225,7 +234,7 @@ declare v_message uuid;v_state text;begin
  values(v_message,p_actor,'report_resolve',v_state,v_state,trim(p_reason));
  return true;
 end $fn$;
--- Retention must be scheduled/verified separately before any community launch.
+-- Retention must be scheduled and verified via Supabase Cron before enabling community chat.
 create or replace function public.pup_social_cleanup()
  returns jsonb language plpgsql security definer set search_path='' as $fn$
 declare v_pending int;v_bodies int;v_reports int;v_actions int;begin
