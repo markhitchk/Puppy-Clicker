@@ -1,4 +1,4 @@
-import React,{useEffect,useState} from "react";
+import React,{useCallback,useEffect,useState} from "react";
 import {LANGUAGE_CHANGED,readLanguage,t,writeLanguage} from "./communityI18n.js";
 export function useLanguage(){
  const [language,setLanguage]=useState(()=>readLanguage());
@@ -10,7 +10,8 @@ export function useLanguage(){
   document.documentElement.lang=language;
   return()=>{window.removeEventListener(LANGUAGE_CHANGED,change);window.removeEventListener("storage",storage);};
  },[language]);
- return {language,t:(key,params)=>t(language,key,params),setLanguage:writeLanguage};
+ const translate=useCallback((key,params)=>t(language,key,params),[language]);
+ return {language,t:translate,setLanguage:writeLanguage};
 }
 export default function LanguagePicker({compact=false}){
  const {language,setLanguage,t:tr}=useLanguage();
