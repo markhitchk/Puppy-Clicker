@@ -33,6 +33,15 @@ function StaffChat(){
    setReportReasons(old=>({...old,[reportId]:""}));await refresh();}
   catch(e){setError(e.message);}finally{setBusy(null);}
  };
+ const mutePlayer=async(messageId,hours,reason)=>{
+  if(reason.trim().length<3){setError("Enter a moderation reason before muting or unmuting.");return;}
+  setBusy(messageId);setError("");
+  try{
+   await request("mute",{messageId,hours,reason:reason.trim()},"POST");
+   setNotice(hours===0?"Player unmuted.":"Player muted for "+hours+" hours. The action was audited.");
+   await refresh();
+  }catch(e){setError(e.message);}finally{setBusy(null);}
+ };
  const removeReported=async report=>{
   const reason=(reportReasons[report.id]||"").trim();
   if(reason.length<3){setError("Enter a reason before removing reported content.");return;}
@@ -64,6 +73,9 @@ function StaffChat(){
     <div className="community-chat-staff-actions">
      <button type="button" disabled={busy===m.id} onClick={()=>void review(m.id,"approve")}>Approve & publish</button>
      <button type="button" disabled={busy===m.id} onClick={()=>void review(m.id,"reject")}>Reject</button>
+     <button type="button" disabled={busy===m.id} onClick={()=>void mutePlayer(m.id,24,reasons[m.id]||"")}>Mute 24h</button>
+     <button type="button" disabled={busy===m.id} onClick={()=>void mutePlayer(m.id,168,reasons[m.id]||"")}>Mute 7d</button>
+     <button type="button" disabled={busy===m.id} onClick={()=>void mutePlayer(m.id,0,reasons[m.id]||"")}>Unmute</button>
     </div>
    </article>)}
   </section>
@@ -79,6 +91,7 @@ function StaffChat(){
     <div className="community-chat-staff-actions">
      {r.messageStatus==="published"?<button type="button" disabled={busy===r.id} onClick={()=>void removeReported(r)}>Remove reported message</button>:null}
      <button type="button" disabled={busy===r.id} onClick={()=>void resolve(r.id)}>Resolve report</button>
+     <button type="button" disabled={busy===r.id} onClick={()=>void mutePlayer(r.messageId,24,reportReasons[r.id]||"")}>Mute author 24h</button>
     </div>
    </article>)}
   </section>
