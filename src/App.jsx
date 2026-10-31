@@ -218,7 +218,7 @@ function AccountDashboard(){
    const {data,error}=await client.auth.getUser();
    if(error||!data?.user)throw Error("PUP_ACCOUNT_SESSION_REQUIRED");
    const checked=await verifyPuppySession(client);
-   if(checked.id!==profile.id)throw Error("PUP_ACCOUNT_SESSION_REQUIRED");
+   if(checked.id!==pupAccount.id)throw Error("PUP_ACCOUNT_SESSION_REQUIRED");
    if(checked.discordUserId)throw Error("PUP_ACCOUNT_DISCORD_ALREADY_LINKED");
    const url=await beginPuppyDiscord({mode:"link",authUserId:data.user.id});
    window.location.assign(url);
