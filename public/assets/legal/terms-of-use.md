@@ -1,143 +1,32 @@
-# Puppy Clicker — Terms of Use
+# Puppy Clicker — Website Terms of Use
 
-> **Effective date:** September 24, 2026
+> Effective October 31, 2026
 
-These Terms of Use apply to **Puppy Clicker**, provided by **Harley's Studios**. By using Puppy Clicker, you agree to these terms.
+Puppy Clicker is offered by Harley's Studios. These terms describe website and linked Pup Account use.
 
----
+## Accounts
+Players may sign in with Pup Account username/password or a connected Discord account. Keep credentials secure. A verified account may be shared across browser gameplay and the React Native Android app.
 
-## 1. Game Access
+## Fair play
+PupEye protects account integrity and the game economy. Suspicious transactions may be rejected, and players may request review of account restrictions.
 
-Puppy Clicker is provided for personal entertainment.
+## Community chat
+Official group chat is moderated. Authorized staff can read submitted and published messages, so chat is not end-to-end encrypted. Follow the community rules and do not share other people's personal information.
 
-New player setup uses **Discord OAuth** to verify a Discord account and support community features. The authorization flow may request `identify`, `email`, `guilds`, `guilds.join`, and `guilds.members.read`. Existing local saves may continue to use their existing device-bound Puppy Clicker identity.
+## Cloud progress
+Game balances, collectibles and rewards belong to the verified Pup Account. Locally cached data is not a guaranteed backup. Do not attempt to bypass game integrity or device safeguards.
 
-Discord signup does **not** replace the local:
+## Optional leaderboard
+Public ranking is voluntary. You can opt out through the leaderboard page.
 
-- Player ID
-- Friend Code
-- Save file
-- PupEye integrity protections
+## Data and account requests
+Read the [Privacy Policy](/legal/privacy) and use the [Privacy Center](/account/privacy) for access, correction, portability, restriction, objection and erasure requests. Requests are reviewed, and an erasure request does not instantly delete your account. Verified deletion may permanently affect website and Android cloud progress.
 
-## 2. Fair Play and PupEye
+## Availability, ownership and contact
+Features and availability may change. Puppy Clicker branding and original artwork are owned by Harley's Studios or used with appropriate permissions. Third-party providers have their own applicable terms.
 
-Puppy Clicker uses **PupEye** fair-play protections. PupEye may detect:
-
-- Automated clicking patterns
-- External clicker scripts
-- Modified or unauthenticated save data
-- Valid-but-old save rollback attempts
-- Replayed or duplicate protected Casino and Gacha transactions
-- Save ownership or registered-installation mismatches
-- Other behavior that attempts to manipulate normal gameplay
-
-When suspicious activity is detected, the app or Puppy Clicker's Supabase-backed PupEye service may:
-
-- Reject suspicious input
-- Apply temporary cooldowns
-- Restore a last-known-good save
-- Quarantine a modified save
-- Reject an older save generation or replayed protected transaction
-- Require Support review or a Support-authorized device migration
-- Record fair-play or integrity events
-
-Support may place an account or a strongly linked recognized device under review, or issue a temporary or permanent global ban for serious or repeated violations. Global enforcement can cover Android and future Puppy Clicker web and desktop clients. Review is a restricted access state separate from a ban; a ban blocks protected game actions until Support revokes it or the server confirms its expiry. Device-wide enforcement applies only where there is a strong, verified link, rather than a shared username, device model, or IP address. Players can contact Support using the app's recovery screen to request review or appeal with their Ban ID or Support Installation Code. Enforcement does not delete saves, puppies, balances, achievements, inventory, or the moderation history.
-
-## 3. Saves and Backups
-
-Automatic `Android/data` saves are encrypted and device-bound using Android security features. Portable backups may be password protected.
-
-You are responsible for:
-
-- Keeping backup passwords private
-- Maintaining copies of saves you wish to retain
-
-Modified, damaged, incorrectly authenticated, rolled-back, or incompatible save files may be rejected.
-
-Portable backups are authenticated to the Puppy Clicker installation that created them. A player moving protected progress to another device must use a Support-authorized migration process; copying a save file alone does not transfer its registered installation identity.
-
-## 4. Player Identity
-
-Local player usernames are normalized to lowercase.
-
-Encrypted save metadata may include:
-
-- The player's lowercase username
-- A coarse Android manufacturer/model label used to help identify the save source
-
-Puppy Clicker does **not** use the following for this purpose:
-
-- IMEI
-- Hardware serial number
-- Android ID
-- Phone number
-- Advertising ID
-
-## 5. Acceptable Use
-
-You may not:
-
-- Intentionally bypass PupEye protections
-- Distribute cheats designed specifically to manipulate Puppy Clicker
-- Impersonate another player through save manipulation
-- Use the app in a way that interferes with its operation
-
-## 6. Ownership
-
-Puppy Clicker software, branding, original artwork, game content, and PupEye branding are owned by **Harley's Studios** or used with appropriate rights.
-
-These terms do not transfer ownership of those materials to you.
-
-## 7. Third-Party Services
-
-Puppy Clicker may connect to services such as **GitHub** to retrieve streamed assets, legal documents, or configuration data.
-
-**Supabase** provides Puppy Clicker's backend account, installation-registration, save-generation, protected-transaction, and device-migration infrastructure.
-
-**Discord OAuth** is used for player signup and community-role verification and is also subject to Discord's terms and privacy practices. Discord authorization results are verified through Puppy Clicker's Supabase backend before privileged role access is trusted.
-
-## 8. Availability and Changes
-
-Features, balancing, characters, online services, save formats, and PupEye protections may change over time.
-
-Harley's Studios may update these terms when the app or its services change.
-
-## 9. Disclaimer
-
-Puppy Clicker is provided on an **as-available basis**.
-
-To the extent permitted by applicable law, Harley's Studios does not guarantee uninterrupted availability or that every save file can be recovered after:
-
-- Device loss
-- Corruption
-- Unsupported modification
-- Forgotten backup credentials
-
-## 10. Contact
-
-Questions about Puppy Clicker, these terms, or privacy may be directed to **Harley's Studios** through the official Puppy Clicker community or support channels made available in the app or official website.
+For account or privacy questions, contact harleytg.hq@gmail.com.
 
 ---
 
-**Puppy Clicker** · **Harley's Studios**
-
-
----
-
-## 11. Website and Community Features — October 30, 2026 Addendum
-
-Pup Account access on the website supports username/password and, when configured, Discord authorization. Earlier references to mandatory Discord sign-up describe older versions of the game. Web and Android may use the same eligible verified Pup Account and cloud save, subject to account security and platform support.
-
-### Group chat code of conduct
-
-If official chat is available, community access requires an active verified Pup Account, acceptance of the current community rules, and a server membership. Be respectful and do not submit sexually explicit content, sexual solicitation, grooming behavior, bullying, slurs, threats, hate speech, illegal material, fraud, phishing, contact details, personal identifiers, spam or unwanted advertising. These rules apply to English, Spanish and other languages.
-
-PupEye performs automated screening; **all community messages require moderator approval before public display**. A submitted message can be rejected, removed, reported or preserved for abuse review. Moderators may mute or suspend access under the account enforcement system. Messages are not end-to-end encrypted because staff must be able to review them. Chat is a public moderated community space, **not** confidential or private messaging. Approval is not guaranteed and may take time. Players can report suspected violations through chat and support channels.
-
-### Public leaderboard consent
-
-Leaderboard participation is optional, off by default and can be withdrawn. Opting in authorizes the display of the player's username/display name, approved game metrics and rank. Eligible scores are calculated by the Puppy Clicker server from canonical cloud saves. Tampering, automation or cheating can result in removal from rankings and account review. Developer and other excluded accounts are not eligible for public rankings.
-
-### Child safety and enforcement
-
-Never share passwords, real-world contact information, addresses or other private identifiers. Do not solicit contact or move conversations with children to private messaging services. Harassment and sexual exploitation are prohibited. Staff moderation is not a guarantee of safety; report suspicious activity promptly. Administrators may take appropriate account actions consistent with the current policies. Features may be disabled when they cannot be safely operated or maintained.
+Puppy Clicker · Harley's Studios
