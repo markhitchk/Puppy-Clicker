@@ -1,5 +1,6 @@
 import React,{useCallback,useEffect,useState} from 'react';
 import {client} from '../supabase.js';
+import {useLanguage} from '../LanguagePicker.jsx';
 import {privacyApi} from './privacyClient.js';
 import './PrivacyCenter.css';
 
@@ -16,7 +17,8 @@ const words={
  es:{title:'Privacidad y datos',intro:'Consulta cómo Puppy Clicker trata tus datos y ejerce tus derechos de privacidad.',login:'Inicia sesión para enviar o consultar solicitudes de privacidad.',signIn:'Iniciar sesión',requests:'Tus solicitudes de privacidad',newRequest:'Enviar una solicitud',choose:'Selecciona una solicitud',note:'Detalles adicionales (opcional)',submit:'Enviar solicitud',sent:'Se recibió tu solicitud. Esto no elimina automáticamente tu cuenta ni tus datos.',empty:'Aún no hay solicitudes.',deadline:'Fecha objetivo de respuesta',notice:'Avisos de privacidad',activity:'Aviso de actividad del sitio',policy:'Política de privacidad completa',terms:'Términos de uso',rank:'Privacidad de clasificación',back:'Volver a la cuenta',review:'Harley’s Studios revisa las solicitudes. Algunos datos pueden conservarse si la ley lo exige. La eliminación permanente necesita verificación adicional.',error:'No se pudieron cargar las solicitudes. Vuelve a intentarlo o contacta al soporte.',loading:'Cargando información…',reload:'Actualizar',signedOut:'Puedes leer la información de privacidad sin iniciar sesión.',status:'Estado',submitted:'Enviado',warning:'No incluyas contraseñas, tokens ni claves privadas.',eraseWarning:'Solicita una revisión de eliminación en web y Android. No borra inmediatamente tu partida en la nube.',onlyNecessary:'El almacenamiento esencial permite iniciar sesión y guardar preferencias. Este Centro no activa cookies opcionales de publicidad ni análisis.'}
 };
 export default function PrivacyCenter(){
- const lang=(typeof localStorage!=='undefined'&&localStorage.getItem('puppy-clicker:language:v1')==='es')?'es':'en';
+ const {language}=useLanguage();
+ const lang=language==='es'?'es':'en';
  const tr=words[lang];
  const [signedIn,setSignedIn]=useState(false),[loading,setLoading]=useState(true),[requests,setRequests]=useState([]),[busy,setBusy]=useState(false),[type,setType]=useState('access'),[note,setNote]=useState(''),[message,setMessage]=useState(''),[error,setError]=useState('');
  const refresh=useCallback(async()=>{
