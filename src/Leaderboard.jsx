@@ -48,8 +48,8 @@ function LeaderboardBody(){
    <h2>{tr("rankingPrivacy")}</h2>
    <p>{tr("rankingPrivacyDetail")}</p>
    <div className="leaderboard-optin-actions">
-    <strong>{loading?tr("checking"):result?.participating?"✓ "+tr("participating"):tr("notParticipating")}</strong>
-    {result?<button type="button" className="cta cta-primary" disabled={busy} onClick={()=>void setParticipation(!result.participating)}>{busy?tr("saving"):result.participating?tr("leaveLeaderboard"):tr("joinLeaderboard")}</button>:null}
+    <strong>{loading?tr("checking"):result?.canParticipate===false?tr("leaderboardViewOnly"):result?.participating?"✓ "+tr("participating"):tr("notParticipating")}</strong>
+    {result?.canParticipate!==false&&result?<button type="button" className="cta cta-primary" disabled={busy} onClick={()=>void setParticipation(!result.participating)}>{busy?tr("saving"):result.participating?tr("leaveLeaderboard"):tr("joinLeaderboard")}</button>:null}
    </div>
   </section>
   <nav className="leaderboard-metrics" aria-label="Leaderboard metric">
