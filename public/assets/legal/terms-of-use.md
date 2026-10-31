@@ -11,7 +11,7 @@ Players may sign in with Pup Account username/password or a connected Discord ac
 PupEye protects account integrity and the game economy. Suspicious transactions may be rejected, and players may request review of account restrictions.
 
 ## Community chat
-Official group chat is moderated. Authorized staff can read submitted and published messages, so chat is not end-to-end encrypted. Follow the community rules and do not share other people's personal information.
+Official group chat is screened by PupEye. Messages without detected safety flags may publish automatically; others are held for review. Authorized staff can read, review and remove submitted or published messages, so chat is not end-to-end encrypted. Follow the community rules and do not share other people's personal information.
 
 ## Cloud progress
 Game balances, collectibles and rewards belong to the verified Pup Account. Locally cached data is not a guaranteed backup. Do not attempt to bypass game integrity or device safeguards.

@@ -37,7 +37,7 @@ We do not sell your cloud game saves or PupEye security records to advertisers. 
 
 Leaderboard participation is opt-in. If you join, your chosen public name and selected game statistics can be displayed; email, IP addresses, Friend Code and private save contents are not leaderboard fields. You can leave the leaderboard.
 
-**Community chat is not end-to-end encrypted.** Messages can be screened and reviewed by authorized moderators before publication. Moderation helps protect younger players and other users but does not guarantee that all harmful content is detected. Chat reports and decisions may be retained for safety review.
+**Community chat is not end-to-end encrypted.** PupEye screens messages before publication; messages without detected flags may be automatically published, while flagged or uncertain messages are held for staff review. Authorized moderators may review and remove messages after publication. Automated screening does not guarantee that all harmful content is detected. Chat reports and decisions may be retained for safety review.
 
 ## 7. Retention
 

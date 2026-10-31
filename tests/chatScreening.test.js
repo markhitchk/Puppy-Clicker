@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {screenPupEyeChat} from "../api/_lib/chatScreening.js";
-test("every safe chat submission waits for staff approval",()=>{
+test("safe chat publishes without waiting for staff",()=>{
  const r=screenPupEyeChat("Hello, I like puppies!");
- assert.equal(r.state,"pending");assert.equal(r.automaticPublication,false);
+ assert.equal(r.state,"published");assert.equal(r.automaticPublication,true);
  assert.deepEqual(r.screeningCodes,[]);
 });
 test("English, Spanish and mixed content are all screened",()=>{

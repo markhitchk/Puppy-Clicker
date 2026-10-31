@@ -202,11 +202,16 @@ async function submit(db,account,body){
  const result=await db.rpc("pup_social_submit",{
   p_account:account.id,p_channel:body.channelId,p_text:screening.body,
   p_client_key:body.clientKey,p_screening_codes:screening.screeningCodes,
-  p_screening_version:screening.screeningVersion
+  p_screening_version:process.env.PUPPY_CHAT_AUTO_PUBLISH==="false"?1:screening.screeningVersion
  });
  if(result.error){const code=result.error.message.split(" ")[0];
   throw new ChatError(allowedCodes.has(code)?409:503,allowedCodes.has(code)?code:"CHAT_SUBMISSION_UNAVAILABLE");}
- return {messageId:result.data,status:"pending",notice:"PupEye is holding this message for staff approval."};
+ // Read the committed database state. Old idempotency keys may refer to an earlier held message.
+ const stored=need(await db.from("pup_social_messages").select("state")
+   .eq("id",result.data).eq("account_uuid",account.id).single());
+ const published=stored?.state==="published";
+ return {messageId:result.data,status:published?"published":"pending",
+  notice:published?"PupEye checked and published your message.":"PupEye held your message for safety review."};
 }
 async function review(db,actor,body){
  if(!actor.staff)throw new ChatError(403,"STAFF_ACCESS_REQUIRED");
