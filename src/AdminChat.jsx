@@ -5,6 +5,7 @@ import "./CommunityChat.css";
 function StaffChat(){
  const {client}=useWebAccount(),request=useMemo(()=>createChatClient(client),[client]);
  const [queue,setQueue]=useState([]),[reports,setReports]=useState([]),[busy,setBusy]=useState(null);
+ const [history,setHistory]=useState([]),[historyCursor,setHistoryCursor]=useState(null),[historyBusy,setHistoryBusy]=useState(false);
  const [reasons,setReasons]=useState({}),[reportReasons,setReportReasons]=useState({}),[error,setError]=useState(""),[notice,setNotice]=useState("");
  const refresh=useCallback(async()=>{
   try{const [data,reportData]=await Promise.all([request("queue"),request("reports")]);setQueue(data.pending||[]);setReports(reportData.reports||[]);setError("");}
@@ -15,6 +16,16 @@ function StaffChat(){
   const timer=setInterval(()=>{if(document.visibilityState==="visible")void refresh();},5000);
   return()=>clearInterval(timer);
  },[refresh]);
+ const loadHistory=useCallback(async(before=null)=>{
+  setHistoryBusy(true);
+  try{
+   const data=await request("history",before?{before}:{});
+   setHistory(old=>before?[...old,...(data.messages||[])]:data.messages||[]);
+   setHistoryCursor(data.nextBefore||null);
+  }catch(e){setError("Unable to load message history: "+e.message);}
+  finally{setHistoryBusy(false);}
+ },[request]);
+ useEffect(()=>{void loadHistory();},[loadHistory]);
  const review=async(messageId,decision)=>{
   const reason=(reasons[messageId]||"").trim();
   if(reason.length<3){setError("Enter a decision reason of at least three characters.");return;}
@@ -94,6 +105,22 @@ function StaffChat(){
      <button type="button" disabled={busy===r.id} onClick={()=>void mutePlayer(r.messageId,24,reportReasons[r.id]||"")}>Mute author 24h</button>
     </div>
    </article>)}
+  </section>
+  <section className="community-chat-staff-queue" aria-label="All chat messages">
+   <div className="community-chat-history-title">
+    <h2>Message history ({history.length} loaded)</h2>
+    <button type="button" disabled={historyBusy} onClick={()=>void loadHistory()}>Refresh history</button>
+   </div>
+   <p>Staff-only history includes pending, approved, rejected, removed and expired messages. Content expiry follows the published privacy schedule.</p>
+   {!history.length?<p>No messages to display.</p>:history.map(m=><article className="community-chat-message staff-chat-item" key={m.id}>
+    <div><strong>{m.displayName||m.username} (@{m.username})</strong>
+     <small>{new Date(m.createdAt).toLocaleString()} · {m.status}</small></div>
+    <p>{m.body}</p>
+    {m.codes?.length?<small>PupEye flags: {m.codes.join(", ")}</small>:null}
+    {m.moderationReason?<p>Staff reason: {m.moderationReason}</p>:null}
+   </article>)}
+   {historyCursor?<button type="button" disabled={historyBusy}
+    onClick={()=>void loadHistory(historyCursor)}>{historyBusy?"Loading…":"Load older messages"}</button>:null}
   </section>
  </div>;
 }
