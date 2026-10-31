@@ -36,8 +36,8 @@ export function getPuppySharePreview(search){
  if(!puppy)return null;
  const category=puppy.group==="v1"?"V1":puppy.group==="v2"?"V2":
   puppy.group==="discord"?"Community":puppy.group==="test"?"Test":"Special";
- // The share image composites the original puppy artwork on a branded sky.
- // Discord and RCS flatten transparent PNGs unpredictably, sometimes to black.
+ // A transparent preview contains only the real puppy art and site logo.
+ // Individual messaging clients choose how to display PNG transparency.
  const imagePath=shareCardPath(puppy);
  return {
   title:puppy.emoji+" "+puppy.name+" | Puppy Clicker",
@@ -67,7 +67,7 @@ export function applyPuppySharePreview(html,preview){
   ["property","og:url",preview.url],
   ["property","og:image",preview.image],
   ["property","og:image:secure_url",preview.image],
-  ["property","og:image:type","image/jpeg"],
+  ["property","og:image:type","image/png"],
   ["property","og:image:width",String(SHARE_CARD_WIDTH)],
   ["property","og:image:height",String(SHARE_CARD_HEIGHT)],
   ["property","og:image:alt",preview.imageAlt],
