@@ -31,16 +31,17 @@ const ALLOWED_WEB_ORIGINS=new Set([
 const base64url=bytes=>btoa(String.fromCharCode(...new Uint8Array(bytes)))
  .replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
 const digest=text=>crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));
-async function post(url,body){
+async function post(url,body,accessToken=null){
  const response=await fetch(url,{method:"POST",headers:{
   "Content-Type":"application/json","apikey":PUBLISHABLE_KEY,
-  "x-pup-session-id":getActivitySessionId()||'',"x-pup-path":globalThis.location?.pathname||'/account'
+  "x-pup-session-id":getActivitySessionId()||'',"x-pup-path":globalThis.location?.pathname||'/account',
+  ...(accessToken?{Authorization:"Bearer "+accessToken}:{})
  },cache:"no-store",body:JSON.stringify(body)});
  let result={};try{result=await response.json()}catch{}
  if(!response.ok||result.error)throw new Error(result.error||"PUP_WEB_AUTH_UNAVAILABLE");
  return result;
 }
-export const requestPuppyAuth=(action,payload={})=>post(AUTH_URL,{action,...payload});
+export const requestPuppyAuth=(action,payload={},accessToken=null)=>post(AUTH_URL,{action,...payload},accessToken);
 
 function callbackUri(){
  const origin=globalThis.location?.origin;
@@ -60,7 +61,10 @@ export function getPendingDiscord(){
 }
 export function clearPendingDiscord(){globalThis.localStorage?.removeItem(PENDING_KEY);}
 
-export async function beginPuppyDiscord(){
+export async function beginPuppyDiscord({mode="login",authUserId=null}={}){
+ if(!["login","link"].includes(mode))throw new Error("DISCORD_LOGIN_MODE_INVALID");
+ if(mode==="link"&&(!authUserId||typeof authUserId!=="string"))
+  throw new Error("PUP_ACCOUNT_SESSION_REQUIRED");
  callbackAttempts=new WeakMap();
  if(!globalThis.crypto?.subtle||!globalThis.crypto?.getRandomValues||!globalThis.localStorage)
   throw new Error("SECURE_BROWSER_REQUIRED");
@@ -70,7 +74,7 @@ export async function beginPuppyDiscord(){
  const verifier=base64url(crypto.getRandomValues(new Uint8Array(48)));
  const challenge=base64url(await digest(verifier));
  // Store verifier only in the original browser and never send it to Discord.
- localStorage.setItem(PENDING_KEY,JSON.stringify({state,verifier,at:Date.now()}));
+ localStorage.setItem(PENDING_KEY,JSON.stringify({state,verifier,at:Date.now(),mode,authUserId}));
  const url=new URL("https://discord.com/oauth2/authorize");
  for(const [key,value] of Object.entries({
   client_id:PUPPY_DISCORD_CLIENT_ID,response_type:"code",
@@ -117,6 +121,22 @@ async function finishPuppyDiscordCallback(client){
   throw new Error("DISCORD_LOGIN_EXPIRED");
  if(!/^[A-Za-z0-9_-]{8,2048}$/.test(code||""))
   throw new Error("DISCORD_CODE_INVALID");
+ // Linking never exchanges a magic login link or changes Pup Account ownership.
+ if(pending.mode==="link"){
+  const {data:userData,error:userError}=await client.auth.getUser();
+  if(userError||!userData?.user||userData.user.id!==pending.authUserId)
+   throw new Error("PUP_ACCOUNT_SESSION_REQUIRED");
+  const {data:sessionData,error:sessionError}=await client.auth.getSession();
+  const accessToken=sessionData?.session?.access_token;
+  if(sessionError||!accessToken)throw new Error("PUP_ACCOUNT_SESSION_REQUIRED");
+  const linked=await requestPuppyAuth("discord-link",{
+   code,verifier:pending.verifier,redirectUri:callbackUri()
+  },accessToken);
+  if(linked?.linked!==true)throw new Error("PUP_DISCORD_LINK_UNAVAILABLE");
+  await verifyPuppySession(client);
+  globalThis.location.replace("/account?discord=linked");
+  return {status:"linked"};
+ }
  const data=await requestPuppyAuth("discord-exchange",{
   code,verifier:pending.verifier,redirectUri:callbackUri()
  });
@@ -160,7 +180,11 @@ export function puppyAuthMessage(error){
   DISCORD_LOGIN_STATE_INVALID:"This sign-in link does not match this browser. Start Discord sign-in again here; keep the same browser open.",
   DISCORD_LOGIN_EXPIRED:"Discord sign-in expired. Start sign-in again and complete it within five minutes.",
   PUP_ACCOUNT_LINK_REQUIRED:"This Discord identity belongs to a previous player record. Use account recovery to link the original Pup Account; a new account cannot claim its data.",
-  PUP_DISCORD_ALREADY_LINKED:"This Discord account is already linked to a Pup Account. Sign in with Discord instead.",
+  PUP_DISCORD_ALREADY_LINKED:"This Discord account is already linked to another Pup Account. Sign in with the original account or contact support; no data was changed.",
+  PUP_ACCOUNT_DISCORD_ALREADY_LINKED:"Your Pup Account already has a Discord account linked. No changes were made.",
+  PUP_ACCOUNT_LINK_UNAVAILABLE:"This Pup Account is not ready for Discord linking. Refresh the account page and retry.",
+  PUP_DISCORD_LINK_UNAVAILABLE:"Discord linking is temporarily unavailable. Your existing Pup Account and progress are unchanged.",
+  PUP_ACCOUNT_SESSION_REQUIRED:"Sign in to your existing Pup Account before linking Discord. Your progress was not changed.",
   PUP_DISCORD_SIGNUP_EXPIRED:"Discord registration expired. Choose Create Account and reconnect Discord to start again.",
   PUP_DISCORD_EMAIL_UNAVAILABLE:"Discord did not supply a verified email address. Uncheck Import Discord email and continue.",
   PUP_DISCORD_PROFILE_SYNC_FAILED:"Discord profile sync is temporarily unavailable. Retry sign-in.",
