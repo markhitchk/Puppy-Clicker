@@ -26,7 +26,7 @@ test("all roster preview images are the exact existing original puppy asset",()=
   assert.ok(preview,"Missing preview for "+puppy.id);
   assert.equal(preview.image,"https://puppy-clicker.vercel.app"+puppy.image,puppy.id);
   assert.ok(existsSync(new URL("../public"+puppy.image,import.meta.url)),"Missing original art for "+puppy.id);
-  assert.doesNotMatch(preview.image,/\\/transparent\\/|puppy_clicker\\.png/);
+  assert.ok(!preview.image.includes("/transparent/") && !preview.image.includes("puppy_clicker.png"));
  }
 });
 
