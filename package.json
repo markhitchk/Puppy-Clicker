@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/sync-puppy-pointers.mjs && node scripts/prepare-puppy-art.mjs && node scripts/prepare-web-portraits.mjs && vite --host 0.0.0.0",
-    "postinstall": "node scripts/prepare-puppy-art.mjs && node scripts/prepare-web-portraits.mjs",
-    "build": "node scripts/sync-puppy-pointers.mjs && node scripts/prepare-puppy-art.mjs && node scripts/prepare-web-portraits.mjs && vite build",
+    "dev": "node scripts/sync-puppy-pointers.mjs && node scripts/prepare-puppy-art.mjs && node scripts/prepare-web-portraits.mjs && node scripts/build-share-previews.mjs && vite --host 0.0.0.0",
+    "postinstall": "node scripts/prepare-puppy-art.mjs && node scripts/prepare-web-portraits.mjs && node scripts/build-share-previews.mjs",
+    "build": "node scripts/sync-puppy-pointers.mjs && node scripts/prepare-puppy-art.mjs && node scripts/prepare-web-portraits.mjs && node scripts/build-share-previews.mjs && vite build",
     "preview": "vite preview",
     "sync:mobile-engine": "node scripts/sync-mobile-engine.mjs",
     "test": "node --experimental-strip-types --test tests/*.test.js",

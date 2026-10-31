@@ -4,6 +4,7 @@ import roster from "./data/roster.js";
 import {LEGACY_V6_PUPPIES} from "./native/src/engine/rosterV6.js";
 import {PUPPY_IMAGES} from "./native/src/assets/puppies.js";
 import {matchPuppy,puppyAssetId,readPuppyQuery} from "./puppyLinks.js";
+import {shareCardPath,SHARE_CARD_WIDTH,SHARE_CARD_HEIGHT} from "./puppyShareCard.js";
 
 const SITE_URL="https://puppy-clicker.vercel.app";
 const details=new Map(LEGACY_V6_PUPPIES.map(p=>[p.id,p]));
@@ -35,9 +36,9 @@ export function getPuppySharePreview(search){
  if(!puppy)return null;
  const category=puppy.group==="v1"?"V1":puppy.group==="v2"?"V2":
   puppy.group==="discord"?"Community":puppy.group==="test"?"Test":"Special";
- // OG/Twitter previews must use the exact published puppy artwork, not
- // build-generated transparency variants or a generic logo.
- const imagePath=puppy.image;
+ // The share image composites the original puppy artwork on a branded sky.
+ // Discord and RCS flatten transparent PNGs unpredictably, sometimes to black.
+ const imagePath=shareCardPath(puppy);
  return {
   title:puppy.emoji+" "+puppy.name+" | Puppy Clicker",
   description:puppy.description+" Meet "+puppy.name+", a "+category+
@@ -66,7 +67,9 @@ export function applyPuppySharePreview(html,preview){
   ["property","og:url",preview.url],
   ["property","og:image",preview.image],
   ["property","og:image:secure_url",preview.image],
-  ["property","og:image:type","image/png"],
+  ["property","og:image:type","image/jpeg"],
+  ["property","og:image:width",String(SHARE_CARD_WIDTH)],
+  ["property","og:image:height",String(SHARE_CARD_HEIGHT)],
   ["property","og:image:alt",preview.imageAlt],
   ["name","twitter:card","summary_large_image"],
   ["name","twitter:title",preview.title],
