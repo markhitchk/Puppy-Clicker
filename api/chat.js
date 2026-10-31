@@ -117,6 +117,28 @@ async function moderationQueue(db,actor){
   body:m.body,createdAt:m.created_at,codes:m.screening_codes
  }))};
 }
+async function moderationHistory(db,actor,query){
+ if(!actor.staff)throw new ChatError(403,"STAFF_ACCESS_REQUIRED");
+ const before=typeof query.before==="string"&&query.before.length<40?Date.parse(query.before):NaN;
+ let request=db.from("pup_social_messages")
+  .select("id,channel_id,account_uuid,body,state,created_at,moderated_at,moderation_reason,screening_codes")
+  .order("created_at",{ascending:false}).order("id",{ascending:false}).limit(51);
+ if(Number.isFinite(before))request=request.lt("created_at",new Date(before).toISOString());
+ const rows=need(await request)||[];
+ const visible=rows.slice(0,50);
+ const ids=[...new Set(visible.map(m=>m.account_uuid))];
+ const users=ids.length?need(await db.from("pup_accounts")
+  .select("id,username,display_name").in("id",ids))||[]:[];
+ const lookup=new Map(users.map(u=>[u.id,u]));
+ return {messages:visible.map(m=>({
+  id:m.id,channelId:m.channel_id,
+  username:lookup.get(m.account_uuid)?.username||"unknown",
+  displayName:lookup.get(m.account_uuid)?.display_name||null,
+  body:m.body,status:m.state,codes:m.screening_codes,
+  createdAt:m.created_at,moderatedAt:m.moderated_at,
+  moderationReason:m.moderation_reason||null
+ })),nextBefore:rows.length>50?visible.at(-1)?.created_at:null};
+}
 async function moderationReports(db,actor){
  if(!actor.staff)throw new ChatError(403,"STAFF_ACCESS_REQUIRED");
  const reports=need(await db.from("pup_social_reports")
@@ -260,6 +282,7 @@ export default async function handler(req,res){
     case "messages":result=await listMessages(db,actor.account,req.query);break;
     case "queue":result=await moderationQueue(db,actor);break;
     case "reports":result=await moderationReports(db,actor);break;
+    case "history":result=await moderationHistory(db,actor,req.query);break;
     default:throw new ChatError(400,"INVALID_ACTION");
    }
   }else{
