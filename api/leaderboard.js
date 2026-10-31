@@ -1,6 +1,6 @@
 import {createClient} from "@supabase/supabase-js";
 import {LEADERBOARD_METRICS,scoreFromVerifiedSave,publicLeaderboard} from "./_lib/leaderboardCore.js";
-import {isLeaderboardActionAllowed,leaderboardParticipation} from "./_lib/leaderboardAccess.js";
+import {isLeaderboardActionAllowed,leaderboardParticipation,isRankedAccountEligible} from "./_lib/leaderboardAccess.js";
 class Failure extends Error{constructor(status,code){super(code);this.status=status;}}
 const validId=id=>typeof id==="string"&&/^[\da-f]{8}-[\da-f]{4}-[1-8][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(id);
 function need(data){if(data.error)throw new Failure(503,"LEADERBOARD_UNAVAILABLE");return data.data;}
@@ -60,7 +60,7 @@ async function list(db,account,metric){
   .select("id,status,expires_at,revoked_at").in("id",bansIds).eq("status","active"))||[]:[];
  const activeBans=new Set(bans.filter(b=>!b.revoked_at&&(!b.expires_at||Date.parse(b.expires_at)>Date.now())).map(b=>b.id));
  const excludedPlayers=new Set(targets.filter(t=>activeBans.has(t.ban_uuid)).map(t=>t.player_uuid));
- const eligible=accounts.filter(a=>a.status==="active"&&pmap.get(a.player_uuid)?.status==="active"&&pmap.get(a.player_uuid)?.guild_role!=="DEVELOPER"&&!excludedPlayers.has(a.player_uuid))
+ const eligible=accounts.filter(a=>isRankedAccountEligible(a,pmap.get(a.player_uuid),excludedPlayers))
   .map(a=>({key:a.id,username:a.username,displayName:a.display_name||a.username,score:scoreFromVerifiedSave(saves.get(a.id),metric)}))
   .filter(a=>a.score!==null&&typeof a.username==="string");
  return {metric,...participation,...publicLeaderboard(eligible,account.id,100)};
