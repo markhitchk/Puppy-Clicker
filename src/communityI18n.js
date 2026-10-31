@@ -18,7 +18,25 @@ export const STRINGS=Object.freeze({
   adventures:"Adventures & games",progression:"Progression",achievements:"Achievements",
   claimedToday:"Claimed today",completedAchievements:"Completed achievements",
   open:"Open",claim:"Claim",claimed:"Claimed",signIn:"Sign in",settings:"Settings",
-  leaderboard:"Leaderboard",chat:"Community chat",selectLanguage:"Choose language"
+  leaderboard:"Leaderboard",chat:"Community chat",selectLanguage:"Choose language",
+  rankingsIntro:"Rankings include only players who voluntarily join. Scores are calculated from Pup Account cloud saves; developers and excluded accounts do not appear.",
+  rankingPrivacy:"Your ranking privacy",rankingPrivacyDetail:"Joining displays your public username or display name, lifetime Treats, XP, puppies owned and rank. Your email, IP address, Friend Code, devices and private saves stay hidden. You may leave at any time.",
+  participating:"You are participating",notParticipating:"You are not participating",joinLeaderboard:"Join leaderboard",leaveLeaderboard:"Leave leaderboard",
+  rankingUnavailable:"Leaderboard is unavailable. Try again later.",eligibleError:"Your account is not eligible for public rankings.",
+  lifetimeTreats:"Lifetime Treats",playerXp:"Player XP",puppiesOwned:"Puppies owned",rank:"Rank",player:"Player",score:"Score",
+  rankedPlayers:"{count} participating players",emptyRankings:"No eligible players have joined yet. Participation is optional.",
+  yourRank:"Your rank: #{rank}",loadingRankings:"Loading rankings…",saving:"Saving…",checking:"Checking participation…",
+  chatSafety:"Official community group channels. Authorized moderators can read and approve all messages before they become public. Chat is not end-to-end encrypted; approval may take time.",
+  communityRules:"Community rules",rulesBody:"Be respectful. No harassment, hate speech, sexual content, grooming, threats, scams, personal contact details or spam. Every submission is screened and reviewed by staff.",
+  agreeRules:"I accept these rules",joinCommunity:"Join community",communityJoin:"Join the official community to read and submit messages.",
+  noMessages:"No approved messages here yet.",heldMessages:"Your held messages",yourMessage:"Your message · max 300 characters",
+  writeMessage:"Write a friendly message…",sendReview:"Submit for staff review",approvalNotice:"Only approved messages are publicly visible.",
+  report:"Report",block:"Block",announcementsReadonly:"Announcements are read-only.",loadingCommunity:"Checking community access…",
+  rewardsSubtitle:"Daily goals, adventures and permanent progression.",levelLabel:"Player Level",maxLevel:"MAX LEVEL",
+  streakDays:"{count} day streak",streakAnnual:"Yearly gift bonus · up to {days} consecutive days",dailyGift:"Daily Puppy Gift",
+  claimed:"Claimed",claimedAll:"All of today’s goals claimed",currentRewards:"Rewards not yet live",playerOverview:"Player level and daily streak",
+  dailyDetails:"Daily gift and today’s goals",collectedDaily:"Collected daily rewards",adventuresDetail:"Dog Park, Gacha and Casino",
+  progressDetail:"Prestige and skill points",completedNote:"Show your awarded achievements",completedAwards:"{done} / {total} awarded"
  }),
  es:Object.freeze({
   language:"Idioma",home:"Inicio",play:"Jugar",puppies:"Cachorros",policies:"Políticas",
@@ -35,7 +53,25 @@ export const STRINGS=Object.freeze({
   adventures:"Aventuras y juegos",progression:"Progresión",achievements:"Logros",
   claimedToday:"Reclamado hoy",completedAchievements:"Logros completados",
   open:"Abrir",claim:"Reclamar",claimed:"Reclamado",signIn:"Iniciar sesión",settings:"Ajustes",
-  leaderboard:"Clasificación",chat:"Chat de la comunidad",selectLanguage:"Elegir idioma"
+  leaderboard:"Clasificación",chat:"Chat de la comunidad",selectLanguage:"Elegir idioma",
+  rankingsIntro:"La clasificación incluye solo a jugadores que participan voluntariamente. Las puntuaciones vienen de las partidas en la nube de Pup Account; se excluyen desarrolladores y cuentas restringidas.",
+  rankingPrivacy:"Privacidad de tu clasificación",rankingPrivacyDetail:"Al participar se muestra tu nombre público, golosinas acumuladas, XP, cachorros conseguidos y clasificación. Tu correo, dirección IP, código de amistad, dispositivos y partidas privadas siguen ocultos. Puedes salir cuando quieras.",
+  participating:"Estás participando",notParticipating:"No estás participando",joinLeaderboard:"Unirse a la clasificación",leaveLeaderboard:"Salir de la clasificación",
+  rankingUnavailable:"La clasificación no está disponible. Inténtalo más tarde.",eligibleError:"Tu cuenta no cumple los requisitos para aparecer.",
+  lifetimeTreats:"Golosinas acumuladas",playerXp:"XP del jugador",puppiesOwned:"Cachorros conseguidos",rank:"Puesto",player:"Jugador",score:"Puntuación",
+  rankedPlayers:"{count} jugadores participantes",emptyRankings:"Todavía no hay jugadores elegibles. Participar es opcional.",
+  yourRank:"Tu puesto: #{rank}",loadingRankings:"Cargando clasificación…",saving:"Guardando…",checking:"Comprobando participación…",
+  chatSafety:"Canales de grupo de la comunidad oficial. Los moderadores autorizados pueden leer y aprobar todos los mensajes antes de publicarlos. No tiene cifrado de extremo a extremo; la aprobación puede tardar.",
+  communityRules:"Normas de la comunidad",rulesBody:"Respeta a los demás. No se permiten el acoso, el odio, el contenido sexual, la captación de menores, las amenazas, las estafas, los datos de contacto ni el spam. El personal revisa todos los mensajes.",
+  agreeRules:"Acepto estas normas",joinCommunity:"Unirse a la comunidad",communityJoin:"Únete a la comunidad oficial para leer y enviar mensajes.",
+  noMessages:"Todavía no hay mensajes aprobados.",heldMessages:"Tus mensajes retenidos",yourMessage:"Tu mensaje · máximo 300 caracteres",
+  writeMessage:"Escribe un mensaje amistoso…",sendReview:"Enviar para revisión",approvalNotice:"Solo los mensajes aprobados serán visibles.",
+  report:"Denunciar",block:"Bloquear",announcementsReadonly:"Los anuncios son de solo lectura.",loadingCommunity:"Comprobando acceso a la comunidad…",
+  rewardsSubtitle:"Metas diarias, aventuras y progreso permanente.",levelLabel:"Nivel del jugador",maxLevel:"NIVEL MÁXIMO",
+  streakDays:"Racha de {count} días",streakAnnual:"Bono anual · hasta {days} días consecutivos",dailyGift:"Regalo diario del cachorro",
+  claimed:"Reclamado",claimedAll:"Has reclamado todas las metas de hoy",currentRewards:"Recompensas todavía no disponibles",playerOverview:"Nivel del jugador y racha diaria",
+  dailyDetails:"Regalo diario y metas de hoy",collectedDaily:"Recompensas diarias recogidas",adventuresDetail:"Parque canino, Gacha y Casino",
+  progressDetail:"Prestigio y puntos de habilidad",completedNote:"Ver los logros concedidos",completedAwards:"{done} / {total} concedidos"
  })
 });
 export function normalizeLanguage(value){
