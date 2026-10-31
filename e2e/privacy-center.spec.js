@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 test('signed-out visitors can read privacy information but not submit a request',async({page})=>{
- await page.goto('/account/privacy');
+ await page.goto('/account/privacy?signedout=1');
  await expect(page.getByRole('heading',{name:/privacy & data/i})).toBeVisible();
  await expect(page.getByRole('link',{name:'Full privacy policy'})).toHaveAttribute('href','/legal/privacy');
  await expect(page.getByRole('link',{name:'Sign in to Pup Account'})).toBeVisible();
