@@ -393,3 +393,91 @@ html .account-credentials .cta.stretch{min-width:0;max-width:100%;width:100%;whi
 .puppy-language-picker select:focus-visible{outline:2px solid #00e5ff;outline-offset:2px}
 .web-settings .puppy-language-picker{margin-top:14px}
 @media(max-width:700px){.site-nav .puppy-language-picker span{display:none}.site-nav .puppy-language-picker select{max-width:98px;font-size:12px;padding:6px}.site-nav{flex-wrap:wrap}}
+
+/* Website header navigation: one-row desktop links, accessible mobile drawer,
+   and a separately anchored Pup Account avatar. Works on public and game pages. */
+.site-header{
+ position:relative;isolation:isolate;z-index:70;
+ gap:clamp(9px,1vw,20px);
+ padding:0 clamp(14px,2vw,32px);
+}
+.site-header .site-brand{flex:0 0 auto;gap:8px}
+.site-header .site-brand img{flex-shrink:0}
+.site-header .site-nav{
+ display:flex;flex:0 1 auto;margin-left:auto;min-width:0;
+ flex-wrap:nowrap;align-items:center;gap:clamp(2px,.35vw,6px);
+}
+.site-header .site-nav>a{
+ display:inline-flex;align-items:center;justify-content:center;
+ flex:0 0 auto;min-height:42px;padding:10px clamp(6px,.6vw,12px);
+ white-space:nowrap;font-size:clamp(12px,.9vw,14px);line-height:1.2;
+}
+.site-header .site-nav .puppy-language-picker{flex-shrink:0;gap:0}
+.site-header .site-nav .puppy-language-picker>span{display:none}
+.site-header .site-nav .puppy-language-picker select{
+ max-width:117px;min-height:42px;padding:7px 9px;font-size:13px;
+}
+.site-header-tools{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:0 0 auto;position:relative;z-index:2}
+.site-header-tools .site-account-trigger{max-width:184px}
+.site-header-tools .site-account-trigger-identity{max-width:95px}
+.site-header-tools>.site-account-signed-out{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:42px;padding:10px 13px;border-radius:12px;
+ font-size:13px;font-weight:800;color:#c2d8e5;
+}
+.site-header-tools>.site-account-signed-out:hover{background:#214153;color:#fff}
+.site-nav-toggle{display:none;align-items:center;justify-content:center;gap:8px;
+ min-width:44px;min-height:44px;padding:6px 11px;
+ border:1px solid #3c7488;border-radius:13px;
+ background:#183848;color:#e9faff;cursor:pointer;font-size:13px;font-weight:850}
+.site-nav-toggle:focus-visible{outline:3px solid #00e5ff;outline-offset:2px}
+.site-nav-toggle-icon{font-size:21px;line-height:1}
+@media(min-width:1280px) and (max-width:1500px){
+ .site-header-tools .site-account-trigger{padding:4px;min-width:46px;min-height:46px;justify-content:center}
+ .site-header-tools .site-account-trigger-identity,.site-header-tools .site-account-chevron{display:none}
+}
+@media(max-width:1279px){
+ .site-header{height:66px;min-height:66px;padding:0 14px;gap:10px}
+ .site-header .site-brand{font-size:clamp(15px,1.5vw,19px);gap:9px}
+ .site-header .site-brand img{width:40px;height:40px}
+ .site-header .site-nav{
+  display:none;position:absolute;top:calc(100% + 1px);left:10px;right:10px;
+  z-index:80;max-height:calc(100dvh - 86px);overflow-y:auto;overflow-x:hidden;
+  width:auto;margin:0;padding:12px;
+  flex-direction:column;align-items:stretch;gap:5px;
+  border:1px solid #3b7187;border-radius:0 0 20px 20px;
+  background:#101d2a;box-shadow:0 20px 45px #0009;
+ }
+ .site-header .site-nav.is-open{display:flex}
+ .site-header .site-nav>a{
+  display:flex;justify-content:flex-start;width:100%;min-height:46px;
+  padding:12px 14px;font-size:15px;white-space:normal;
+ }
+ .site-header .site-nav>a[href="/puppies"]{display:flex}
+ .site-header .site-nav .puppy-language-picker{
+  display:flex;justify-content:space-between;gap:12px;width:100%;
+  padding:10px 12px;margin-top:4px;border-top:1px solid #35566b;
+ }
+ .site-header .site-nav .puppy-language-picker>span{display:inline}
+ .site-header .site-nav .puppy-language-picker select{
+  min-height:44px;max-width:175px;font-size:14px;padding:8px 12px;
+ }
+ .site-header .site-header-tools{margin-left:auto;gap:7px}
+ .site-header .site-nav-toggle{display:inline-flex}
+ .site-header-tools .site-account-trigger{padding:4px;min-width:44px;min-height:44px;justify-content:center}
+ .site-header-tools .site-account-trigger-avatar{width:36px;height:36px}
+ .site-header-tools .site-account-trigger-identity,.site-header-tools .site-account-chevron{display:none}
+ .site-header-tools .site-account-dropdown{right:0;top:calc(100% + 10px)}
+}
+@media(max-width:440px){
+ .site-header{gap:6px;padding:0 10px;height:62px;min-height:62px}
+ .site-header .site-brand{font-size:15px;gap:6px}
+ .site-header .site-brand img{width:35px;height:35px}
+ .site-header .site-brand small{display:none}
+ .site-header .site-header-tools{gap:5px}
+ .site-header .site-nav-toggle{min-width:42px;min-height:42px;padding:7px 10px}
+ .site-header-tools .site-account-trigger{min-width:42px;min-height:42px}
+ .site-header-tools .site-account-trigger-avatar{width:34px;height:34px}
+}
+@media(max-width:360px){.site-nav-toggle-text{display:none}}
+@media(prefers-reduced-motion:reduce){.site-nav-toggle{transition:none}}
