@@ -432,7 +432,7 @@ html .account-credentials .cta.stretch{min-width:0;max-width:100%;width:100%;whi
  background:#183848;color:#e9faff;cursor:pointer;font-size:13px;font-weight:850}
 .site-nav-toggle:focus-visible{outline:3px solid #00e5ff;outline-offset:2px}
 .site-nav-toggle-icon{font-size:21px;line-height:1}
-@media(min-width:1280px) and (max-width:1500px){
+@media(min-width:1280px) and (max-width:1360px){
  .site-header-tools .site-account-trigger{padding:4px;min-width:46px;min-height:46px;justify-content:center}
  .site-header-tools .site-account-trigger-identity,.site-header-tools .site-account-chevron{display:none}
 }
