@@ -15,6 +15,7 @@ import {isPlayDemoRoute} from "./playDemoRoute.js";
 import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
 import AdminPortal from "./AdminPortal.jsx";
 import WebPrivacy from "./WebPrivacy.jsx";
+import LegalReader from "./LegalReader.jsx";
 import ProfileAvatarEditor from "./ProfileAvatarEditor.jsx";
 import PupGiftRequests from "./PupGiftRequests.jsx";
 import {avatarForAccount} from "./pupWebApi.js";
@@ -31,6 +32,7 @@ function Header({page}){
    <a href="/" aria-current={page==="home"?"page":undefined}>Home</a>
    <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 Play</a>
    <a href="/puppies" aria-current={page==="puppies"?"page":undefined}>Puppies</a>
+   <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>Policies</a>
    <SiteAccountMenu active={page==="account"}/>
   </nav>
  </header>;
@@ -86,7 +88,7 @@ function Home(){
    </div>
    <div className="account-preview"><span>🐾</span><strong>Pup Account</strong><p>Verified login · Linked progress · Account settings</p></div>
   </section>
-  <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span><a href="/recovery">Recover Pup Account</a> · <a href="/privacy">Website privacy</a> · Made for puppy fans 🐶</span></footer>
+  <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span><a href="/recovery">Recover Pup Account</a> · <a href="/privacy">Website privacy</a> · <a href="/legal/privacy">Policies</a> · Made for puppy fans 🐶</span></footer>
  </div>;
 }
 const accountRole=role=>({DEVELOPER:"Developer",ADMIN:"Administrator",PUP_MEMBER:"Pup Member"})[role]||"Player";
@@ -364,7 +366,7 @@ export default function App(){
  const callback=path==="/auth/discord/callback";
  const demo=isPlayDemoRoute(path,typeof window!=="undefined"?window.location.search:"");
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
-  const page=path==="/"?"home":path==="/privacy"?"privacy":path==="/puppies"?"puppies":
+  const page=path==="/"?"home":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   callback?"callback":demo?"demo":path==="/play"?"play":"error";
@@ -374,6 +376,7 @@ export default function App(){
    {page==="home"?<Home/>:page==="demo"?<DemoPage/>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
     page==="privacy"?<WebPrivacy/>:
+    page==="legal"?<LegalReader type={path.includes("/terms")?"terms":"privacy"}/>:
     page==="admin"?<AdminPage/>:
     page==="recovery"?<RecoveryPage/>:
     page==="callback"?<DiscordCallbackPage/>:
