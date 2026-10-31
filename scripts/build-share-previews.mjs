@@ -11,6 +11,9 @@ import {shareCardPath,SHARE_CARD_WIDTH,SHARE_CARD_HEIGHT} from "../src/puppyShar
 const ROOT=fileURLToPath(new URL("../",import.meta.url));
 const OUT=join(ROOT,"public/assets/share");
 const LOGO=join(ROOT,"public/assets/logos/puppy_clicker.png");
+// The puppy dominates the transparent card; the brand stays a small corner mark.
+export const PUPPY_FRAME=Object.freeze({width:995,height:606,left:180,top:11});
+export const LOGO_FRAME=Object.freeze({size:122,left:24,top:480});
 const published=new Map(roster.map(p=>[p.id,p]));
 export const sharePuppies=[...new Set([...published.keys(),...Object.keys(PUPPY_IMAGES)])]
  .map(id=>{
@@ -22,7 +25,7 @@ export async function buildSharePreviews(){
  await mkdir(OUT,{recursive:true});
  // The exact logo already used by the website, not a recreated brand graphic.
  const logo=await sharp(await readFile(LOGO))
-  .resize(350,350,{fit:"contain",withoutEnlargement:true,
+  .resize(LOGO_FRAME.size,LOGO_FRAME.size,{fit:"contain",withoutEnlargement:true,
    background:{r:0,g:0,b:0,alpha:0}})
   .ensureAlpha().png().toBuffer();
  let count=0;
@@ -34,7 +37,9 @@ export async function buildSharePreviews(){
    :puppy.image;
   const artwork=await readFile(join(ROOT,"public",imagePath.slice(1)));
   const puppyLayer=await sharp(artwork)
-   .resize(570,550,{fit:"contain",withoutEnlargement:true,
+   // Trim only transparent margins so the real pup fills more of the card.
+   .trim({threshold:6})
+   .resize(PUPPY_FRAME.width,PUPPY_FRAME.height,{fit:"contain",
     background:{r:0,g:0,b:0,alpha:0}})
    .ensureAlpha().png().toBuffer();
   // No background: the upper-left and remaining empty space stay alpha=0.
@@ -43,8 +48,8 @@ export async function buildSharePreviews(){
     background:{r:0,g:0,b:0,alpha:0}}
   })
    .composite([
-    {input:logo,left:88,top:140},
-    {input:puppyLayer,left:594,top:37}
+    {input:puppyLayer,left:PUPPY_FRAME.left,top:PUPPY_FRAME.top},
+    {input:logo,left:LOGO_FRAME.left,top:LOGO_FRAME.top}
    ])
    .png({compressionLevel:9,palette:false})
    .toFile(join(ROOT,"public",shareCardPath(puppy).slice(1)));
