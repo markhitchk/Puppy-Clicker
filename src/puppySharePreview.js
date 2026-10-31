@@ -35,9 +35,9 @@ export function getPuppySharePreview(search){
  if(!puppy)return null;
  const category=puppy.group==="v1"?"V1":puppy.group==="v2"?"V2":
   puppy.group==="discord"?"Community":puppy.group==="test"?"Test":"Special";
- const imagePath=/^\/assets\/(v1|v2)\//.test(puppy.image)
-  ?puppy.image.replace("/assets/","/assets/transparent/")
-  :puppy.image;
+ // OG/Twitter previews must use the exact published puppy artwork, not
+ // build-generated transparency variants or a generic logo.
+ const imagePath=puppy.image;
  return {
   title:puppy.emoji+" "+puppy.name+" | Puppy Clicker",
   description:puppy.description+" Meet "+puppy.name+", a "+category+
