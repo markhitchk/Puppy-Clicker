@@ -1,218 +1,77 @@
 # Puppy Clicker — Privacy Policy
 
-> **Effective date:** September 24, 2026
+> **Website revision effective:** October 31, 2026  
+> **Provider:** Harley's Studios  
+> **Privacy contact:** harleytg.hq@gmail.com
 
-This Privacy Policy explains how **Puppy Clicker**, provided by **Harley's Studios**, handles information in the Android app.
+This policy describes personal information handled when you use the **Puppy Clicker website** at https://puppy-clicker.vercel.app, connect a Pup Account, use a linked Android app, or use community features. Different Android installation and save-protection details may also appear in the Android app's privacy information.
+
+## 1. Information we process
+
+- **Pup Account:** username, display name, account identifiers, optional support/recovery email, authentication provider links (including Discord), avatar and account standing.
+- **Game data:** linked cloud progress, rewards, roster, inventory, trade/gift actions, daily challenges and authoritative gameplay transaction records.
+- **PupEye security:** installation and session identifiers, signing-key *public* fingerprints, save generations, integrity events, moderation records, account restrictions and network risk checks where enabled. Device private signing keys are not intentionally uploaded.
+- **Website activity:** a short-lived browser session identifier, server-observed IP address, browser user agent, safe page category, timestamps, sign-in or registration outcomes, and error codes. We do not intentionally put passwords, tokens, page query strings or raw error traces into website activity records.
+- **Community features:** messages you submit, moderation decisions, reports, blocks and membership, and optional leaderboard statistics. Published chat is visible to channel members and moderators.
+- **Preferences:** interface language, theme and other preferences stored in browser storage.
+
+## 2. Why we use this information
+
+We process information to provide account access, maintain game progress and exchange features, enforce game rules, respond to support/privacy requests, detect abuse and protect users. Depending on the specific processing, relevant legal bases may include performance of our service agreement, legitimate interests in security and abuse prevention, compliance with legal obligations, and consent for genuinely optional activities such as public leaderboard participation. A privacy-policy acknowledgment is **not** consent to unrelated tracking.
+
+## 3. Website storage and cookies
+
+We use browser storage for sign-in sessions and interface preferences. These are needed to provide account and website functionality. We do not currently describe advertising or analytics cookies as active features of the Privacy Center. If we introduce optional tracking, we will document the purposes and obtain any legally required prior consent, with an option to decline and withdraw it.
+
+Your browser settings can clear locally stored sessions and preferences. Clearing local data does not erase information stored against your Pup Account on our servers.
+
+## 4. Discord and other providers
+
+If you authorize Discord, we may receive Discord ID, username, display name, avatar information and email where permitted by the scopes and returned by Discord. Discord login or linking is optional when username/password authentication is available. We use **Supabase** for account and gameplay infrastructure, **Vercel** for website hosting, and may load assets from **GitHub**. We may use **ProxyCheck** for network risk analysis when enabled. These providers may process technical request information, including IP addresses, under their own policies.
+
+## 5. Sharing and cross-border transfers
+
+We do not sell your cloud game saves or PupEye security records to advertisers. Authorized administrators and developers may view information needed for support, security, privacy requests and moderation. Hosting and service providers may process information outside your country, potentially outside the EEA/UK, subject to applicable contractual and legal safeguards. Specific provider locations and transfer mechanisms should be confirmed against current provider terms.
+
+## 6. Public leaderboard and moderated chat
+
+Leaderboard participation is opt-in. If you join, your chosen public name and selected game statistics can be displayed; email, IP addresses, Friend Code and private save contents are not leaderboard fields. You can leave the leaderboard.
+
+**Community chat is not end-to-end encrypted.** Messages can be screened and reviewed by authorized moderators before publication. Moderation helps protect younger players and other users but does not guarantee that all harmful content is detected. Chat reports and decisions may be retained for safety review.
+
+## 7. Retention
+
+- Website sessions, activity events and network-check records have a 30-day retention cleanup mechanism in the current application.
+- Community chat message contents are subject to expiration/redaction rules after approximately 30 days; open reports may require additional review. Chat reports are scheduled for approximately 90-day retention and moderation action records for approximately 180 days under current database rules.
+- Pup Account, cloud progress, device and transaction information may remain while the account is active and as necessary for ongoing security, legal claims or support.
+- Privacy-rights request receipts have their own response deadlines and will be subject to a separate retention schedule; submitting a request does not automatically erase data.
+
+These periods are not a guarantee that every backup, third-party log or legally retained record is immediately removed.
+
+## 8. Your privacy rights
+
+Depending on applicable law you may request access, correction, a portable copy, restriction, objection or deletion. You can submit a request and check its status at the [Privacy Center](/account/privacy), or contact harleytg.hq@gmail.com. We may need to verify your identity before releasing or deleting personal data, including data linked to the Android app. We aim to respond without undue delay and generally within one month, subject to extensions allowed by law.
+
+**Deletion is not automatic:** requesting account erasure starts a reviewed process. A verified deletion could remove your linked cloud progress and access across the website and Android. Some records may be withheld or retained where a lawful exception applies. We will explain an outcome or a refusal and available complaint options.
+
+You may also complain to the applicable supervisory/data protection authority.
+
+## 9. PupEye and decisions
+
+PupEye and related account systems can detect suspicious gameplay, save integrity problems and prohibited online behavior. Technical controls may reject transactions or restrict access. You can request review through support. We do not rely on the Privacy Center to override active security measures or to automatically determine whether an account should be banned.
+
+## 10. Younger users
+
+Puppy Clicker is intended to be accessible to a broad audience. Community features require additional safeguards for younger users. Where applicable law requires parental permission for a child's information or online services, such permission must be obtained and verified before processing based on that consent. Contact support about a child's data or safety concerns.
+
+## 11. Security
+
+We use account authorization checks, restricted server access, transport security, limited staff access and PupEye integrity protections. No service can promise perfect protection. Please do not submit passwords or access tokens in privacy requests.
+
+## 12. Changes and contact
+
+We may update this policy to reflect changes in the website, Android services or applicable laws. Material changes will be communicated as appropriate. For privacy questions or rights requests contact **harleytg.hq@gmail.com** or visit the [Privacy Center](/account/privacy).
 
 ---
 
-## 1. Local Game Data
-
-Puppy Clicker stores the following information on the user's device:
-
-- Game progress
-- Settings
-- Upgrade data
-- Care statistics
-- Achievements
-- PupEye fair-play state
-- Related gameplay information
-
-## 2. Player Username
-
-A player may choose a local Puppy Clicker username.
-
-The username:
-
-- Is normalized to lowercase
-- Is stored locally
-- May be included inside encrypted save files so the app can identify which local player a save belongs to
-
-## 3. Device and Installation Security Metadata
-
-Encrypted save metadata may contain a coarse manufacturer/model label for the Android device that created the save.
-
-PupEye also creates security metadata that is specific to the Puppy Clicker installation, including:
-
-- A random Puppy Clicker installation ID
-- A public signing-key fingerprint
-- A monotonic save generation number
-- Random save and economy transaction identifiers
-- Integrity-event and protected economy-ledger information
-
-The corresponding private signing key is generated in Android Keystore and is not exported in portable saves. The installation ID and signing-key fingerprint are app security identifiers, not hardware serial numbers.
-
-Puppy Clicker does **not** use the following for save ownership:
-
-- IMEI
-- Hardware serial number
-- Android ID
-- Phone number
-- Advertising ID
-- Other persistent hardware identifiers
-
-PupEye global enforcement also does not use SIM serial, Wi-Fi MAC, or Bluetooth MAC addresses as ban identifiers. A coarse device model, username, or IP address alone does not establish that two players are the same person or device.
-
-## 4. Save Encryption
-
-Automatic `Android/data` saves use authenticated encryption and Android Keystore protection. Portable backups may use password-based authenticated encryption.
-
-Authentication failures, save rollback attempts, ownership mismatches, duplicate protected transactions, or unauthorized modifications may be recorded locally by **PupEye** and may cause a save or protected gameplay operation to be:
-
-- Rejected
-- Quarantined
-- Restored from a last-known-good state
-- Blocked pending Support review
-
-Portable backups are authenticated to the Puppy Clicker installation that created them. Moving protected progress to another device requires a Support-authorized migration flow.
-
-## 5. PupEye Fair-Play Information
-
-PupEye may process local security information such as:
-
-- Recent tap timing
-- Fair-play strike counts
-- Save-integrity results
-- Related local security state
-
-These checks are designed to detect likely automated clicking or unauthorized save modification. PupEye now also uses Puppy Clicker's Supabase backend to register the app installation, compare save generations, reject replayed protected transactions, and support authorized device migration. Local timing samples used for click-pattern detection are not uploaded as part of the current Supabase integration.
-
-## 6. Supabase Account and PupEye Service
-
-Puppy Clicker may send the following limited information to the Puppy Clicker Supabase project for account security and PupEye enforcement:
-
-- Puppy Clicker Player ID and Friend Code
-- Local username
-- Random installation ID and Support Installation Code
-- Public device signing key and its fingerprint
-- Coarse device model, Android platform label, and app version
-- Highest authenticated save generation
-- Protected Casino/Gacha transaction IDs, source labels, and bounded transaction details
-- PupEye integrity/review event codes
-- Discord identity and derived Puppy Clicker server role after Discord authorization
-
-The corresponding Android Keystore private signing key is not uploaded. Discord OAuth access tokens are used transiently for server verification and are not intentionally stored by Puppy Clicker or in the PupEye database.
-
-For global enforcement, PupEye may maintain a public Ban ID, Player/Discord/installation links, device reputation records, enforcement audit events, and authenticated save-content hash (SHA-256) attestations. These records help detect replay or tampering, require Support review, and enforce temporary or permanent bans. Hashes represent authenticated save content; the save contents themselves are not included in moderation alerts.
-
-Puppy Clicker does not use IMEI, hardware serial number, Android ID, SIM serial, phone number, advertising ID, Wi-Fi MAC, or Bluetooth MAC as global-ban identifiers. IP and network metadata may be considered as evidence, but do not independently trigger a device or account ban.
-
-Operational events may be sent to Harley's Studios through a Discord moderation notification as a webhook embed. These notifications exclude session tokens, IP addresses, email addresses, save contents, and raw cryptographic key material.
-
-Supabase may process ordinary network information, including IP address and request metadata, under Supabase's own privacy and security practices.
-
-## 7. Streamed Content and Network Requests
-
-Puppy Clicker may contact **GitHub-hosted resources** to retrieve:
-
-- Streamed branding
-- Legal documents
-- Configuration
-- Other app assets
-
-When the app makes those requests, the hosting provider may receive ordinary network information such as:
-
-- IP address
-- Request time
-- Technical connection details
-
-That information is handled under the hosting provider's own policies.
-
-## 8. Discord Signup
-
-Puppy Clicker uses **Discord OAuth** for player signup and community features. The authorization flow requests the following scopes:
-
-- `identify`
-- `email`
-- `guilds`
-- `guilds.join`
-- `guilds.members.read`
-
-After successful authorization, Puppy Clicker may read account identity information including:
-
-- Discord user ID
-- Username
-- Display name, when available
-- Avatar identifier, when available
-- Email address, when Discord returns it for the authorized account
-
-The account identity metadata used by Puppy Clicker is stored locally and may also be stored in the Puppy Clicker Supabase project. Discord authorization is verified by a Puppy Clicker Supabase Edge Function before the account or configured Puppy Clicker server role is trusted. The app stores only the derived verified role tier, configured server ID, and verification time for this feature; it does not persist the Discord OAuth access token or the full server member response.
-
-The Discord account does not replace Puppy Clicker's device-bound **Player ID** or **Friend Code**. Those local identifiers continue to be used for Puppy Clicker trading, gifting, save ownership, and related local game features.
-
-## 9. Data Sharing
-
-Puppy Clicker does **not** sell local game-save data.
-
-Local usernames, encrypted save contents, and local PupEye state are not intentionally shared with advertisers.
-
-Third-party hosting providers may process normal network metadata when streamed resources are requested. Supabase processes the account/security records described above to provide Puppy Clicker's backend account and PupEye services.
-
-## 10. Retention and Deletion
-
-Local Puppy Clicker information remains on the device until it is:
-
-- Removed by the user
-- Cleared through Android app storage controls
-- Overwritten by an authorized import
-- Removed when the app is uninstalled, subject to Android backup/storage behavior
-
-Exported backup files remain wherever the user chooses to save them until the user deletes them.
-
-Server-side PupEye/account records may remain while needed to protect the player's account, prevent save or transaction replay, resolve device migrations, or handle Support review. A future account-deletion workflow should remove or anonymize server records where they are no longer required for security or legal purposes.
-
-## 11. Children and Age-Sensitive Features
-
-Puppy Clicker is designed as a casual game.
-
-Online account, social, or cloud features that may be added later will require an updated privacy review before launch.
-
-## 12. Security
-
-Harley's Studios uses measures including:
-
-- Authenticated encryption
-- Android Keystore-backed keys for device-bound saves
-- Password-protected portable backups
-- PupEye integrity checks
-
-No security system can guarantee protection against every form of device compromise or data loss.
-
-## 13. Changes to This Policy
-
-This policy may be updated when Puppy Clicker features, data practices, or connected services change.
-
-The current version displayed in the app is streamed from the official Puppy Clicker repository when available.
-
-## 14. Contact
-
-Questions about Puppy Clicker privacy may be directed to **Harley's Studios** through the official Puppy Clicker community or support channels made available in the app or official website.
-
----
-
-**Puppy Clicker** · **Harley's Studios**
-
-
----
-
-## 15. Website, Community Chat, and Leaderboards — October 30, 2026 Addendum
-
-This section supplements the earlier Android-focused policy and applies to the Puppy Clicker website and its Pup Account community features. If an earlier section describes an older account flow or excludes website activity, this section describes the newer website functionality.
-
-### Website accounts and security
-
-Pup Accounts can use username/password or supported Discord sign-in. We process account identity, profile display names and optional avatar URLs, game saves and account standing. To secure sessions and prevent abuse, server records may include the IP address, browser user agent, visit and security-event timestamps, login outcomes and connection details. Website security events are reviewed by authorized administrators/developers; web connection and network-check activity records are normally removed after 30 days. We do not publish IP addresses, email addresses, device records or account authentication credentials in leaderboards or chat.
-
-### Moderated group chat
-
-If chat is enabled, a signed-in player must agree to the posted community rules and join an official server. The chat service receives the message text, account identity, server/channel, submission time, automated PupEye screening flags, moderation outcomes and player reports. Messages are **not end-to-end encrypted** because authorized moderators must be able to read them. HTTPS encrypts messages in transit. Messages are held for human approval before becoming visible to other players. Players can report content and block other players. Automated detection may identify harassment, profanity, sexual remarks, threats, hate, scams and contact details, but cannot guarantee complete detection.
-
-Published messages are shown with a display name or username and submission time. Pending and rejected messages can be seen by the author and authorized moderators. Chat is not a private messaging service. Do not send personal contact information or sensitive information. Chat-body and screening data are normally replaced with expiry markers after 30 days; pending submissions expire after 24 hours. Open abuse reports can temporarily preserve relevant message evidence. Reports are retained up to 90 days and moderation audit actions up to 180 days, subject to applicable legal obligations. Account restrictions may remain longer as necessary for enforcement or appeals. Chat is not available until its review and retention infrastructure has been enabled.
-
-### Optional public rankings
-
-Players can voluntarily join or leave the Puppy Clicker leaderboard. An opted-in player may appear with their public username/display name and server-recorded lifetime Treats, XP and number of unlocked puppies, along with a ranking. These values are derived from their linked Pup Account cloud save. We do not publicly display private saves, Friend Codes, contact emails, session identifiers or IP addresses. Staff and ineligible accounts are excluded from public rankings. Participation starts disabled. Leaving removes the player from new leaderboard results; normal game saves are preserved.
-
-### Children, family safety, and review
-
-The public group chat is designed for an all-ages audience with rules against sexual content, harassment, threats, hate speech, scams, spam and the sharing of contact information. Player-submitted messages must be reviewed before publication; there is no guarantee that automated filters or human review will catch every harmful message. Do not post real names, home addresses, phone numbers or other identifying details. Parents and guardians should supervise younger players and can contact official support about safety or privacy concerns.
+Puppy Clicker · Harley's Studios

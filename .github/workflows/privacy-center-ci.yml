@@ -1,0 +1,36 @@
+name: GDPR Website Privacy Validation
+on:
+  push:
+    branches: [feat/gdpr-privacy-center-web]
+  pull_request:
+    paths:
+      - 'api/privacy.js'
+      - 'api/_lib/privacy*.js'
+      - 'src/privacy/**'
+      - 'src/App.jsx'
+      - 'src/SiteAccountMenu.jsx'
+      - 'src/AdminPrivacy.jsx'
+      - 'src/AdminPortal.jsx'
+      - 'src/WebPrivacy.jsx'
+      - 'e2e/privacy-center.spec.js'
+      - '.github/workflows/privacy-center-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: privacy-web-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  privacy-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test e2e/privacy-center.spec.js --workers=1

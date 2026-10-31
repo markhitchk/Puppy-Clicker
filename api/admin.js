@@ -1,3 +1,4 @@
+import {validatePrivacyReview} from "./_lib/privacyReview.js";
 import {checkWebPupEye,WebPupEyeError} from './_lib/webPupEye.js';
 import {createClient} from "@supabase/supabase-js";
 import {
@@ -180,6 +181,35 @@ export async function action(db,actor,body) {
     // This service-role-only function never grants browser table access.
     const rows=ensure(await db.rpc('pupeye_web_admin_events',{p_limit:80}));
     return {events:rows||[]};
+  }
+  if (type==="privacy-requests") {
+    const rows=ensure(await db.from("pup_privacy_requests")
+      .select("id,account_uuid,type,state,request_note,review_note,submitted_at,deadline_at,updated_at")
+      .order("submitted_at",{ascending:false}).limit(100)) || [];
+    const accounts=rows.length?ensure(await db.from("pup_accounts")
+      .select("id,username,display_name").in("id",[...new Set(rows.map(r=>r.account_uuid).filter(Boolean))]))||[]:[];
+    const names=new Map(accounts.map(a=>[a.id,a.display_name||('@'+a.username)]));
+    return {requests:rows.map(r=>({id:r.id,accountName:names.get(r.account_uuid)||"Deleted account",
+      type:r.type,state:r.state,note:r.request_note,reviewNote:r.review_note,
+      submittedAt:r.submitted_at,deadlineAt:r.deadline_at,updatedAt:r.updated_at}))};
+  }
+  if (type==="privacy-review") {
+    const id=requireId(body.requestId);
+
+    const row=ensure(await db.from("pup_privacy_requests").select("id,type,state")
+      .eq("id",id).maybeSingle());
+    if(!row)throw new AdminError(404,"PRIVACY_REQUEST_NOT_FOUND");
+    let state,reason;
+    try{({state,reason}=validatePrivacyReview(row.type,row.state,body.state,body.reason));}
+    catch(error){throw new AdminError(error.message==="PRIVACY_REVIEW_INVALID"?400:409,error.message);}
+    await audit(db,actor,null,"PRIVACY_REVIEW_ATTEMPT",{requestId:id,from:row.state,to:state});
+    const now=new Date().toISOString();
+    const updated=ensure(await db.from("pup_privacy_requests").update({
+      state,review_note:reason,updated_at:now,
+      closed_at:["completed","denied"].includes(state)?now:null
+    }).eq("id",id).eq("state",row.state).select("id").maybeSingle());
+    if(!updated)throw new AdminError(409,"PRIVACY_REQUEST_CONFLICT");
+    return {reviewed:true};
   }
   if (type==="role-update") {
     const id=requireId(body.targetPlayerId);

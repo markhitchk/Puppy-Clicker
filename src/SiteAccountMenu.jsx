@@ -138,6 +138,7 @@ export default function SiteAccountMenu({active=false,placement="down",compact=f
     <a href="/account#profile-settings"><span aria-hidden="true">📷</span>Edit name &amp; avatar</a>
     <a href="/account#puppy-requests"><span aria-hidden="true">🎁</span>Request a puppy</a>
     <a href="/account#account-security"><span aria-hidden="true">🔒</span>Login &amp; security</a>
+    <a href="/account/privacy"><span aria-hidden="true">🔒</span>Privacy & Data</a>
     <a href="/account#account-management"><span aria-hidden="true">⚙️</span>Account settings</a>
     {staff?<a href="/account/admin"><span aria-hidden="true">🛡️</span>Administration</a>:null}
    </nav>
