@@ -6,7 +6,12 @@ for(const width of [360,768,1280,1920]){
   await page.setViewportSize({width,height:850});
   await page.goto("/");
   await expect(page.getByRole("heading",{name:/Tap. Care. Collect./})).toBeVisible();
-  await expect(page.getByRole("navigation",{name:"Website"})).toBeVisible();
+  const websiteNav=page.getByRole("navigation",{name:"Website"});
+  if(width<1280){
+   await expect(websiteNav).toBeHidden();
+   await page.getByRole("button",{name:"Open navigation menu"}).click();
+  }
+  await expect(websiteNav).toBeVisible();
   await expect(page.getByRole("link",{name:"Home",exact:true})).toBeVisible();
   await expect(page.getByRole("link",{name:"🐾 Play",exact:true})).toBeVisible();
   await expect(page.getByRole("link",{name:"Account",exact:true})).toBeVisible();

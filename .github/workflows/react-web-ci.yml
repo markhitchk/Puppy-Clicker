@@ -23,6 +23,8 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
+      - name: Verify website header on phone, tablet and desktop
+        run: npx playwright test e2e/responsive-site-navigation.spec.js --workers=2
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: always()
