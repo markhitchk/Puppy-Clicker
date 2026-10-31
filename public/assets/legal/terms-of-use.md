@@ -120,3 +120,24 @@ Questions about Puppy Clicker, these terms, or privacy may be directed to **Harl
 ---
 
 **Puppy Clicker** · **Harley's Studios**
+
+
+---
+
+## 11. Website and Community Features — October 30, 2026 Addendum
+
+Pup Account access on the website supports username/password and, when configured, Discord authorization. Earlier references to mandatory Discord sign-up describe older versions of the game. Web and Android may use the same eligible verified Pup Account and cloud save, subject to account security and platform support.
+
+### Group chat code of conduct
+
+If official chat is available, community access requires an active verified Pup Account, acceptance of the current community rules, and a server membership. Be respectful and do not submit sexually explicit content, sexual solicitation, grooming behavior, bullying, slurs, threats, hate speech, illegal material, fraud, phishing, contact details, personal identifiers, spam or unwanted advertising. These rules apply to English, Spanish and other languages.
+
+PupEye performs automated screening; **all community messages require moderator approval before public display**. A submitted message can be rejected, removed, reported or preserved for abuse review. Moderators may mute or suspend access under the account enforcement system. Messages are not end-to-end encrypted because staff must be able to review them. Chat is a public moderated community space, **not** confidential or private messaging. Approval is not guaranteed and may take time. Players can report suspected violations through chat and support channels.
+
+### Public leaderboard consent
+
+Leaderboard participation is optional, off by default and can be withdrawn. Opting in authorizes the display of the player's username/display name, approved game metrics and rank. Eligible scores are calculated by the Puppy Clicker server from canonical cloud saves. Tampering, automation or cheating can result in removal from rankings and account review. Developer and other excluded accounts are not eligible for public rankings.
+
+### Child safety and enforcement
+
+Never share passwords, real-world contact information, addresses or other private identifiers. Do not solicit contact or move conversations with children to private messaging services. Harassment and sexual exploitation are prohibited. Staff moderation is not a guarantee of safety; report suspicious activity promptly. Administrators may take appropriate account actions consistent with the current policies. Features may be disabled when they cannot be safely operated or maintained.

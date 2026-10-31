@@ -15,6 +15,11 @@ import {isPlayDemoRoute} from "./playDemoRoute.js";
 import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
 import AdminPortal from "./AdminPortal.jsx";
 import WebPrivacy from "./WebPrivacy.jsx";
+import LegalReader from "./LegalReader.jsx";
+import Leaderboard from "./Leaderboard.jsx";
+import CommunityChat from "./CommunityChat.jsx";
+import AdminChat from "./AdminChat.jsx";
+import LanguagePicker,{useLanguage} from "./LanguagePicker.jsx";
 import ProfileAvatarEditor from "./ProfileAvatarEditor.jsx";
 import PupGiftRequests from "./PupGiftRequests.jsx";
 import {avatarForAccount} from "./pupWebApi.js";
@@ -23,21 +28,27 @@ import "./styles.css";
 
 const logo="/assets/logos/puppy_clicker.png";
 function Header({page}){
+ const {t:tr}=useLanguage();
  return <header className="site-header">
   <a className="site-brand" href="/" aria-label="Puppy Clicker home">
    <img src={logo} alt="" /><span><strong>Puppy Clicker</strong><small>Harley's Studios</small></span>
   </a>
   <nav className="site-nav" aria-label="Website">
-   <a href="/" aria-current={page==="home"?"page":undefined}>Home</a>
-   <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 Play</a>
-   <a href="/puppies" aria-current={page==="puppies"?"page":undefined}>Puppies</a>
+   <a href="/" aria-current={page==="home"?"page":undefined}>{tr("home")}</a>
+   <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 {tr("play")}</a>
+   <a href="/puppies" aria-current={page==="puppies"?"page":undefined}>{tr("puppies")}</a>
+   <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>{tr("policies")}</a>
+   <a href="/leaderboard" aria-current={page==="leaderboard"?"page":undefined}>🏆 {tr("leaderboard")}</a>
+   <a href="/chat" aria-current={page==="chat"?"page":undefined}>💬 {tr("chat")}</a>
    <SiteAccountMenu active={page==="account"}/>
+   <LanguagePicker compact/>
   </nav>
  </header>;
 }
 function TryDemoLink(){
+ const {t:tr}=useLanguage();
  const access=useDemoAccess();
- return access==="guest"?<a className="cta cta-secondary" href="/play?=demo">🎮 Try Demo</a>:null;
+ return access==="guest"?<a className="cta cta-secondary" href="/play?=demo">🎮 {tr("heroDemo")}</a>:null;
 }
 function DemoPage(){
  const access=useDemoAccess();
@@ -46,13 +57,14 @@ function DemoPage(){
  return <div className="landing"><HomePlayDemo standalone/></div>;
 }
 function Home(){
+ const {t:tr}=useLanguage();
  return <div className="landing">
   <section className="hero">
    <div className="hero-copy">
-    <p className="eyebrow">🐾 PUPPY CLICKER · WEB EDITION</p>
-    <h1>Tap. Care. Collect.<br/><span>Grow your puppy world.</span></h1>
-    <p className="hero-lede">Meet adorable puppies, earn Treats by tapping, grow your collection, take care of your companions, and unlock new rewards. Play in your browser with your Pup Account.</p>
-    <div className="hero-actions"><a className="cta cta-primary" href="/play">🐶 Play Puppy Clicker</a><TryDemoLink/><a className="cta cta-secondary" href="/account">Manage Pup Account</a></div>
+    <p className="eyebrow">🐾 {tr("heroLabel")}</p>
+    <h1>{tr("heroLine1")}<br/><span>{tr("heroLine2")}</span></h1>
+    <p className="hero-lede">{tr("heroIntro")}</p>
+    <div className="hero-actions"><a className="cta cta-primary" href="/play">🐶 {tr("heroPlay")}</a><TryDemoLink/><a className="cta cta-secondary" href="/account">Manage Pup Account</a></div>
     <p className="hero-note">Already play on Android? Use your existing Pup Account to access your linked cloud progression. Gameplay access depends on your account's verified save.</p>
    </div>
    <div className="hero-art">
@@ -86,7 +98,7 @@ function Home(){
    </div>
    <div className="account-preview"><span>🐾</span><strong>Pup Account</strong><p>Verified login · Linked progress · Account settings</p></div>
   </section>
-  <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span><a href="/recovery">Recover Pup Account</a> · <a href="/privacy">Website privacy</a> · Made for puppy fans 🐶</span></footer>
+  <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span><a href="/recovery">Recover Pup Account</a> · <a href="/privacy">Website privacy</a> · <a href="/legal/privacy">Policies</a> · Made for puppy fans 🐶</span></footer>
  </div>;
 }
 const accountRole=role=>({DEVELOPER:"Developer",ADMIN:"Administrator",PUP_MEMBER:"Pup Member"})[role]||"Player";
@@ -364,16 +376,20 @@ export default function App(){
  const callback=path==="/auth/discord/callback";
  const demo=isPlayDemoRoute(path,typeof window!=="undefined"?window.location.search:"");
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
-  const page=path==="/"?"home":path==="/privacy"?"privacy":path==="/puppies"?"puppies":
+  const page=path==="/"?"home":path==="/chat"?"chat":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   callback?"callback":demo?"demo":path==="/play"?"play":"error";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
-  <Header page={callback||page==="admin"?"account":page==="demo"?"play":page}/>
+  <Header page={callback||page==="admin"||page==="admin-chat"?"account":page==="demo"?"play":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
    {page==="home"?<Home/>:page==="demo"?<DemoPage/>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
     page==="privacy"?<WebPrivacy/>:
+    page==="legal"?<LegalReader type={path.includes("/terms")?"terms":"privacy"}/>:
+    page==="leaderboard"?<Leaderboard/>:
+    page==="chat"?<CommunityChat/>:
+    page==="admin-chat"?<AdminChat/>:
     page==="admin"?<AdminPage/>:
     page==="recovery"?<RecoveryPage/>:
     page==="callback"?<DiscordCallbackPage/>:

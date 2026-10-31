@@ -30,9 +30,43 @@
           "value": "private, no-store, max-age=0"
         }
       ]
+    },
+    {
+      "source": "/api/chat",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store, max-age=0"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/api/leaderboard",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store, max-age=0"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/leaderboard",
+      "destination": "/api/leaderboard"
+    },
+    {
+      "source": "/api/chat",
+      "destination": "/api/chat"
+    },
     {
       "source": "/api/admin",
       "destination": "/api/admin"

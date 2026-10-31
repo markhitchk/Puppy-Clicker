@@ -1,5 +1,6 @@
 import React,{useEffect,useState,useId} from 'react';
 import PuppyArtwork from './PuppyArtwork.jsx';
+import LanguagePicker from '../../LanguagePicker.jsx';
 import {ACCENT_PRESETS} from '../src/engine/settings.js';
 import {level} from '../src/engine/game.js';
 
@@ -22,7 +23,7 @@ export default function WebSettings({g,act,onOpen,registry,notifications,account
  const section=(id,title,description,children)=><section className="cyber-panel web-setting-section" key={id}><h2><button type="button" aria-label={title} aria-expanded={expanded===id} aria-controls={'web-settings-'+id} onClick={()=>{setExpanded(expanded===id?null:id);setMessage('');}}><span><strong>{title}</strong><small>{description}</small></span><span aria-hidden="true">{expanded===id?'−':'+'}</span></button></h2>{expanded===id?<div className="web-setting-body" id={'web-settings-'+id}>{children}{message?<p className="web-settings-message" role="status">{message}</p>:null}</div>:null}</section>;
  const connected=cloudState==='LIVE_SYNCED'&&!['BLOCKED','RECONNECTING','SAVED_DISPLAY_ERROR'].includes(syncStatus?.state);
  return <div className="web-settings">
-  <header><h1>Website Settings</h1><p>Manage your Pup Account and customize this browser.</p></header>
+  <header><h1>Website Settings</h1><p>Manage your Pup Account and customize this browser.</p><LanguagePicker/></header>
   <section className="cyber-panel web-player-summary"><PuppyArtwork id={g.puppyStyle} name={g.puppyName} size={60}/><div><strong>{g.guestName}</strong><p>Level {level(g)} · {g.xp.toLocaleString()} XP</p><span className="web-status">{connected?'Connected to Pup Account':'Check your cloud connection'}</span></div></section>
   {section('account','Pup Account & cloud save','Your signed-in account and live progress',<>
    <p>Signed in as <strong>{account?.username||g.guestName}</strong>.</p>

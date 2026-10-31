@@ -236,6 +236,7 @@ export default function AdminPortal(){
    {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["pupeye-web","🛡️ PupEye Web"],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"]].map(([tab,label])=>
     <button key={tab} type="button" className={section===tab?"is-selected":""}
      aria-current={section===tab?"page":undefined} onClick={()=>navigate(tab)}>{label}</button>)}
+   <a className="pup-admin-link" href="/account/admin/chat">💬 Chat moderation</a>
    <button type="button" className="pup-admin-refresh" onClick={()=>void refresh(section)} disabled={busy||tabLoading||section==="gifts"}>↻ Refresh</button>
   </nav>
   {error?<p className="pup-admin-error" role="alert">{error}</p>:null}

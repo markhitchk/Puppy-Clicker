@@ -1,0 +1,15 @@
+.leaderboard-page{width:100%;max-width:1050px;margin:0 auto;padding:clamp(17px,4vw,48px) 18px 80px;color:#eafaff}
+.leaderboard-head,.leaderboard-optin,.leaderboard-board{padding:clamp(18px,3vw,32px);border-radius:24px;border:1px solid #315967;background:linear-gradient(125deg,#162535,#101a2a);margin-bottom:18px}
+.leaderboard-head h1{font-size:clamp(30px,4vw,42px);margin:10px 0}.leaderboard-head p,.leaderboard-optin p{line-height:1.7;color:#bad7e2;max-width:860px}
+.leaderboard-optin h2{margin:0 0 10px}.leaderboard-optin-actions{display:flex;flex-wrap:wrap;gap:15px;align-items:center;justify-content:space-between;margin-top:17px}
+.leaderboard-optin-actions .cta{min-height:46px}.leaderboard-metrics{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}
+.leaderboard-metrics button{padding:11px 17px;border-radius:999px;border:1px solid #38667a;background:#172b3b;color:#dff8ff;font-size:14px;font-weight:700;cursor:pointer}
+.leaderboard-metrics button[aria-pressed=true]{background:#00e5ff;border-color:#00e5ff;color:#071722}
+.leaderboard-board{overflow-x:auto}.leaderboard-section-title{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}.leaderboard-board h2{font-size:22px}
+.leaderboard-section-title small{color:#9cc2d3}.leaderboard-board table{width:100%;border-collapse:collapse;margin-top:18px;text-align:left}
+.leaderboard-board th,.leaderboard-board td{padding:13px 10px;border-bottom:1px solid #2d4e5f}.leaderboard-board th{color:#9fcddd;font-size:13px}
+.leaderboard-board td:last-child{text-align:right;font-variant-numeric:tabular-nums}.leaderboard-board th:last-child{text-align:right}
+.leaderboard-board td small{display:block;color:#9bbed1;margin-top:4px}.leaderboard-self{background:#173a48;padding:14px;border-radius:12px;color:#a1f5ff;font-weight:700}
+.leaderboard-empty,.leaderboard-feedback{padding:22px;color:#c4dbe5}.leaderboard-feedback{border-radius:14px;background:#1a2637;border:1px solid #355b6c}
+.leaderboard-feedback button{margin-left:12px;background:none;color:#8fe8ff;border:0;cursor:pointer;text-decoration:underline}
+@media(max-width:560px){.leaderboard-board td,.leaderboard-board th{padding:12px 6px}.leaderboard-optin-actions .cta{width:100%}}

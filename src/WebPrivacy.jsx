@@ -8,6 +8,6 @@ export default function WebPrivacy(){
   <h2>Who can see it</h2><p>Only authorized Puppy Clicker administrators and developers can view these connection and activity records. Visitors are shown as visitors; browsing does not create a Pup Account. The existing network check may send your IP address to ProxyCheck to identify VPN, proxy, or Tor connections. Its result does not automatically ban or restrict an account.</p>
   <h2>What is kept out</h2><p>These activity records do not contain passwords, access or refresh tokens, OAuth codes, page query strings, or raw browser exception messages. Gameplay saves and Android installation identities are separate from website session records.</p>
   <h2>Retention & support</h2><p>Website connection, network-check, and activity records older than 30 days are removed in batches as new activity is recorded. Staff moderation history is kept separately for account support. Contact Harley’s Studios through the game’s official support channels for account or privacy questions.</p>
-  <p><a className="pup-admin-link" href="/account">Pup Account</a> · <a className="pup-admin-link" href="/">Return home</a></p>
+  <p><a className="pup-admin-link" href="/legal/privacy">Full Privacy Policy</a> · <a className="pup-admin-link" href="/legal/terms">Terms of Use</a> · <a className="pup-admin-link" href="/account">Pup Account</a> · <a className="pup-admin-link" href="/">Return home</a></p>
  </section></article>;
 }
