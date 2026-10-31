@@ -191,3 +191,28 @@ Questions about Puppy Clicker privacy may be directed to **Harley's Studios** th
 ---
 
 **Puppy Clicker** · **Harley's Studios**
+
+
+---
+
+## 15. Website, Community Chat, and Leaderboards — October 30, 2026 Addendum
+
+This section supplements the earlier Android-focused policy and applies to the Puppy Clicker website and its Pup Account community features. If an earlier section describes an older account flow or excludes website activity, this section describes the newer website functionality.
+
+### Website accounts and security
+
+Pup Accounts can use username/password or supported Discord sign-in. We process account identity, profile display names and optional avatar URLs, game saves and account standing. To secure sessions and prevent abuse, server records may include the IP address, browser user agent, visit and security-event timestamps, login outcomes and connection details. Website security events are reviewed by authorized administrators/developers; web connection and network-check activity records are normally removed after 30 days. We do not publish IP addresses, email addresses, device records or account authentication credentials in leaderboards or chat.
+
+### Moderated group chat
+
+If chat is enabled, a signed-in player must agree to the posted community rules and join an official server. The chat service receives the message text, account identity, server/channel, submission time, automated PupEye screening flags, moderation outcomes and player reports. Messages are **not end-to-end encrypted** because authorized moderators must be able to read them. HTTPS encrypts messages in transit. Messages are held for human approval before becoming visible to other players. Players can report content and block other players. Automated detection may identify harassment, profanity, sexual remarks, threats, hate, scams and contact details, but cannot guarantee complete detection.
+
+Published messages are shown with a display name or username and submission time. Pending and rejected messages can be seen by the author and authorized moderators. Chat is not a private messaging service. Do not send personal contact information or sensitive information. Chat-body and screening data are normally replaced with expiry markers after 30 days; pending submissions expire after 24 hours. Open abuse reports can temporarily preserve relevant message evidence. Reports are retained up to 90 days and moderation audit actions up to 180 days, subject to applicable legal obligations. Account restrictions may remain longer as necessary for enforcement or appeals. Chat is not available until its review and retention infrastructure has been enabled.
+
+### Optional public rankings
+
+Players can voluntarily join or leave the Puppy Clicker leaderboard. An opted-in player may appear with their public username/display name and server-recorded lifetime Treats, XP and number of unlocked puppies, along with a ranking. These values are derived from their linked Pup Account cloud save. We do not publicly display private saves, Friend Codes, contact emails, session identifiers or IP addresses. Staff and ineligible accounts are excluded from public rankings. Participation starts disabled. Leaving removes the player from new leaderboard results; normal game saves are preserved.
+
+### Children, family safety, and review
+
+The public group chat is designed for an all-ages audience with rules against sexual content, harassment, threats, hate speech, scams, spam and the sharing of contact information. Player-submitted messages must be reviewed before publication; there is no guarantee that automated filters or human review will catch every harmful message. Do not post real names, home addresses, phone numbers or other identifying details. Parents and guardians should supervise younger players and can contact official support about safety or privacy concerns.
