@@ -1,0 +1,32 @@
+name: PupEye Chat Auto-Moderation Validation
+on:
+  push:
+    branches: [feat/pupeye-automatic-chat-moderation]
+  pull_request:
+    paths:
+      - 'api/chat.js'
+      - 'api/_lib/chatScreening.js'
+      - 'src/CommunityChat.jsx'
+      - 'src/AdminChat.jsx'
+      - 'src/communityI18n.js'
+      - 'tests/chat*.test.js'
+      - 'supabase/migrations/*chat*'
+      - '.github/workflows/chat-auto-moderation-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pupeye-chat-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - run: npm run build
