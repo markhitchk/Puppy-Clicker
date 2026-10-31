@@ -16,6 +16,7 @@ import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
 import AdminPortal from "./AdminPortal.jsx";
 import WebPrivacy from "./WebPrivacy.jsx";
 import LegalReader from "./LegalReader.jsx";
+import LanguagePicker,{useLanguage} from "./LanguagePicker.jsx";
 import ProfileAvatarEditor from "./ProfileAvatarEditor.jsx";
 import PupGiftRequests from "./PupGiftRequests.jsx";
 import {avatarForAccount} from "./pupWebApi.js";
@@ -24,22 +25,25 @@ import "./styles.css";
 
 const logo="/assets/logos/puppy_clicker.png";
 function Header({page}){
+ const {t:tr}=useLanguage();
  return <header className="site-header">
   <a className="site-brand" href="/" aria-label="Puppy Clicker home">
    <img src={logo} alt="" /><span><strong>Puppy Clicker</strong><small>Harley's Studios</small></span>
   </a>
   <nav className="site-nav" aria-label="Website">
-   <a href="/" aria-current={page==="home"?"page":undefined}>Home</a>
-   <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 Play</a>
-   <a href="/puppies" aria-current={page==="puppies"?"page":undefined}>Puppies</a>
-   <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>Policies</a>
+   <a href="/" aria-current={page==="home"?"page":undefined}>{tr("home")}</a>
+   <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 {tr("play")}</a>
+   <a href="/puppies" aria-current={page==="puppies"?"page":undefined}>{tr("puppies")}</a>
+   <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>{tr("policies")}</a>
    <SiteAccountMenu active={page==="account"}/>
+   <LanguagePicker compact/>
   </nav>
  </header>;
 }
 function TryDemoLink(){
+ const {t:tr}=useLanguage();
  const access=useDemoAccess();
- return access==="guest"?<a className="cta cta-secondary" href="/play?=demo">🎮 Try Demo</a>:null;
+ return access==="guest"?<a className="cta cta-secondary" href="/play?=demo">🎮 {tr("heroDemo")}</a>:null;
 }
 function DemoPage(){
  const access=useDemoAccess();
@@ -48,13 +52,14 @@ function DemoPage(){
  return <div className="landing"><HomePlayDemo standalone/></div>;
 }
 function Home(){
+ const {t:tr}=useLanguage();
  return <div className="landing">
   <section className="hero">
    <div className="hero-copy">
-    <p className="eyebrow">🐾 PUPPY CLICKER · WEB EDITION</p>
-    <h1>Tap. Care. Collect.<br/><span>Grow your puppy world.</span></h1>
-    <p className="hero-lede">Meet adorable puppies, earn Treats by tapping, grow your collection, take care of your companions, and unlock new rewards. Play in your browser with your Pup Account.</p>
-    <div className="hero-actions"><a className="cta cta-primary" href="/play">🐶 Play Puppy Clicker</a><TryDemoLink/><a className="cta cta-secondary" href="/account">Manage Pup Account</a></div>
+    <p className="eyebrow">🐾 {tr("heroLabel")}</p>
+    <h1>{tr("heroLine1")}<br/><span>{tr("heroLine2")}</span></h1>
+    <p className="hero-lede">{tr("heroIntro")}</p>
+    <div className="hero-actions"><a className="cta cta-primary" href="/play">🐶 {tr("heroPlay")}</a><TryDemoLink/><a className="cta cta-secondary" href="/account">Manage Pup Account</a></div>
     <p className="hero-note">Already play on Android? Use your existing Pup Account to access your linked cloud progression. Gameplay access depends on your account's verified save.</p>
    </div>
    <div className="hero-art">
