@@ -181,13 +181,23 @@ async function report(db,actor,body){
  return {reported:true};
 }
 async function block(db,actor,body){
- if(!isId(body.targetAccountId)||body.targetAccountId===actor.account.id)throw new ChatError(400,"INVALID_BLOCK");
+ if(!isId(body.messageId))throw new ChatError(400,"INVALID_BLOCK");
+ const message=need(await db.from("pup_social_messages")
+  .select("account_uuid,server_id,state").eq("id",body.messageId).maybeSingle());
+ if(!message||message.state!=="published")throw new ChatError(404,"MESSAGE_UNAVAILABLE");
+ await requireMember(db,actor.account,message.server_id);
+ const target=message.account_uuid;
+ if(target===actor.account.id)throw new ChatError(400,"INVALID_BLOCK");
  const relation=db.from("pup_social_blocks");
- if(body.blocked===false){need(await relation.delete().eq("blocker_account_uuid",actor.account.id)
-  .eq("blocked_account_uuid",body.targetAccountId));return {blocked:false};}
+ if(body.blocked===false){
+  need(await relation.delete().eq("blocker_account_uuid",actor.account.id)
+    .eq("blocked_account_uuid",target));
+  return {blocked:false};
+ }
  const created=await relation.insert({blocker_account_uuid:actor.account.id,
-  blocked_account_uuid:body.targetAccountId});
- if(created.error&&created.error.code!=="23505")throw new ChatError(503,"CHAT_BLOCK_UNAVAILABLE");
+  blocked_account_uuid:target});
+ if(created.error&&created.error.code!=="23505")
+  throw new ChatError(503,"CHAT_BLOCK_UNAVAILABLE");
  return {blocked:true};
 }
 export default async function handler(req,res){
