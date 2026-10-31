@@ -44,7 +44,7 @@ test.describe("verified Pup Account site navigation",()=>{
 
  test("uses a plain Account link when there is no verified Pup Account",async({page})=>{
   await page.goto("/?signedout");
-  await expect(page.getByRole("navigation",{name:"Website"}).getByRole("link",{name:"Account"})).toBeVisible();
+  await expect(page.locator(".site-header-tools").getByRole("link",{name:"Account"})).toBeVisible();
   await expect(page.getByTestId("site-account")).toHaveCount(0);
  });
 
