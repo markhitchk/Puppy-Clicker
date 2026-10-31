@@ -16,6 +16,7 @@ import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
 import AdminPortal from "./AdminPortal.jsx";
 import WebPrivacy from "./WebPrivacy.jsx";
 import LegalReader from "./LegalReader.jsx";
+import Leaderboard from "./Leaderboard.jsx";
 import LanguagePicker,{useLanguage} from "./LanguagePicker.jsx";
 import ProfileAvatarEditor from "./ProfileAvatarEditor.jsx";
 import PupGiftRequests from "./PupGiftRequests.jsx";
@@ -35,6 +36,7 @@ function Header({page}){
    <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 {tr("play")}</a>
    <a href="/puppies" aria-current={page==="puppies"?"page":undefined}>{tr("puppies")}</a>
    <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>{tr("policies")}</a>
+   <a href="/leaderboard" aria-current={page==="leaderboard"?"page":undefined}>🏆 {tr("leaderboard")}</a>
    <SiteAccountMenu active={page==="account"}/>
    <LanguagePicker compact/>
   </nav>
@@ -371,7 +373,7 @@ export default function App(){
  const callback=path==="/auth/discord/callback";
  const demo=isPlayDemoRoute(path,typeof window!=="undefined"?window.location.search:"");
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
-  const page=path==="/"?"home":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
+  const page=path==="/"?"home":path==="/leaderboard"?"leaderboard":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   callback?"callback":demo?"demo":path==="/play"?"play":"error";
@@ -382,6 +384,7 @@ export default function App(){
     page==="account"?<AccountPortal/>:
     page==="privacy"?<WebPrivacy/>:
     page==="legal"?<LegalReader type={path.includes("/terms")?"terms":"privacy"}/>:
+    page==="leaderboard"?<Leaderboard/>:
     page==="admin"?<AdminPage/>:
     page==="recovery"?<RecoveryPage/>:
     page==="callback"?<DiscordCallbackPage/>:
