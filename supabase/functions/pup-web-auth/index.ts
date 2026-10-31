@@ -3,6 +3,7 @@ import {crossPlay,CrossPlayError} from "./crossPlay.ts";
 import {newBetaKotlinSave} from "../_shared/beta-economy.ts";
 import {createHash} from "node:crypto";
 import {offerDiscordRegistration,registerDiscordWebAccount} from "./discordRegistration.ts";
+import {sanitizeDiscordIdentity} from "./discordSignup.ts";
 import {auditAuthResponse} from "../_shared/web-activity.ts";
 
 // This is Puppy Clicker's own public OAuth2 application (same client ID as
@@ -402,7 +403,17 @@ async function handleAuthRequest(req,auditContext){
    return json(200,{access_token:signed.session.access_token,
     refresh_token:signed.session.refresh_token},origin);
   }
-  if(body.action!=="discord-exchange")throw new PublicError(400,"PUP_ACTION_INVALID");
+  // Discord linking requires an existing, verified Pup Account bearer session.
+  // Linking never creates a new Pup Account or switches Supabase Auth users.
+  const linkingDiscord=body.action==="discord-link";
+  if(!linkingDiscord&&body.action!=="discord-exchange")
+   throw new PublicError(400,"PUP_ACTION_INVALID");
+  const linkingOwner=linkingDiscord?await currentSession(req):null;
+  if(linkingOwner){
+   if(linkingOwner.account.discord_user_id)
+    throw new PublicError(409,"PUP_ACCOUNT_DISCORD_ALREADY_LINKED");
+   await enforceWebPupEye(linkingOwner.account,"profile");
+  }
   const redirectUri=body.redirectUri;
   if(typeof redirectUri!=="string"||!ALLOWED_DISCORD_REDIRECTS.has(redirectUri))
     throw new PublicError(400,"DISCORD_REDIRECT_INVALID");
@@ -426,6 +437,38 @@ async function handleAuthRequest(req,auditContext){
   if(!response.ok)throw new PublicError(401,"PUP_DISCORD_PROFILE_FAILED");
   const profile=await response.json();
   const discordId=required(profile.id,/^\d{15,22}$/,"DISCORD_ID_INVALID");
+  if(linkingOwner){
+   // Only identity data obtained from Discord's verified /users/@me response.
+   let identity;
+   try{identity=sanitizeDiscordIdentity(profile);}
+   catch{throw new PublicError(401,"PUP_DISCORD_PROFILE_FAILED");}
+   const {data:result,error:linkError}=await admin.rpc("pup_web_link_discord_identity",{
+    p_account_uuid:linkingOwner.account.id,
+    p_discord_user_id:identity.id,
+    p_discord_username:identity.username,
+    p_discord_global_name:identity.globalName,
+    p_discord_avatar_hash:identity.avatarHash,
+    p_discord_email:identity.email
+   });
+   if(linkError){
+    if(/PUP_DISCORD_ALREADY_LINKED/.test(linkError.message||""))
+     throw new PublicError(409,"PUP_DISCORD_ALREADY_LINKED");
+    if(/PUP_ACCOUNT_DISCORD_ALREADY_LINKED/.test(linkError.message||""))
+     throw new PublicError(409,"PUP_ACCOUNT_DISCORD_ALREADY_LINKED");
+    if(/PUP_ACCOUNT_LINK_UNAVAILABLE/.test(linkError.message||""))
+     throw new PublicError(409,"PUP_ACCOUNT_LINK_UNAVAILABLE");
+    throw new PublicError(503,"PUP_DISCORD_LINK_UNAVAILABLE");
+   }
+   if(result!=="linked"&&result!=="already_linked")
+    throw new PublicError(503,"PUP_DISCORD_LINK_UNAVAILABLE");
+   auditContext.accountUuid=linkingOwner.account.id;
+   auditContext.authUserId=linkingOwner.user.id;
+   return json(200,{linked:true,discordProfile:{
+    id:identity.id,username:identity.username,displayName:identity.globalName,
+    avatarUrl:identity.avatarHash
+     ?"https://cdn.discordapp.com/avatars/"+identity.id+"/"+identity.avatarHash+".png":null
+   }},origin);
+  }
   const offer=await offerDiscordRegistration({
    profile,origin,admin,json,PublicError,key
   });

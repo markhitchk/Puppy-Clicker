@@ -6,7 +6,7 @@ import {client} from "../../supabase.js";
 import WebRegister from "../../WebRegister.jsx";
 import {DISCORD_ICON_URL} from "../../discordIcon.js";
 import {beginPuppyDiscord,completePuppyDiscordCallback,hasPuppyDiscordCallback,
- clearPendingDiscord,verifyPuppySession,signInPupUsername,puppyAuthMessage} from "./puppyOAuth.js";
+ clearPendingDiscord,getPendingDiscord,verifyPuppySession,signInPupUsername,puppyAuthMessage} from "./puppyOAuth.js";
 
 const C=createContext(null);
 export const useWebAccount=()=>useContext(C);
@@ -30,6 +30,7 @@ export default function WebAccountGate({children}){
   setMode(next);
  };
  const [callbackFailed,setCallbackFailed]=useState(false);
+ const [callbackLinkFailed,setCallbackLinkFailed]=useState(false);
  const [standingRefresh,setStandingRefresh]=useState(0);
  // Refresh account standing without destroying the signed-in Supabase session.
  // Server-side checks apply immediately even between these UI refreshes.
@@ -66,9 +67,11 @@ export default function WebAccountGate({children}){
   })||{};
   const start=async()=>{
    if(client&&hasPuppyDiscordCallback()){
+    const wasLinking=getPendingDiscord()?.mode==="link";
     try{await completePuppyDiscordCallback(client);}
     catch(e){
-     if(alive){setError(puppyAuthMessage(e));setCallbackFailed(true);setLoading(false);}
+     if(alive){setError(puppyAuthMessage(e));setCallbackFailed(true);
+      setCallbackLinkFailed(wasLinking);setLoading(false);}
      return;
     }
    }
@@ -106,9 +109,9 @@ export default function WebAccountGate({children}){
   finally{setBusy(false);setPassword("");}
  };
  if(callbackFailed)return <View style={{padding:28,backgroundColor:'#19313e',gap:16}}>
-  <Text accessibilityRole="header" style={{...text,fontSize:24}}>Pup Account sign-in could not complete</Text>
+  <Text accessibilityRole="header" style={{...text,fontSize:24}}>{callbackLinkFailed?"Discord linking could not complete":"Pup Account sign-in could not complete"}</Text>
   <Text accessibilityRole="alert" style={text}>{error}</Text>
-  <a href="/play" style={{color:'#8ce9ff'}}>Return to sign-in</a>
+  <a href={callbackLinkFailed?"/account":"/play"} style={{color:'#8ce9ff'}}>{callbackLinkFailed?"Return to your Pup Account":"Return to sign-in"}</a>
   <a href="/recovery" style={{color:'#8ce9ff'}}>Account recovery</a>
  </View>;
  if(loading)return <WebLoading stage={hasPuppyDiscordCallback()?"callback":"account"}/>;
