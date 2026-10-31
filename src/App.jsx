@@ -7,7 +7,8 @@ import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
 import {loadWebPreferences,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
-import {verifyPuppySession} from "./native/web/puppyOAuth.js";
+import {beginPuppyDiscord,verifyPuppySession,puppyAuthMessage} from "./native/web/puppyOAuth.js";
+import {DISCORD_ICON_URL} from "./discordIcon.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
 import HomePlayDemo from "./HomePlayDemo.jsx";
 import {useDemoAccess} from "./useDemoAccess.js";
@@ -151,6 +152,15 @@ function AccountDashboard(){
  const [credentialConfirmation,setCredentialConfirmation]=useState("");
  const [credentialBusy,setCredentialBusy]=useState(false);
  const [credentialMessage,setCredentialMessage]=useState("");
+ const [discordLinkBusy,setDiscordLinkBusy]=useState(false);
+ const [discordLinkMessage,setDiscordLinkMessage]=useState("");
+ useEffect(()=>{
+  const url=new URL(globalThis.location.href);
+  if(url.searchParams.get("discord")!=="linked")return;
+  setDiscordLinkMessage("Discord connected to your existing Pup Account. Your game progress and Friend Code are unchanged.");
+  url.searchParams.delete("discord");
+  globalThis.history.replaceState(globalThis.history.state,"",url.pathname+url.search+url.hash);
+ },[]);
  useEffect(()=>{
   const id=window.location.hash.slice(1);
   if(!["profile-settings","account-security","account-management"].includes(id))return;
@@ -200,6 +210,23 @@ function AccountDashboard(){
   finally{setSaving(false);}
  };
 
+ const linkDiscord=async()=>{
+  if(discordLinkBusy||profile.discordUserId)return;
+  setDiscordLinkBusy(true);setDiscordLinkMessage("");
+  try{
+   // Linking is authorized for the signed-in account, never a browser-supplied player ID.
+   const {data,error}=await client.auth.getUser();
+   if(error||!data?.user)throw Error("PUP_ACCOUNT_SESSION_REQUIRED");
+   const checked=await verifyPuppySession(client);
+   if(checked.id!==profile.id)throw Error("PUP_ACCOUNT_SESSION_REQUIRED");
+   if(checked.discordUserId)throw Error("PUP_ACCOUNT_DISCORD_ALREADY_LINKED");
+   const url=await beginPuppyDiscord({mode:"link",authUserId:data.user.id});
+   window.location.assign(url);
+  }catch(error){
+   setDiscordLinkMessage(puppyAuthMessage(error));
+   setDiscordLinkBusy(false);
+  }
+ };
  const saveCredentials=async event=>{
   event.preventDefault();
   if(credentialBusy)return;
@@ -306,6 +333,21 @@ function AccountDashboard(){
      <a href="/play" className="cta cta-primary stretch">🐾 Continue playing</a>
     </section>
 
+    <section className="portal-card" aria-labelledby="discord-account-heading">
+     <h3 id="discord-account-heading">🔗 Discord account</h3>
+     {profile.discordUserId?<>
+      <p><strong>Connected</strong> — {profile.discordProfile?.displayName||profile.discordProfile?.username||"Discord user"}.</p>
+      <p className="account-security-note">Discord signs you in to this same Pup Account. Your Pup username and password remain available if enabled.</p>
+     </>:<>
+      <p>Link Discord to your existing Pup Account. Your puppies, cloud save, rewards, Friend Code and password login stay with this account.</p>
+      <button type="button" className="cta cta-primary stretch" onClick={()=>void linkDiscord()} disabled={discordLinkBusy}>
+       <img src={DISCORD_ICON_URL} alt="" width="22" height="22" style={{verticalAlign:"middle",marginRight:8}}/>
+       {discordLinkBusy?"Connecting to Discord…":"Link Discord account"}
+      </button>
+      <p className="account-security-note">Authorize Puppy Clicker's Discord application. A Discord account linked to another Pup Account cannot be transferred here.</p>
+     </>}
+     {discordLinkMessage?<p className="portal-message" role="status">{discordLinkMessage}</p>:null}
+    </section>
     <section className="portal-card">
      <h3 id="account-security">🔐 Username &amp; password login</h3>
      <p>{profile.passwordLoginEnabled===true?"Password login is enabled for your Pup Account. You can change your password here.":"Add a username and password to the Pup Account you're already signed into with Discord. Your cloud progress, Friend Code, and game ownership are preserved."}</p>
