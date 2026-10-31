@@ -117,6 +117,37 @@ async function moderationQueue(db,actor){
   body:m.body,createdAt:m.created_at,codes:m.screening_codes
  }))};
 }
+async function moderationReports(db,actor){
+ if(!actor.staff)throw new ChatError(403,"STAFF_ACCESS_REQUIRED");
+ const reports=need(await db.from("pup_social_reports")
+  .select("id,message_id,reporter_account_uuid,reason,created_at")
+  .eq("state","open").order("created_at",{ascending:true}).limit(100))||[];
+ const ids=[...new Set(reports.map(r=>r.message_id))];
+ const messages=ids.length?need(await db.from("pup_social_messages")
+  .select("id,body,state,account_uuid,channel_id").in("id",ids))||[]:[];
+ const byId=new Map(messages.map(m=>[m.id,m]));
+ const reporters=[...new Set(reports.map(r=>r.reporter_account_uuid))];
+ const accounts=reporters.length?need(await db.from("pup_accounts")
+  .select("id,username").in("id",reporters))||[]:[];
+ const names=new Map(accounts.map(a=>[a.id,a.username]));
+ return {reports:reports.map(r=>({
+  id:r.id,messageId:r.message_id,reporter:names.get(r.reporter_account_uuid)||"unknown",
+  reason:r.reason,createdAt:r.created_at,
+  body:byId.get(r.message_id)?.body||"[unavailable]",
+  messageStatus:byId.get(r.message_id)?.state||"unknown"
+ }))};
+}
+async function resolveReport(db,actor,body){
+ if(!actor.staff)throw new ChatError(403,"STAFF_ACCESS_REQUIRED");
+ if(!isId(body.reportId)||typeof body.reason!=="string"
+  ||body.reason.trim().length<3||body.reason.length>300)
+  throw new ChatError(400,"CHAT_INVALID_MODERATION");
+ const response=await db.rpc("pup_social_resolve_report",{
+  p_actor:actor.account.id,p_report:body.reportId,p_reason:body.reason.trim()
+ });
+ if(response.error)throw new ChatError(409,"CHAT_REPORT_UNAVAILABLE");
+ return {resolved:true};
+}
 async function acceptRules(db,account){
  const relation=db.from("pup_social_rules");
  const old=need(await relation.select("version").eq("account_uuid",account.id).maybeSingle());
@@ -214,6 +245,7 @@ export default async function handler(req,res){
     case "channels":result=await listChannels(db,actor.account);break;
     case "messages":result=await listMessages(db,actor.account,req.query);break;
     case "queue":result=await moderationQueue(db,actor);break;
+    case "reports":result=await moderationReports(db,actor);break;
     default:throw new ChatError(400,"INVALID_ACTION");
    }
   }else{
@@ -224,6 +256,7 @@ export default async function handler(req,res){
     case "send":result=await submit(db,actor.account,body);break;
     case "review":result=await review(db,actor,body);break;
     case "report":result=await report(db,actor,body);break;
+    case "resolve-report":result=await resolveReport(db,actor,body);break;
     case "block":result=await block(db,actor,body);break;
     default:throw new ChatError(400,"INVALID_ACTION");
    }
