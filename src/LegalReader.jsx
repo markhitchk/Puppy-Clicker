@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useState} from "react";
 import {LEGAL_DOCS,parseLegalMarkdown,safeLegalHref} from "./legalMarkdown.js";
 import "./LegalReader.css";
+import {useLanguage} from "./LanguagePicker.jsx";
 
 // No raw HTML injection. Markdown source text is always rendered through React escaping.
 function Inline({value}){
@@ -39,6 +40,7 @@ function RenderBlock({block}){
  return <p><Inline value={block.text}/></p>;
 }
 export default function LegalReader({type="privacy"}){
+ const {t:tr}=useLanguage();
  const kind=Object.hasOwn(LEGAL_DOCS,type)?type:"privacy";
  const doc=LEGAL_DOCS[kind];
  const [state,setState]=useState({loading:true,text:"",error:""});
@@ -58,27 +60,27 @@ export default function LegalReader({type="privacy"}){
  },[doc.path]);
  const parsed=useMemo(()=>parseLegalMarkdown(state.text),[state.text]);
  return <div className="legal-shell">
-  <div className="legal-hero"><p className="eyebrow">🐾 PUPPY CLICKER · LEGAL</p><h1>Policies &amp; terms</h1>
-   <p>Read official Puppy Clicker documents in a clean, accessible view.</p>
+  <div className="legal-hero"><p className="eyebrow">🐾 PUPPY CLICKER · LEGAL</p><h1>{tr("legalTitle")}</h1>
+   <p>{tr("legalIntro")}</p>
    <nav aria-label="Legal documents" className="legal-tabs">
-    <a href="/legal/privacy" aria-current={kind==="privacy"?"page":undefined}>🔒 Privacy Policy</a>
-    <a href="/legal/terms" aria-current={kind==="terms"?"page":undefined}>📜 Terms of Use</a>
-    <a href="/privacy">Website activity notice</a>
+    <a href="/legal/privacy" aria-current={kind==="privacy"?"page":undefined}>🔒 {tr("privacy")}</a>
+    <a href="/legal/terms" aria-current={kind==="terms"?"page":undefined}>📜 {tr("terms")}</a>
+    <a href="/privacy">{tr("websitePrivacy")}</a>
    </nav>
   </div>
   {state.loading?<div className="legal-message" role="status">Loading {doc.title}…</div>:
    state.error?<div className="legal-message" role="alert">{state.error} <button onClick={()=>window.location.reload()}>Retry</button></div>:
    <div className="legal-layout">
     <aside className="legal-contents" aria-label="Document contents">
-     <button className="legal-contents-toggle" aria-expanded={contentsOpen} onClick={()=>setContentsOpen(v=>!v)}>Contents <span aria-hidden="true">{contentsOpen?"−":"+"}</span></button>
+     <button className="legal-contents-toggle" aria-expanded={contentsOpen} onClick={()=>setContentsOpen(v=>!v)}>{tr("contents")} <span aria-hidden="true">{contentsOpen?"−":"+"}</span></button>
      <nav className={contentsOpen?"is-open":""} aria-label="On this page">
       {parsed.headings.filter(h=>h.level>1).map(h=><a key={h.id} href={"#"+h.id} onClick={()=>setContentsOpen(false)}>{h.title}</a>)}
      </nav>
     </aside>
     <article className="legal-article" aria-label={doc.title}>
-     <p className="legal-language">Document language: English. This is the original published text.</p>
+     <p className="legal-language">{tr("documentLanguage")}</p>
      {parsed.blocks.map((block,i)=><RenderBlock key={block.id||i} block={block}/>)}
-     <footer><a href={doc.path} target="_blank" rel="noopener noreferrer">View original Markdown source</a><span> · </span><button type="button" onClick={()=>window.print()}>Print document</button></footer>
+     <footer><a href={doc.path} target="_blank" rel="noopener noreferrer">{tr("viewSource")}</a><span> · </span><button type="button" onClick={()=>window.print()}>{tr("print")}</button></footer>
     </article>
    </div>}
  </div>;
