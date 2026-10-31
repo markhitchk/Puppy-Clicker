@@ -11,15 +11,40 @@ import {shareCardPath,SHARE_CARD_WIDTH,SHARE_CARD_HEIGHT} from "../src/puppyShar
 const ROOT=fileURLToPath(new URL("../",import.meta.url));
 const OUT=join(ROOT,"public/assets/share");
 const LOGO=join(ROOT,"public/assets/logos/puppy_clicker.png");
-// The puppy dominates the transparent card; the brand stays a small corner mark.
+// The puppy dominates the transparent card; the small logo hugs its lower-left silhouette.
 export const PUPPY_FRAME=Object.freeze({width:995,height:606,left:180,top:11});
-export const LOGO_FRAME=Object.freeze({size:122,left:24,top:480});
+export const LOGO_FRAME=Object.freeze({size:122,top:480,gap:14,minLeft:16});
 const published=new Map(roster.map(p=>[p.id,p]));
 export const sharePuppies=[...new Set([...published.keys(),...Object.keys(PUPPY_IMAGES)])]
  .map(id=>{
   const p=published.get(id)||{id};
   return {...p,id,image:p.image||PUPPY_IMAGES[id]?.uri};
  }).filter(p=>Boolean(p.image));
+
+// Find the puppy's actual leftmost visible pixels at the logo's vertical band.
+// Place the logo just beside its lower-left edge, not against the card border.
+// Different puppy shapes and aspect ratios require a per-artwork position.
+export async function logoPositionForPuppy(puppyLayer){
+ const {data,info}=await sharp(puppyLayer).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+ const firstRow=Math.max(0,LOGO_FRAME.top-PUPPY_FRAME.top);
+ const lastRow=Math.min(info.height,LOGO_FRAME.top+LOGO_FRAME.size-PUPPY_FRAME.top);
+ let silhouetteX=Infinity;
+ for(let y=firstRow;y<lastRow;y++){
+  for(let x=0;x<info.width;x++){
+   if(data[(y*info.width+x)*info.channels+3]>=32){
+    silhouetteX=Math.min(silhouetteX,PUPPY_FRAME.left+x);
+    break;
+   }
+  }
+ }
+ const target=Number.isFinite(silhouetteX)
+  ?silhouetteX-LOGO_FRAME.size-LOGO_FRAME.gap
+  :PUPPY_FRAME.left-LOGO_FRAME.size-LOGO_FRAME.gap;
+ return {
+  left:Math.max(LOGO_FRAME.minLeft,Math.min(SHARE_CARD_WIDTH-LOGO_FRAME.size-LOGO_FRAME.minLeft,target)),
+  top:LOGO_FRAME.top
+ };
+}
 
 export async function buildSharePreviews(){
  await mkdir(OUT,{recursive:true});
@@ -42,6 +67,7 @@ export async function buildSharePreviews(){
    .resize(PUPPY_FRAME.width,PUPPY_FRAME.height,{fit:"contain",
     background:{r:0,g:0,b:0,alpha:0}})
    .ensureAlpha().png().toBuffer();
+  const logoPosition=await logoPositionForPuppy(puppyLayer);
   // No background: the upper-left and remaining empty space stay alpha=0.
   await sharp({
    create:{width:SHARE_CARD_WIDTH,height:SHARE_CARD_HEIGHT,channels:4,
@@ -49,7 +75,7 @@ export async function buildSharePreviews(){
   })
    .composite([
     {input:puppyLayer,left:PUPPY_FRAME.left,top:PUPPY_FRAME.top},
-    {input:logo,left:LOGO_FRAME.left,top:LOGO_FRAME.top}
+    {input:logo,...logoPosition}
    ])
    .png({compressionLevel:9,palette:false})
    .toFile(join(ROOT,"public",shareCardPath(puppy).slice(1)));

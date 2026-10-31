@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync,existsSync} from "node:fs";
 import sharp from "sharp";
-import {PUPPY_FRAME,LOGO_FRAME} from "../scripts/build-share-previews.mjs";
+import {PUPPY_FRAME,LOGO_FRAME,logoPositionForPuppy} from "../scripts/build-share-previews.mjs";
 import {shareCardPath,SHARE_CARD_WIDTH,SHARE_CARD_HEIGHT} from "../src/puppyShareCard.js";
 import roster from "../src/data/roster.js";
 import {puppyAssetId} from "../src/puppyLinks.js";
@@ -19,7 +19,7 @@ test("Aurora social link uses actual roster name, description and artwork",()=>{
  assert.match(puppy.description,/Aurora-purple and teal fur glow/);
  assert.match(puppy.description,/V1 puppy/);
  assert.equal(puppy.url,"https://puppy-clicker.vercel.app/puppies?pup=v1_aurora");
- assert.equal(puppy.image,"https://puppy-clicker.vercel.app/assets/share/v1_aurora-v3.png");
+ assert.equal(puppy.image,"https://puppy-clicker.vercel.app/assets/share/v1_aurora-v4.png");
 });
 
 
@@ -29,9 +29,23 @@ test("social card gives puppy most of the frame and keeps logo small in bottom l
  assert.ok(PUPPY_FRAME.left+PUPPY_FRAME.width<=SHARE_CARD_WIDTH);
  assert.ok(PUPPY_FRAME.top+PUPPY_FRAME.height<=SHARE_CARD_HEIGHT);
  assert.ok(LOGO_FRAME.size<=130);
- assert.ok(LOGO_FRAME.left<=35);
+ assert.ok(LOGO_FRAME.minLeft>=12);
  assert.ok(LOGO_FRAME.top>=SHARE_CARD_HEIGHT-160);
- assert.ok(LOGO_FRAME.left+LOGO_FRAME.size<PUPPY_FRAME.left);
+ assert.ok(LOGO_FRAME.gap>=10);
+});
+
+test("small logo moves directly beside the visible lower-left puppy silhouette",async()=>{
+ const art=await sharp({
+  create:{width:PUPPY_FRAME.width,height:PUPPY_FRAME.height,channels:4,
+   background:{r:0,g:0,b:0,alpha:0}}
+ }).composite([{input:{
+  create:{width:175,height:150,channels:4,background:{r:255,g:255,b:255,alpha:1}}
+ },left:400,top:460}]).png().toBuffer();
+ const pos=await logoPositionForPuppy(art);
+ const visibleLeft=PUPPY_FRAME.left+400;
+ assert.equal(pos.top,LOGO_FRAME.top);
+ assert.equal(pos.left+LOGO_FRAME.size+LOGO_FRAME.gap,visibleLeft);
+ assert.ok(pos.left>24,"Logo should move closer than its former far-left position");
 });
 
 test("every roster puppy has a generated share card made from its artwork",async()=>{
@@ -75,12 +89,12 @@ test("static HTML gets Open Graph, Twitter, canonical and SEO metadata for a pup
  assert.match(result,/<meta property="og:title" content="🌌 Aurora \| Puppy Clicker"/);
  assert.match(result,/<meta property="og:description" content="Aurora-purple and teal fur glow/);
  assert.match(result,/<meta property="og:url" content="https:\/\/puppy-clicker\.vercel\.app\/puppies\?pup=v1_aurora"/);
- assert.match(result,/<meta property="og:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/share\/v1_aurora-v3\.png"/);
+ assert.match(result,/<meta property="og:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/share\/v1_aurora-v4\.png"/);
  assert.match(result,/<meta property="og:image:type" content="image\/png"/);
  assert.match(result,/<meta property="og:image:width" content="1200"/);
  assert.match(result,/<meta property="og:image:height" content="630"/);
  assert.match(result,/<meta name="twitter:card" content="summary_large_image"/);
- assert.match(result,/<meta name="twitter:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/share\/v1_aurora-v3\.png"/);
+ assert.match(result,/<meta name="twitter:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/share\/v1_aurora-v4\.png"/);
  assert.match(result,/<link rel="canonical" href="https:\/\/puppy-clicker\.vercel\.app\/puppies\?pup=v1_aurora"/);
  assert.match(result,/script type="module" src="\/src\/main\.jsx"/);
  assert.equal((result.match(/<meta property="og:title"/g)||[]).length,1);
@@ -104,7 +118,7 @@ test("middleware serves preview metadata in HTML to all user agents",async()=>{
   assert.equal(fetched,"https://puppy-clicker.vercel.app/index.html");
   const body=await response.text();
   assert.match(body,/og:title" content="🌌 Aurora \| Puppy Clicker"/);
-  assert.match(body,/og:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/share\/v1_aurora-v3\.png"/);
+  assert.match(body,/og:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/share\/v1_aurora-v4\.png"/);
   const generic=await middleware(new Request("https://puppy-clicker.vercel.app/puppies"));
   assert.equal(await generic.text(),html);
   const head=await middleware(new Request("https://puppy-clicker.vercel.app/puppies?pup=v1_aurora",{method:"HEAD"}));
