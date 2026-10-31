@@ -2,7 +2,7 @@ import React,{useCallback,useEffect,useState} from "react";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
 import {useLanguage} from "./LanguagePicker.jsx";
 import "./Leaderboard.css";
-const METRICS=Object.freeze({treats:["🍪","Lifetime Treats"],xp:["⭐","Player XP"],puppies:["🐶","Puppies owned"]});
+const METRICS=Object.freeze({treats:["🍪","lifetimeTreats"],xp:["⭐","playerXp"],puppies:["🐶","puppiesOwned"]});
 function LeaderboardBody(){
  const {client}=useWebAccount();
  const {language,t:tr}=useLanguage();
@@ -21,9 +21,9 @@ function LeaderboardBody(){
    credentials:"same-origin",cache:"no-store"
   });
   const body=await response.json().catch(()=>null);
-  if(!response.ok||body?.ok!==true)throw Error(body?.error==="ACCOUNT_INELIGIBLE"?"Your account is not eligible for public rankings.":"Leaderboard is unavailable. Try again later.");
+  if(!response.ok||body?.ok!==true)throw Error(body?.error==="ACCOUNT_INELIGIBLE"?tr("eligibleError"):tr("rankingUnavailable"));
   return body;
- },[client,metric]);
+ },[client,metric,tr]);
  const load=useCallback(async()=>{
   setLoading(true);setError("");
   try{setResult(await request("GET"));}catch(e){setError(e.message);}
@@ -42,27 +42,27 @@ function LeaderboardBody(){
   <div className="leaderboard-head">
    <p className="eyebrow">🐾 PUPPY CLICKER · COMMUNITY</p>
    <h1>🏆 {tr("leaderboard")}</h1>
-   <p>Ranked players have voluntarily opted in. Scores come from verified Pup Account cloud saves, not local browser data. Developer and excluded test accounts do not appear.</p>
+   <p>{tr("rankingsIntro")}</p>
   </div>
   <section className="leaderboard-optin" aria-label="Participation controls">
-   <h2>Your ranking privacy</h2>
-   <p>Joining makes your display name or username and your Lifetime Treats, XP and puppies-owned scores visible to other signed-in Puppy Clicker players. Your email, IP address, Friend Code, devices and save contents remain private. You can leave at any time.</p>
+   <h2>{tr("rankingPrivacy")}</h2>
+   <p>{tr("rankingPrivacyDetail")}</p>
    <div className="leaderboard-optin-actions">
-    <strong>{loading?"Checking participation…":result?.participating?"✓ You are participating":"You are not participating"}</strong>
-    {result?<button type="button" className="cta cta-primary" disabled={busy} onClick={()=>void setParticipation(!result.participating)}>{busy?"Saving…":result.participating?"Leave leaderboard":"Join leaderboard"}</button>:null}
+    <strong>{loading?tr("checking"):result?.participating?"✓ "+tr("participating"):tr("notParticipating")}</strong>
+    {result?<button type="button" className="cta cta-primary" disabled={busy} onClick={()=>void setParticipation(!result.participating)}>{busy?tr("saving"):result.participating?tr("leaveLeaderboard"):tr("joinLeaderboard")}</button>:null}
    </div>
   </section>
   <nav className="leaderboard-metrics" aria-label="Leaderboard metric">
-   {Object.entries(METRICS).map(([key,[emoji,label]])=><button key={key} type="button" aria-pressed={metric===key} onClick={()=>setMetric(key)}>{emoji} {label}</button>)}
+   {Object.entries(METRICS).map(([key,[emoji,label]])=><button key={key} type="button" aria-pressed={metric===key} onClick={()=>setMetric(key)}>{emoji} {tr(label)}</button>)}
   </nav>
   {error?<div role="alert" className="leaderboard-feedback">{error} <button type="button" onClick={()=>void load()}>Retry</button></div>:null}
-  {loading?<p role="status" className="leaderboard-feedback">Loading rankings…</p>:
+  {loading?<p role="status" className="leaderboard-feedback">{tr("loadingRankings")}</p>:
    result?<section className="leaderboard-board" aria-label={METRICS[metric][1]+" rankings"}>
-    <div className="leaderboard-section-title"><h2>{METRICS[metric][0]} {METRICS[metric][1]}</h2><small>{format(result.total)} participating ranked players</small></div>
-    {!result.top?.length?<p className="leaderboard-empty">No eligible players have joined yet. Participation is optional.</p>:
-     <table><thead><tr><th scope="col">Rank</th><th scope="col">Player</th><th scope="col">Score</th></tr></thead>
+    <div className="leaderboard-section-title"><h2>{METRICS[metric][0]} {tr(METRICS[metric][1])}</h2><small>{tr("rankedPlayers",{count:format(result.total)})}</small></div>
+    {!result.top?.length?<p className="leaderboard-empty">{tr("emptyRankings")}</p>:
+     <table><thead><tr><th scope="col">{tr("rank")}</th><th scope="col">{tr("player")}</th><th scope="col">{tr("score")}</th></tr></thead>
       <tbody>{result.top.map((r,i)=><tr key={r.username+"-"+i}><td>#{r.rank}</td><td><strong>{r.displayName||r.username}</strong><small>@{r.username}</small></td><td>{format(r.score)}</td></tr>)}</tbody></table>}
-    {result.participating&&result.self?<p className="leaderboard-self" role="status">Your rank: #{result.self.rank} · {format(result.self.score)} {METRICS[metric][1]}</p>:null}
+    {result.participating&&result.self?<p className="leaderboard-self" role="status">{tr("yourRank",{rank:result.self.rank})} · {format(result.self.score)} {tr(METRICS[metric][1])}</p>:null}
    </section>:null}
  </div>;
 }
