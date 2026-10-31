@@ -127,8 +127,8 @@ create or replace view public.pup_social_moderation_actions with(security_invoke
 do $plpgsql$ declare t text; begin
  foreach t in array array['servers','channels','rules','memberships','mutes',
  'messages','reports','blocks','moderation_actions'] loop
-  execute format('revoke all on public.pup_social_%I from public,anon,authenticated',t);
-  execute format('grant select,insert,update,delete on public.pup_social_%I to service_role',t);
+  execute format('revoke all on public.%I from public,anon,authenticated','pup_social_'||t);
+  execute format('grant select,insert,update,delete on public.%I to service_role','pup_social_'||t);
  end loop;
 end $plpgsql$;
 -- Submissions: one transaction for idempotency and concurrency-safe per-account limits.
