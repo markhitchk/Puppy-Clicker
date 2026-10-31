@@ -33,6 +33,17 @@ function StaffChat(){
    setReportReasons(old=>({...old,[reportId]:""}));await refresh();}
   catch(e){setError(e.message);}finally{setBusy(null);}
  };
+ const removeReported=async report=>{
+  const reason=(reportReasons[report.id]||"").trim();
+  if(reason.length<3){setError("Enter a reason before removing reported content.");return;}
+  setBusy(report.id);setError("");
+  try{
+   await request("review",{messageId:report.messageId,decision:"remove",reason},"POST");
+   await request("resolve-report",{reportId:report.id,reason},"POST");
+   setNotice("Reported message removed and both actions audited.");
+   setReportReasons(old=>({...old,[report.id]:""}));await refresh();
+  }catch(e){setError(e.message);}finally{setBusy(null);}
+ };
  return <div className="community-chat-page staff-chat-page">
   <header className="community-chat-header"><p className="eyebrow">PUPPY CLICKER · PUPEYE</p>
    <h1>🛡️ Chat moderation</h1>
@@ -66,7 +77,7 @@ function StaffChat(){
       onChange={e=>setReportReasons(old=>({...old,[r.id]:e.target.value}))}/>
     </label>
     <div className="community-chat-staff-actions">
-     {r.messageStatus==="published"?<button type="button" disabled={busy===r.id} onClick={()=>void review(r.messageId,"remove")}>Remove reported message</button>:null}
+     {r.messageStatus==="published"?<button type="button" disabled={busy===r.id} onClick={()=>void removeReported(r)}>Remove reported message</button>:null}
      <button type="button" disabled={busy===r.id} onClick={()=>void resolve(r.id)}>Resolve report</button>
     </div>
    </article>)}
