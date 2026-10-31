@@ -7,11 +7,10 @@ import {join} from "node:path";
 import roster from "../src/data/roster.js";
 import {PUPPY_IMAGES} from "../src/native/src/assets/puppies.js";
 import {LEGACY_V6_PUPPIES} from "../src/native/src/engine/rosterV6.js";
-import {puppyAssetId} from "../src/puppyLinks.js";
+import {shareCardPath} from "../src/puppyShareCard.js";
 
 const ROOT=fileURLToPath(new URL("../",import.meta.url));
 const OUT=join(ROOT,"public/assets/share");
-export const SHARE_CARD_VERSION="v1";
 const published=new Map(roster.map(p=>[p.id,p]));
 const details=new Map(LEGACY_V6_PUPPIES.map(p=>[p.id,p]));
 export const sharePuppies=[...new Set([...published.keys(),...Object.keys(PUPPY_IMAGES)])]
@@ -19,10 +18,6 @@ export const sharePuppies=[...new Set([...published.keys(),...Object.keys(PUPPY_
   const p=published.get(id)||{id};
   return {...p,id,name:details.get(id)?.name||p.name||id,image:p.image||PUPPY_IMAGES[id]?.uri};
  }).filter(p=>Boolean(p.image));
-
-export function shareCardPath(puppy){
- return "/assets/share/"+puppyAssetId(puppy)+"-"+SHARE_CARD_VERSION+".jpg";
-}
 
 const xml=value=>String(value).replace(/&/g,"&amp;").replace(/</g,"&lt;")
  .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");
