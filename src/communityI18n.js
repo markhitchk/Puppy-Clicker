@@ -4,7 +4,7 @@ export const LANGUAGE_CHANGED="puppy-clicker:language-changed";
 export const SUPPORTED_LANGUAGES=Object.freeze(["en","es"]);
 export const STRINGS=Object.freeze({
  en:Object.freeze({
-  language:"Language",home:"Home",play:"Play",puppies:"Puppies",policies:"Policies",
+  language:"Language",menu:"Menu",openMenu:"Open navigation menu",closeMenu:"Close navigation menu",home:"Home",play:"Play",puppies:"Puppies",policies:"Policies",
   title:"Puppy Clicker",heroLabel:"PUPPY CLICKER · WEB EDITION",heroLine1:"Tap. Care. Collect.",
   heroLine2:"Grow your puppy world.",heroIntro:"Meet adorable puppies, earn Treats by tapping, grow your collection, take care of your companions, and unlock new rewards. Play in your browser with your Pup Account.",
   heroPlay:"Play Puppy Clicker",heroAccount:"Manage Pup Account",heroDemo:"Try Demo",
@@ -39,7 +39,7 @@ export const STRINGS=Object.freeze({
   progressDetail:"Prestige and skill points",completedNote:"Show your awarded achievements",completedAwards:"{done} / {total} awarded"
  }),
  es:Object.freeze({
-  language:"Idioma",home:"Inicio",play:"Jugar",puppies:"Cachorros",policies:"Políticas",
+  language:"Idioma",menu:"Menú",openMenu:"Abrir menú de navegación",closeMenu:"Cerrar menú de navegación",home:"Inicio",play:"Jugar",puppies:"Cachorros",policies:"Políticas",
   title:"Puppy Clicker",heroLabel:"PUPPY CLICKER · VERSIÓN WEB",heroLine1:"Toca. Cuida. Colecciona.",
   heroLine2:"Haz crecer tu mundo de cachorros.",heroIntro:"Conoce cachorros adorables, gana golosinas tocando, amplía tu colección, cuida a tus compañeros y desbloquea nuevas recompensas. Juega en tu navegador con tu Pup Account.",
   heroPlay:"Jugar Puppy Clicker",heroAccount:"Administrar Pup Account",heroDemo:"Probar demo",
