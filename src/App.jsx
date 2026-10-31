@@ -17,6 +17,8 @@ import AdminPortal from "./AdminPortal.jsx";
 import WebPrivacy from "./WebPrivacy.jsx";
 import LegalReader from "./LegalReader.jsx";
 import Leaderboard from "./Leaderboard.jsx";
+import CommunityChat from "./CommunityChat.jsx";
+import AdminChat from "./AdminChat.jsx";
 import LanguagePicker,{useLanguage} from "./LanguagePicker.jsx";
 import ProfileAvatarEditor from "./ProfileAvatarEditor.jsx";
 import PupGiftRequests from "./PupGiftRequests.jsx";
@@ -37,6 +39,7 @@ function Header({page}){
    <a href="/puppies" aria-current={page==="puppies"?"page":undefined}>{tr("puppies")}</a>
    <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>{tr("policies")}</a>
    <a href="/leaderboard" aria-current={page==="leaderboard"?"page":undefined}>🏆 {tr("leaderboard")}</a>
+   <a href="/chat" aria-current={page==="chat"?"page":undefined}>💬 {tr("chat")}</a>
    <SiteAccountMenu active={page==="account"}/>
    <LanguagePicker compact/>
   </nav>
@@ -373,18 +376,20 @@ export default function App(){
  const callback=path==="/auth/discord/callback";
  const demo=isPlayDemoRoute(path,typeof window!=="undefined"?window.location.search:"");
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
-  const page=path==="/"?"home":path==="/leaderboard"?"leaderboard":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
+  const page=path==="/"?"home":path==="/chat"?"chat":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   callback?"callback":demo?"demo":path==="/play"?"play":"error";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
-  <Header page={callback||page==="admin"?"account":page==="demo"?"play":page}/>
+  <Header page={callback||page==="admin"||page==="admin-chat"?"account":page==="demo"?"play":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
    {page==="home"?<Home/>:page==="demo"?<DemoPage/>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
     page==="privacy"?<WebPrivacy/>:
     page==="legal"?<LegalReader type={path.includes("/terms")?"terms":"privacy"}/>:
     page==="leaderboard"?<Leaderboard/>:
+    page==="chat"?<CommunityChat/>:
+    page==="admin-chat"?<AdminChat/>:
     page==="admin"?<AdminPage/>:
     page==="recovery"?<RecoveryPage/>:
     page==="callback"?<DiscordCallbackPage/>:
