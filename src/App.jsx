@@ -15,6 +15,7 @@ import {useDemoAccess} from "./useDemoAccess.js";
 import {isPlayDemoRoute} from "./playDemoRoute.js";
 import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
 import AdminPortal from "./AdminPortal.jsx";
+import AdminPrivacy from "./AdminPrivacy.jsx";
 import WebPrivacy from "./WebPrivacy.jsx";
 import PrivacyCenter from "./privacy/PrivacyCenter.jsx";
 import LegalReader from "./LegalReader.jsx";
@@ -454,12 +455,12 @@ export default function App(){
  const callback=path==="/auth/discord/callback";
  const demo=isPlayDemoRoute(path,typeof window!=="undefined"?window.location.search:"");
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
-  const page=path==="/"?"home":path==="/chat"?"chat":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
+  const page=path==="/"?"home":path==="/chat"?"chat":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   callback?"callback":demo?"demo":path==="/play"?"play":"error";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
-  <Header page={callback||page==="admin"||page==="admin-chat"||page==="privacy-center"?"account":page==="demo"?"play":page}/>
+  <Header page={callback||page==="admin"||page==="admin-chat"||page==="admin-privacy"||page==="privacy-center"?"account":page==="demo"?"play":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
    {page==="home"?<Home/>:page==="demo"?<DemoPage/>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
@@ -469,6 +470,7 @@ export default function App(){
     page==="leaderboard"?<Leaderboard/>:
     page==="chat"?<CommunityChat/>:
     page==="admin-chat"?<AdminChat/>:
+    page==="admin-privacy"?<WebAccountGate><AdminPrivacy/></WebAccountGate>:
     page==="admin"?<AdminPage/>:
     page==="recovery"?<RecoveryPage/>:
     page==="callback"?<DiscordCallbackPage/>:
