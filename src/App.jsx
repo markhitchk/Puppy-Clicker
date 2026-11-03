@@ -30,6 +30,7 @@ import PupGiftRequests from "./PupGiftRequests.jsx";
 import {avatarForAccount} from "./pupWebApi.js";
 import {suggestUsername,suggestDisplayName,generateStrongPassword} from "./nameSuggestions.js";
 import SiteAccountMenu,{ProfileAvatar,PUP_ACCOUNT_CHANGED} from "./SiteAccountMenu.jsx";
+import ConfirmSignOut from "./ConfirmSignOut.jsx";
 import "./styles.css";
 
 const logo="/assets/logos/puppy_clicker.png";
@@ -154,6 +155,9 @@ function Home(){
 const accountRole=role=>({DEVELOPER:"Developer",ADMIN:"Administrator",PUP_MEMBER:"Pup Member"})[role]||"Player";
 function AccountDashboard(){
  const {client,pupAccount,signOut}=useWebAccount();
+ const [confirmSignOut,setConfirmSignOut]=useState(false);
+ const [signOutBusy,setSignOutBusy]=useState(false);
+ const [signOutError,setSignOutError]=useState("");
  const [profile,setProfile]=useState(pupAccount);
  const [displayName,setDisplayName]=useState(pupAccount.displayName||pupAccount.username||"");
  const [editing,setEditing]=useState(false);
@@ -404,11 +408,25 @@ function AccountDashboard(){
      <div className="account-management-actions">
       <a href="/recovery" className="cta cta-secondary">🔐 Account recovery</a>
       <button type="button" className="cta cta-secondary" onClick={()=>void refresh()} disabled={refreshing}>{refreshing?"Refreshing…":"Refresh account details"}</button>
-      <button type="button" className="cta cta-secondary" onClick={()=>void signOut()}>Sign out</button>
+      <button type="button" className="cta cta-secondary" onClick={()=>{setSignOutError("");setConfirmSignOut(true);}}>Sign out</button>
      </div>
     </section>
    </div>
   </div>
+  <ConfirmSignOut open={confirmSignOut} busy={signOutBusy} error={signOutError}
+   onCancel={()=>{setConfirmSignOut(false);setSignOutError("");}}
+   onConfirm={async()=>{
+    if(signOutBusy)return;
+    setSignOutBusy(true);setSignOutError("");
+    try{
+     const result=await signOut();
+     if(result?.error)throw result.error;
+     window.location.assign("/");
+    }catch{
+     setSignOutError("Couldn't sign out. Please retry.");
+     setSignOutBusy(false);
+    }
+   }}/>
  </div>;
 }
 function AccountPortal(){return <WebAccountGate><AccountDashboard/></WebAccountGate>;}
