@@ -88,5 +88,17 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/assets/legal/privacy-policy.md",
+      "destination": "/legal/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/assets/legal/terms-of-use.md",
+      "destination": "/legal/terms",
+      "permanent": true
+    }
   ]
 }
