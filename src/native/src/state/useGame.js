@@ -3,7 +3,7 @@ import {useCallback,useEffect,useMemo,useReducer,useRef,useState} from "react";
 import {initialState,transition} from "./reducer.js";
 import {freshGame} from "../engine/game.js";
 import {projectKotlinCloudSave} from "../production/kotlinCloudPreview.js";
-import {fallbackSchedule,parseMonthlySchedule,monthKey} from "../engine/monthlyRewards.js";
+import {fallbackSchedule,parseMonthlySchedule,monthKey,webServerRewardsDate} from "../engine/monthlyRewards.js";
 import {useWebAccount} from "../../web/AccountGate.jsx";
 import {puppyFunctionError} from '../../web/puppyOAuth.js';
 import {queueGameplayIntent,pendingGameplayIntents,acknowledgeGameplayIntent} from './gameplayOutbox.js';
@@ -265,12 +265,13 @@ export function useGame(){
   let alive=true;
   const update=async()=>{
    try{
-    const month=monthKey(new Date());
+    const rewardDate=webServerRewardsDate();
+    const month=monthKey(rewardDate);
     const response=await fetch("https://raw.githubusercontent.com/markhitchk/pup-clinker/main/assets/rewards/"+month+".json");
     if(!response.ok)return;
     const json=await response.text();
     if(json.length>524288)return;
-    const schedule=parseMonthlySchedule(json,new Date());
+    const schedule=parseMonthlySchedule(json,rewardDate);
     if(alive&&schedule)dispatch({type:"monthlySchedule",schedule});
    }catch{}
   };
