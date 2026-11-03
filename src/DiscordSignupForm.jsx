@@ -4,8 +4,8 @@ import {requestPuppyAuth,verifyPuppySession,puppyAuthMessage,
 import {client} from "./supabase.js";
 import {suggestUsername} from "./nameSuggestions.js";
 
-const TERMS="https://github.com/markhitchk/pup-clinker/blob/main/assets/legal/terms-of-use.md";
-const PRIVACY="/privacy";
+const TERMS="/legal/terms";
+const PRIVACY="/legal/privacy";
 
 export default function DiscordSignupForm({signup,onAuthenticated,onSignIn}){
  const {profile,ticket}=signup;
