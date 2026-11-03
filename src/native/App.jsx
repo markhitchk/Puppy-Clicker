@@ -2,6 +2,7 @@ import DesktopNavigation,{DesktopHelp} from './web/DesktopNavigation.jsx';
 import {useLanguage} from "../LanguagePicker.jsx";
 import PuppyArtwork from './web/PuppyArtwork.jsx';
 import {GameProgressHeader,PuppyPlatform,CasinoIntroDialog,RenamePuppyDialog} from './web/WebsiteDesign.jsx';
+import {suggestPuppyName} from '../nameSuggestions.js';
 import WebAccountGate from "./web/AccountGate.jsx";
 import WebLoading from "../WebLoading.jsx";
 import WebErrorPage from "../WebErrorPage.jsx";
@@ -458,6 +459,8 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
   {renameOpen?<View style={styles.rosterRename}>
    <TextInput value={editing} onChangeText={setEditing} maxLength={18}
     accessibilityLabel="Rename puppy" placeholder="Puppy name" placeholderTextColor={C.muted} style={styles.input}/>
+   <Pressable accessibilityRole="button" accessibilityLabel="Generate random puppy name" onPress={()=>{try{setEditing(suggestPuppyName(editing));}catch{setEditing('Buddy');}}}
+    style={[styles.rosterOutline,{alignSelf:'flex-start'}]}><Txt style={styles.rosterActionText}>🎲 Generate puppy name</Txt></Pressable>
    <View style={styles.actions}>
     <Button onPress={()=>{act({type:'rename',name:editing});setRenameOpen(false);}}>Save</Button>
     <Button secondary onPress={()=>setRenameOpen(false)}>Cancel</Button>
