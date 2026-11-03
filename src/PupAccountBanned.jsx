@@ -1,4 +1,5 @@
-import React from "react";
+import React,{useState} from "react";
+import ConfirmSignOut from "./ConfirmSignOut.jsx";
 import "./PupAccountBanned.css";
 
 const formatDate=value=>{
@@ -11,6 +12,9 @@ const formatDate=value=>{
 export default function PupAccountBanned({account,onRefresh,onSignOut}){
  const ban=account?.ban||{};
  const username=account?.username||"player";
+ const [confirmSignOut,setConfirmSignOut]=useState(false);
+ const [signOutBusy,setSignOutBusy]=useState(false);
+ const [signOutError,setSignOutError]=useState("");
  return <main className="pup-banned-wrap" data-testid="pup-account-banned">
   <section className="pup-banned-card" aria-labelledby="pup-banned-title">
    <div className="pup-banned-symbol" aria-hidden="true">🛡️</div>
@@ -28,8 +32,22 @@ export default function PupAccountBanned({account,onRefresh,onSignOut}){
    <div className="pup-banned-actions">
     <button type="button" className="pup-banned-primary" onClick={onRefresh}>↻ Check ban status</button>
     <a href="/recovery" className="pup-banned-secondary">Account recovery</a>
-    <button type="button" className="pup-banned-secondary" onClick={onSignOut}>Sign out</button>
+    <button type="button" className="pup-banned-secondary" onClick={()=>{setSignOutError("");setConfirmSignOut(true);}}>Sign out</button>
    </div>
   </section>
+  <ConfirmSignOut open={confirmSignOut} busy={signOutBusy} error={signOutError}
+   onCancel={()=>{setConfirmSignOut(false);setSignOutError("");}}
+   onConfirm={async()=>{
+    if(signOutBusy)return;
+    setSignOutBusy(true);setSignOutError("");
+    try{
+     const result=await onSignOut();
+     if(result?.error)throw result.error;
+     window.location.assign("/");
+    }catch{
+     setSignOutError("Couldn't sign out. Please retry.");
+     setSignOutBusy(false);
+    }
+   }}/>
  </main>;
 }
