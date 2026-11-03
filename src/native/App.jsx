@@ -42,6 +42,7 @@ import {blackjackTable,blackjackFan,blackjackSharedCardWidth} from './src/engine
 import {BLACKJACK_V6,blackjackViewportWidth,blackjackActions,canDealBlackjack,blackjackHandSummaries,blackjackDealerCaption,blackjackDisplayRound} from './src/engine/blackjackV6.js';
 import {ONBOARDING_STEPS,validBirthday} from './src/engine/onboarding.js';
 import {goalsForDay,progressForGoal,localEpochDay,monthKey,webServerRewardsDate,webServerEpochDay} from './src/engine/monthlyRewards.js';
+import {webGoalState} from './web/webGoalState.js';
 import ScratchersV6 from './src/components/ScratchersV6.jsx';
 import SlotsV6 from './src/components/SlotsV6.jsx';
 import RouletteV6 from './src/components/RouletteV6.jsx';
@@ -135,23 +136,37 @@ function QuickAction({emoji,title,subtitle,onPress,disabled=false}){
   <Txt style={styles.quickActionIcon}>{emoji}</Txt><Txt numberOfLines={1} style={styles.quickActionTitle}>{title}</Txt><Txt numberOfLines={1} style={styles.quickActionDescription}>{subtitle}</Txt>
  </Pressable>;
 }
-function DailyGoalCard({g,goal,act,clock,readOnly=false,compact=false}){
- const date=webServerRewardsDate(clock),today=webServerEpochDay(clock),claimed=g.dailyDay===today&&g.claimedDailyTasks.includes(goal.id);
- const progress=Math.max(0,progressForGoal(g,goal,date)),complete=progress>=goal.target;
- if(compact)return <article className="compact-goal reference-goal"><span className="goal-illustration" aria-hidden="true">{goal.emoji}</span><div className="reference-goal-body"><div className="compact-goal-heading"><strong>{goal.title}</strong><span>{Math.min(progress,goal.target)}/{goal.target}</span></div><p className="goal-description">{goal.description}</p><div className="cyber-progress" role="progressbar" aria-label={goal.title} aria-valuemin={0} aria-valuemax={goal.target} aria-valuenow={Math.min(progress,goal.target)}><span style={{width:Math.min(100,100*progress/goal.target)+'%'}}/></div><div className="goal-footer"><p className="goal-reward">Reward: {format(goal.rewardTreats)} 🍪 + 1 🦴 + 1 🪙</p>{claimed?<span className="claimed">✓ Claimed</span>:<button className="cyber-button primary" disabled={readOnly||!complete} onClick={()=>act({type:'claimDailyGoal',goalId:goal.id,now:clock})}>Claim</button>}</div></div></article>;
+function DailyGoalCard({g,goal,act,clock,onOpen,readOnly=false,compact=false,pendingTaps=0}){
+ const date=webServerRewardsDate(clock),today=webServerEpochDay(clock);
+ const claimed=g.dailyDay===today&&g.claimedDailyTasks.includes(goal.id);
+ const eligibility=webGoalState(g,goal,date);
+ const {progress,complete,status,destination,continueLabel,maxedShop}=eligibility;
+ const hint=readOnly?'Cloud progress must finish loading before rewards can be claimed.':status;
+ const syncing=goal.metric==='taps'&&pendingTaps>0?
+  ' · '+pendingTaps+' tap'+(pendingTaps===1?'':'s')+' awaiting cloud confirmation':'';
+ const description=maxedShop?'All upgrades are maxed — your Shop Visit goal is complete.':goal.description;
+ const label=readOnly?'Cloud unavailable':complete?'Claim Reward':continueLabel;
+ const unavailable=readOnly||(!complete&&typeof onOpen!=='function');
+ const activate=()=>{if(readOnly)return;
+  if(complete)act({type:'claimDailyGoal',goalId:goal.id,now:clock});
+  else onOpen?.(destination);
+ };
+ if(compact)return <article className="compact-goal reference-goal"><span className="goal-illustration" aria-hidden="true">{goal.emoji}</span><div className="reference-goal-body"><div className="compact-goal-heading"><strong>{goal.title}</strong><span>{Math.min(progress,goal.target)}/{goal.target}</span></div><p className="goal-description">{description}</p><div className="cyber-progress" role="progressbar" aria-label={goal.title} aria-valuemin={0} aria-valuemax={goal.target} aria-valuenow={Math.min(progress,goal.target)}><span style={{width:Math.min(100,100*progress/goal.target)+'%'}}/></div><p className="goal-progress-hint">{claimed?'Already claimed.':hint+syncing}</p><div className="goal-footer"><p className="goal-reward">Reward: {format(goal.rewardTreats)} 🍪 + 1 🦴 + 1 🪙</p>{claimed?<span className="claimed">✓ Claimed</span>:<button className={'cyber-button '+(complete?'primary':'secondary')} disabled={unavailable} onClick={activate}>{label}</button>}</div></div></article>;
 
  return <View style={styles.dailyGoalCard}>
   <Txt style={{fontSize:28}}>{goal.emoji}</Txt>
   <View style={{flex:1,gap:6}}>
    <View style={styles.pair}><Txt style={styles.itemName}>{goal.title}</Txt><Txt style={styles.value}>{Math.min(progress,goal.target)}/{goal.target}</Txt></View>
-   <Txt muted style={styles.small}>{goal.description}</Txt>
+   <Txt muted style={styles.small}>{description}</Txt>
    <View style={styles.track}><View style={[styles.fill,{backgroundColor:C.accent,width:Math.min(100,100*progress/goal.target)+'%'}]}/></View>
+   {!claimed?<Txt muted style={styles.small}>{hint+syncing}</Txt>:null}
    <View style={styles.pair}><Txt muted style={styles.small}>Reward: {format(goal.rewardTreats)} 🍪 + 1 🦴 + 1 🪙</Txt>
-    {claimed?<Txt style={styles.claimedText}>✓ Claimed</Txt>:<Button compact disabled={readOnly||!complete} onPress={()=>act({type:'claimDailyGoal',goalId:goal.id,now:clock})}>{readOnly?'Not yet live':'Claim'}</Button>}
+    {claimed?<Txt style={styles.claimedText}>✓ Claimed</Txt>:<Button compact secondary={!complete} disabled={unavailable} onPress={activate}>{label}</Button>}
    </View>
   </View>
  </View>;
 }
+
 function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen}){
  const pup=ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
  const layout={...revampedPlayLayout(viewportHeight),portrait:desktop?260:220};
@@ -210,7 +225,7 @@ function DesktopPlayScreen({g,act,clock,schedule,viewportHeight,onOpen}){
   <PlayScreen g={g} act={act} clock={clock} schedule={schedule} viewportHeight={viewportHeight} onOpen={onOpen} desktop/>
   <aside className="dashboard-panels">
    <section className="cyber-panel"><h2>Your Resources</h2><Wallet game={g}/></section>
-   <section className="cyber-panel daily-goals-panel compact-goals"><div className="panel-heading"><h2>Today’s goals</h2><span>{monthKey(new Date(clock))}</span><button className="cyber-button secondary all-daily-goals" aria-label="🎁 Rewards & daily goals" onClick={()=>onOpen('rewards')}>All goals →</button></div>{goalsForDay(schedule,new Date(clock)).slice(0,3).map(goal=><DailyGoalCard key={goal.id} g={g} goal={goal} act={act} clock={clock} compact/>)}</section>
+   <section className="cyber-panel daily-goals-panel compact-goals"><div className="panel-heading"><h2>Today’s goals</h2><span>{monthKey(webServerRewardsDate(clock))}</span><button className="cyber-button secondary all-daily-goals" aria-label="🎁 Rewards & daily goals" onClick={()=>onOpen('rewards')}>All goals →</button></div>{goalsForDay(schedule,new Date(clock)).slice(0,3).map(goal=><DailyGoalCard key={goal.id} g={g} goal={goal} act={act} clock={clock} onOpen={onOpen} compact/>)}</section>
    <section className="cyber-panel care-summary compact-care reference-care"><div className="panel-heading"><h2>Pup Care Status</h2><button className="cyber-button secondary small" onClick={()=>onOpen('care')}>Go to Care →</button></div><div className="care-summary-content"><div className="care-avatar"><Portrait puppy={pup} size={76} accessory={g.accessory}/></div><div className="care-meter-detail"><strong className="care-puppy-name">{g.puppyName}</strong><p className="care-summary-caption">{mood(g)} · Wellness {wellness(g)}% · Bond {g.bond}%</p>{[['💖','Happiness',g.happiness],['🍗','Fullness',g.fullness],['⚡','Energy',g.energy],['🫧','Cleanliness',g.cleanliness],['🤝','Bond',g.bond]].map(([icon,label,value])=><div className="web-care-row" key={label}><span>{icon} {label}</span><div className="cyber-progress" role="progressbar" aria-label={label+' need'} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(value)}><span style={{width:Math.max(0,Math.min(100,value))+'%'}}/></div><strong>{Math.round(value)}%</strong></div>)}</div><aside className="care-bonus-box"><span>✨ {careTapBonus(g)===2?'Thriving':careTapBonus(g)===1?'Healthy':'Pup'} care bonus</span><p>+{careTapBonus(g)} Treats on every normal puppy tap.</p></aside></div></section>
   </aside>
  </div>;
@@ -680,7 +695,7 @@ function RewardsGroup({title,description,initiallyOpen=false,children}){
   {open?<View style={{gap:12}}>{children}</View>:null}
  </View>;
 }
-function RewardsScreen({g,act,clock,schedule,onOpen,onPrestige,readOnly=false}){
+function RewardsScreen({g,act,clock,schedule,onOpen,onPrestige,readOnly=false,pendingTaps=0}){
  const {t:tr}=useLanguage();
  const date=webServerRewardsDate(clock),today=webServerEpochDay(clock),goals=goalsForDay(schedule,date);
  const claimed=(goal)=>g.dailyDay===today&&g.claimedDailyTasks.includes(goal.id);
@@ -724,7 +739,7 @@ function RewardsScreen({g,act,clock,schedule,onOpen,onPrestige,readOnly=false}){
    <Button compact disabled={readOnly} onPress={()=>act({type:'daily',epochDay:today,now:clock})}>{readOnly?'Not yet live':'Claim'}</Button>
   </View>:null}
   <View style={styles.pair}><Txt style={styles.sectionTitle}>{tr("todaysGoals")}</Txt><Txt muted style={styles.small}>{monthKey(date)} · {readOnly?'Rewards not yet live':schedule?.source==='github'?'Live':schedule?.source==='cache'?'Cached':'Fallback'}</Txt></View>
-  {active.length?active.map(goal=><DailyGoalCard g={g} goal={goal} act={act} clock={clock} readOnly={readOnly} key={goal.id}/>):<Card title="🎉 All of today’s goals claimed"/>}
+  {active.length?active.map(goal=><DailyGoalCard g={g} goal={goal} act={act} clock={clock} onOpen={onOpen} pendingTaps={pendingTaps} readOnly={readOnly} key={goal.id}/>):<Card title="🎉 All of today’s goals claimed"/>}
   </RewardsGroup>
   <RewardsGroup title={"✓ "+tr("claimedToday")} description={tr("collectedDaily")} >
   {giftClaimed||completed.length?<><Txt style={styles.sectionTitle}>Claimed</Txt>
@@ -1045,7 +1060,7 @@ export default function App(){return <SafeAreaProvider><PuppyErrorBoundary><WebA
 export function PuppyApp({betaMode=false}){
  const insets=useSafeAreaInsets();
  const systemDark=useColorScheme()==='dark';
- const {state,gameForDisplay,act:gameAct,account,cloudState,startupError,syncStatus,gameplayBusy,refreshAccount,updateAccountName}=useGame({mode:betaMode?'beta':'guest'});
+ const {state,gameForDisplay,queuedTaps,act:gameAct,account,cloudState,startupError,syncStatus,gameplayBusy,refreshAccount,updateAccountName}=useGame({mode:betaMode?'beta':'guest'});
  const onboarding=useAccountOnboarding({enabled:betaMode,account,activateAccount:refreshAccount});
  const act=useCallback(action=>{
   gameAct(action);
@@ -1122,7 +1137,7 @@ export function PuppyApp({betaMode=false}){
  const usePuppy=id=>{if(!saved.unlockedPuppies.includes(id))return;act({type:'switch',id,now:Date.now()});setTab('play');setSecondary(null);};
  const main=()=>{
   if(secondary==='help')return <DesktopHelp onOpen={openScreen}/>;
-  if(secondary==='achievements')return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} readOnly={Platform.OS==='web'?account?.gameplayWritable!==true:betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
+  if(secondary==='achievements')return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} pendingTaps={queuedTaps} readOnly={Platform.OS==='web'?account?.gameplayWritable!==true:betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
   if(secondary==='settings')return <SettingsScreen g={saved} act={act} onOpen={openScreen} registry={registry} notifications={notifications} betaMode={betaMode} webMode account={account} onConnectAccount={()=>webClient.auth.signOut()} onUpdateAccountName={updateAccountName} onUpdateBirthday={onboarding.update} cloudState={cloudState} syncStatus={syncStatus} gameplayBusy={gameplayBusy} onRefreshAccount={refreshAccount}/>;
   if(secondary==='account-details')return <AccountDetailsScreen account={account} cloudState={cloudState}
    onBack={()=>setSecondary('settings')} onManage={()=>openAccount('signin')} onRefresh={refreshAccount}/>;
@@ -1132,7 +1147,7 @@ export function PuppyApp({betaMode=false}){
    const roster=<RosterScreen g={g} act={act} registry={registry} onUse={usePuppy} onOpenExchange={()=>setSecondary('exchange')}/>;
    return desktop?<div className="desktop-roster-shop" data-testid="desktop-roster-shop"><section>{roster}</section><aside><ShopScreen g={g} act={act} onOpen={openScreen}/></aside></div>:roster;
   }
-  if(secondary==='rewards'||tab==='rewards'&&!secondary)return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} readOnly={Platform.OS==='web'?account?.gameplayWritable!==true:betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
+  if(secondary==='rewards'||tab==='rewards'&&!secondary)return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} pendingTaps={queuedTaps} readOnly={Platform.OS==='web'?account?.gameplayWritable!==true:betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
   if(secondary==='gacha')return <GachaScreen g={{...g,gameplayBusy}} act={act} state={state} registry={registry} onBack={()=>openScreen('rewards')}/>;
   if(secondary==='casino')return <CasinoScreen g={{...g,gameplayBusy}} act={act} bet={bet} setBet={setBet} state={state} onBack={()=>openScreen('rewards')}/>;
   if(tab==='play')return desktop?<DesktopPlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>:<PlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>

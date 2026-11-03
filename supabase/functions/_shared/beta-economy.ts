@@ -229,6 +229,14 @@ export async function getAuthoritativeGoal(goalId:string,date:Date):Promise<Serv
   return {metric,target,reward};
  }catch{return fallbackGoal(dayOfMonth,goalId);}
 }
+// A fully completed upgrade shop cannot offer another upgrade purchase.
+// Such players have already met the progression requirement for the
+// once-per-UTC-day Shop Visit task. Do not forge purchase counters or grant
+// extra currency here; the ordinary, idempotent claim path still applies.
+export function shopVisitMaxedEligible(values:Dict):boolean{
+ return defs.length>0&&defs.every(upgrade=>
+  num(values,"upgrade_"+upgrade.id)>=MAX_UPGRADES_PER_ITEM);
+}
 function ticketTotal(v:Dict){return rarities.reduce((n,k)=>n+num(v,ticketKey(k)),0);}
 function priceUpgrade(u:typeof defs[number],owned:number,shopper:number):number{
  // Kotlin PuppyEconomyV7.growCost: exact ceil at every ownership level,
@@ -581,7 +589,11 @@ export async function applyBetaEconomy(raw:unknown,intent:BetaEconomyIntent,now=
    let progress=0;
    if(goal.metric==="taps")progress=Math.max(0,num(v,"total_taps")-num(v,"daily_tap_start_v5"));
    if(goal.metric==="care")progress=Math.max(0,num(v,"care_actions_v5")-num(v,"daily_care_start_v5"));
-   if(goal.metric==="shop")progress=Math.max(0,num(v,"total_shop_purchases_v5")-num(v,"daily_shop_start_v5"));
+   if(goal.metric==="shop"){
+    progress=Math.max(0,num(v,"total_shop_purchases_v5")-num(v,"daily_shop_start_v5"));
+    if(intent.goalId==="shop_visit"&&goal.target===1&&shopVisitMaxedEligible(v))
+     progress=Math.max(progress,1);
+   }
    if(goal.metric==="wellness")progress=careScore(v);
    if(goal.metric==="bond")progress=num(v,"bond_v5",10);
    if(goal.metric==="tickets")progress=ticketTotal(v);
