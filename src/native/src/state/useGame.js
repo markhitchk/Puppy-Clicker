@@ -8,6 +8,7 @@ import {useWebAccount} from "../../web/AccountGate.jsx";
 import {puppyFunctionError} from '../../web/puppyOAuth.js';
 import {queueGameplayIntent,pendingGameplayIntents,acknowledgeGameplayIntent} from './gameplayOutbox.js';
 import {projectPendingTapDisplay} from './optimisticTaps.js';
+import {readNotificationUiState,applyNotificationUiState,saveNotificationUiAction} from './notificationUiState.js';
 
 // The browser is now a Pup Account companion, not a separate economy.
 // Never read or write puppy_web_saves, never forge a PupEye signed envelope.
@@ -20,6 +21,7 @@ const LIVE_ACTIONS=new Set([
  "afkStart","afkSettle","afkClaim","afkOpen","afkMarkAllRead","afkClearRead",
  "blackjackStart","blackjackHit","blackjackStand","blackjackDouble","blackjackSplit"
 ]);
+const NOTIFICATION_LOCAL_ACTIONS=new Set(['openNotification','markNotificationsRead','clearReadNotifications']);
 const LOCAL_ACTIONS=new Set([
  "dismiss","dismissGacha","monthlySchedule","comboTimeout","setPreference",
  "resetSettings","checkNotifications","testNotification","markNotificationsRead",
@@ -52,6 +54,10 @@ export function useGame(){
  const [queuedTaps,setQueuedTaps]=useState(0);
  const preferences=useRef(null);
  if(!preferences.current)preferences.current=loadWebPreferences();
+ const decorateGame=useCallback(game=>withWebPreferences(
+  applyNotificationUiState(game,readNotificationUiState(pupAccount.id)),
+  preferences.current
+ ),[pupAccount.id]);
  const revision=useRef(0),loaded=useRef(false),generation=useRef(0);
  const pending=useRef(0),queue=useRef(Promise.resolve()),inFlight=useRef(new Set());
  const draining=useRef(false),drainRef=useRef(null),retryTimer=useRef(null),retryAttempt=useRef(0),drainAgain=useRef(false);
@@ -68,7 +74,7 @@ export function useGame(){
    if(!data.cloud?.exists){
     // Never seed a blank website save over a pre-existing Kotlin player.
     loaded.current=false;revision.current=0;
-    dispatch({type:"hydrate",game:withWebPreferences(freshView(data.account.displayName),preferences.current),now:Date.now(),readOnly:true});
+    dispatch({type:"hydrate",game:decorateGame(freshView(data.account.displayName)),now:Date.now(),readOnly:true});
     setCloudState("NO_CLOUD_SAVE");
     setSyncStatus({state:"BLOCKED",revision:0,errorCode:"CLOUD_SAVE_REQUIRED"});
     return false;
@@ -76,7 +82,7 @@ export function useGame(){
    const game=projectKotlinCloudSave(data.cloud.saveJson,data.account.displayName);
    revision.current=data.cloud.revision;
    loaded.current=true;
-   dispatch({type:"hydrate",game:withWebPreferences(game,preferences.current),now:Date.now(),readOnly:true});
+   dispatch({type:"hydrate",game:decorateGame(game),now:Date.now(),readOnly:true});
    setCloudState("LIVE_SYNCED");
    setSyncStatus({state:"READY",revision:revision.current,errorCode:null});
    // Rehydrate any unsent operations before accepting further cloud writes.
@@ -90,7 +96,7 @@ export function useGame(){
    if(!loaded.current){setCloudState("CONNECTION_ERROR");}
    return false;
   }
- },[client,pupAccount.id]);
+ },[client,pupAccount.id,decorateGame]);
  useEffect(()=>{
   void reload();
   return()=>{generation.current++;loaded.current=false;clearTimeout(retryTimer.current);};
@@ -102,13 +108,11 @@ export function useGame(){
    const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"cloud-save-read"},timeout:15000});
    if(error||!data?.verified||data.account?.id!==pupAccount.id||!data.cloud?.exists)return false;
    revision.current=data.cloud.revision;
-   dispatch({type:"hydrate",game:withWebPreferences(
-    projectKotlinCloudSave(data.cloud.saveJson,data.account.displayName),preferences.current
-   ),now:Date.now(),readOnly:true});
+   dispatch({type:"hydrate",game:decorateGame(projectKotlinCloudSave(data.cloud.saveJson,data.account.displayName)),now:Date.now(),readOnly:true});
    setCloudState("LIVE_SYNCED");
    return true;
   }catch{return false;}
- },[client,pupAccount.id]);
+ },[client,pupAccount.id,decorateGame]);
  const drain=useCallback(async()=>{
   if(draining.current||!loaded.current)return;
   const captured=generation.current,accountId=pupAccount.id;
@@ -146,7 +150,7 @@ export function useGame(){
      revision.current=data.cloud.revision;
      try{
       const game=projectKotlinCloudSave(data.cloud.saveJson,pupAccount?.displayName||pupAccount?.username);
-      dispatch({type:"hydrate",game:withWebPreferences(game,preferences.current),now:Date.now(),readOnly:true});
+      dispatch({type:"hydrate",game:decorateGame(game),now:Date.now(),readOnly:true});
       setCloudState("LIVE_SYNCED");
      }catch{
       setSyncStatus({state:"SAVED_DISPLAY_ERROR",revision:revision.current,
@@ -216,7 +220,7 @@ export function useGame(){
     setTimeout(()=>drainRef.current?.(),0);
    }
   }
- },[client,pupAccount.id,pupAccount?.displayName,pupAccount?.username,refreshForConflict]);
+ },[client,pupAccount.id,pupAccount?.displayName,pupAccount?.username,refreshForConflict,decorateGame]);
  drainRef.current=drain;
  useEffect(()=>{
   const wake=()=>{if(document.visibilityState==="visible")void drainRef.current?.();};
@@ -242,7 +246,15 @@ export function useGame(){
    for(const [name,value] of Object.entries(preferences.current))dispatch({type:'setPreference',name,value});
    return;
   }
-  if(LOCAL_ACTIONS.has(action.type)){dispatch(action);return;}
+  if(LOCAL_ACTIONS.has(action.type)){
+   if(NOTIFICATION_LOCAL_ACTIONS.has(action.type)){
+    const saved=saveNotificationUiAction(pupAccount.id,action,latest.current.game.notificationInbox);
+    dispatch({...action,notificationUi:readNotificationUiState(pupAccount.id)});
+    if(!saved)dispatch({type:'webActionFailed',message:
+     'This browser could not remember your notification changes. Check your site storage permissions.'});
+   }else dispatch(action);
+   return;
+  }
   if(action.type==="resume"||action.type==="rollDailyDay"){
    if(pending.current===0)void reload();
    return;
@@ -306,9 +318,9 @@ export function useGame(){
   if(displayName.length<2)throw Error("Display name must be at least 2 characters");
   const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"account-update",displayName}});
   if(error||!data?.updated)throw Error("PUP_ACCOUNT_UPDATE_FAILED");
-  dispatch({type:"hydrate",game:withWebPreferences({...latest.current.game,guestName:data.displayName},preferences.current),now:Date.now(),readOnly:true});
+  dispatch({type:"hydrate",game:decorateGame({...latest.current.game,guestName:data.displayName}),now:Date.now(),readOnly:true});
   return true;
- },[client]);
+ },[client,decorateGame]);
  // Predict pending tap rewards for responsiveness; authoritative values only
  // come from the acknowledged server save and can correct this prediction.
  const gameForDisplay=useMemo(()=>{
