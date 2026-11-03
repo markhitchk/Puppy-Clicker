@@ -28,7 +28,7 @@ import PuppyPointer from './src/components/PuppyPointer.jsx';
 import {useNotifications} from './src/state/useNotifications.js';
 import {themedStyles} from './src/theme.js';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
-import {ActivityIndicator,Alert,Animated,Easing,Image,ImageBackground,Modal,NativeModules,Pressable,ScrollView,StatusBar,Text,TextInput,Vibration,View,BackHandler,useColorScheme,useWindowDimensions} from 'react-native';
+import {ActivityIndicator,Alert,Animated,Easing,Image,ImageBackground,Modal,NativeModules,Pressable,ScrollView,StatusBar,Text,TextInput,Vibration,View,Platform,BackHandler,useColorScheme,useWindowDimensions} from 'react-native';
 import {colors as C} from './src/theme.js';
 import {useGame} from './src/state/useGame.js';
 import {useRoster} from './src/state/useRoster.js';
