@@ -1,4 +1,5 @@
 import {checkInbox,addTestNotification,reconcileInbox} from '../engine/inbox.js';
+import {applyNotificationUiState} from './notificationUiState.js';
 import {DEFAULT_PREFERENCES,preferenceValue} from '../engine/settings.js';
 import {freshGame,tap,care,purchase,switchPuppy,convertTreatsToChips,casinoSpend,casinoPayout,claimDailyReward,startPark,claimPark,prestige,buyPrestigeSkill,buyUpgradeTicket,buyAccessory,handValue} from '../engine/game.js';
 import {slotsOutcome,rouletteOutcome,plinkoOutcome,wheelOutcome} from '../engine/casinoV7.js';
@@ -366,8 +367,9 @@ export function transition(state,action){
  }
  const localActions=['setPreference','resetSettings','checkNotifications','testNotification','markNotificationsRead','clearReadNotifications','openNotification'];
  if(localActions.includes(action.type)){
-  if(JSON.stringify(g)===JSON.stringify(state.game)&&!notice)return state;
-  return {...state,game:g,notice:notice||state.notice};
+  const next=action.notificationUi?applyNotificationUiState(g,action.notificationUi):g;
+  if(JSON.stringify(next)===JSON.stringify(state.game)&&!notice)return state;
+  return {...state,game:next,notice:notice||state.notice};
  }
  const now=action.now||Date.now();
  reconcileInbox(g,now);
