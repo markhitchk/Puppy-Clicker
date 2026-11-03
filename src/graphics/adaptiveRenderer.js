@@ -43,7 +43,6 @@ const FRAGMENT_BODY=`
  float twinkle=0.16+0.07*sin(u_time*0.75+hash(cell)*6.283185);
  float point=star*(1.0-smoothstep(0.0,0.12,length(fract(grid)-vec2(0.5))))*twinkle;
  float alpha=clamp(glow+point,0.0,0.26);
- return vec4(vec3(0.02,0.82,1.0)*alpha,alpha);
 `;
 const glslHash='float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}';
 const GL2_VERTEX=`#version 300 es
