@@ -47,7 +47,7 @@ export function useGame(){
  if(!preferences.current)preferences.current=loadWebPreferences();
  const revision=useRef(0),loaded=useRef(false),generation=useRef(0);
  const pending=useRef(0),queue=useRef(Promise.resolve()),inFlight=useRef(new Set());
- const draining=useRef(false),drainRef=useRef(null),retryTimer=useRef(null),retryAttempt=useRef(0);
+ const draining=useRef(false),drainRef=useRef(null),retryTimer=useRef(null),retryAttempt=useRef(0),drainAgain=useRef(false);
  const latest=useRef(state);latest.current=state;
  const reload=useCallback(async()=>{
   if(pending.current>0||draining.current)return false;
@@ -111,6 +111,11 @@ export function useGame(){
     const entries=await pendingGameplayIntents(accountId);
     setPendingActions(entries.length);
     setQueuedTaps(entries.filter(item=>item.intent?.type==="tap").length);
+    for(const item of entries){
+     if(item.intent?.type==='gacha'||item.intent?.type==='casinoRecoverLegacy'||
+      /^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(item.intent?.type||''))
+      inFlight.current.add(item.intent.type);
+    }
     const op=entries[0];
     if(!op){
      retryAttempt.current=0;
@@ -130,6 +135,7 @@ export function useGame(){
       throw new Error(error?await functionError(error):"SAVE_RECEIPT_MISSING");
      // The Edge Function returns a committed database receipt, also on retries.
      await acknowledgeGameplayIntent(accountId,op.id);
+     inFlight.current.delete(op.intent.type);
      retryAttempt.current=0;
      revision.current=data.cloud.revision;
      try{
@@ -162,6 +168,7 @@ export function useGame(){
      if(rejected.has(code)){
       // A definitive gameplay rejection is visible, never called 'saved'.
       await acknowledgeGameplayIntent(accountId,op.id);
+      inFlight.current.delete(op.intent.type);
       setSyncStatus({state:"REJECTED",revision:revision.current,errorCode:code});
       dispatch({type:"webActionFailed",message:gameplayMessage(code)});
       continue;
@@ -181,6 +188,10 @@ export function useGame(){
    setSyncStatus({state:"BLOCKED",revision:revision.current,errorCode:code});
   }finally{
    draining.current=false;
+   if(drainAgain.current){
+    drainAgain.current=false;
+    setTimeout(()=>drainRef.current?.(),0);
+   }
   }
  },[client,pupAccount.id,pupAccount?.displayName,pupAccount?.username,refreshForConflict]);
  drainRef.current=drain;
@@ -229,15 +240,16 @@ export function useGame(){
   queue.current=queue.current.catch(()=>{}).then(async()=>{
    await queueGameplayIntent(pupAccount.id,intent);
    if(intent.type==="tap")setQueuedTaps(n=>n+1);
-   void drainRef.current?.();
+   if(draining.current)drainAgain.current=true;
+   else void drainRef.current?.();
   }).catch(error=>{
+   if(exclusive)inFlight.current.delete(action.type);
    // Never send an action that failed to enter durable storage.
    const code=String(error?.message||"PUP_LOCAL_CACHE_UNAVAILABLE");
    setSyncStatus({state:"BLOCKED",revision:revision.current,errorCode:code});
    dispatch({type:"webActionFailed",message:
     "Your browser could not store this action. Enable site storage or free space; it was not sent."});
   }).finally(()=>{
-   if(exclusive)inFlight.current.delete(action.type);
    pending.current=Math.max(0,pending.current-1);
   });
  },[pupAccount.id,reload]);
@@ -279,7 +291,7 @@ export function useGame(){
  const gameForDisplay=useMemo(()=>{
   if(!queuedTaps)return state.game;
   try{
-   const n=Math.min(queuedTaps,150),now=Date.now();
+   const n=Math.min(queuedTaps,80),now=Date.now();
    return projectPendingTapDisplay(state.game,
     Array.from({length:n},(_,i)=>({at:now-(n-i-1)*70})));
   }catch{return state.game;}
