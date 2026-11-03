@@ -167,10 +167,10 @@ function DailyGoalCard({g,goal,act,clock,onOpen,readOnly=false,compact=false,pen
  </View>;
 }
 
-function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen}){
+function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen,pendingTaps=0}){
  const pup=ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
  const layout={...revampedPlayLayout(viewportHeight),portrait:desktop?260:220};
- const next=nextPlayReward(g,schedule,clock),cooldown=v6CooldownSeconds(g,clock),bonus=careTapBonus(g);
+ const next=nextPlayReward(g,schedule,clock,{serverDay:Platform.OS==='web'}),cooldown=v6CooldownSeconds(g,clock),bonus=careTapBonus(g);
  const animate=g.animatedUi!==false&&g.tapAnimationsEnabled!==false;
  const tapScale=useRef(new Animated.Value(1)).current;
  const rotation=useRef(new Animated.Value(0)).current;
@@ -215,14 +215,14 @@ function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen}){
    <div className="play-energy"><span>⚡ <strong>Energy {g.energy}%</strong></span><span>💖 Care bonus <strong>+{bonus} 🍪 / tap</strong></span><span className="tap-tip">ⓘ Tap to earn treats!</span></div>
    <button disabled={cooldown>0} onClick={doTap} className="cyber-tap"><span aria-hidden="true">🐾</span><span><strong>{label}</strong>{!cooldown&&g.energy>10?<small>+{format(g.clickPower+bonus)}{desktop?'':' treats'}</small>:null}</span></button>
   </div>
-  <div className="cyber-panel next-reward"><span className="reward-icon" aria-hidden="true">🎁</span><div className="flex-1 min-w-0"><div className="reward-heading"><strong>{next.title}</strong><strong>{next.allClaimed?'✓':next.progress+'/'+next.target}</strong></div><div className="cyber-progress" role="progressbar" aria-label="Next reward progress" aria-valuemin={0} aria-valuemax={next.target} aria-valuenow={next.progress}><span style={{width:(100*next.progress/next.target)+'%'}}/></div><p>{next.allClaimed?'All goals claimed. See you tomorrow!':'Keep playing to reach your next reward.'}</p></div><strong className="reward-value">{next.allClaimed?'All claimed':format(next.rewardTreats)+' 🍪'}</strong></div>
+  <div className="cyber-panel next-reward"><span className="reward-icon" aria-hidden="true">🎁</span><div className="flex-1 min-w-0"><div className="reward-heading"><strong>{next.title}</strong><strong>{next.allClaimed?'✓':next.progress+'/'+next.target}</strong></div><div className="cyber-progress" role="progressbar" aria-label="Next reward progress" aria-valuemin={0} aria-valuemax={next.target} aria-valuenow={next.progress}><span style={{width:(100*next.progress/next.target)+'%'}}/></div><p>{next.allClaimed?'All goals claimed. See you tomorrow!':pendingTaps>0?pendingTaps+' tap'+(pendingTaps===1?' is':'s are')+' syncing. Progress is pending cloud confirmation.':next.progress>=next.target?'Reward ready — open Rewards to claim.':'Keep playing to reach your next reward.'}</p></div><strong className="reward-value">{next.allClaimed?'All claimed':format(next.rewardTreats)+' 🍪'}</strong></div>
   {ticketVisible?<View pointerEvents="none" style={[styles.ticketOverlay,{top:2}]}><Txt style={styles.ticketOverlayTitle}>🎟️ {g.lastTicketDrop} UPGRADE TICKET</Txt></View>:null}
  </section>;
 }
-function DesktopPlayScreen({g,act,clock,schedule,viewportHeight,onOpen}){
+function DesktopPlayScreen({g,act,clock,schedule,viewportHeight,onOpen,pendingTaps=0}){
  const pup=ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
  return <div className="desktop-dashboard desktop-reference">
-  <PlayScreen g={g} act={act} clock={clock} schedule={schedule} viewportHeight={viewportHeight} onOpen={onOpen} desktop/>
+  <PlayScreen g={g} act={act} clock={clock} schedule={schedule} viewportHeight={viewportHeight} onOpen={onOpen} pendingTaps={pendingTaps} desktop/>
   <aside className="dashboard-panels">
    <section className="cyber-panel"><h2>Your Resources</h2><Wallet game={g}/></section>
    <section className="cyber-panel daily-goals-panel compact-goals"><div className="panel-heading"><h2>Today’s goals</h2><span>{monthKey(webServerRewardsDate(clock))}</span><button className="cyber-button secondary all-daily-goals" aria-label="🎁 Rewards & daily goals" onClick={()=>onOpen('rewards')}>All goals →</button></div>{goalsForDay(schedule,new Date(clock)).slice(0,3).map(goal=><DailyGoalCard key={goal.id} g={g} goal={goal} act={act} clock={clock} onOpen={onOpen} compact/>)}</section>
@@ -1150,7 +1150,7 @@ export function PuppyApp({betaMode=false}){
   if(secondary==='rewards'||tab==='rewards'&&!secondary)return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} pendingTaps={queuedTaps} readOnly={Platform.OS==='web'?account?.gameplayWritable!==true:betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
   if(secondary==='gacha')return <GachaScreen g={{...g,gameplayBusy}} act={act} state={state} registry={registry} onBack={()=>openScreen('rewards')}/>;
   if(secondary==='casino')return <CasinoScreen g={{...g,gameplayBusy}} act={act} bet={bet} setBet={setBet} state={state} onBack={()=>openScreen('rewards')}/>;
-  if(tab==='play')return desktop?<DesktopPlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>:<PlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>
+  if(tab==='play')return desktop?<DesktopPlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen} pendingTaps={queuedTaps}/>:<PlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen} pendingTaps={queuedTaps}/>
   if(tab==='care')return <CareScreen g={g} act={act} viewportHeight={contentHeight-6}/>;
   if(tab==='shop')return <ShopScreen g={g} act={act} onOpen={openScreen}/>;
   return null;
