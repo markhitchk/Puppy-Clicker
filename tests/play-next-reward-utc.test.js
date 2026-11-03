@@ -9,7 +9,7 @@ function withPacificClock(fn){
  const old=process.env.TZ;
  try{
   process.env.TZ='America/Los_Angeles';
-  return fn(new Date(atUtcRollo));
+  return fn(new Date(atUtcRollover));
  }finally{
   if(old===undefined)delete process.env.TZ;
   else process.env.TZ=old;
