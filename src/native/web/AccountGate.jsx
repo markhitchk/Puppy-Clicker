@@ -120,7 +120,7 @@ export default function WebAccountGate({children}){
  if(loading)return <WebLoading stage={hasPuppyDiscordCallback()?"callback":"account"}/>;
  if(user&&pupAccount?.status==="BANNED")
   return <PupAccountBanned account={pupAccount} onRefresh={()=>setStandingRefresh(n=>n+1)}
-   onSignOut={()=>void client.auth.signOut()}/>;
+   onSignOut={()=>client.auth.signOut()}/>;
  if(!user||!pupAccount)return <div className="pup-auth-page" data-testid="pup-auth-page">
   <aside className="pup-auth-intro" aria-label="Welcome to Pup Account">
    <a className="pup-auth-home" href="/">← Back to Puppy Clicker Home</a>
