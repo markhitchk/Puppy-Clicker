@@ -9,7 +9,10 @@ const key=accountId=>{
 };
 const unique=values=>[...new Set((Array.isArray(values)?values:[]).filter(safeId))].slice(-MAX_IDS);
 const initial=()=>({read:[],hidden:[]});
-export function readNotificationUiState(accountId,storage=globalThis.localStorage){
+const browserStorage=()=>{
+ try{return globalThis.localStorage||null;}catch{return null;}
+};
+export function readNotificationUiState(accountId,storage=browserStorage()){
  const k=key(accountId);
  if(!k||!storage)return initial();
  try{
@@ -31,7 +34,7 @@ export function applyNotificationUiState(game,ui){
   notificationSeenIds:unique([...(game.notificationSeenIds||[]),...hidden])
  };
 }
-export function saveNotificationUiAction(accountId,action,notifications,storage=globalThis.localStorage){
+export function saveNotificationUiAction(accountId,action,notifications,storage=browserStorage()){
  const k=key(accountId);
  if(!k||!storage)return false;
  const ui=readNotificationUiState(accountId,storage);
