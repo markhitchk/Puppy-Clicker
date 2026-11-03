@@ -4,7 +4,23 @@ export function crossplayDb(save, {owner=true, race=false, webOnly=false}={}) {
  let row=save?{player_uuid:'player',account_uuid:'account',revision:1,save_data:structuredClone(save),
   origin_platform:webOnly?'web':'android',installation_uuid:webOnly?null:'install'}:null;
  let writes=0;
- const admin={from(table){
+ const receipts=new Map();
+ const admin={async rpc(name,args){
+  if(name==='pup_web_gameplay_receipt'){
+   const old=receipts.get(args.p_operation_id);
+   return {data:old?old.hash===args.p_intent_hash?{status:'saved',revision:old.revision}:{status:'reused_id'}:{status:'unknown'},error:null};
+  }
+  if(name==='pup_web_gameplay_commit'){
+   const old=receipts.get(args.p_operation_id);
+   if(old)return {data:old.hash===args.p_intent_hash?{status:'duplicate',revision:old.revision}:{status:'reused_id'},error:null};
+   if(race||!row||row.revision!==args.p_expected_revision)return {data:{status:'conflict'},error:null};
+   row={...row,revision:row.revision+1,save_data:structuredClone(args.p_save_data)};
+   writes++;
+   receipts.set(args.p_operation_id,{hash:args.p_intent_hash,revision:row.revision});
+   return {data:{status:'saved',revision:row.revision},error:null};
+  }
+  throw Error('Unexpected RPC '+name);
+ },from(table){
   let patch=null;const filters=[];
   const query={select(){return query},eq(k,v){filters.push([k,v]);return query},
    update(v){patch=v;return query},async insert(){return {error:null}},
