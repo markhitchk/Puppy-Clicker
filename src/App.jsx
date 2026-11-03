@@ -28,6 +28,7 @@ import LanguagePicker,{useLanguage} from "./LanguagePicker.jsx";
 import ProfileAvatarEditor from "./ProfileAvatarEditor.jsx";
 import PupGiftRequests from "./PupGiftRequests.jsx";
 import {avatarForAccount} from "./pupWebApi.js";
+import {suggestUsername,suggestDisplayName,generateStrongPassword} from "./nameSuggestions.js";
 import SiteAccountMenu,{ProfileAvatar,PUP_ACCOUNT_CHANGED} from "./SiteAccountMenu.jsx";
 import "./styles.css";
 
@@ -243,15 +244,18 @@ function AccountDashboard(){
  const saveCredentials=async event=>{
   event.preventDefault();
   if(credentialBusy)return;
-  const username=credentialUsername.trim();
-  const password=credentialPassword;
+  const fields=new FormData(event.currentTarget);
+  // A password manager can populate inputs before React receives an onChange.
+  const username=String(fields.get('username')??credentialUsername).trim();
+  const password=String(fields.get('new-password')??credentialPassword);
+  const confirmation=String(fields.get('confirm-password')??credentialConfirmation);
   if(!/^[A-Za-z0-9_-]{3,20}$/.test(username)){
    setCredentialMessage("Username must be 3–20 letters, numbers, underscores or hyphens.");return;
   }
   if(password.length<8||password.length>128){
    setCredentialMessage("Password must be between 8 and 128 characters.");return;
   }
-  if(password!==credentialConfirmation){
+  if(password!==confirmation){
    setCredentialMessage("Passwords do not match.");return;
   }
   setCredentialBusy(true);setCredentialMessage("");
@@ -336,7 +340,10 @@ function AccountDashboard(){
     <div className="portal-divider"></div>
     <h3 id="profile-settings">✏️ Profile settings</h3>
      <ProfileAvatarEditor account={profile} onChanged={avatarUrl=>setProfile(old=>({...old,avatarUrl}))}/>
-    {editing?<form onSubmit={save} className="profile-form"><label htmlFor="pupDisplayName">Display name</label><input id="pupDisplayName" value={displayName} maxLength={24} onChange={e=>setDisplayName(e.target.value)} autoComplete="nickname"/><div className="form-actions"><button className="cta cta-primary" disabled={saving} type="submit">{saving?"Saving…":"Save display name"}</button><button className="cta cta-secondary" type="button" onClick={()=>{setEditing(false);setDisplayName(profile.displayName||profile.username);}}>Cancel</button></div></form>:
+    {editing?<form onSubmit={save} className="profile-form"><label htmlFor="pupDisplayName">Display name</label><input id="pupDisplayName" name="nickname" value={displayName} maxLength={24} onChange={e=>setDisplayName(e.target.value)} autoComplete="nickname"/>
+     <button className="account-auth-text-button" type="button" disabled={saving}
+      onClick={()=>{try{setDisplayName(suggestDisplayName(displayName));setStatus('');}catch{setStatus('Secure name suggestions are unavailable in this browser.');}}}>🎲 Suggest display name</button>
+     <div className="form-actions"><button className="cta cta-primary" disabled={saving} type="submit">{saving?"Saving…":"Save display name"}</button><button className="cta cta-secondary" type="button" onClick={()=>{setEditing(false);setDisplayName(profile.displayName||profile.username);}}>Cancel</button></div></form>:
      <div className="profile-row"><span><small>Display name</small><strong>{profile.displayName||profile.username}</strong></span><button className="small-action" type="button" onClick={()=>setEditing(true)}>Edit name</button></div>}
     {status?<p className="portal-message" role="status">{status}</p>:null}
    </section>
@@ -370,13 +377,18 @@ function AccountDashboard(){
        spellCheck="false" autoCapitalize="none" autoCorrect="off" required
        value={credentialUsername} onChange={e=>setCredentialUsername(e.target.value)}
        name="username" autoComplete="username"/>
+      <button className="account-auth-text-button" type="button" disabled={credentialBusy}
+       onClick={()=>{try{setCredentialUsername(suggestUsername(credentialUsername));setCredentialMessage('');}catch{setCredentialMessage('Secure username suggestions are unavailable in this browser.');}}}>🎲 Generate username</button>
       <label htmlFor="pupCredentialPassword">{profile.passwordLoginEnabled?"New password":"Password"}</label>
-      <input id="pupCredentialPassword" type="password" minLength={8} maxLength={128}
-       required value={credentialPassword} onChange={e=>setCredentialPassword(e.target.value)}
+      <input id="pupCredentialPassword" type="password" name="new-password" minLength={8} maxLength={128}
+       required value={credentialPassword} onChange={e=>setCredentialPassword(e.target.value)} onInput={e=>setCredentialPassword(e.currentTarget.value)}
        autoComplete="new-password"/>
+      <p className="account-security-note">Use your browser or password manager's suggested strong password, or generate one below. Save it in your password manager before submitting.</p>
+      <button type="button" className="account-auth-text-button" disabled={credentialBusy}
+       onClick={()=>{try{const strong=generateStrongPassword();setCredentialPassword(strong);setCredentialConfirmation(strong);setCredentialMessage('Strong password generated. Save it to your password manager before updating.');}catch{setCredentialMessage('Secure password generation is unavailable in this browser.');}}}>🔐 Generate strong password</button>
       <label htmlFor="pupCredentialConfirm">Confirm password</label>
-      <input id="pupCredentialConfirm" type="password" minLength={8} maxLength={128}
-       required value={credentialConfirmation} onChange={e=>setCredentialConfirmation(e.target.value)}
+      <input id="pupCredentialConfirm" type="password" name="confirm-password" minLength={8} maxLength={128}
+       required value={credentialConfirmation} onChange={e=>setCredentialConfirmation(e.target.value)} onInput={e=>setCredentialConfirmation(e.currentTarget.value)}
        autoComplete="new-password"/>
       <button className="cta cta-primary stretch" type="submit" disabled={credentialBusy}>
        {credentialBusy?"Securing account…":profile.passwordLoginEnabled?"Update password login":"Enable password login"}

@@ -1,4 +1,5 @@
-import React,{useEffect,useRef} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
+import {suggestPuppyName} from '../../nameSuggestions.js';
 import {level} from '../src/engine/game.js';
 import {MAX_PLAYER_LEVEL,MAX_PLAYER_XP,levelXp,nextXpTarget} from '../src/engine/balancedProgression.js';
 
@@ -12,8 +13,12 @@ export function GameProgressHeader({game:g,children}){
 
 export function RenamePuppyDialog({name,onSave,onClose}){
  const dialog=useRef(null),input=useRef(null);
+ const [value,setValue]=useState(name),[error,setError]=useState('');
  useEffect(()=>{const node=dialog.current;node.showModal();input.current?.select();return()=>node.close();},[]);
- return <dialog ref={dialog} className="casino-intro rename-puppy-dialog cyber-panel" aria-labelledby="rename-puppy-title" onCancel={event=>{event.preventDefault();onClose();}}><h2 id="rename-puppy-title">Rename puppy</h2><p>Choose a nickname for your current puppy.</p><form onSubmit={event=>{event.preventDefault();const name=input.current.value.trim();if(!name)return;onSave(name);}}><label className="web-field">Puppy name<input ref={input} name="puppyName" aria-label="Puppy name" defaultValue={name} maxLength={18} required autoFocus/></label><div className="casino-dialog-actions"><button type="button" className="cyber-button secondary" onClick={onClose}>Cancel</button><button type="submit" className="cyber-button primary">Save name</button></div></form></dialog>;
+ return <dialog ref={dialog} className="casino-intro rename-puppy-dialog cyber-panel" aria-labelledby="rename-puppy-title" onCancel={event=>{event.preventDefault();onClose();}}><h2 id="rename-puppy-title">Rename puppy</h2><p>Choose a nickname for your current puppy, or generate a cute one.</p><form onSubmit={event=>{event.preventDefault();const next=value.trim();if(!next)return;onSave(next);}}><label className="web-field">Puppy name<input ref={input} name="puppyName" aria-label="Puppy name" value={value} onChange={event=>setValue(event.target.value)} maxLength={18} required autoFocus/></label>
+ <button type="button" className="cyber-button secondary" onClick={()=>{try{setValue(suggestPuppyName(value));setError('');}catch{setError('Secure name suggestions are unavailable in this browser.');}}}>🎲 Generate puppy name</button>
+ {error?<p role="alert">{error}</p>:null}
+ <div className="casino-dialog-actions"><button type="button" className="cyber-button secondary" onClick={onClose}>Cancel</button><button type="submit" className="cyber-button primary">Save name</button></div></form></dialog>;
 }
 
 export function PuppyPlatform({children,name}){

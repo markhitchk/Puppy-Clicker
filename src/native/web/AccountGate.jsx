@@ -97,12 +97,15 @@ export default function WebAccountGate({children}){
    setBusy(false);
   }
  };
- const loginPup=async()=>{
-  if(!login.trim()||!password){setError("Enter your Pup username and password.");return;}
+ const loginPup=async(fields=null)=>{
+  // Password managers sometimes fill native inputs before React updates its state.
+  const enteredLogin=String(fields?.get('username')??login).trim();
+  const enteredPassword=String(fields?.get('password')??password);
+  if(!enteredLogin||!enteredPassword){setError("Enter your Pup username and password.");return;}
   setBusy(true);setError("");
   try{
    clearPendingDiscord();
-   const account=await signInPupUsername(client,login.trim(),password);
+   const account=await signInPupUsername(client,enteredLogin,enteredPassword);
    const {data}=await client.auth.getUser();
    if(data?.user){setUser(data.user);setPupAccount(account);}
   }catch(e){setError(puppyAuthMessage(e));}
@@ -153,15 +156,15 @@ export default function WebAccountGate({children}){
     <section className="android-auth-provider">
      <div className="android-auth-provider-heading"><img src="/assets/logos/puppy_clicker.png" alt="" /><div><strong>Pup Account</strong><small>Username and password sign-in</small></div></div>
      <p>Sign in using the same Pup Account you use on Android. Your linked progress is preserved.</p>
-    <form className="pup-signin-form" autoComplete="on" onSubmit={event=>{event.preventDefault();void loginPup();}}>
+    <form className="pup-signin-form" autoComplete="on" onSubmit={event=>{event.preventDefault();void loginPup(new FormData(event.currentTarget));}}>
      <label htmlFor="pup-login-username">Pup username</label>
      <input id="pup-login-username" type="text" name="username" autoComplete="username"
       autoCapitalize="none" autoCorrect="off" spellCheck="false" required
-      placeholder="Pup Account username" value={login} onChange={event=>setLogin(event.target.value)}
+      placeholder="Pup Account username" value={login} onChange={event=>setLogin(event.target.value)} onInput={event=>setLogin(event.currentTarget.value)}
       disabled={busy||!client}/>
      <label htmlFor="pup-login-password">Password</label>
      <input id="pup-login-password" type="password" name="password" autoComplete="current-password"
-      required placeholder="Password" value={password} onChange={event=>setPassword(event.target.value)}
+      required placeholder="Password" value={password} onChange={event=>setPassword(event.target.value)} onInput={event=>setPassword(event.currentTarget.value)}
       disabled={busy||!client}/>
      <button className="pup-signin-submit" type="submit" disabled={busy||!client}>
       {busy?"Verifying…":"Sign in to Pup Account"}

@@ -4,6 +4,7 @@ import {requestPuppyAuth,puppyAuthMessage,verifyPuppySession,
 import DiscordSignupForm from "./DiscordSignupForm.jsx";
 import {DISCORD_ICON_URL} from "./discordIcon.js";
 import {client} from "./supabase.js";
+import {suggestUsername,generateStrongPassword} from "./nameSuggestions.js";
 
 // Mirror the Supabase Auth password policy before submitting a new account.
 const PASSWORD_SYMBOLS=new Set(["!","@","#","$","%","^","&","*","(",")","_","+","-","=","[","]","{","}",";","'","\\",":","\"","|","<",">","?",",",".","/","`","~"]);
@@ -41,14 +42,19 @@ export default function WebRegister({onAuthenticated,onSignIn}){
   if(busy||registered)return;
   setMessage("");
   if(!client){setMessage("Pup Account registration is unavailable.");return;}
-  const name=username.trim();
+  // Read the actual form values: password managers may autofill without
+  // emitting a React change event before submission.
+  const fields=new FormData(event.currentTarget);
+  const name=String(fields.get("username")??username).trim();
+  const enteredPassword=String(fields.get("new-password")??password);
+  const enteredConfirm=String(fields.get("confirm-password")??confirm);
   if(!/^[A-Za-z0-9_-]{3,20}$/.test(name)){
    setMessage("Username must be 3–20 letters, numbers, underscores or hyphens.");return;
   }
-  if(passwordRules(password).some(rule=>!rule.passed)){
+  if(passwordRules(enteredPassword).some(rule=>!rule.passed)){
    setMessage("Password must be 8–128 characters and include uppercase and lowercase letters, a number, and a special character.");return;
   }
-  if(password!==confirm){setMessage("Passwords do not match.");return;}
+  if(enteredPassword!==enteredConfirm){setMessage("Passwords do not match.");return;}
   if(contactEmail.trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())){
    setMessage("Enter a valid optional support email.");return;
   }
@@ -56,7 +62,7 @@ export default function WebRegister({onAuthenticated,onSignIn}){
   setBusy(true);
   try{
    const result=await requestPuppyAuth("register",{
-    username:name,password,contactEmail:contactEmail.trim()||null,
+    username:name,password:enteredPassword,contactEmail:contactEmail.trim()||null,
     termsAccepted:terms,privacyAccepted:privacy
    });
    if(!result.registered)throw Error("PUP_SIGNUP_UNAVAILABLE");
@@ -99,10 +105,15 @@ export default function WebRegister({onAuthenticated,onSignIn}){
    <label htmlFor="reg-name">Pup username</label>
    <input id="reg-name" type="text" name="username" autoComplete="username" required minLength={3} maxLength={20}
     pattern="[A-Za-z0-9_-]{3,20}" value={username} onChange={e=>setUsername(e.target.value)}
-    disabled={busy||registered} spellCheck="false" autoCapitalize="none"/>
+    disabled={busy||registered} spellCheck="false" autoCapitalize="none" autoCorrect="off"/>
+   <button className="account-auth-text-button" type="button" disabled={busy||registered}
+    onClick={()=>{try{setUsername(suggestUsername(username));setMessage("");}catch{setMessage("Secure name suggestions are not available in this browser.");}}}>🎲 Generate username</button>
    <label htmlFor="reg-pass">Password</label>
    <input id="reg-pass" type="password" name="new-password" autoComplete="new-password" required minLength={8}
-    maxLength={128} value={password} onChange={e=>setPassword(e.target.value)} disabled={busy||registered}/>
+    maxLength={128} value={password} onChange={e=>setPassword(e.target.value)} onInput={e=>setPassword(e.currentTarget.value)} disabled={busy||registered}/>
+   <p className="account-security-note">Tap the password field to use Google Password Manager, Samsung Pass, Bitwarden, 1Password, or your browser's suggested strong password. You can also generate one here.</p>
+   <button className="account-auth-text-button" type="button" disabled={busy||registered}
+    onClick={()=>{try{const suggested=generateStrongPassword();setPassword(suggested);setConfirm(suggested);setMessage("Strong password generated. Save it in your password manager before completing registration.");}catch{setMessage("Secure password generation is unavailable in this browser.");}}}>🔐 Generate strong password</button>
    <div className="account-password-rules" aria-label="Password requirements">
     {passwordRules(password).map(rule=><span key={rule.label}
      className={"account-password-rule"+(rule.passed?" satisfied":"")}>
@@ -111,7 +122,7 @@ export default function WebRegister({onAuthenticated,onSignIn}){
    </div>
    <label htmlFor="reg-confirm">Confirm password</label>
    <input id="reg-confirm" type="password" name="confirm-password" autoComplete="new-password" required minLength={8}
-    maxLength={128} value={confirm} onChange={e=>setConfirm(e.target.value)} disabled={busy||registered}/>
+    maxLength={128} value={confirm} onChange={e=>setConfirm(e.target.value)} onInput={e=>setConfirm(e.currentTarget.value)} disabled={busy||registered}/>
    <label htmlFor="reg-email">Support contact email (optional)</label>
    <input id="reg-email" type="email" name="email" autoComplete="email" maxLength={254}
     value={contactEmail} onChange={e=>setContactEmail(e.target.value)} disabled={busy||registered}/>

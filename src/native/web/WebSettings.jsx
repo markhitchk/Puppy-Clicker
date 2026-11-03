@@ -3,6 +3,7 @@ import PuppyArtwork from './PuppyArtwork.jsx';
 import LanguagePicker from '../../LanguagePicker.jsx';
 import {ACCENT_PRESETS} from '../src/engine/settings.js';
 import {level} from '../src/engine/game.js';
+import {suggestDisplayName} from '../../nameSuggestions.js';
 
 function Toggle({title,detail,value,onChange}){
  return <label className="web-setting-row"><span><strong>{title}</strong>{detail?<small>{detail}</small>:null}</span><input type="checkbox" role="switch" aria-label={title} checked={value===true} onChange={event=>onChange(event.target.checked)}/></label>;
@@ -33,7 +34,9 @@ export default function WebSettings({g,act,onOpen,registry,notifications,account
    <button className="cyber-button secondary" disabled={busy||gameplayBusy} onClick={async()=>{setBusy(true);try{const result=await onConnectAccount();if(result?.error)throw result.error;window.location.assign('/account');}catch{setMessage('Unable to sign out. Please try again.');setBusy(false);}}}>Sign out / switch account</button>
   </>)}
   {section('profile','Profile','Your display name and puppy collection',<>
-   <form onSubmit={async event=>{event.preventDefault();if(busy)return;setBusy(true);setMessage('');try{await onUpdateAccountName(name.trim());setMessage('Display name saved to your Pup Account.');}catch{setMessage('Unable to save your name. Please try again.');}finally{setBusy(false);}}}><label className="web-field">Display name<input aria-label="Display name" autoComplete="nickname" value={name} minLength={2} maxLength={24} onChange={event=>setName(event.target.value)}/></label><button className="cyber-button primary" disabled={busy||gameplayBusy||name.trim().length<2}>{busy?'Saving…':'Save display name'}</button></form>
+   <form onSubmit={async event=>{event.preventDefault();if(busy)return;setBusy(true);setMessage('');try{await onUpdateAccountName(name.trim());setMessage('Display name saved to your Pup Account.');}catch{setMessage('Unable to save your name. Please try again.');}finally{setBusy(false);}}}><label className="web-field">Display name<input aria-label="Display name" autoComplete="nickname" value={name} minLength={2} maxLength={24} onChange={event=>setName(event.target.value)}/></label><div className="web-setting-actions"><button className="cyber-button secondary" type="button" disabled={busy||gameplayBusy}
+    onClick={()=>{try{setName(suggestDisplayName(name));setMessage('');}catch{setMessage('Secure name suggestions are unavailable in this browser.');}}}>🎲 Suggest display name</button>
+    <button className="cyber-button primary" disabled={busy||gameplayBusy||name.trim().length<2}>{busy?'Saving…':'Save display name'}</button></div></form>
    <div className="web-setting-actions"><button className="cyber-button secondary" onClick={()=>onOpen('roster')}>Manage puppies & nicknames</button><button className="cyber-button secondary" onClick={()=>onOpen('achievements')}>Achievements & XP</button></div>
   </>)}
   {section('appearance','Appearance','Theme, color, text size and accessibility',<>

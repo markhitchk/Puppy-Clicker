@@ -2,6 +2,7 @@ import React,{useState} from "react";
 import {requestPuppyAuth,verifyPuppySession,puppyAuthMessage,
  clearPendingDiscordSignup} from "./native/web/puppyOAuth.js";
 import {client} from "./supabase.js";
+import {suggestUsername} from "./nameSuggestions.js";
 
 const TERMS="https://github.com/markhitchk/pup-clinker/blob/main/assets/legal/terms-of-use.md";
 const PRIVACY="/privacy";
@@ -18,14 +19,15 @@ export default function DiscordSignupForm({signup,onAuthenticated,onSignIn}){
  const register=async event=>{
   event.preventDefault();
   if(busy||registered)return;
-  if(!/^[A-Za-z0-9_-]{3,20}$/.test(username.trim())){
+  const enteredName=String(new FormData(event.currentTarget).get('username')??username).trim();
+  if(!/^[A-Za-z0-9_-]{3,20}$/.test(enteredName)){
    setMessage("Choose a username with 3–20 letters, numbers, underscores or hyphens.");return;
   }
   if(!terms||!privacy){setMessage("Accept both the Terms and Privacy Policy.");return;}
   setBusy(true);setMessage("");
   try{
    const result=await requestPuppyAuth("discord-register",{
-    ticket,username:username.trim(),termsAccepted:terms,privacyAccepted:privacy,
+    ticket,username:enteredName,termsAccepted:terms,privacyAccepted:privacy,
     useDiscordEmail
    });
    if(result.registered!==true)throw Error("PUP_SIGNUP_UNAVAILABLE");
@@ -63,10 +65,12 @@ export default function DiscordSignupForm({signup,onAuthenticated,onSignIn}){
   <p>Complete your Pup Account registration. Your Discord identity will be securely linked to this new account. Existing accounts are never replaced.</p>
   <form className="profile-form" onSubmit={register}>
    <label htmlFor="discord-signup-username">Pup Account username</label>
-   <input id="discord-signup-username" autoComplete="username" value={username}
+   <input id="discord-signup-username" type="text" name="username" autoComplete="username" value={username}
     minLength={3} maxLength={20} pattern="[A-Za-z0-9_-]{3,20}" required
     onChange={e=>setUsername(e.target.value)} disabled={busy||registered}
-    autoCapitalize="none" spellCheck="false"/>
+    autoCapitalize="none" autoCorrect="off" spellCheck="false"/>
+   <button type="button" className="account-auth-text-button" disabled={busy||registered}
+    onClick={()=>{try{setUsername(suggestUsername(username));setMessage('');}catch{setMessage('Secure name suggestions are not available in this browser.');}}}>🎲 Generate username</button>
    <p className="account-security-note">Discord sign-in does not require a password. You can add a Pup Account password later under Account Management.</p>
    <div className="discord-signup-email">
     <strong>Discord email</strong>
