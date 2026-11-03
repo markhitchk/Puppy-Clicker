@@ -76,7 +76,10 @@ export default function BrowserSettings(){
    setMessage(result==='granted'?'Browser notifications enabled.':result==='denied'?'Notifications were blocked. Change site permissions in your browser.':'Notification permission was not granted.');
   }catch{setMessage('Notifications are not available in this browser.');}
  };
- const size=bytes=>Math.round(bytes/1024/1024*10)/10+' MB';
+ const size=bytes=>{
+  if(bytes<1024*1024/10)return 'less than 0.1 MB';
+  return (Math.round(bytes/1024/1024*10)/10).toLocaleString()+' MB';
+ };
  return <div className="browser-settings-page">
   <header className="browser-settings-intro"><div><p className="eyebrow">🐾 PUPPY CLICKER · WEB</p><h1>Browser Settings</h1>
    <p>These settings work for guests and Pup Account players. Preferences stay on this browser; gameplay balances and cloud saves are separate.</p></div>
@@ -117,7 +120,7 @@ export default function BrowserSettings(){
    </section>
    <section className="browser-settings-panel" aria-labelledby="browser-storage"><h2 id="browser-storage">💾 Browser storage & privacy</h2>
     <p>Local preferences are separate from your Pup Account cloud save. Pending gameplay actions may be stored in IndexedDB until Supabase confirms them.</p>
-    {storage?<p className="browser-settings-detail">Estimated storage in use: {size(storage.usage)} of {size(storage.quota)} available to this origin.</p>:null}
+    {storage?<p className="browser-settings-detail">Estimated site storage used: {size(storage.usage)}. Browser-reported origin quota: {size(storage.quota)} (this is a limit, not free device space).</p>:null}
     <p className="browser-settings-detail">Never clear website data while gameplay is still syncing. This page does not delete your queued actions.</p>
     {!confirmReset?<button className="browser-settings-action" type="button" onClick={()=>setConfirmReset(true)}>Reset browser preferences</button>:<div className="browser-settings-reset">
      <p>Reset appearance and performance preferences? Game progress is not changed.</p>
