@@ -475,8 +475,9 @@ export default function App(){
     page==="admin"?<AdminPage/>:
     page==="recovery"?<RecoveryPage/>:
     page==="callback"?<DiscordCallbackPage/>:
-    page==="error"?<WebErrorPage code={errorRoute?Number(errorRoute[1]):404}/>:<><NativeApp/>{page==="play"?<AdaptiveGraphics/>:null}</>}
+    page==="error"?<WebErrorPage code={errorRoute?Number(errorRoute[1]):404}/>:<NativeApp/>}
   </main>
+  {page==="play"?<AdaptiveGraphics/>:null}
   <NetworkCheckReporter/>
   <AndroidAppBanner/>
  </div>;
