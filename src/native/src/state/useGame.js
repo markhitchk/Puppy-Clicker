@@ -1,11 +1,13 @@
 import {loadWebPreferences,saveWebPreferences,updateWebPreference,withWebPreferences,WEB_PREFERENCE_DEFAULTS} from '../../web/preferences.js';
-import {useCallback,useEffect,useReducer,useRef,useState} from "react";
+import {useCallback,useEffect,useMemo,useReducer,useRef,useState} from "react";
 import {initialState,transition} from "./reducer.js";
 import {freshGame} from "../engine/game.js";
 import {projectKotlinCloudSave} from "../production/kotlinCloudPreview.js";
 import {fallbackSchedule,parseMonthlySchedule,monthKey} from "../engine/monthlyRewards.js";
 import {useWebAccount} from "../../web/AccountGate.jsx";
 import {puppyFunctionError} from '../../web/puppyOAuth.js';
+import {queueGameplayIntent,pendingGameplayIntents,acknowledgeGameplayIntent} from './gameplayOutbox.js';
+import {projectPendingTapDisplay} from './optimisticTaps.js';
 
 // The browser is now a Pup Account companion, not a separate economy.
 // Never read or write puppy_web_saves, never forge a PupEye signed envelope.
@@ -40,17 +42,19 @@ export function useGame(){
  const [syncStatus,setSyncStatus]=useState({state:"LOADING",revision:null,errorCode:null});
  const [cloudState,setCloudState]=useState("LOADING");
  const [pendingActions,setPendingActions]=useState(0);
+ const [queuedTaps,setQueuedTaps]=useState(0);
  const preferences=useRef(null);
  if(!preferences.current)preferences.current=loadWebPreferences();
  const revision=useRef(0),loaded=useRef(false),generation=useRef(0);
  const pending=useRef(0),queue=useRef(Promise.resolve()),inFlight=useRef(new Set());
+ const draining=useRef(false),drainRef=useRef(null),retryTimer=useRef(null),retryAttempt=useRef(0),drainAgain=useRef(false);
  const latest=useRef(state);latest.current=state;
  const reload=useCallback(async()=>{
-  if(pending.current>0)return false;
+  if(pending.current>0||draining.current)return false;
   const request=++generation.current;
   setSyncStatus(old=>({...old,state:"LOADING",errorCode:null}));
   try{
-   const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"cloud-save-read"}});
+   const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"cloud-save-read"},timeout:15000});
    if(error||!data?.verified||data.account?.id!==pupAccount.id)
     throw new Error(error?await functionError(error):"PUP_ACCOUNT_VERIFICATION_FAILED");
    if(request!==generation.current)return false;
@@ -68,6 +72,8 @@ export function useGame(){
    dispatch({type:"hydrate",game:withWebPreferences(game,preferences.current),now:Date.now(),readOnly:true});
    setCloudState("LIVE_SYNCED");
    setSyncStatus({state:"READY",revision:revision.current,errorCode:null});
+   // Rehydrate any unsent operations before accepting further cloud writes.
+   setTimeout(()=>drainRef.current?.(),0);
    return true;
   }catch(error){
    if(request!==generation.current)return false;
@@ -80,8 +86,126 @@ export function useGame(){
  },[client,pupAccount.id]);
  useEffect(()=>{
   void reload();
-  return()=>{generation.current++;loaded.current=false;};
+  return()=>{generation.current++;loaded.current=false;clearTimeout(retryTimer.current);};
  },[reload]);
+ // A crash-safe outbox is the source of truth for all pending browser actions.
+ // Replies with missing receipts are never acknowledged, even after a timeout.
+ const refreshForConflict=useCallback(async()=>{
+  try{
+   const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"cloud-save-read"},timeout:15000});
+   if(error||!data?.verified||data.account?.id!==pupAccount.id||!data.cloud?.exists)return false;
+   revision.current=data.cloud.revision;
+   dispatch({type:"hydrate",game:withWebPreferences(
+    projectKotlinCloudSave(data.cloud.saveJson,data.account.displayName),preferences.current
+   ),now:Date.now(),readOnly:true});
+   setCloudState("LIVE_SYNCED");
+   return true;
+  }catch{return false;}
+ },[client,pupAccount.id]);
+ const drain=useCallback(async()=>{
+  if(draining.current||!loaded.current)return;
+  const captured=generation.current,accountId=pupAccount.id;
+  draining.current=true;
+  try{
+   while(loaded.current&&captured===generation.current){
+    const entries=await pendingGameplayIntents(accountId);
+    setPendingActions(entries.length);
+    setQueuedTaps(entries.filter(item=>item.intent?.type==="tap").length);
+    for(const item of entries){
+     if(item.intent?.type==='gacha'||item.intent?.type==='casinoRecoverLegacy'||
+      /^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(item.intent?.type||''))
+      inFlight.current.add(item.intent.type);
+    }
+    const op=entries[0];
+    if(!op){
+     retryAttempt.current=0;
+     setSyncStatus({state:"SAVED",revision:revision.current,errorCode:null});
+     break;
+    }
+    if(typeof navigator!=="undefined"&&navigator.onLine===false){
+     setSyncStatus({state:"QUEUED_OFFLINE",revision:revision.current,errorCode:null});
+     break;
+    }
+    setSyncStatus({state:"SAVING",revision:revision.current,errorCode:null});
+    try{
+     const {data,error}=await client.functions.invoke("pup-web-auth",{
+      body:{action:"gameplay",operationId:op.id,expectedRevision:revision.current,intent:op.intent},timeout:15000
+     });
+     if(error||!data?.saved||!data.cloud?.exists||data.operationId!==op.id)
+      throw new Error(error?await functionError(error):"SAVE_RECEIPT_MISSING");
+     // The Edge Function returns a committed database receipt, also on retries.
+     await acknowledgeGameplayIntent(accountId,op.id);
+     inFlight.current.delete(op.intent.type);
+     retryAttempt.current=0;
+     revision.current=data.cloud.revision;
+     try{
+      const game=projectKotlinCloudSave(data.cloud.saveJson,pupAccount?.displayName||pupAccount?.username);
+      dispatch({type:"hydrate",game:withWebPreferences(game,preferences.current),now:Date.now(),readOnly:true});
+      setCloudState("LIVE_SYNCED");
+     }catch{
+      setSyncStatus({state:"SAVED_DISPLAY_ERROR",revision:revision.current,
+       errorCode:"SAVED_BUT_DISPLAY_REFRESH_FAILED"});
+     }
+     // Respect the server's 65ms fair-play spacing, without discarding queued taps.
+     if(op.intent.type==="tap")await new Promise(resolve=>setTimeout(resolve,90));
+    }catch(error){
+     const code=String(error?.message||"SAVE_RESULT_UNKNOWN");
+     if(code==="CLOUD_SAVE_CONFLICT"){
+      if(await refreshForConflict())continue;
+     }
+     const rejected=new Set([
+      "PUP_GAMEPLAY_REJECTED","PUP_GAMEPLAY_ACTION_INVALID",
+      "PUP_OPERATION_ID_INVALID","PUP_OPERATION_ID_REUSED",
+      "GACHA_INSUFFICIENT_TREATS","GACHA_INSUFFICIENT_TICKET",
+      "NOT_ENOUGH_CASINO_CHIPS","BLACKJACK_INSUFFICIENT_CHIPS",
+      "CASINO_ROUND_ALREADY_ACTIVE","CASINO_ROUND_NOT_FOUND",
+      "BLACKJACK_ROUND_NOT_FOUND","CARE_ACTION_UNAVAILABLE",
+      "INVALID_WAGER","BLACKJACK_INVALID_WAGER",
+      "PUP_CASINO_ANDROID_ROUND_PENDING","CLOUD_SAVE_REQUIRED",
+      "PUP_ACCOUNT_BLOCKED","PUP_ACCOUNT_LEGAL_REQUIRED",
+      "PUP_OWNER_DEVICE_UNAVAILABLE"
+     ]);
+     if(rejected.has(code)){
+      // A definitive gameplay rejection is visible, never called 'saved'.
+      await acknowledgeGameplayIntent(accountId,op.id);
+      inFlight.current.delete(op.intent.type);
+      setSyncStatus({state:"REJECTED",revision:revision.current,errorCode:code});
+      dispatch({type:"webActionFailed",message:gameplayMessage(code)});
+      continue;
+     }
+     retryAttempt.current=Math.min(7,retryAttempt.current+1);
+     const delay=code==="PUP_TAP_RATE_LIMIT"?250:
+      code==="PUPEYE_WEB_RATE_LIMIT"?4000:
+      Math.min(30000,500*2**retryAttempt.current)+Math.floor(Math.random()*250);
+     setSyncStatus({state:"RETRYING",revision:revision.current,errorCode:null});
+     clearTimeout(retryTimer.current);
+     retryTimer.current=setTimeout(()=>drainRef.current?.(),delay);
+     break;
+    }
+   }
+  }catch(error){
+   const code=String(error?.message||"PUP_LOCAL_CACHE_UNAVAILABLE");
+   setSyncStatus({state:"BLOCKED",revision:revision.current,errorCode:code});
+  }finally{
+   draining.current=false;
+   if(drainAgain.current){
+    drainAgain.current=false;
+    setTimeout(()=>drainRef.current?.(),0);
+   }
+  }
+ },[client,pupAccount.id,pupAccount?.displayName,pupAccount?.username,refreshForConflict]);
+ drainRef.current=drain;
+ useEffect(()=>{
+  const wake=()=>{if(document.visibilityState==="visible")void drainRef.current?.();};
+  const online=()=>void drainRef.current?.();
+  window.addEventListener("online",online);
+  window.addEventListener("focus",wake);
+  document.addEventListener("visibilitychange",wake);
+  void drain();
+  return()=>{window.removeEventListener("online",online);
+   window.removeEventListener("focus",wake);
+   document.removeEventListener("visibilitychange",wake);};
+ },[drain]);
  const act=useCallback(action=>{
   if(!action?.type)return;
   if(action.type==='setPreference'){
@@ -100,61 +224,35 @@ export function useGame(){
    if(pending.current===0)void reload();
    return;
   }
-  if(!LIVE_ACTIONS.has(action.type)){
-   // Unsupported actions fail closed; client-side reducers cannot mint money.
-   dispatch({type:"webActionBlocked"});
-   return;
-  }
+  if(!LIVE_ACTIONS.has(action.type)){dispatch({type:"webActionBlocked"});return;}
   if(!loaded.current||revision.current<1){
    setSyncStatus(old=>({...old,state:"BLOCKED",errorCode:"CLOUD_SAVE_REQUIRED"}));
    return;
   }
   const intent=normalizeIntent(action);
-  // A wager/pull is a single transaction. Other actions (e.g. feed then wash,
-  // or two different upgrade purchases) must retain their existing queue order.
-  const exclusive=action.type==='gacha'||action.type==='casinoRecoverLegacy'||/^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(action.type);
+  const exclusive=action.type==='gacha'||action.type==='casinoRecoverLegacy'||
+   /^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(action.type);
   if(exclusive&&inFlight.current.has(action.type))return;
   if(exclusive)inFlight.current.add(action.type);
-  const captured=generation.current;
-  pending.current++;setPendingActions(pending.current);
-  setSyncStatus(old=>({...old,state:"SAVING",errorCode:null}));
+  // Maintain enqueue order when several controls are tapped in the same tick.
+  pending.current++;
+  setSyncStatus(old=>({...old,state:"QUEUED",errorCode:null}));
   queue.current=queue.current.catch(()=>{}).then(async()=>{
-   if(!loaded.current||captured!==generation.current)return;
-   const {data,error}=await client.functions.invoke("pup-web-auth",{
-    body:{action:"gameplay",expectedRevision:revision.current,intent}
-   });
-   if(error||!data?.saved||!data.cloud?.exists){
-    const code=error?await functionError(error):"SAVE_RECEIPT_MISSING";
-    throw new Error(code);
-   }
-   // The server has committed a single authoritative Kotlin revision.
-   // A display projection failure must never cause an automatic economy retry.
-   revision.current=data.cloud.revision;
-   setSyncStatus({state:"SAVED",revision:revision.current,errorCode:null});
-   try{
-    const game=projectKotlinCloudSave(data.cloud.saveJson,pupAccount?.displayName||pupAccount?.username);
-    dispatch({type:"hydrate",game:withWebPreferences(game,preferences.current),now:Date.now(),readOnly:true});
-    setCloudState("LIVE_SYNCED");
-    if(intent.type==='casinoRecoverLegacy')dispatch({type:'webActionFailed',message:'Old round recovered. Your reserved Chips have been returned. You can play again.'});
-   }catch{
-    setSyncStatus({state:"SAVED_DISPLAY_ERROR",revision:revision.current,errorCode:"SAVED_BUT_DISPLAY_REFRESH_FAILED"});
-   }
+   await queueGameplayIntent(pupAccount.id,intent);
+   if(intent.type==="tap")setQueuedTaps(n=>n+1);
+   if(draining.current)drainAgain.current=true;
+   else void drainRef.current?.();
   }).catch(error=>{
-   const code=String(error?.message||"SAVE_RESULT_UNKNOWN");
-   // Never automatically replay an ambiguous write, including timeouts.
-   // On conflict, require a fresh authenticated cloud snapshot.
-   if(code==="CLOUD_SAVE_CONFLICT"||code==="SAVE_RESULT_UNKNOWN"||code==="PUP_CLOUD_UNAVAILABLE"){
-    loaded.current=false;
-    setCloudState("CONNECTION_ERROR");
-   }
-   setSyncStatus({state:"BLOCKED",revision:revision.current,errorCode:code});
-   dispatch({type:'webActionFailed',message:gameplayMessage(code)});
-  }).finally(()=>{
    if(exclusive)inFlight.current.delete(action.type);
-   pending.current=Math.max(0,pending.current-1);setPendingActions(pending.current);
-   if(pending.current===0&&!loaded.current)void reload();
+   // Never send an action that failed to enter durable storage.
+   const code=String(error?.message||"PUP_LOCAL_CACHE_UNAVAILABLE");
+   setSyncStatus({state:"BLOCKED",revision:revision.current,errorCode:code});
+   dispatch({type:"webActionFailed",message:
+    "Your browser could not store this action. Enable site storage or free space; it was not sent."});
+  }).finally(()=>{
+   pending.current=Math.max(0,pending.current-1);
   });
- },[client,reload,pupAccount?.displayName,pupAccount?.username]);
+ },[pupAccount.id,reload]);
  useEffect(()=>{
   const refresh=()=>{if(pending.current===0&&document.visibilityState==="visible")void reload();};
   const timer=setInterval(refresh,15000);
@@ -188,12 +286,22 @@ export function useGame(){
   dispatch({type:"hydrate",game:withWebPreferences({...latest.current.game,guestName:data.displayName},preferences.current),now:Date.now(),readOnly:true});
   return true;
  },[client]);
+ // Predict pending tap rewards for responsiveness; authoritative values only
+ // come from the acknowledged server save and can correct this prediction.
+ const gameForDisplay=useMemo(()=>{
+  if(!queuedTaps)return state.game;
+  try{
+   const n=Math.min(queuedTaps,80),now=Date.now();
+   return projectPendingTapDisplay(state.game,
+    Array.from({length:n},(_,i)=>({at:now-(n-i-1)*70})));
+  }catch{return state.game;}
+ },[state.game,queuedTaps]);
  const account={status:"VERIFIED",username:pupAccount?.username,
   displayName:pupAccount?.displayName||pupAccount?.username,
   discordUserId:pupAccount?.discordUserId||null,
   id:pupAccount?.id,authUserId:user.id,gameplayWritable:loaded.current};
- return {state,gameForDisplay:state.game,act,account,cloudState,
-  gameplayBusy:pendingActions>0,
+ return {state,gameForDisplay,queuedTaps,act,account,cloudState,
+  gameplayBusy:pendingActions>queuedTaps,
   startupError:syncStatus.errorCode?{code:syncStatus.errorCode}:null,syncStatus,
   refreshAccount:reload,updateAccountName};
 }

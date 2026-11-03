@@ -112,3 +112,44 @@ test('Blackjack server deals no future shoe, supports hit/stand/double/split, an
   assert.equal(values(db).casino_chips_v7,settled);
  }
 });
+
+test('durable operation ID survives a lost response without charging twice',async()=>{
+ const db=crossplayDb(seed());
+ const operationId='a76aa728-a302-44de-b36b-5632e8e99e1a';
+ const intent={type:'gacha',payment:'TREATS'};
+ const first=await crossPlay(db.admin,db.account,{action:'gameplay',expectedRevision:1,operationId,intent});
+ assert.equal(first.saved,true);assert.equal(first.operationId,operationId);
+ assert.equal(db.writes(),1);assert.equal(values(db).treats,7500);
+ // The first acknowledgement is lost; the client retries with a stale revision.
+ const again=await crossPlay(db.admin,db.account,{action:'gameplay',expectedRevision:1,operationId,intent});
+ assert.equal(again.saved,true);assert.equal(again.duplicate,true);
+ assert.equal(again.cloud.revision,2);assert.equal(db.writes(),1);
+ assert.equal(values(db).treats,7500);
+});
+test('reusing an operation ID for a different economy action is rejected',async()=>{
+ const db=crossplayDb(seed());
+ const operationId='b76aa728-a302-44de-b36b-5632e8e99e1a';
+ await crossPlay(db.admin,db.account,{action:'gameplay',expectedRevision:1,operationId,intent:{type:'gacha',payment:'TREATS'}});
+ await assert.rejects(
+  crossPlay(db.admin,db.account,{action:'gameplay',expectedRevision:2,operationId,intent:{type:'gacha',payment:'COMMON_TICKET'}}),
+  {message:'PUP_OPERATION_ID_REUSED'}
+ );
+ assert.equal(db.writes(),1);
+});
+test('same operation ID sent concurrently commits only once',async()=>{
+ const db=crossplayDb(seed());
+ const operationId='c76aa728-a302-44de-b36b-5632e8e99e1a';
+ const input={action:'gameplay',expectedRevision:1,operationId,intent:{type:'gacha',payment:'TREATS'}};
+ const results=await Promise.all([crossPlay(db.admin,db.account,input),crossPlay(db.admin,db.account,input)]);
+ assert.ok(results.every(x=>x.saved&&x.operationId===operationId));
+ assert.equal(db.writes(),1);assert.equal(values(db).treats,7500);
+});
+test('retry after newer saved actions returns current cloud without repeating older action',async()=>{
+ const db=crossplayDb(seed());
+ const oldId='d76aa728-a302-44de-b36b-5632e8e99e1a';
+ await crossPlay(db.admin,db.account,{action:'gameplay',expectedRevision:1,operationId:oldId,intent:{type:'gacha',payment:'TREATS'}});
+ await crossPlay(db.admin,db.account,{action:'gameplay',expectedRevision:2,operationId:'e76aa728-a302-44de-b36b-5632e8e99e1a',intent:{type:'gacha',payment:'TREATS'}});
+ const retry=await crossPlay(db.admin,db.account,{action:'gameplay',expectedRevision:1,operationId:oldId,intent:{type:'gacha',payment:'TREATS'}});
+ assert.equal(retry.duplicate,true);assert.equal(retry.cloud.revision,3);
+ assert.equal(db.writes(),2);assert.equal(values(db).treats,5000);
+});
