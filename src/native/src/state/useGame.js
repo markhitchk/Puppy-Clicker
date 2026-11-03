@@ -35,6 +35,13 @@ const normalizeIntent=action=>Object.fromEntries(
  ["type","kind","id","payment","upgradeId","rarity","name","skill",
  "goalId","amount","wager","bet"].filter(k=>action[k]!==undefined).map(k=>[k,action[k]])
 );
+const exclusiveIntentKey=intent=>{
+ if(intent?.type==='claimDailyGoal')return 'claimDailyGoal:'+String(intent.goalId||'');
+ if(['daily','parkStart','parkClaim','prestige'].includes(intent?.type))return intent.type;
+ if(intent?.type==='gacha'||intent?.type==='casinoRecoverLegacy'||
+    /^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent?.type||''))return intent.type;
+ return null;
+};
 const functionError=puppyFunctionError;
 export function useGame(){
  const {user,client,pupAccount}=useWebAccount();
@@ -112,9 +119,8 @@ export function useGame(){
     setPendingActions(entries.length);
     setQueuedTaps(entries.filter(item=>item.intent?.type==="tap").length);
     for(const item of entries){
-     if(item.intent?.type==='gacha'||item.intent?.type==='casinoRecoverLegacy'||
-      /^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(item.intent?.type||''))
-      inFlight.current.add(item.intent.type);
+     const key=exclusiveIntentKey(item.intent);
+     if(key)inFlight.current.add(key);
     }
     const op=entries[0];
     if(!op){
@@ -135,7 +141,7 @@ export function useGame(){
       throw new Error(error?await functionError(error):"SAVE_RECEIPT_MISSING");
      // The Edge Function returns a committed database receipt, also on retries.
      await acknowledgeGameplayIntent(accountId,op.id);
-     inFlight.current.delete(op.intent.type);
+     inFlight.current.delete(exclusiveIntentKey(op.intent));
      retryAttempt.current=0;
      revision.current=data.cloud.revision;
      try{
@@ -163,12 +169,21 @@ export function useGame(){
       "INVALID_WAGER","BLACKJACK_INVALID_WAGER",
       "PUP_CASINO_ANDROID_ROUND_PENDING","CLOUD_SAVE_REQUIRED",
       "PUP_ACCOUNT_BLOCKED","PUP_ACCOUNT_LEGAL_REQUIRED",
-      "PUP_OWNER_DEVICE_UNAVAILABLE"
+      "PUP_OWNER_DEVICE_UNAVAILABLE","GOAL_ALREADY_CLAIMED","DAILY_ALREADY_CLAIMED",
+      "GOAL_NOT_COMPLETE","UNKNOWN_DAILY_GOAL","PARK_NOT_READY",
+      "UPGRADE_NOT_AFFORDABLE","UPGRADE_MAXED","UPGRADE_NEEDS_TICKETS",
+      "TICKET_NOT_AFFORDABLE","ACCESSORY_NOT_AFFORDABLE","ACCESSORY_NOT_OWNED",
+      "EXCHANGE_NOT_AFFORDABLE","GACHA_NO_PUPPIES","PUPPY_LOCKED",
+      "PUP_NEEDS_REST","CARE_ACTION_UNAVAILABLE","PUPEYE_COOLDOWN",
+      "PRESTIGE_NOT_UNLOCKED","SKILL_UNAVAILABLE","FINISH_CASINO_FIRST",
+      "PUPPY_NAME_REQUIRED","AFK_REWARD_NOT_FOUND","BETA_ACTION_NOT_PORTED"
      ]);
      if(rejected.has(code)){
       // A definitive gameplay rejection is visible, never called 'saved'.
       await acknowledgeGameplayIntent(accountId,op.id);
-      inFlight.current.delete(op.intent.type);
+      inFlight.current.delete(exclusiveIntentKey(op.intent));
+      if(code==="GOAL_ALREADY_CLAIMED"||code==="DAILY_ALREADY_CLAIMED")
+       await refreshForConflict();
       setSyncStatus({state:"REJECTED",revision:revision.current,errorCode:code});
       dispatch({type:"webActionFailed",message:gameplayMessage(code)});
       continue;
@@ -230,10 +245,9 @@ export function useGame(){
    return;
   }
   const intent=normalizeIntent(action);
-  const exclusive=action.type==='gacha'||action.type==='casinoRecoverLegacy'||
-   /^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(action.type);
-  if(exclusive&&inFlight.current.has(action.type))return;
-  if(exclusive)inFlight.current.add(action.type);
+  const exclusiveKey=exclusiveIntentKey(intent);
+  if(exclusiveKey&&inFlight.current.has(exclusiveKey))return;
+  if(exclusiveKey)inFlight.current.add(exclusiveKey);
   // Maintain enqueue order when several controls are tapped in the same tick.
   pending.current++;
   setSyncStatus(old=>({...old,state:"QUEUED",errorCode:null}));
@@ -243,7 +257,7 @@ export function useGame(){
    if(draining.current)drainAgain.current=true;
    else void drainRef.current?.();
   }).catch(error=>{
-   if(exclusive)inFlight.current.delete(action.type);
+   if(exclusiveKey)inFlight.current.delete(exclusiveKey);
    // Never send an action that failed to enter durable storage.
    const code=String(error?.message||"PUP_LOCAL_CACHE_UNAVAILABLE");
    setSyncStatus({state:"BLOCKED",revision:revision.current,errorCode:code});
@@ -318,6 +332,28 @@ function gameplayMessage(code){
   CASINO_ROUND_ALREADY_ACTIVE:'Finish your current Casino round before starting another.',
   CLOUD_SAVE_CONFLICT:'Your progress changed on another device. Refreshing your cloud save; check the current result before trying again.',
   PUP_OWNER_DEVICE_UNAVAILABLE:'Your Android PupEye installation could not be verified. Open the registered Android app or use Account recovery.',
+  GOAL_ALREADY_CLAIMED:'You already collected this goal reward for the current UTC day. Your progress was refreshed.',
+  DAILY_ALREADY_CLAIMED:'Your daily gift is already claimed for this UTC day. Your progress was refreshed.',
+  GOAL_NOT_COMPLETE:'The goal is not yet complete in your confirmed cloud progress. Refresh and check the goal counter.',
+  UNKNOWN_DAILY_GOAL:'This goal is not in the current daily reward schedule. Refresh the page to load the latest goals.',
+  PARK_NOT_READY:'Your Dog Park adventure is not ready yet. Check its timer.',
+  UPGRADE_NOT_AFFORDABLE:'You do not have enough Treats for that upgrade.',
+  UPGRADE_MAXED:'That upgrade is already at its maximum level.',
+  UPGRADE_NEEDS_TICKETS:'You need the required upgrade tickets.',
+  TICKET_NOT_AFFORDABLE:'Not enough resources for that ticket.',
+  ACCESSORY_NOT_AFFORDABLE:'Not enough resources for that accessory.',
+  ACCESSORY_NOT_OWNED:'You must unlock that accessory first.',
+  EXCHANGE_NOT_AFFORDABLE:'Not enough resources for that exchange.',
+  GACHA_NO_PUPPIES:'There are no eligible puppies left in this Gacha pool.',
+  PUPPY_LOCKED:'This puppy is not unlocked yet.',
+  PUP_NEEDS_REST:'Your puppy is tired. Rest in Pup Care before tapping again.',
+  CARE_ACTION_UNAVAILABLE:'This care action is unavailable with your current resources or care meters.',
+  PUPEYE_COOLDOWN:'Fair-play cooldown is active. Try again when it ends.',
+  PRESTIGE_NOT_UNLOCKED:'Prestige has not been unlocked yet.',
+  SKILL_UNAVAILABLE:'This skill is currently unavailable.',
+  FINISH_CASINO_FIRST:'Finish your current Casino round before doing that.',
+  BETA_ACTION_NOT_PORTED:'This feature is not yet available for the web game.',
+  PUP_GAMEPLAY_REJECTED:'The server rejected this action under its current game rules. No rewards or resources were changed.',
   CLOUD_SAVE_REQUIRED:'Open Puppy Clicker on Android and upload its cloud save before playing here.'
  })[code]||'The action could not complete. Refresh your cloud progress and check the saved result before trying again.';
 }
