@@ -59,10 +59,18 @@ function Header({page}){
    window.removeEventListener("resize",resized);
   };
  },[menuOpen]);
+ useEffect(()=>{
+  if(!menuOpen)return;
+  const originalOverflow=document.body.style.overflow;
+  document.body.style.overflow='hidden';
+  navRef.current?.querySelector('a[href]')?.focus({preventScroll:true});
+  return()=>{document.body.style.overflow=originalOverflow;};
+ },[menuOpen]);
  return <header className="site-header">
   <a className="site-brand" href="/" aria-label="Puppy Clicker home">
    <img src={logo} alt="" /><span><strong>Puppy Clicker</strong><small>Harley's Studios</small></span>
   </a>
+  {menuOpen?<div className="site-nav-scrim" aria-hidden="true" onClick={()=>setMenuOpen(false)}/>:null}
   <nav ref={navRef} id={navId} className={"site-nav"+(menuOpen?" is-open":"")} aria-label="Website"
    onClick={event=>{if(event.target.closest("a[href]"))setMenuOpen(false);}}>
    <a href="/" aria-current={page==="home"?"page":undefined}>{tr("home")}</a>
