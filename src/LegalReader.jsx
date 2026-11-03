@@ -1,4 +1,6 @@
-import React,{useEffect,useMemo,useState} from "react";
+import React,{useMemo,useState} from "react";
+import privacyMarkdown from "./legal/privacy-policy.md?raw";
+import termsMarkdown from "./legal/terms-of-use.md?raw";
 import {LEGAL_DOCS,parseLegalMarkdown,safeLegalHref} from "./legalMarkdown.js";
 import "./LegalReader.css";
 import {useLanguage} from "./LanguagePicker.jsx";
@@ -43,22 +45,8 @@ export default function LegalReader({type="privacy"}){
  const {t:tr}=useLanguage();
  const kind=Object.hasOwn(LEGAL_DOCS,type)?type:"privacy";
  const doc=LEGAL_DOCS[kind];
- const [state,setState]=useState({loading:true,text:"",error:""});
  const [contentsOpen,setContentsOpen]=useState(false);
- useEffect(()=>{
-  const ctrl=new AbortController();
-  setState({loading:true,text:"",error:""});
-  fetch(doc.path,{signal:ctrl.signal,cache:"no-cache"}).then(async response=>{
-   if(!response.ok)throw Error("DOCUMENT_UNAVAILABLE");
-   const value=await response.text();
-   if(value.length>300000)throw Error("DOCUMENT_TOO_LARGE");
-   setState({loading:false,text:value,error:""});
-  }).catch(error=>{
-   if(error.name!=="AbortError")setState({loading:false,text:"",error:"Unable to load this document. Please try again."});
-  });
-  return()=>ctrl.abort();
- },[doc.path]);
- const parsed=useMemo(()=>parseLegalMarkdown(state.text),[state.text]);
+ const parsed=useMemo(()=>parseLegalMarkdown(kind==="terms"?termsMarkdown:privacyMarkdown),[kind]);
  return <div className="legal-shell">
   <div className="legal-hero"><p className="eyebrow">🐾 PUPPY CLICKER · LEGAL</p><h1>{tr("legalTitle")}</h1>
    <p>{tr("legalIntro")}</p>
@@ -68,9 +56,7 @@ export default function LegalReader({type="privacy"}){
     <a href="/privacy">{tr("websitePrivacy")}</a>
    </nav>
   </div>
-  {state.loading?<div className="legal-message" role="status">Loading {doc.title}…</div>:
-   state.error?<div className="legal-message" role="alert">{state.error} <button onClick={()=>window.location.reload()}>Retry</button></div>:
-   <div className="legal-layout">
+  <div className="legal-layout">
     <aside className="legal-contents" aria-label="Document contents">
      <button className="legal-contents-toggle" aria-expanded={contentsOpen} onClick={()=>setContentsOpen(v=>!v)}>{tr("contents")} <span aria-hidden="true">{contentsOpen?"−":"+"}</span></button>
      <nav className={contentsOpen?"is-open":""} aria-label="On this page">
@@ -80,8 +66,8 @@ export default function LegalReader({type="privacy"}){
     <article className="legal-article" aria-label={doc.title}>
      <p className="legal-language">{tr("documentLanguage")}</p>
      {parsed.blocks.map((block,i)=><RenderBlock key={block.id||i} block={block}/>)}
-     <footer><a href={doc.path} target="_blank" rel="noopener noreferrer">{tr("viewSource")}</a><span> · </span><button type="button" onClick={()=>window.print()}>{tr("print")}</button></footer>
+     <footer><a href={kind==="terms"?"/legal/privacy":"/legal/terms"}>{kind==="terms"?tr("privacy"):tr("terms")}</a><span> · </span><button type="button" onClick={()=>window.print()}>{tr("print")}</button></footer>
     </article>
-   </div>}
+   </div>
  </div>;
 }
