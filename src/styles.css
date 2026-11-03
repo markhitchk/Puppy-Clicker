@@ -481,3 +481,20 @@ html .account-credentials .cta.stretch{min-width:0;max-width:100%;width:100%;whi
 }
 @media(max-width:360px){.site-nav-toggle-text{display:none}}
 @media(prefers-reduced-motion:reduce){.site-nav-toggle{transition:none}}
+
+/* Browser-only adaptive WebGPU/WebGL ambient play effects.
+   Decorative layer never handles gameplay taps or keyboard focus. */
+html .cyber-play-stage{position:relative;isolation:isolate}
+html .cyber-play-stage > :not(.pup-graphics-layer){position:relative;z-index:1}
+html .cyber-play-stage > .pup-graphics-layer{
+ position:absolute;inset:0;z-index:0;overflow:hidden;border-radius:inherit;
+ pointer-events:none;user-select:none;touch-action:none;
+ width:100%;height:100%;contain:paint;
+}
+html .pup-graphics-layer[data-graphics-backend="css"]{
+ background:radial-gradient(ellipse 55% 60% at 50% 50%,
+  rgba(0,210,255,.08),transparent 75%);
+}
+@media(prefers-reduced-motion:reduce){
+ html .pup-graphics-layer{animation:none!important}
+}
