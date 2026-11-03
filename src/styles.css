@@ -557,3 +557,12 @@ html .pup-graphics-layer[data-graphics-backend="css"]{
 @media(max-width:440px){
  .site-nav-scrim{top:62px}
 }
+
+/* Daily goals: clarify why Claim is unavailable and provide route actions. */
+.compact-goal .goal-progress-hint{
+ margin:6px 0 8px;
+ color:var(--text-secondary,#b7c7d4);
+ font-size:12px;
+ line-height:1.45;
+}
+.compact-goal .goal-footer .cyber-button.secondary{min-height:38px}
