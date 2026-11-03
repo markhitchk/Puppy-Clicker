@@ -1,7 +1,7 @@
 // Safe, deliberately limited Markdown presentation model; all text is rendered as React text.
 export const LEGAL_DOCS = Object.freeze({
-  privacy:{title:"Privacy Policy",path:"/assets/legal/privacy-policy.md"},
-  terms:{title:"Terms of Use",path:"/assets/legal/terms-of-use.md"}
+  privacy:{title:"Privacy Policy",path:"/legal/privacy"},
+  terms:{title:"Terms of Use",path:"/legal/terms"}
 });
 export function legalSlug(text){
   return String(text).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
