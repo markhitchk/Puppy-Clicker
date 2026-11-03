@@ -182,8 +182,16 @@ export function useGame(){
       // A definitive gameplay rejection is visible, never called 'saved'.
       await acknowledgeGameplayIntent(accountId,op.id);
       inFlight.current.delete(exclusiveIntentKey(op.intent));
-      if(code==="GOAL_ALREADY_CLAIMED"||code==="DAILY_ALREADY_CLAIMED")
-       await refreshForConflict();
+      if(code==="GOAL_ALREADY_CLAIMED"||code==="DAILY_ALREADY_CLAIMED"){
+       // Another tab/device may have collected the reward already. Once the
+       // authoritative state is refreshed, show Claimed rather than leaving
+       // a contradictory error banner next to a stale Claim button.
+       if(await refreshForConflict()){
+        setSyncStatus({state:"SAVED",revision:revision.current,errorCode:null});
+        continue;
+       }
+      }
+      if(code==="GOAL_NOT_COMPLETE")await refreshForConflict();
       setSyncStatus({state:"REJECTED",revision:revision.current,errorCode:code});
       dispatch({type:"webActionFailed",message:gameplayMessage(code)});
       continue;

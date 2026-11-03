@@ -136,7 +136,7 @@ function QuickAction({emoji,title,subtitle,onPress,disabled=false}){
  </Pressable>;
 }
 function DailyGoalCard({g,goal,act,clock,readOnly=false,compact=false}){
- const date=new Date(clock),today=localEpochDay(date),claimed=g.dailyDay===today&&g.claimedDailyTasks.includes(goal.id);
+ const date=webServerRewardsDate(clock),today=webServerEpochDay(clock),claimed=g.dailyDay===today&&g.claimedDailyTasks.includes(goal.id);
  const progress=Math.max(0,progressForGoal(g,goal,date)),complete=progress>=goal.target;
  if(compact)return <article className="compact-goal reference-goal"><span className="goal-illustration" aria-hidden="true">{goal.emoji}</span><div className="reference-goal-body"><div className="compact-goal-heading"><strong>{goal.title}</strong><span>{Math.min(progress,goal.target)}/{goal.target}</span></div><p className="goal-description">{goal.description}</p><div className="cyber-progress" role="progressbar" aria-label={goal.title} aria-valuemin={0} aria-valuemax={goal.target} aria-valuenow={Math.min(progress,goal.target)}><span style={{width:Math.min(100,100*progress/goal.target)+'%'}}/></div><div className="goal-footer"><p className="goal-reward">Reward: {format(goal.rewardTreats)} 🍪 + 1 🦴 + 1 🪙</p>{claimed?<span className="claimed">✓ Claimed</span>:<button className="cyber-button primary" disabled={readOnly||!complete} onClick={()=>act({type:'claimDailyGoal',goalId:goal.id,now:clock})}>Claim</button>}</div></div></article>;
 
@@ -1122,7 +1122,7 @@ export function PuppyApp({betaMode=false}){
  const usePuppy=id=>{if(!saved.unlockedPuppies.includes(id))return;act({type:'switch',id,now:Date.now()});setTab('play');setSecondary(null);};
  const main=()=>{
   if(secondary==='help')return <DesktopHelp onOpen={openScreen}/>;
-  if(secondary==='achievements')return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} readOnly={betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
+  if(secondary==='achievements')return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} readOnly={Platform.OS==='web'?account?.gameplayWritable!==true:betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
   if(secondary==='settings')return <SettingsScreen g={saved} act={act} onOpen={openScreen} registry={registry} notifications={notifications} betaMode={betaMode} webMode account={account} onConnectAccount={()=>webClient.auth.signOut()} onUpdateAccountName={updateAccountName} onUpdateBirthday={onboarding.update} cloudState={cloudState} syncStatus={syncStatus} gameplayBusy={gameplayBusy} onRefreshAccount={refreshAccount}/>;
   if(secondary==='account-details')return <AccountDetailsScreen account={account} cloudState={cloudState}
    onBack={()=>setSecondary('settings')} onManage={()=>openAccount('signin')} onRefresh={refreshAccount}/>;
@@ -1132,7 +1132,7 @@ export function PuppyApp({betaMode=false}){
    const roster=<RosterScreen g={g} act={act} registry={registry} onUse={usePuppy} onOpenExchange={()=>setSecondary('exchange')}/>;
    return desktop?<div className="desktop-roster-shop" data-testid="desktop-roster-shop"><section>{roster}</section><aside><ShopScreen g={g} act={act} onOpen={openScreen}/></aside></div>:roster;
   }
-  if(secondary==='rewards'||tab==='rewards'&&!secondary)return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} readOnly={betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
+  if(secondary==='rewards'||tab==='rewards'&&!secondary)return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} readOnly={Platform.OS==='web'?account?.gameplayWritable!==true:betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
   if(secondary==='gacha')return <GachaScreen g={{...g,gameplayBusy}} act={act} state={state} registry={registry} onBack={()=>openScreen('rewards')}/>;
   if(secondary==='casino')return <CasinoScreen g={{...g,gameplayBusy}} act={act} bet={bet} setBet={setBet} state={state} onBack={()=>openScreen('rewards')}/>;
   if(tab==='play')return desktop?<DesktopPlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>:<PlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen}/>
@@ -1176,8 +1176,10 @@ export function PuppyApp({betaMode=false}){
   <View style={{flex:1,flexDirection:desktop?'row':'column',minWidth:0,minHeight:0}}>
    {desktop?<DesktopNavigation tabs={TABS} route={secondary||tab} onOpen={openScreen}/>:null}
     <View style={{flex:1,minWidth:0,minHeight:0}}>
-  {state.ready&&saved.onboardingComplete?<View testID="game-top-bar" style={styles.topBar}>
-   {desktop?<GameProgressHeader game={g}/>:<><Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{width:38,height:38}}/><Txt style={[styles.brand,{flex:1,letterSpacing:0}]}>Puppy Clicker</Txt><div className="game-header-actions"><Pressable accessibilityRole="button" accessibilityLabel={'Notifications, '+saved.notificationInbox.filter(n=>!n.read).length+' unread'} onPress={()=>{notifications.check();setInboxOpen(true);}} style={styles.headerButton}><Txt style={{fontSize:23}}>🔔</Txt>{saved.notificationInbox.some(n=>!n.read)?<View style={styles.unreadDot}/>:null}</Pressable>
+  {state.ready&&saved.onboardingComplete?<View testID="game-top-bar" style={[styles.topBar,Platform.OS==='web'&&!desktop&&{height:50,minHeight:50,maxHeight:50,paddingHorizontal:12,paddingVertical:3}]}>
+   {desktop?<GameProgressHeader game={g}/>:<>{Platform.OS==='web'?
+    <Txt style={{flex:1,fontSize:13,fontWeight:'700',color:C.muted}}>Game controls</Txt>:
+    <><Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{width:38,height:38}}/><Txt style={[styles.brand,{flex:1,letterSpacing:0}]}>Puppy Clicker</Txt></>}<div className="game-header-actions"><Pressable accessibilityRole="button" accessibilityLabel={'Notifications, '+saved.notificationInbox.filter(n=>!n.read).length+' unread'} onPress={()=>{notifications.check();setInboxOpen(true);}} style={styles.headerButton}><Txt style={{fontSize:23}}>🔔</Txt>{saved.notificationInbox.some(n=>!n.read)?<View style={styles.unreadDot}/>:null}</Pressable>
    <Pressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={()=>setSecondary('settings')} style={styles.headerButton}><Txt style={{fontSize:23}}>⚙️</Txt></Pressable></div></>}
   </View>:null}
 

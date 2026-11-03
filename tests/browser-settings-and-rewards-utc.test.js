@@ -34,3 +34,10 @@ test('guest browser settings route and shared navigation remain accessible witho
  const guest=readFileSync(new URL('../src/HomePlayDemo.jsx',import.meta.url),'utf8');
  assert.match(guest,/href="\/settings"/);
 });
+
+test('each individual web reward card uses the same UTC day as the parent rewards list',()=>{
+ const component=readFileSync(new URL('../src/native/App.jsx',import.meta.url),'utf8');
+ const card=component.slice(component.indexOf('function DailyGoalCard'),component.indexOf('function PlayScreen'));
+ assert.match(card,/date=webServerRewardsDate\(clock\),today=webServerEpochDay\(clock\)/);
+ assert.match(component,/readOnly=\{Platform\.OS==='web'\?account\?\.gameplayWritable!==true/);
+});

@@ -498,3 +498,62 @@ html .pup-graphics-layer[data-graphics-backend="css"]{
 @media(prefers-reduced-motion:reduce){
  html .pup-graphics-layer{animation:none!important}
 }
+
+/* Mobile navigation is a compact two-column drawer, not a page-tall list.
+   Keeping its own scroll area avoids covering the complete settings form. */
+@media(max-width:760px){
+ .site-header .site-nav.is-open{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-content:start;
+  align-items:stretch;
+  column-gap:7px;
+  row-gap:7px;
+  padding:12px;
+  max-height:min(68dvh,460px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  border-radius:0 0 17px 17px;
+ }
+ .site-header .site-nav>a{
+  min-width:0;
+  min-height:44px;
+  padding:9px 10px;
+  font-size:13px;
+  line-height:1.35;
+  border:1px solid transparent;
+  border-radius:11px;
+  overflow-wrap:anywhere;
+ }
+ .site-header .site-nav>a[aria-current=page]{border-color:#2e88a5}
+ .site-header .site-nav .puppy-language-picker{
+  grid-column:1 / -1;
+  min-width:0;
+  margin-top:3px;
+  padding:10px 3px 2px;
+  gap:8px;
+ }
+ .site-header .site-nav .puppy-language-picker select{max-width:145px;min-height:44px}
+}
+@media(max-width:340px){
+ .site-header .site-nav.is-open{grid-template-columns:minmax(0,1fr);max-height:75dvh}
+ .site-header .site-nav .puppy-language-picker{grid-column:auto}
+}
+
+/* The nav panel should visually separate from content beneath it. */
+@media(max-width:1279px){
+ .site-nav-scrim{
+  position:fixed;
+  inset:66px 0 0;
+  z-index:1;
+  background:rgba(1,8,14,.55);
+  touch-action:none;
+ }
+ .site-header .site-nav.is-open{z-index:5}
+ .site-header .site-header-tools{z-index:6}
+}
+@media(min-width:1280px){.site-nav-scrim{display:none}}
+
+@media(max-width:440px){
+ .site-nav-scrim{top:62px}
+}
