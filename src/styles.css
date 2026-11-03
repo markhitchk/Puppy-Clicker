@@ -544,7 +544,7 @@ html .pup-graphics-layer[data-graphics-backend="css"]{
 @media(max-width:1279px){
  .site-nav-scrim{
   position:fixed;
-  inset:0;
+  inset:66px 0 0;
   z-index:1;
   background:rgba(1,8,14,.55);
   touch-action:none;
@@ -553,3 +553,7 @@ html .pup-graphics-layer[data-graphics-backend="css"]{
  .site-header .site-header-tools{z-index:6}
 }
 @media(min-width:1280px){.site-nav-scrim{display:none}}
+
+@media(max-width:440px){
+ .site-nav-scrim{top:62px}
+}
