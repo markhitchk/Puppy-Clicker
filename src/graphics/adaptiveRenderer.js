@@ -11,10 +11,10 @@ struct VertexOut {
  var positions=array<vec2f,3>(
   vec2f(-1.0,-1.0),vec2f(3.0,-1.0),vec2f(-1.0,3.0)
  );
- var out: VertexOut;
- out.position=vec4f(positions[index],0.0,1.0);
- out.uv=(positions[index]+vec2f(1.0,1.0))*0.5;
- return out;
+ var result: VertexOut;
+ result.position=vec4f(positions[index],0.0,1.0);
+ result.uv=(positions[index]+vec2f(1.0,1.0))*0.5;
+ return result;
 }
 fn hash(p:vec2f)->f32 {
  return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);
@@ -77,7 +77,7 @@ async function createWebGPU(canvas){
  const format=navigator.gpu.getPreferredCanvasFormat();
  context.configure({device,format,alphaMode:'premultiplied'});
  const shader=device.createShaderModule({code:WGSL});
- const pipeline=device.createRenderPipeline({
+ const pipeline=await device.createRenderPipelineAsync({
   layout:'auto',vertex:{module:shader,entryPoint:'vs'},
   fragment:{module:shader,entryPoint:'fs',targets:[{
    format,blend:{color:{operation:'add',srcFactor:'one',dstFactor:'one-minus-src-alpha'},
