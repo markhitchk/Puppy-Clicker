@@ -1,5 +1,5 @@
 import {loadWebPreferences,saveWebPreferences,updateWebPreference,withWebPreferences,WEB_PREFERENCE_DEFAULTS} from '../../web/preferences.js';
-import {useCallback,useEffect,useReducer,useRef,useState} from "react";
+import {useCallback,useEffect,useMemo,useReducer,useRef,useState} from "react";
 import {initialState,transition} from "./reducer.js";
 import {freshGame} from "../engine/game.js";
 import {projectKotlinCloudSave} from "../production/kotlinCloudPreview.js";
@@ -7,6 +7,7 @@ import {fallbackSchedule,parseMonthlySchedule,monthKey} from "../engine/monthlyR
 import {useWebAccount} from "../../web/AccountGate.jsx";
 import {puppyFunctionError} from '../../web/puppyOAuth.js';
 import {queueGameplayIntent,pendingGameplayIntents,acknowledgeGameplayIntent} from './gameplayOutbox.js';
+import {projectPendingTapDisplay} from './optimisticTaps.js';
 
 // The browser is now a Pup Account companion, not a separate economy.
 // Never read or write puppy_web_saves, never forge a PupEye signed envelope.
@@ -41,6 +42,7 @@ export function useGame(){
  const [syncStatus,setSyncStatus]=useState({state:"LOADING",revision:null,errorCode:null});
  const [cloudState,setCloudState]=useState("LOADING");
  const [pendingActions,setPendingActions]=useState(0);
+ const [queuedTaps,setQueuedTaps]=useState(0);
  const preferences=useRef(null);
  if(!preferences.current)preferences.current=loadWebPreferences();
  const revision=useRef(0),loaded=useRef(false),generation=useRef(0);
@@ -108,6 +110,7 @@ export function useGame(){
    while(loaded.current&&captured===generation.current){
     const entries=await pendingGameplayIntents(accountId);
     setPendingActions(entries.length);
+    setQueuedTaps(entries.filter(item=>item.intent?.type==="tap").length);
     const op=entries[0];
     if(!op){
      retryAttempt.current=0;
@@ -225,6 +228,7 @@ export function useGame(){
   setSyncStatus(old=>({...old,state:"QUEUED",errorCode:null}));
   queue.current=queue.current.catch(()=>{}).then(async()=>{
    await queueGameplayIntent(pupAccount.id,intent);
+   if(intent.type==="tap")setQueuedTaps(n=>n+1);
    void drainRef.current?.();
   }).catch(error=>{
    // Never send an action that failed to enter durable storage.
@@ -270,12 +274,22 @@ export function useGame(){
   dispatch({type:"hydrate",game:withWebPreferences({...latest.current.game,guestName:data.displayName},preferences.current),now:Date.now(),readOnly:true});
   return true;
  },[client]);
+ // Predict pending tap rewards for responsiveness; authoritative values only
+ // come from the acknowledged server save and can correct this prediction.
+ const gameForDisplay=useMemo(()=>{
+  if(!queuedTaps)return state.game;
+  try{
+   const n=Math.min(queuedTaps,150),now=Date.now();
+   return projectPendingTapDisplay(state.game,
+    Array.from({length:n},(_,i)=>({at:now-(n-i-1)*70})));
+  }catch{return state.game;}
+ },[state.game,queuedTaps]);
  const account={status:"VERIFIED",username:pupAccount?.username,
   displayName:pupAccount?.displayName||pupAccount?.username,
   discordUserId:pupAccount?.discordUserId||null,
   id:pupAccount?.id,authUserId:user.id,gameplayWritable:loaded.current};
- return {state,gameForDisplay:state.game,act,account,cloudState,
-  gameplayBusy:pendingActions>0,
+ return {state,gameForDisplay,queuedTaps,act,account,cloudState,
+  gameplayBusy:pendingActions>queuedTaps,
   startupError:syncStatus.errorCode?{code:syncStatus.errorCode}:null,syncStatus,
   refreshAccount:reload,updateAccountName};
 }
