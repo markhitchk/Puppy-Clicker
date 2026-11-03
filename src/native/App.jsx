@@ -1178,7 +1178,7 @@ export function PuppyApp({betaMode=false}){
     <View style={{flex:1,minWidth:0,minHeight:0}}>
   {state.ready&&saved.onboardingComplete?<View testID="game-top-bar" style={[styles.topBar,Platform.OS==='web'&&!desktop&&{height:50,minHeight:50,maxHeight:50,paddingHorizontal:12,paddingVertical:3}]}>
    {desktop?<GameProgressHeader game={g}/>:<>{Platform.OS==='web'?
-    <Txt style={{flex:1,fontSize:13,fontWeight:'700',color:C.muted}}>Game controls</Txt>:
+    <View style={{flex:1,justifyContent:'center',alignItems:'flex-start'}}><Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" accessibilityLabel="Puppy Clicker" style={{width:42,height:42}}/></View>:
     <><Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{width:38,height:38}}/><Txt style={[styles.brand,{flex:1,letterSpacing:0}]}>Puppy Clicker</Txt></>}<div className="game-header-actions"><Pressable accessibilityRole="button" accessibilityLabel={'Notifications, '+saved.notificationInbox.filter(n=>!n.read).length+' unread'} onPress={()=>{notifications.check();setInboxOpen(true);}} style={styles.headerButton}><Txt style={{fontSize:23}}>🔔</Txt>{saved.notificationInbox.some(n=>!n.read)?<View style={styles.unreadDot}/>:null}</Pressable>
    <Pressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={()=>setSecondary('settings')} style={styles.headerButton}><Txt style={{fontSize:23}}>⚙️</Txt></Pressable></div></>}
   </View>:null}
