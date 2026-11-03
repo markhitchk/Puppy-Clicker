@@ -41,7 +41,7 @@ import {cardLabel,handTotal,canHit,canStand,canDouble,canSplit} from './src/engi
 import {blackjackTable,blackjackFan,blackjackSharedCardWidth} from './src/engine/blackjackLayout.js';
 import {BLACKJACK_V6,blackjackViewportWidth,blackjackActions,canDealBlackjack,blackjackHandSummaries,blackjackDealerCaption,blackjackDisplayRound} from './src/engine/blackjackV6.js';
 import {ONBOARDING_STEPS,validBirthday} from './src/engine/onboarding.js';
-import {goalsForDay,progressForGoal,localEpochDay,monthKey} from './src/engine/monthlyRewards.js';
+import {goalsForDay,progressForGoal,localEpochDay,monthKey,webServerRewardsDate,webServerEpochDay} from './src/engine/monthlyRewards.js';
 import ScratchersV6 from './src/components/ScratchersV6.jsx';
 import SlotsV6 from './src/components/SlotsV6.jsx';
 import RouletteV6 from './src/components/RouletteV6.jsx';
@@ -682,7 +682,7 @@ function RewardsGroup({title,description,initiallyOpen=false,children}){
 }
 function RewardsScreen({g,act,clock,schedule,onOpen,onPrestige,readOnly=false}){
  const {t:tr}=useLanguage();
- const date=new Date(clock),today=localEpochDay(date),goals=goalsForDay(schedule,date);
+ const date=webServerRewardsDate(clock),today=webServerEpochDay(clock),goals=goalsForDay(schedule,date);
  const claimed=(goal)=>g.dailyDay===today&&g.claimedDailyTasks.includes(goal.id);
  const active=goals.filter(goal=>!claimed(goal)),completed=goals.filter(claimed);
  const giftClaimed=g.lastDailyClaimDay===today;

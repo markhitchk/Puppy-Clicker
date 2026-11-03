@@ -2,6 +2,7 @@ import {installInspectionDeterrent} from "./inspectionDeterrent.js";
 import React,{useEffect,useId,useRef,useState} from "react";
 import NativeApp from "./native/App.jsx";
 import AdaptiveGraphics from "./AdaptiveGraphics.jsx";
+import BrowserSettings from "./BrowserSettings.jsx";
 import RecoveryPage from "./RecoveryPage.jsx";
 import MeetPuppies from "./MeetPuppies.jsx";
 import WebLoading from "./WebLoading.jsx";
@@ -70,6 +71,7 @@ function Header({page}){
    <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>{tr("policies")}</a>
    <a href="/leaderboard" aria-current={page==="leaderboard"?"page":undefined}>🏆 {tr("leaderboard")}</a>
    <a href="/chat" aria-current={page==="chat"?"page":undefined}>💬 {tr("chat")}</a>
+   <a href="/settings" aria-current={page==="browser-settings"?"page":undefined}>⚙ Browser Settings</a>
    <LanguagePicker compact/>
   </nav>
   <div className="site-header-tools">
@@ -459,12 +461,14 @@ export default function App(){
   const page=path==="/"?"home":path==="/chat"?"chat":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
+  path==="/settings"||path==="/browser/settings"?"browser-settings":
   callback?"callback":demo?"demo":path==="/play"?"play":"error";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
   <Header page={callback||page==="admin"||page==="admin-chat"||page==="admin-privacy"||page==="privacy-center"?"account":page==="demo"?"play":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
    {page==="home"?<Home/>:page==="demo"?<DemoPage/>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
+    page==="browser-settings"?<BrowserSettings/>:
     page==="privacy"?<WebPrivacy/>:
     page==="privacy-center"?<PrivacyCenter/>:
     page==="legal"?<LegalReader type={path.includes("/terms")?"terms":"privacy"}/>:

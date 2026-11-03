@@ -153,3 +153,14 @@ test('retry after newer saved actions returns current cloud without repeating ol
  assert.equal(retry.duplicate,true);assert.equal(retry.cloud.revision,3);
  assert.equal(db.writes(),2);assert.equal(values(db).treats,5000);
 });
+
+test('daily goal can be claimed only once and returns a specific error when repeated',async t=>{
+ t.mock.method(globalThis,'fetch',async()=>{throw new Error('offline schedule, use fallback');});
+ const db=crossplayDb(seed());
+ const first=await play(db,{type:'claimDailyGoal',goalId:'wellness'});
+ assert.equal(first.saved,true);
+ assert.equal(db.writes(),1);
+ assert.ok(values(db).daily_tasks_v5.includes('wellness'));
+ await assert.rejects(play(db,{type:'claimDailyGoal',goalId:'wellness'}),{message:'GOAL_ALREADY_CLAIMED'});
+ assert.equal(db.writes(),1);
+});

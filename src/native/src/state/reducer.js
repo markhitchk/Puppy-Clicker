@@ -82,7 +82,7 @@ export function transition(state,action){
   game.pendingPlinko=validPendingPlinko(game.pendingPlinko)?game.pendingPlinko:null;
   game.pendingWheel=(validPendingWheel(game.pendingWheel)||action.readOnly&&validAuthoritativeWheel(game.pendingWheel))?game.pendingWheel:null;
   const last=game.betaLastCasinoResult;
-  return {...state,game,blackjack,blackjackDisplay:game.betaBlackjackDisplay||null,
+  return {...state,notice:action.readOnly?'':state.notice,game,blackjack,blackjackDisplay:game.betaBlackjackDisplay||null,
    gachaResult:game.betaLastGachaResult?.id!==state.gachaDismissedId?game.betaLastGachaResult:null,
  slotsDisplay:last?.game==='SLOTS'?last:null,
    rouletteDisplay:last?.game==='ROULETTE'?last:null,
