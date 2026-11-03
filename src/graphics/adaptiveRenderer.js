@@ -19,9 +19,9 @@ struct VertexOut {
 fn hash(p:vec2f)->f32 {
  return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);
 }
-@fragment fn fs(in:VertexOut)->@location(0) vec4f {
+@fragment fn fs(input:VertexOut)->@location(0) vec4f {
  let ratio=clamp(u.width/max(1.0,u.height),0.7,2.8);
- let p=in.uv;
+ let p=input.uv;
  let relative=(p-vec2f(0.5,0.48))*vec2f(ratio,1.0);
  let glow=exp(-5.5*length(relative))*(0.07+0.015*sin(u.time*0.55));
  let grid=p*vec2f(18.0*ratio,11.0);
