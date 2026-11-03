@@ -9,6 +9,7 @@ import {puppyFunctionError} from '../../web/puppyOAuth.js';
 import {queueGameplayIntent,pendingGameplayIntents,acknowledgeGameplayIntent} from './gameplayOutbox.js';
 import {projectPendingTapDisplay} from './optimisticTaps.js';
 import {readNotificationUiState,applyNotificationUiState,saveNotificationUiAction} from './notificationUiState.js';
+import {normalizeSystemNotifications,mergeSystemNotifications,systemNotificationMarkAction} from './systemNotifications.js';
 
 // The browser is now a Pup Account companion, not a separate economy.
 // Never read or write puppy_web_saves, never forge a PupEye signed envelope.
@@ -52,6 +53,12 @@ export function useGame(){
  const [cloudState,setCloudState]=useState("LOADING");
  const [pendingActions,setPendingActions]=useState(0);
  const [queuedTaps,setQueuedTaps]=useState(0);
+ const [serverInbox,setServerInbox]=useState({accountId:null,rows:[]});
+ const [notificationUiRevision,setNotificationUiRevision]=useState(0);
+ const serverInboxRef=useRef({accountId:null,rows:[]});
+ const notificationQueue=useRef(Promise.resolve());
+ const notificationSyncRef=useRef(null);
+ const notificationInboxRef=useRef([]);
  const preferences=useRef(null);
  if(!preferences.current)preferences.current=loadWebPreferences();
  const decorateGame=useCallback(game=>withWebPreferences(
@@ -62,6 +69,52 @@ export function useGame(){
  const pending=useRef(0),queue=useRef(Promise.resolve()),inFlight=useRef(new Set());
  const draining=useRef(false),drainRef=useRef(null),retryTimer=useRef(null),retryAttempt=useRef(0),drainAgain=useRef(false);
  const latest=useRef(state);latest.current=state;
+ const notificationInbox=useMemo(()=>{
+  const remote=serverInbox.accountId===pupAccount.id?serverInbox.rows:[];
+  return applyNotificationUiState(mergeSystemNotifications(state.game,remote),
+   readNotificationUiState(pupAccount.id)).notificationInbox;
+ },[state.game,serverInbox,pupAccount.id,notificationUiRevision]);
+ notificationInboxRef.current=notificationInbox;
+ // The staff-gifting API has already inserted server notifications. Fetch the
+ // authenticated recipient's inbox; never let the browser select another ID.
+ useEffect(()=>{
+  let alive=true,busy=false;
+  const accountId=pupAccount.id;
+  serverInboxRef.current={accountId,rows:[]};
+  const sync=async()=>{
+   if(!alive||busy||document.visibilityState==='hidden')return;
+   busy=true;
+   try{
+    const {data,error}=await client.functions.invoke('pup-web-auth',{
+     body:{action:'notifications-read'},timeout:15000
+    });
+    if(!alive||error||!Array.isArray(data?.notifications))return;
+    const rows=normalizeSystemNotifications(data.notifications);
+    serverInboxRef.current={accountId,rows};
+    setServerInbox(previous=>{
+     if(previous.accountId===accountId&&JSON.stringify(previous.rows)===JSON.stringify(rows))return previous;
+     return {accountId,rows};
+    });
+   }catch{
+    // An offline inbox is not evidence of a missing gift. Preserve last known
+    // notices and retry on the next foreground/online check.
+   }finally{busy=false;}
+  };
+  notificationSyncRef.current=sync;
+  void sync();
+  const timer=setInterval(sync,12000);
+  window.addEventListener('focus',sync);
+  window.addEventListener('online',sync);
+  document.addEventListener('visibilitychange',sync);
+  return()=>{
+   alive=false;
+   if(notificationSyncRef.current===sync)notificationSyncRef.current=null;
+   clearInterval(timer);
+   window.removeEventListener('focus',sync);
+   window.removeEventListener('online',sync);
+   document.removeEventListener('visibilitychange',sync);
+  };
+ },[client,pupAccount.id]);
  const reload=useCallback(async()=>{
   if(pending.current>0||draining.current)return false;
   const request=++generation.current;
@@ -248,10 +301,25 @@ export function useGame(){
   }
   if(LOCAL_ACTIONS.has(action.type)){
    if(NOTIFICATION_LOCAL_ACTIONS.has(action.type)){
-    const saved=saveNotificationUiAction(pupAccount.id,action,latest.current.game.notificationInbox);
+    const saved=saveNotificationUiAction(pupAccount.id,action,notificationInboxRef.current);
     dispatch({...action,notificationUi:readNotificationUiState(pupAccount.id)});
+    setNotificationUiRevision(value=>value+1);
     if(!saved)dispatch({type:'webActionFailed',message:
      'This browser could not remember your notification changes. Check your site storage permissions.'});
+    const request=systemNotificationMarkAction(action);
+    const hasSystemNotices=serverInboxRef.current.accountId===pupAccount.id&&
+     serverInboxRef.current.rows.length>0;
+    if(request&&hasSystemNotices){
+     // Preserve Mark All Read → Clear Read ordering on both browser and server.
+     notificationQueue.current=notificationQueue.current.catch(()=>{}).then(async()=>{
+      const {data,error}=await client.functions.invoke('pup-web-auth',{body:request,timeout:15000});
+      if(error||data?.updated!==true)throw new Error('PUP_NOTIFICATIONS_UPDATE_FAILED');
+      void notificationSyncRef.current?.();
+     }).catch(()=>{
+      dispatch({type:'webActionFailed',message:
+       'Notification change saved on this browser, but could not sync to other devices yet.'});
+     });
+    }
    }else dispatch(action);
    return;
   }
@@ -335,7 +403,7 @@ export function useGame(){
   displayName:pupAccount?.displayName||pupAccount?.username,
   discordUserId:pupAccount?.discordUserId||null,
   id:pupAccount?.id,authUserId:user.id,gameplayWritable:loaded.current};
- return {state,gameForDisplay,queuedTaps,act,account,cloudState,
+ return {state,gameForDisplay,queuedTaps,notificationInbox,act,account,cloudState,
   gameplayBusy:pendingActions>queuedTaps,
   startupError:syncStatus.errorCode?{code:syncStatus.errorCode}:null,syncStatus,
   refreshAccount:reload,updateAccountName};

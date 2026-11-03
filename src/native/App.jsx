@@ -1060,7 +1060,7 @@ export default function App(){return <SafeAreaProvider><PuppyErrorBoundary><WebA
 export function PuppyApp({betaMode=false}){
  const insets=useSafeAreaInsets();
  const systemDark=useColorScheme()==='dark';
- const {state,gameForDisplay,queuedTaps,act:gameAct,account,cloudState,startupError,syncStatus,gameplayBusy,refreshAccount,updateAccountName}=useGame({mode:betaMode?'beta':'guest'});
+ const {state,gameForDisplay,queuedTaps,notificationInbox,act:gameAct,account,cloudState,startupError,syncStatus,gameplayBusy,refreshAccount,updateAccountName}=useGame({mode:betaMode?'beta':'guest'});
  const onboarding=useAccountOnboarding({enabled:betaMode,account,activateAccount:refreshAccount});
  const act=useCallback(action=>{
   gameAct(action);
@@ -1131,8 +1131,9 @@ export function PuppyApp({betaMode=false}){
   root.dataset.buttonMotion=String(motion.buttons);
  },[appearance.bg,appearance.surface,appearance.card,appearance.dark,appearance.accent,appearance.accentInk,appearance.onAccent,appearance.text,appearance.muted,appearance.line,motion.decorative,motion.buttons]);
  const g={...saved,animationsEnabled:motion.casino,tapAnimationsEnabled:motion.tap,idleAnimationsEnabled:motion.decorative&&saved.animationsEnabled,buttonMotionEnabled:motion.buttons};
+ const inboxGame={...saved,notificationInbox};
  const [inboxOpen,setInboxOpen]=useState(false);
- const notifications=useNotifications({game:saved,ready:betaMode?(onboarding.ready&&onboarding.setup.setupComplete&&account?.status==='VERIFIED'&&account?.legalAccepted===true):(state.ready&&saved.onboardingComplete),act,onOpen:()=>setInboxOpen(true)});
+ const notifications=useNotifications({game:inboxGame,ready:betaMode?(onboarding.ready&&onboarding.setup.setupComplete&&account?.status==='VERIFIED'&&account?.legalAccepted===true):(state.ready&&saved.onboardingComplete),act,onOpen:()=>setInboxOpen(true)});
  const openScreen=id=>{if(id==='notifications'){notifications.check();setInboxOpen(true);}else if(TABS.some(tab=>tab[0]===id)){setTab(id);setSecondary(null);}else setSecondary(id);};
  const usePuppy=id=>{if(!saved.unlockedPuppies.includes(id))return;act({type:'switch',id,now:Date.now()});setTab('play');setSecondary(null);};
  const main=()=>{
@@ -1194,7 +1195,7 @@ export function PuppyApp({betaMode=false}){
   {state.ready&&saved.onboardingComplete?<View testID="game-top-bar" style={[styles.topBar,Platform.OS==='web'&&!desktop&&{height:50,minHeight:50,maxHeight:50,paddingHorizontal:12,paddingVertical:3}]}>
    {desktop?<GameProgressHeader game={g}/>:<>{Platform.OS==='web'?
     <View style={{flex:1,justifyContent:'center',alignItems:'flex-start'}}><Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" accessibilityLabel="Puppy Clicker" style={{width:42,height:42}}/></View>:
-    <><Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{width:38,height:38}}/><Txt style={[styles.brand,{flex:1,letterSpacing:0}]}>Puppy Clicker</Txt></>}<div className="game-header-actions"><Pressable accessibilityRole="button" accessibilityLabel={'Notifications, '+saved.notificationInbox.filter(n=>!n.read).length+' unread'} onPress={()=>{notifications.check();setInboxOpen(true);}} style={styles.headerButton}><Txt style={{fontSize:23}}>🔔</Txt>{saved.notificationInbox.some(n=>!n.read)?<View style={styles.unreadDot}/>:null}</Pressable>
+    <><Image source={{uri:"/assets/logos/puppy_clicker.png"}} resizeMode="contain" style={{width:38,height:38}}/><Txt style={[styles.brand,{flex:1,letterSpacing:0}]}>Puppy Clicker</Txt></>}<div className="game-header-actions"><Pressable accessibilityRole="button" accessibilityLabel={'Notifications, '+inboxGame.notificationInbox.filter(n=>!n.read).length+' unread'} onPress={()=>{notifications.check();setInboxOpen(true);}} style={styles.headerButton}><Txt style={{fontSize:23}}>🔔</Txt>{inboxGame.notificationInbox.some(n=>!n.read)?<View style={styles.unreadDot}/>:null}</Pressable>
    <Pressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={()=>setSecondary('settings')} style={styles.headerButton}><Txt style={{fontSize:23}}>⚙️</Txt></Pressable></div></>}
   </View>:null}
 
@@ -1212,7 +1213,7 @@ export function PuppyApp({betaMode=false}){
   </View>:null}
     </View>
    </View>
-  <NotificationInbox visible={inboxOpen} g={saved} act={act} onClose={()=>setInboxOpen(false)} onNavigate={openScreen} serverBacked={betaMode}/>
+  <NotificationInbox visible={inboxOpen} g={inboxGame} act={act} onClose={()=>setInboxOpen(false)} onNavigate={openScreen} serverBacked={betaMode}/>
   {betaMode?<BetaAccountEntry visible={accountOpen} initialMode={accountEntryMode} onVerified={refreshAccount} onClose={()=>setAccountOpen(false)}/>:null}
  </PuppyPointer>;
 }
