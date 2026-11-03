@@ -539,3 +539,17 @@ html .pup-graphics-layer[data-graphics-backend="css"]{
  .site-header .site-nav.is-open{grid-template-columns:minmax(0,1fr);max-height:75dvh}
  .site-header .site-nav .puppy-language-picker{grid-column:auto}
 }
+
+/* The nav panel should visually separate from content beneath it. */
+@media(max-width:1279px){
+ .site-nav-scrim{
+  position:fixed;
+  inset:0;
+  z-index:1;
+  background:rgba(1,8,14,.55);
+  touch-action:none;
+ }
+ .site-header .site-nav.is-open{z-index:5}
+ .site-header .site-header-tools{z-index:6}
+}
+@media(min-width:1280px){.site-nav-scrim{display:none}}
