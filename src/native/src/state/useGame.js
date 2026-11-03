@@ -54,7 +54,7 @@ export function useGame(){
   const request=++generation.current;
   setSyncStatus(old=>({...old,state:"LOADING",errorCode:null}));
   try{
-   const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"cloud-save-read"}});
+   const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"cloud-save-read"},timeout:15000});
    if(error||!data?.verified||data.account?.id!==pupAccount.id)
     throw new Error(error?await functionError(error):"PUP_ACCOUNT_VERIFICATION_FAILED");
    if(request!==generation.current)return false;
@@ -92,7 +92,7 @@ export function useGame(){
  // Replies with missing receipts are never acknowledged, even after a timeout.
  const refreshForConflict=useCallback(async()=>{
   try{
-   const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"cloud-save-read"}});
+   const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"cloud-save-read"},timeout:15000});
    if(error||!data?.verified||data.account?.id!==pupAccount.id||!data.cloud?.exists)return false;
    revision.current=data.cloud.revision;
    dispatch({type:"hydrate",game:withWebPreferences(
@@ -129,7 +129,7 @@ export function useGame(){
     setSyncStatus({state:"SAVING",revision:revision.current,errorCode:null});
     try{
      const {data,error}=await client.functions.invoke("pup-web-auth",{
-      body:{action:"gameplay",operationId:op.id,expectedRevision:revision.current,intent:op.intent}
+      body:{action:"gameplay",operationId:op.id,expectedRevision:revision.current,intent:op.intent},timeout:15000
      });
      if(error||!data?.saved||!data.cloud?.exists||data.operationId!==op.id)
       throw new Error(error?await functionError(error):"SAVE_RECEIPT_MISSING");
