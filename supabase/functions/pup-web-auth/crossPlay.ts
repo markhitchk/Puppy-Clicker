@@ -108,10 +108,28 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
  };
  if(body.action!=="gameplay")reject(400,"PUP_ACTION_INVALID");
  if(!current)reject(409,"CLOUD_SAVE_REQUIRED");
+ const intent=validatedIntent(body.intent);
+ // Every modern browser operation has a stable UUID, including when the HTTP
+ // response is lost. The ledger is checked before revision conflicts to
+ // recognize successful older operations without applying a reward twice.
+ const operationId=body.operationId;
+ const durable=typeof operationId==="string"&&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(operationId);
+ if(operationId!==undefined&&!durable)reject(400,"PUP_OPERATION_ID_INVALID");
+ const intentHash=durable?sha256Hex(canonicalJson(intent)):null;
+ if(durable){
+  const {data:receipt,error}=await admin.rpc("pup_web_gameplay_receipt",{
+   p_account_uuid:account.id,p_operation_id:operationId,p_intent_hash:intentHash
+  });
+  if(error||!receipt)reject(503,"PUP_OPERATION_LEDGER_UNAVAILABLE");
+  if(receipt.status==="reused_id")reject(409,"PUP_OPERATION_ID_REUSED");
+  if(receipt.status==="saved")
+   return {saved:true,duplicate:true,operationId,cloud:publicCloudSnapshot(current)};
+  if(receipt.status!=="unknown")reject(503,"PUP_OPERATION_LEDGER_UNAVAILABLE");
+ }
  if(!Number.isSafeInteger(body.expectedRevision)||body.expectedRevision<1)
   reject(400,"CLOUD_REVISION_REQUIRED");
  if(Number(current.revision)!==body.expectedRevision)reject(409,"CLOUD_SAVE_CONFLICT");
- const intent=validatedIntent(body.intent);
  if(/^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent.type)&&
     current.save_data?.stores?.puppy_clicker_save?.values?.casino_active_round_v1)
   reject(409,"PUP_CASINO_ANDROID_ROUND_PENDING");
@@ -136,14 +154,38 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
   reject(409,"PUP_GAMEPLAY_REJECTED");
  }
  const savedAt=new Date().toISOString();
- const {data:written,error}=await admin.from("pup_account_saves")
-  .update({revision:body.expectedRevision+1,save_data:next,
-   payload_hash_sha256:sha256Hex(canonicalJson(next)),updated_at:savedAt})
-  .eq("player_uuid",account.player_uuid).eq("account_uuid",account.id)
-  .eq("revision",body.expectedRevision)
-  .select("revision,save_data,updated_at").maybeSingle();
- if(error)reject(503,"PUP_CLOUD_WRITE_UNAVAILABLE");
- if(!written)reject(409,"CLOUD_SAVE_CONFLICT");
+ let written:Dict|null=null;
+ if(durable){
+  // Postgres locks the original save row and atomically applies the new save
+  // and the unique receipt. A concurrent duplicate never applies twice.
+  const {data:commit,error}=await admin.rpc("pup_web_gameplay_commit",{
+   p_player_uuid:account.player_uuid,p_account_uuid:account.id,
+   p_expected_revision:body.expectedRevision,p_operation_id:operationId,
+   p_intent_hash:intentHash,p_intent_type:intent.type,
+   p_save_data:next,p_payload_hash:sha256Hex(canonicalJson(next))
+  });
+  if(error||!commit)reject(503,"PUP_CLOUD_WRITE_UNAVAILABLE");
+  if(commit.status==="reused_id")reject(409,"PUP_OPERATION_ID_REUSED");
+  if(commit.status==="conflict")reject(409,"CLOUD_SAVE_CONFLICT");
+  if(commit.status==="missing")reject(409,"CLOUD_SAVE_REQUIRED");
+  if(!["saved","duplicate"].includes(commit.status))reject(503,"PUP_CLOUD_WRITE_UNAVAILABLE");
+  written=await authoritativeSave(admin,account);
+  if(!written||Number(written.revision)<Number(commit.revision))
+   reject(503,"PUP_CLOUD_WRITE_UNAVAILABLE");
+  if(commit.status==="duplicate")
+   return {saved:true,duplicate:true,operationId,cloud:publicCloudSnapshot(written)};
+ }else{
+  // Backwards compatibility for clients already open during deployment.
+  const {data:legacy,error}=await admin.from("pup_account_saves")
+   .update({revision:body.expectedRevision+1,save_data:next,
+    payload_hash_sha256:sha256Hex(canonicalJson(next)),updated_at:savedAt})
+   .eq("player_uuid",account.player_uuid).eq("account_uuid",account.id)
+   .eq("revision",body.expectedRevision)
+   .select("revision,save_data,updated_at").maybeSingle();
+  if(error)reject(503,"PUP_CLOUD_WRITE_UNAVAILABLE");
+  if(!legacy)reject(409,"CLOUD_SAVE_CONFLICT");
+  written=legacy;
+ }
  // Never roll back a successful save because an optional audit failed.
  if(intent.type!=="tap"||Number(written.revision)%100===0){
   try{await admin.from("pupeye_events").insert({
@@ -152,5 +194,5 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
    detail:{action:intent.type,revision:Number(written.revision)}
   });}catch{console.error("Cross-play audit unavailable after commit");}
  }
- return {saved:true,cloud:publicCloudSnapshot(written)};
+ return {saved:true,...(durable?{operationId}:{}),cloud:publicCloudSnapshot(written)};
 }
