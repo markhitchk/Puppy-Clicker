@@ -77,7 +77,7 @@ test("web registration checks each Supabase password class and exposes rejection
  const edge=read("supabase/functions/pup-web-auth/index.ts");
  for(const rule of ["Uppercase letter","Lowercase letter","Number","Special character","8–128 characters"])
   assert.ok(form.includes(rule),rule);
- assert.match(form,/passwordRules\(password\)\.some\(rule=>!rule\.passed\)/);
+ assert.match(form,/passwordRules\(enteredPassword\)\.some\(rule=>!rule\.passed\)/);
  assert.match(form,/account-password-rules/);
  assert.match(oauth,/PUP_PASSWORD_COMPLEXITY_REQUIRED/);
  assert.match(edge,/creationError\.code==="weak_password"/);
