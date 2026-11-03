@@ -14,17 +14,21 @@ function GraphicsLayer(){
    dispose();
    const preferences=loadWebPreferences();
    const reduced=Boolean(motion?.matches||preferences.reducedMotion||
-    preferences.animatedUi===false||preferences.animationsEnabled===false);
+    preferences.animatedUi===false||preferences.animationsEnabled===false||
+    preferences.performancePreset==='battery_saver');
    dispose=mountAdaptiveGraphics(node,{reducedMotion:reduced});
   };
   start();
   motion?.addEventListener?.('change',start);
   window.addEventListener(WEB_PREFERENCES_CHANGED,start);
   window.addEventListener('storage',start);
+  const connection=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+  connection?.addEventListener?.('change',start);
   return()=>{
    motion?.removeEventListener?.('change',start);
    window.removeEventListener(WEB_PREFERENCES_CHANGED,start);
    window.removeEventListener('storage',start);
+   connection?.removeEventListener?.('change',start);
    dispose();
   };
  },[]);
