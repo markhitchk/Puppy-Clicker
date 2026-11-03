@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {applyNotificationUiState,readNotificationUiState,saveNotificationUiAction} from '../src/native/src/state/notificationUiState.js';
 import {checkInbox,visibleInboxItems,DEVELOPER_SUPPORT_MESSAGE} from '../src/native/src/engine/inbox.js';
+import {localEpochDay} from '../src/native/src/engine/monthlyRewards.js';
 
 const accountA='11111111-1111-4111-8111-111111111111';
 const accountB='22222222-2222-4222-8222-222222222222';
@@ -44,13 +45,14 @@ test('clear read after rapid mark-all persists deletions even before React re-re
 
 test('cleared reminders do not regenerate at next check or refresh',()=>{
  const cache=storage();
- const readNotices=[{...notices[0],read:true}];
- saveNotificationUiAction(accountA,{type:'clearReadNotifications'},readNotices,cache);
- const game=applyNotificationUiState({...snapshot(),notificationInbox:readNotices},
+ const now=new Date('2026-11-03T15:00:00Z').getTime();
+ const reminder={...notices[0],id:'daily:'+localEpochDay(new Date(now)),read:true};
+ saveNotificationUiAction(accountA,{type:'clearReadNotifications'},[reminder],cache);
+ const game=applyNotificationUiState({...snapshot(),notificationInbox:[reminder]},
   readNotificationUiState(accountA,cache));
  game.dailyRewardNotifications=true;
- checkInbox(game,Date.now());
- assert.ok(!game.notificationInbox.some(n=>n.id===notices[0].id));
+ checkInbox(game,now);
+ assert.ok(!game.notificationInbox.some(n=>n.id===reminder.id));
 });
 
 test('hidden notifications do not leak across Pup Account identities',()=>{
