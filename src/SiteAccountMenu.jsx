@@ -1,5 +1,6 @@
 import React,{useEffect,useId,useRef,useState} from "react";
 import {client} from "./supabase.js";
+import ConfirmSignOut from "./ConfirmSignOut.jsx";
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
 import "./site-account-menu.css";
 import {avatarForAccount} from "./pupWebApi.js";
@@ -39,6 +40,7 @@ export default function SiteAccountMenu({active=false,placement="down",compact=f
  const [open,setOpen]=useState(false);
  const [signingOut,setSigningOut]=useState(false);
  const [signOutError,setSignOutError]=useState("");
+ const [confirmSignOut,setConfirmSignOut]=useState(false);
  const mounted=useRef(true);
  const container=useRef(null);
  const trigger=useRef(null);
@@ -143,11 +145,14 @@ export default function SiteAccountMenu({active=false,placement="down",compact=f
     {staff?<a href="/account/admin"><span aria-hidden="true">🛡️</span>Administration</a>:null}
    </nav>
    <div className="site-account-dropdown-footer">
-    <button type="button" onClick={()=>void signOut()} disabled={signingOut}>
+    <button type="button" onClick={()=>{setSignOutError("");setConfirmSignOut(true);}} disabled={signingOut}>
      <span aria-hidden="true">↪</span>{signingOut?"Signing out…":"Sign out"}
     </button>
     {signOutError?<p role="alert">{signOutError}</p>:null}
    </div>
   </div>:null}
+  <ConfirmSignOut open={confirmSignOut} busy={signingOut} error={signOutError}
+   onCancel={()=>{setConfirmSignOut(false);setSignOutError("");}}
+   onConfirm={()=>void signOut()}/>
  </div>;
 }
