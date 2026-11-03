@@ -1,4 +1,5 @@
 import React,{useEffect,useState,useId} from 'react';
+import ConfirmSignOut from '../../ConfirmSignOut.jsx';
 import PuppyArtwork from './PuppyArtwork.jsx';
 import LanguagePicker from '../../LanguagePicker.jsx';
 import {ACCENT_PRESETS} from '../src/engine/settings.js';
@@ -16,6 +17,8 @@ export default function WebSettings({g,act,onOpen,registry,notifications,account
  const [expanded,setExpanded]=useState(null),[name,setName]=useState(g.guestName),[hex,setHex]=useState(g.accentHex),[custom,setCustom]=useState(false);
  const [busy,setBusy]=useState(false),[message,setMessage]=useState(''),[reset,setReset]=useState(false),[refreshing,setRefreshing]=useState(false);
  const [fullscreen,setFullscreen]=useState(Boolean(document.fullscreenElement));
+ const [confirmSignOut,setConfirmSignOut]=useState(false);
+ const [signOutError,setSignOutError]=useState("");
  useEffect(()=>setName(g.guestName),[g.guestName]);
  useEffect(()=>setHex(g.accentHex),[g.accentHex]);
  useEffect(()=>{const change=()=>setFullscreen(Boolean(document.fullscreenElement));document.addEventListener('fullscreenchange',change);return()=>document.removeEventListener('fullscreenchange',change);},[]);
@@ -31,7 +34,7 @@ export default function WebSettings({g,act,onOpen,registry,notifications,account
    <p role="status">{gameplayBusy?'Saving your progress…':connected?'Cloud progress is connected.':'Cloud progress needs attention. Refresh to check your connection.'}</p>
    <p>Your confirmed gameplay actions are saved to your Pup Account. Browser preferences are stored separately on this device.</p>
    <div className="web-setting-actions"><a className="cyber-button secondary" href="/account" aria-disabled={gameplayBusy} onClick={event=>{if(gameplayBusy)event.preventDefault();}}>Manage Pup Account</a><button className="cyber-button secondary" disabled={refreshing||gameplayBusy} onClick={async()=>{setRefreshing(true);try{const ok=await onRefreshAccount();setMessage(ok?'Cloud progress refreshed.':'Unable to refresh right now. Please try again.');}catch{setMessage('Unable to refresh right now. Please try again.');}finally{setRefreshing(false);}}}>{refreshing?'Refreshing…':'Refresh cloud progress'}</button></div>
-   <button className="cyber-button secondary" disabled={busy||gameplayBusy} onClick={async()=>{setBusy(true);try{const result=await onConnectAccount();if(result?.error)throw result.error;window.location.assign('/account');}catch{setMessage('Unable to sign out. Please try again.');setBusy(false);}}}>Sign out / switch account</button>
+   <button className="cyber-button secondary" disabled={busy||gameplayBusy} onClick={()=>{setSignOutError('');setConfirmSignOut(true);}}>Sign out / switch account</button>
   </>)}
   {section('profile','Profile','Your display name and puppy collection',<>
    <form onSubmit={async event=>{event.preventDefault();if(busy)return;setBusy(true);setMessage('');try{await onUpdateAccountName(name.trim());setMessage('Display name saved to your Pup Account.');}catch{setMessage('Unable to save your name. Please try again.');}finally{setBusy(false);}}}><label className="web-field">Display name<input aria-label="Display name" autoComplete="nickname" value={name} minLength={2} maxLength={24} onChange={event=>setName(event.target.value)}/></label><div className="web-setting-actions"><button className="cyber-button secondary" type="button" disabled={busy||gameplayBusy}
@@ -79,7 +82,21 @@ export default function WebSettings({g,act,onOpen,registry,notifications,account
    <p><strong>Puppy Clicker · Web Edition</strong><br/>Built by Harley’s Studios</p>
    <p>Reload the page to load the latest website update.</p>
    <button className="cyber-button secondary" disabled={gameplayBusy} onClick={()=>window.location.reload()}>Reload website</button>
-   <div className="web-setting-actions"><a href="/assets/legal/privacy-policy.md" className="cyber-button secondary" target="_blank" rel="noreferrer">Privacy policy</a><a href="/assets/legal/terms-of-use.md" className="cyber-button secondary" target="_blank" rel="noreferrer">Terms of use</a></div>
+   <div className="web-setting-actions"><a href="/legal/privacy" className="cyber-button secondary">Privacy policy</a><a href="/legal/terms" className="cyber-button secondary">Terms of use</a></div>
   </>)}
+  <ConfirmSignOut open={confirmSignOut} busy={busy} error={signOutError}
+   onCancel={()=>{setConfirmSignOut(false);setSignOutError('');}}
+   onConfirm={async()=>{
+    if(busy||gameplayBusy)return;
+    setBusy(true);setSignOutError('');
+    try{
+     const result=await onConnectAccount();
+     if(result?.error)throw result.error;
+     window.location.assign('/account');
+    }catch{
+     setSignOutError('Unable to sign out. Please try again.');
+     setBusy(false);
+    }
+   }}/>
  </div>;
 }
