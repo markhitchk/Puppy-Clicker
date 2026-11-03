@@ -1,6 +1,7 @@
 import {installInspectionDeterrent} from "./inspectionDeterrent.js";
 import React,{useEffect,useId,useRef,useState} from "react";
 import NativeApp from "./native/App.jsx";
+import AdaptiveGraphics from "./AdaptiveGraphics.jsx";
 import RecoveryPage from "./RecoveryPage.jsx";
 import MeetPuppies from "./MeetPuppies.jsx";
 import WebLoading from "./WebLoading.jsx";
@@ -474,7 +475,7 @@ export default function App(){
     page==="admin"?<AdminPage/>:
     page==="recovery"?<RecoveryPage/>:
     page==="callback"?<DiscordCallbackPage/>:
-    page==="error"?<WebErrorPage code={errorRoute?Number(errorRoute[1]):404}/>:<NativeApp/>}
+    page==="error"?<WebErrorPage code={errorRoute?Number(errorRoute[1]):404}/>:<><NativeApp/>{page==="play"?<AdaptiveGraphics/>:null}</>}
   </main>
   <NetworkCheckReporter/>
   <AndroidAppBanner/>
