@@ -96,7 +96,7 @@ export default function HomePlayDemo({standalone=false}){
   </div>
   <div className="home-play-demo__footer">
    <p><strong>🔒 Demo only.</strong> All Treats, upgrades and puppy care here are temporary and stay on this page. No Pup Account is needed or changed, and demo progress is never saved.</p>
-   <div className="home-play-demo__footer-actions">{!standalone?<a href="/play?=demo" className="cta cta-secondary">🎮 Open demo page</a>:<a href="/" className="cta cta-secondary">← Homepage</a>}<a href="/play" className="cta cta-primary">🐾 Play the full game</a></div>
+   <div className="home-play-demo__footer-actions">{!standalone?<a href="/play?=demo" className="cta cta-secondary">🎮 Open demo page</a>:<a href="/" className="cta cta-secondary">← Homepage</a>}<a href="/play" className="cta cta-primary">🐾 Play the full game</a><a href="/settings" className="cta cta-secondary">⚙ Browser settings</a></div>
   </div>
  </section>;
 }
