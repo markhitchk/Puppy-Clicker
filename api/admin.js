@@ -189,6 +189,32 @@ export async function action(db,actor,body) {
     const rows=ensure(await db.rpc('pupeye_web_admin_events',{p_limit:80}));
     return {events:rows||[]};
   }
+  if(type==="fairplay-cases"){
+    // Only an authorized staff member can reach these service-role-only findings.
+    const rows=ensure(await db.rpc("pupeye_web_fairplay_admin_cases",{p_limit:160}));
+    return {cases:rows||[]};
+  }
+  if(type==="fairplay-review"){
+    const caseId=Number(body.caseId);
+    if(!Number.isSafeInteger(caseId)||caseId<1)
+      throw new AdminError(400,"FAIRPLAY_CASE_INVALID");
+    const resolution=body.resolution;
+    if(!["dismiss","confirm","clear_hold"].includes(resolution))
+      throw new AdminError(400,"FAIRPLAY_REVIEW_INVALID");
+    const note=String(body.note||"").trim();
+    if(note.length<5||note.length>500)
+      throw new AdminError(400,"FAIRPLAY_REVIEW_NOTE_REQUIRED");
+    const reviewed=ensure(await db.rpc("pupeye_web_fairplay_review",{
+      p_case_id:caseId,p_reviewer:actor.player.id,p_resolution:resolution,p_note:note
+    }));
+    if(!reviewed?.updated)throw new AdminError(409,"FAIRPLAY_CASE_NOT_OPEN");
+    const target=ensure(await db.from("pup_accounts")
+     .select("player_uuid").eq("id",reviewed.accountUuid).maybeSingle());
+    await audit(db,actor,target?.player_uuid||null,"WEB_FAIRPLAY_CASE_REVIEWED",{
+      caseId,resolution,note
+    });
+    return {reviewed:true,caseId,resolution};
+  }
   if (type==="privacy-requests") {
     const rows=ensure(await db.from("pup_privacy_requests")
       .select("id,account_uuid,type,state,request_note,review_note,submitted_at,deadline_at,updated_at")
