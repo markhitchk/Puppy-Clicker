@@ -566,3 +566,12 @@ html .pup-graphics-layer[data-graphics-backend="css"]{
  line-height:1.45;
 }
 .compact-goal .goal-footer .cyber-button.secondary{min-height:38px}
+
+.pup-fairplay-banner{display:flex;align-items:center;gap:10px;flex-shrink:0;padding:9px 16px;background:rgba(39,52,73,.97);border-bottom:1px solid #7358b8;color:#eaf8ff;font-size:12px;line-height:1.3}
+.pup-fairplay-banner.is-restricted{background:#433040;border-bottom-color:#d79a5d}
+.pup-fairplay-banner>span{font-size:20px;flex-shrink:0}
+.pup-fairplay-banner>div{flex:1;min-width:0}
+.pup-fairplay-banner strong{display:block;font-size:12px}
+.pup-fairplay-banner p{margin:2px 0 0;font-size:11px;color:#d3d9e8}
+.pup-fairplay-banner button{flex-shrink:0;color:#a8f3ff;background:transparent;border:1px solid #669cad;border-radius:999px;cursor:pointer;font-size:11px;padding:7px 11px;font-weight:750}
+@media(max-width:600px){.pup-fairplay-banner{gap:6px;padding:7px}.pup-fairplay-banner p{font-size:10px}.pup-fairplay-banner button{max-width:90px;padding:6px 8px;white-space:normal}}
