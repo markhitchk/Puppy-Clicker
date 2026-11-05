@@ -75,6 +75,14 @@ PupEye may process local security information such as:
 
 These checks are designed to detect likely automated clicking or unauthorized save modification. PupEye now also uses Puppy Clicker's Supabase backend to register the app installation, compare save generations, reject replayed protected transactions, and support authorized device migration. Local timing samples used for click-pattern detection are not uploaded as part of the current Supabase integration.
 
+### PupEye Web fair-play (browser game)
+
+On the Puppy Clicker website, PupEye processes **server-confirmed gameplay request times, tap counts, rate-limit rejections and review outcomes** to protect game progress. The browser may also submit an **aggregate timing summary** (number of taps, observation duration and timing variation) when it notices a highly regular pattern. The summary is an untrusted advisory only: raw pointer coordinates, raw click timestamps and hardware identifiers are **not uploaded** for this feature.
+
+PupEye Web associates fair-play records with the verified Pup Account. Repeated, extreme server-observed activity can cause a **short temporary restriction on tapping only**. Players may continue other gameplay and seek a manual review. Browser timing advisories alone cannot trigger automatic restrictions, and this feature does not automatically issue permanent account bans.
+
+Fair-play review cases and their evidence are removed after **90 days** by a scheduled database cleanup. Staff review decisions are recorded in the existing administration audit log. Ordinary players cannot view other accounts' fair-play data.
+
 ## 6. Supabase Account and PupEye Service
 
 Puppy Clicker may send the following limited information to the Puppy Clicker Supabase project for account security and PupEye enforcement:
