@@ -382,6 +382,28 @@ async function handleAuthRequest(req,auditContext){
    }
    return json(200,{updated:true,username,passwordLoginEnabled:true},origin);
   }
+  if(body.action==="fairplay-status"||body.action==="fairplay-signal"){
+   // Logged-in, own-account only. Client timing is advisory, never authoritative.
+   const {account}=await currentSession(req);
+   await enforceWebPupEye(account,"profile");
+   if(body.action==="fairplay-status"){
+    const {data,error}=await admin.rpc("pupeye_web_fairplay_status",{p_account_uuid:account.id});
+    if(error||!data)throw new PublicError(503,"PUPEYE_FAIRPLAY_UNAVAILABLE");
+    return json(200,{fairplay:data},origin);
+   }
+   const sampleCount=Number(body.sampleCount),windowMs=Number(body.windowMs),
+    coefficientVariation=Number(body.coefficientVariation);
+   if(!Number.isInteger(sampleCount)||sampleCount<80||sampleCount>2000||
+      !Number.isInteger(windowMs)||windowMs<15000||windowMs>120000||
+      !Number.isFinite(coefficientVariation)||coefficientVariation<0||coefficientVariation>10)
+    throw new PublicError(400,"PUPEYE_SIGNAL_INVALID");
+   const {data,error}=await admin.rpc("pupeye_web_fairplay_record",{
+    p_account_uuid:account.id,p_signal:"client_regular_timing",
+    p_observation:{sampleCount,windowMs,coefficientVariation}
+   });
+   if(error||!data)throw new PublicError(503,"PUPEYE_FAIRPLAY_UNAVAILABLE");
+   return json(200,{accepted:true,fairplay:data},origin);
+  }
   if(["cloud-save-read","gameplay","account-update"].includes(body.action)){
    const {account}=await currentSession(req);
    await enforceWebPupEye(account,body.action==='gameplay'?'gameplay':'profile');
