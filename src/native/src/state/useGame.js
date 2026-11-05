@@ -8,6 +8,7 @@ import {useWebAccount} from "../../web/AccountGate.jsx";
 import {puppyFunctionError} from '../../web/puppyOAuth.js';
 import {queueGameplayIntent,pendingGameplayIntents,acknowledgeGameplayIntent} from './gameplayOutbox.js';
 import {projectPendingTapDisplay} from './optimisticTaps.js';
+import {summarizeTapRegularity} from '../../../webFairplaySignals.js';
 import {readNotificationUiState,applyNotificationUiState,saveNotificationUiAction} from './notificationUiState.js';
 import {normalizeSystemNotifications,mergeSystemNotifications,systemNotificationMarkAction} from './systemNotifications.js';
 
@@ -51,6 +52,29 @@ export function useGame(){
  const [state,dispatch]=useReducer(transition,undefined,()=>({...initialState(),ready:false,notice:""}));
  const [syncStatus,setSyncStatus]=useState({state:"LOADING",revision:null,errorCode:null});
  const [cloudState,setCloudState]=useState("LOADING");
+ const [fairplay,setFairplay]=useState({status:"clear",restrictedUntil:null,message:null});
+ const fairplayRef=useRef({status:"clear",restrictedUntil:null});
+ const tapSamples=useRef([]),lastAdvisoryAt=useRef(-300000);
+ const applyFairplay=useCallback(value=>{
+  if(!value||!["clear","warning","restricted"].includes(value.status))return;
+  fairplayRef.current=value;setFairplay(value);
+ },[]);
+ const refreshFairplay=useCallback(async()=>{
+  try{
+   if(!client||!pupAccount?.id)return;
+   const {data,error}=await client.functions.invoke("pup-web-auth",{
+    body:{action:"fairplay-status"},timeout:10000
+   });
+   if(!error&&data?.fairplay)applyFairplay(data.fairplay);
+  }catch{/* A status-display outage cannot create a penalty. */}
+ },[client,pupAccount?.id,applyFairplay]);
+ useEffect(()=>{
+  void refreshFairplay();
+  const timer=setInterval(()=>{
+   if(document.visibilityState==="visible")void refreshFairplay();
+  },60000);
+  return()=>clearInterval(timer);
+ },[refreshFairplay]);
  const [pendingActions,setPendingActions]=useState(0);
  const [queuedTaps,setQueuedTaps]=useState(0);
  const [serverInbox,setServerInbox]=useState({accountId:null,rows:[]});
@@ -189,6 +213,13 @@ export function useGame(){
      setSyncStatus({state:"QUEUED_OFFLINE",revision:revision.current,errorCode:null});
      break;
     }
+    if(op.intent.type==="tap"&&fairplayRef.current.status==="restricted"&&
+      Date.parse(fairplayRef.current.restrictedUntil||"")>Date.now()){
+     await acknowledgeGameplayIntent(accountId,op.id);
+     setQueuedTaps(n=>Math.max(0,n-1));
+     dispatch({type:"webActionFailed",message:"🐶👁️ PupEye temporary tap hold. Other gameplay remains available."});
+     continue;
+    }
     setSyncStatus({state:"SAVING",revision:revision.current,errorCode:null});
     try{
      const {data,error}=await client.functions.invoke("pup-web-auth",{
@@ -196,6 +227,7 @@ export function useGame(){
      });
      if(error||!data?.saved||!data.cloud?.exists||data.operationId!==op.id)
       throw new Error(error?await functionError(error):"SAVE_RECEIPT_MISSING");
+     if(data.fairplay)applyFairplay(data.fairplay);
      // The Edge Function returns a committed database receipt, also on retries.
      await acknowledgeGameplayIntent(accountId,op.id);
      inFlight.current.delete(exclusiveIntentKey(op.intent));
@@ -232,10 +264,12 @@ export function useGame(){
       "TICKET_NOT_AFFORDABLE","ACCESSORY_NOT_AFFORDABLE","ACCESSORY_NOT_OWNED",
       "EXCHANGE_NOT_AFFORDABLE","GACHA_NO_PUPPIES","PUPPY_LOCKED",
       "PUP_NEEDS_REST","CARE_ACTION_UNAVAILABLE","PUPEYE_COOLDOWN",
+      "PUPEYE_FAIRPLAY_HOLD",
       "PRESTIGE_NOT_UNLOCKED","SKILL_UNAVAILABLE","FINISH_CASINO_FIRST",
       "PUPPY_NAME_REQUIRED","AFK_REWARD_NOT_FOUND","BETA_ACTION_NOT_PORTED"
      ]);
      if(rejected.has(code)){
+      if(code==="PUPEYE_FAIRPLAY_HOLD")void refreshFairplay();
       // A definitive gameplay rejection is visible, never called 'saved'.
       await acknowledgeGameplayIntent(accountId,op.id);
       inFlight.current.delete(exclusiveIntentKey(op.intent));
@@ -273,7 +307,7 @@ export function useGame(){
     setTimeout(()=>drainRef.current?.(),0);
    }
   }
- },[client,pupAccount.id,pupAccount?.displayName,pupAccount?.username,refreshForConflict,decorateGame]);
+ },[client,pupAccount.id,pupAccount?.displayName,pupAccount?.username,refreshForConflict,decorateGame,applyFairplay,refreshFairplay]);
  drainRef.current=drain;
  useEffect(()=>{
   const wake=()=>{if(document.visibilityState==="visible")void drainRef.current?.();};
@@ -328,6 +362,30 @@ export function useGame(){
    return;
   }
   if(!LIVE_ACTIONS.has(action.type)){dispatch({type:"webActionBlocked"});return;}
+  if(action.type==="tap"){
+   // Measure physical-input timing BEFORE the serialized save queue.
+   // Browser hints remain untrusted. No raw timestamps or cursor data leave the client.
+   const now=globalThis.performance?.now?.()??Date.now();
+   const samples=tapSamples.current;
+   samples.push(now);
+   while(samples.length>500||(samples.length>0&&now-samples[0]>120000))samples.shift();
+   if(now-lastAdvisoryAt.current>=300000&&samples.length>=81){
+    const advisory=summarizeTapRegularity(samples);
+    if(advisory){
+     lastAdvisoryAt.current=now;
+     void client.functions.invoke("pup-web-auth",{
+      body:{action:"fairplay-signal",...advisory},timeout:10000
+     }).then(({data,error})=>{
+      if(!error&&data?.fairplay)applyFairplay(data.fairplay);
+     }).catch(()=>{/* Advisory failures never block legitimate play. */});
+    }
+   }
+   if(fairplayRef.current.status==="restricted"&&
+      Date.parse(fairplayRef.current.restrictedUntil||"")>Date.now()){
+    dispatch({type:"webActionFailed",message:"🐶👁️ Temporary tap hold is active. You may still care for your puppy."});
+    return;
+   }
+  }
   if(!loaded.current||revision.current<1){
    setSyncStatus(old=>({...old,state:"BLOCKED",errorCode:"CLOUD_SAVE_REQUIRED"}));
    return;
@@ -404,6 +462,7 @@ export function useGame(){
   discordUserId:pupAccount?.discordUserId||null,
   id:pupAccount?.id,authUserId:user.id,gameplayWritable:loaded.current};
  return {state,gameForDisplay,queuedTaps,notificationInbox,act,account,cloudState,
+  fairplay,refreshFairplay,
   gameplayBusy:pendingActions>queuedTaps,
   startupError:syncStatus.errorCode?{code:syncStatus.errorCode}:null,syncStatus,
   refreshAccount:reload,updateAccountName};
@@ -437,6 +496,8 @@ function gameplayMessage(code){
   PUP_NEEDS_REST:'Your puppy is tired. Rest in Pup Care before tapping again.',
   CARE_ACTION_UNAVAILABLE:'This care action is unavailable with your current resources or care meters.',
   PUPEYE_COOLDOWN:'Fair-play cooldown is active. Try again when it ends.',
+  PUPEYE_FAIRPLAY_HOLD:'PupEye temporarily paused tapping after sustained unusual activity. Other gameplay remains available and your account is not banned.',
+  PUPEYE_FAIRPLAY_UNAVAILABLE:'PupEye could not check fair-play status. No tap was credited. Please retry.',
   PRESTIGE_NOT_UNLOCKED:'Prestige has not been unlocked yet.',
   SKILL_UNAVAILABLE:'This skill is currently unavailable.',
   FINISH_CASINO_FIRST:'Finish your current Casino round before doing that.',
