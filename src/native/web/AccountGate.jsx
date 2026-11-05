@@ -86,7 +86,7 @@ export default function WebAccountGate({children}){
   setBusy(true);setError("");
   try{
    try{globalThis.sessionStorage?.setItem("puppy-web-discord-return-v1",
-    recovery?"/recovery":globalThis.location?.pathname?.startsWith("/account/admin")?"/account/admin":
+    recovery?"/recovery":/^\/pupeye\/status\/?$/.test(globalThis.location?.pathname||"")?"/pupeye/status":globalThis.location?.pathname?.startsWith("/account/admin")?"/account/admin":
     ["/account","/register"].includes(globalThis.location?.pathname)?"/account":"/play");}catch{}
    const url=await beginPuppyDiscord();
    // Discord returns to /auth/discord/callback in this same browser on
@@ -118,7 +118,9 @@ export default function WebAccountGate({children}){
   <a href="/recovery" style={{color:'#8ce9ff'}}>Account recovery</a>
  </View>;
  if(loading)return <WebLoading stage={hasPuppyDiscordCallback()?"callback":"account"}/>;
- if(user&&pupAccount?.status==="BANNED")
+ // Banned users may inspect their own standing at /pupeye/status. Other
+ // protected routes and all gameplay mutations remain server-denied.
+ if(user&&pupAccount?.status==="BANNED"&&!/^\/pupeye\/status\/?$/.test(globalThis.location?.pathname||""))
   return <PupAccountBanned account={pupAccount} onRefresh={()=>setStandingRefresh(n=>n+1)}
    onSignOut={()=>client.auth.signOut()}/>;
  if(!user||!pupAccount)return <div className="pup-auth-page" data-testid="pup-auth-page">
