@@ -126,11 +126,11 @@ export function AccountInventoryPage(){
   void load();
   return()=>{active=false;};
  },[client,pupAccount?.id,request]);
- return <main className="pup-inventory-account-wrap" data-testid="account-inventory-page">
+ return <div className="pup-inventory-account-wrap" data-testid="account-inventory-page">
   {result.game?<InventoryScreen game={result.game} origin="account" updatedAt={result.updatedAt} onRefresh={()=>setRequest(n=>n+1)} refreshing={result.loading}/>:
   <section className="pup-inventory-status" role="status"><p className="pup-inventory-eyebrow">🎒 PUP ACCOUNT COLLECTION</p><h1>Inventory</h1>
    <p>{result.loading?'Loading your verified inventory…':result.error}</p>
    {!result.loading?<div className="pup-inventory-actions"><button type="button" className="pup-inventory-button primary" onClick={()=>setRequest(n=>n+1)}>Try again</button><a href="/account" className="pup-inventory-button">← Back to account</a></div>:null}
   </section>}
- </main>;
+ </div>;
 }
