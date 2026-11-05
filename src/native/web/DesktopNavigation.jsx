@@ -8,6 +8,7 @@ export default function DesktopNavigation({tabs,route,onOpen}){
   <div className="desktop-nav-spacer"/>
   <nav aria-label="Support and more" className="desktop-support-nav">
    <details className="desktop-more"><summary>More game modes</summary><div><button type="button" aria-label="Casino" onClick={()=>onOpen('casino')}>🎰 Casino</button><button type="button" aria-label="Exchange" onClick={()=>onOpen('exchange')}>🎁 Exchange</button></div></details>
+   <button type="button" aria-label="Inventory" aria-current={route==='inventory'?'page':undefined} onClick={()=>onOpen('inventory')}><span aria-hidden="true">🎒</span>Inventory</button>
    <button type="button" aria-label="Settings" aria-current={route==='settings'?'page':undefined} onClick={()=>onOpen('settings')}><span aria-hidden="true">⚙️</span>Settings</button>
    <button type="button" aria-label="Help" aria-current={route==='help'?'page':undefined} onClick={()=>onOpen('help')}><span aria-hidden="true">❔</span>Help</button>
    <a href="https://discord.gg/HcZweHchbv" target="_blank" rel="noreferrer"><span aria-hidden="true">💬</span>Discord</a>
