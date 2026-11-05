@@ -4,6 +4,7 @@ import WebLoading from "../../WebLoading.jsx";
 import PupAccountBanned from "../../PupAccountBanned.jsx";
 import {client} from "../../supabase.js";
 import WebRegister from "../../WebRegister.jsx";
+import {usePupAuthForm,loginError} from "../../shared/usePupAuthForm.js";
 import {DISCORD_ICON_URL} from "../../discordIcon.js";
 import {beginPuppyDiscord,completePuppyDiscordCallback,hasPuppyDiscordCallback,
  clearPendingDiscord,getPendingDiscord,verifyPuppySession,signInPupUsername,puppyAuthMessage} from "./puppyOAuth.js";
@@ -17,7 +18,8 @@ export default function WebAccountGate({children}){
  const recovery=globalThis.location?.pathname==="/recovery";
  const [user,setUser]=useState(null),[pupAccount,setPupAccount]=useState(null);
  const panelRef=useRef(null);
- const [loading,setLoading]=useState(true),[login,setLogin]=useState(""),[password,setPassword]=useState("");
+ const [loading,setLoading]=useState(true);
+ const {login,setLogin,password,setPassword}=usePupAuthForm();
  const [busy,setBusy]=useState(false),[error,setError]=useState("");
  const [mode,setMode]=useState(()=>(
   globalThis.location?.pathname==="/register"||
@@ -101,7 +103,8 @@ export default function WebAccountGate({children}){
   // Password managers sometimes fill native inputs before React updates its state.
   const enteredLogin=String(fields?.get('username')??login).trim();
   const enteredPassword=String(fields?.get('password')??password);
-  if(!enteredLogin||!enteredPassword){setError("Enter your Pup username and password.");return;}
+  const invalid=loginError(enteredLogin,enteredPassword);
+  if(invalid){setError(invalid);return;}
   setBusy(true);setError("");
   try{
    clearPendingDiscord();
