@@ -59,6 +59,8 @@ export default function AdminPortal(){
  const [bans,setBans] = useState([]);
  const [events,setEvents] = useState([]);
  const [webPupEyeEvents,setWebPupEyeEvents] = useState([]);
+ const [fairplayCases,setFairplayCases]=useState([]);
+ const [caseReview,setCaseReview]=useState({});
  const [query,setQuery] = useState("");
  const [busy,setBusy] = useState(false);
  const [message,setMessage] = useState("");
@@ -95,7 +97,11 @@ export default function AdminPortal(){
    if(tab==="bans")setBans(result.bans||[]);
    if(tab==="audit")setEvents(result.events||[]);
    if(tab==="activity")setActivity(result);
-   if(tab==="pupeye-web")setWebPupEyeEvents(result.events||[]);
+   if(tab==="pupeye-web"){
+    setWebPupEyeEvents(result.events||[]);
+    const cases=await request({action:"fairplay-cases"});
+    setFairplayCases(cases.cases||[]);
+   }
   }catch(e){setError(normalizeError(e.message));}
   finally{if(!silent)setTabLoading(false);}
  },[request,activityFilter]);
@@ -145,6 +151,21 @@ export default function AdminPortal(){
    await Promise.all([refresh("users",true),refresh("bans",true),refresh("audit",true)]);
    return true;
   }catch(e){setError(normalizeError(e.message));return false;}
+  finally{setBusy(false);}
+ };
+ const reviewFairplayCase=async item=>{
+  const review=caseReview[item.id]||{};
+  const resolution=review.resolution||"dismiss";
+  const note=String(review.note||"").trim();
+  if(note.length<5){setError("Enter a review reason of at least five characters.");return;}
+  if(busy)return;
+  setBusy(true);setError("");setMessage("");
+  try{
+   await request({action:"fairplay-review",caseId:item.id,resolution,note});
+   setMessage("PupEye case reviewed. This did not create a global ban.");
+   setCaseReview(old=>{const next={...old};delete next[item.id];return next;});
+   await Promise.all([refresh("pupeye-web",true),refresh("audit",true)]);
+  }catch(e){setError(normalizeError(e.message));}
   finally{setBusy(false);}
  };
  const restrictUser=body=>run(body,body.action==='suspend-account'?'Account suspended until the selected end time.':'Account ban created.');
@@ -289,6 +310,44 @@ export default function AdminPortal(){
  {section==="pupeye-web"?<section className="pup-admin-panel" aria-label="PupEye Web security incidents">
  <h2>🛡️ PupEye Web security</h2>
  <p className="pup-admin-note">Server-verified browser account activity and abuse-limit incidents. These are not Android device detections. VPN/network risk alone does not constitute cheating or trigger an automatic ban.</p>
+ <div className="pup-fairplay-heading">
+   <h3>🔎 Fair-play investigations</h3>
+   <p>Server-detected volume and rate anomalies. Browser timing reports are advisory only and cannot trigger automatic restrictions. A case is evidence for human review, not proof of cheating.</p>
+ </div>
+ <div className="pup-admin-table-wrap"><table className="pup-admin-table">
+  <thead><tr><th>Reported</th><th>Player</th><th>Signal / Severity</th><th>Evidence</th><th>State</th><th>Review</th></tr></thead>
+  <tbody>{fairplayCases.map(item=><tr key={item.id}>
+   <td>{formatTime(item.created_at)}</td>
+   <td><strong>@{item.account_username||"Former player"}</strong><small>Case #{item.id}</small></td>
+   <td><strong>{item.signal?.replaceAll("_"," ")}</strong><small>{item.severity} · score {item.score_after}</small></td>
+   <td><small>{item.evidence?.source==="browser_advisory"?
+    "Self-reported browser signal (not trusted for enforcement)":
+    "Server-confirmed gameplay timing / volume"}</small>
+    <small>{Number.isFinite(item.evidence?.windowTaps)?"Taps in window: "+item.evidence.windowTaps:""}</small>
+    <small>{Number.isFinite(item.evidence?.windowRejections)?"Rejected taps: "+item.evidence.windowRejections:""}</small>
+    {item.evidence?.source==="browser_advisory"?<small>Samples: {item.evidence.sampleCount} · variation: {item.evidence.coefficientVariation}</small>:null}
+    {item.restricted_until&&new Date(item.restricted_until)>new Date()?<small>Tap hold until: {formatTime(item.restricted_until)}</small>:null}
+   </td>
+   <td><span className={"pup-admin-status "+(item.status==="open"?"danger":"")}>{item.status}</span>
+    {item.review_note?<small>{item.review_note}</small>:null}</td>
+   <td>{item.status==="open"?<div className="pup-fairplay-review">
+    <label>Decision<select value={caseReview[item.id]?.resolution||"dismiss"}
+      onChange={event=>setCaseReview(old=>({...old,[item.id]:{...old[item.id],resolution:event.target.value}}))}>
+      <option value="dismiss">Dismiss false positive</option>
+      <option value="confirm">Confirm for record</option>
+      <option value="clear_hold">Clear tap restriction</option>
+    </select></label>
+    <label>Review explanation<textarea maxLength={500} rows={2}
+      value={caseReview[item.id]?.note||""}
+      onChange={event=>setCaseReview(old=>({...old,[item.id]:{...old[item.id],note:event.target.value}}))}
+      placeholder="What did you review?"/></label>
+    <button disabled={busy||String(caseReview[item.id]?.note||"").trim().length<5}
+      onClick={()=>void reviewFairplayCase(item)}>Save review</button>
+   </div>:<small>Reviewed {formatTime(item.reviewed_at)}</small>}</td>
+  </tr>)}</tbody>
+ </table></div>
+ {!fairplayCases.length&&!tabLoading?<p className="pup-admin-empty">No fair-play cases recorded.</p>:null}
+ <h3 className="pup-fairplay-secondary">Other PupEye Web security incidents</h3>
  <div className="pup-admin-table-wrap"><table className="pup-admin-table">
   <thead><tr><th>When</th><th>Pup Account</th><th>Event</th><th>Details</th></tr></thead>
   <tbody>{webPupEyeEvents.map(e=><tr key={e.id}>
