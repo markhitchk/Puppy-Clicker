@@ -503,7 +503,7 @@ export default function App(){
  const demo=isPlayDemoRoute(path,typeof window!=="undefined"?window.location.search:"");
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
   const page=path==="/"?"home":path==="/chat"?"chat":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
-  (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
+  (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity|pupeye-web))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account/inventory"?"account-inventory":path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   path==="/settings"||path==="/browser/settings"?"browser-settings":
   callback?"callback":demo?"demo":path==="/play"?"play":"error";
