@@ -1,0 +1,6 @@
+.pupeye-brand{display:inline-flex;align-items:center;vertical-align:middle;gap:.55em;max-width:100%;line-height:1.25}
+.pupeye-brand__logo{display:block;width:1.55em;height:1.55em;max-width:none;object-fit:contain;flex:none;filter:drop-shadow(0 0 5px rgba(0,229,255,.25))}
+.pupeye-brand__fallback{display:inline-flex;align-items:center;justify-content:center;width:1.55em;height:1.55em;flex:none}
+.pupeye-brand__name{min-width:0;overflow-wrap:anywhere}
+.pupeye-brand--compact{gap:.4em}
+.pupeye-brand--compact .pupeye-brand__logo,.pupeye-brand--compact .pupeye-brand__fallback{width:1.35em;height:1.35em}
