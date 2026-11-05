@@ -5,6 +5,7 @@ import UserAvatar from "./UserAvatar.jsx";
 import AdminPuppyGifts from "./AdminPuppyGifts.jsx";
 import {banTargetFromLocation,banAccountUrl} from "./banRoute.js";
 import AdminActivity from "./AdminActivity.jsx";
+import PupEyeBrand from "./PupEyeBrand.jsx";
 import AdminRestrictionDialog from "./AdminRestrictionDialog.jsx";
 import {formatTime,describeDevice,presentAuditEvent} from "./adminPresentation.js";
 
@@ -257,7 +258,7 @@ export default function AdminPortal(){
    <Stat label="Errors in 24 hours" value={activity.summary?.errors24h??'—'}/>
   </div>
   <nav className="pup-admin-tabs" aria-label="Administration sections">
-   {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["pupeye-web","🛡️ PupEye Web"],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"]].map(([tab,label])=>
+   {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["pupeye-web",<PupEyeBrand compact label="PupEye Anticheat"/>],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"]].map(([tab,label])=>
     <button key={tab} type="button" className={section===tab?"is-selected":""}
      aria-current={section===tab?"page":undefined} onClick={()=>navigate(tab)}>{label}</button>)}
    <a className="pup-admin-link" href="/account/admin/chat">💬 Chat moderation</a>
@@ -308,7 +309,7 @@ export default function AdminPortal(){
   </section>:null}
   {section==="activity"?<AdminActivity activity={activity} filter={activityFilter} onFilter={setActivityFilter}/>:null}
  {section==="pupeye-web"?<section className="pup-admin-panel" aria-label="PupEye Web security incidents">
- <h2>🛡️ PupEye Web security</h2>
+ <h2><PupEyeBrand label="PupEye Anticheat"/></h2>
  <p className="pup-admin-note">Server-verified browser account activity and abuse-limit incidents. These are not Android device detections. VPN/network risk alone does not constitute cheating or trigger an automatic ban.</p>
  <div className="pup-fairplay-heading">
    <h3>🔎 Fair-play investigations</h3>
