@@ -6,28 +6,14 @@ import {DISCORD_ICON_URL} from "./discordIcon.js";
 import {client} from "./supabase.js";
 import {suggestUsername,generateStrongPassword} from "./nameSuggestions.js";
 import JoinSourceFields from "./JoinSourceFields.jsx";
-
-// Mirror the Supabase Auth password policy before submitting a new account.
-const PASSWORD_SYMBOLS=new Set(["!","@","#","$","%","^","&","*","(",")","_","+","-","=","[","]","{","}",";","'","\\",":","\"","|","<",">","?",",",".","/","`","~"]);
-const passwordRules=value=>[
- {label:"8–128 characters",passed:value.length>=8&&value.length<=128},
- {label:"Uppercase letter",passed:/[A-Z]/.test(value)},
- {label:"Lowercase letter",passed:/[a-z]/.test(value)},
- {label:"Number",passed:/[0-9]/.test(value)},
- {label:"Special character",passed:[...value].some(character=>PASSWORD_SYMBOLS.has(character))}
-];
+import {usePupAuthForm,registrationError,passwordRules} from "./shared/usePupAuthForm.js";
 
 // Reused inside the same Pup Account sign-in / registration panel on
 // /account, /register (legacy link), and the signed-out /play gate.
 export default function WebRegister({onAuthenticated,onSignIn}){
- const [username,setUsername]=useState("");
- const [password,setPassword]=useState("");
- const [confirm,setConfirm]=useState("");
- const [contactEmail,setContactEmail]=useState("");
- const [joinSource,setJoinSource]=useState("");
- const [joinDetails,setJoinDetails]=useState("");
- const [terms,setTerms]=useState(false);
- const [privacy,setPrivacy]=useState(false);
+ const {username,setUsername,password,setPassword,confirm,setConfirm,
+  contactEmail,setContactEmail,joinSource,setJoinSource,joinDetails,setJoinDetails,
+  terms,setTerms,privacy,setPrivacy}=usePupAuthForm('signup');
  const [busy,setBusy]=useState(false);
  const [registered,setRegistered]=useState(false);
  const [message,setMessage]=useState("");
@@ -51,17 +37,9 @@ export default function WebRegister({onAuthenticated,onSignIn}){
   const name=String(fields.get("username")??username).trim();
   const enteredPassword=String(fields.get("new-password")??password);
   const enteredConfirm=String(fields.get("confirm-password")??confirm);
-  if(!/^[A-Za-z0-9_-]{3,20}$/.test(name)){
-   setMessage("Username must be 3–20 letters, numbers, underscores or hyphens.");return;
-  }
-  if(passwordRules(enteredPassword).some(rule=>!rule.passed)){
-   setMessage("Password must be 8–128 characters and include uppercase and lowercase letters, a number, and a special character.");return;
-  }
-  if(enteredPassword!==enteredConfirm){setMessage("Passwords do not match.");return;}
-  if(contactEmail.trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())){
-   setMessage("Enter a valid optional support email.");return;
-  }
-  if(!terms||!privacy){setMessage("Accept both the Terms of Use and Privacy Policy.");return;}
+  const invalid=registrationError({username:name,password:enteredPassword,confirm:enteredConfirm,
+   contactEmail,terms,privacy});
+  if(invalid){setMessage(invalid);return;}
   setBusy(true);
   try{
    const result=await requestPuppyAuth("register",{
