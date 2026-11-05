@@ -1,8 +1,8 @@
 import React,{useState} from "react";
 import "./PupEyeBrand.css";
 
-// Official PupEye artwork from pup-clinker/assets/logos/PupEye.png.
-// A build step copies it into /assets/logos/PupEye.png for local serving.
+// The committed /assets/logos/PupEye.png is byte-for-byte identical to
+// pup-clinker/main/assets/logos/PupEye.png (Git blob 8e136af).
 export default function PupEyeBrand({label="PupEye Anticheat",compact=false}){
  const [failed,setFailed]=useState(false);
  return <span className={"pupeye-brand"+(compact?" pupeye-brand--compact":"")}>
