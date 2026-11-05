@@ -26,6 +26,7 @@ import CommunityChat from "./CommunityChat.jsx";
 import AdminChat from "./AdminChat.jsx";
 import LanguagePicker,{useLanguage} from "./LanguagePicker.jsx";
 import ProfileAvatarEditor from "./ProfileAvatarEditor.jsx";
+import {AccountInventoryPage} from "./InventoryScreen.jsx";
 import PupGiftRequests from "./PupGiftRequests.jsx";
 import {avatarForAccount} from "./pupWebApi.js";
 import {suggestUsername,suggestDisplayName,generateStrongPassword} from "./nameSuggestions.js";
@@ -357,6 +358,11 @@ function AccountDashboard(){
      <a href="/play" className="cta cta-primary stretch">🐾 Continue playing</a>
     </section>
 
+    <section className="portal-card" aria-labelledby="pup-inventory-account-heading">
+     <h3 id="pup-inventory-account-heading">🎒 Your inventory</h3>
+     <p>Browse your collected puppies, accessories, upgrade tickets, purchased upgrades and current wallet from your protected game save.</p>
+     <a href="/account/inventory" className="cta cta-primary stretch">🎒 Open inventory</a>
+    </section>
     <section className="portal-card" aria-labelledby="discord-account-heading">
      <h3 id="discord-account-heading">🔗 Discord account</h3>
      {profile.discordUserId?<>
@@ -498,14 +504,15 @@ export default function App(){
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
   const page=path==="/"?"home":path==="/chat"?"chat":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
-  path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
+  path==="/account/inventory"?"account-inventory":path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   path==="/settings"||path==="/browser/settings"?"browser-settings":
   callback?"callback":demo?"demo":path==="/play"?"play":"error";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
-  <Header page={callback||page==="admin"||page==="admin-chat"||page==="admin-privacy"||page==="privacy-center"?"account":page==="demo"?"play":page}/>
+  <Header page={callback||page==="admin"||page==="admin-chat"||page==="admin-privacy"||page==="privacy-center"||page==="account-inventory"?"account":page==="demo"?"play":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
    {page==="home"?<Home/>:page==="demo"?<DemoPage/>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
+    page==="account-inventory"?<WebAccountGate><AccountInventoryPage/></WebAccountGate>:
     page==="browser-settings"?<BrowserSettings/>:
     page==="privacy"?<WebPrivacy/>:
     page==="privacy-center"?<PrivacyCenter/>:
