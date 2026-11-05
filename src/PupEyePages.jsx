@@ -42,6 +42,7 @@ function StatusCard({label,title,detail,tone="neutral",children}){
  </article>;
 }
 export function PupEyeOverview(){
+ useEffect(()=>{const old=document.title;document.title="PupEye Anticheat | Puppy Clicker";return()=>{document.title=old;};},[]);
  return <div className="pupeye-page" data-testid="pupeye-overview">
   <PageCrumbs current="PupEye"/>
   <section className="pupeye-hero">
@@ -93,6 +94,7 @@ export function PupEyeOverview(){
 }
 
 export function PupEyeAccountStatus(){
+ useEffect(()=>{const old=document.title;document.title="My PupEye Status | Puppy Clicker";return()=>{document.title=old;};},[]);
  const {client,pupAccount}=useWebAccount();
  const banned=pupAccount?.status==="BANNED";
  const [fairplay,setFairplay]=useState(null);
