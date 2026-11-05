@@ -29,6 +29,7 @@ import PuppyExchangeScreen from './src/components/PuppyExchangeScreen.jsx';
 import PuppyPointer from './src/components/PuppyPointer.jsx';
 import {useNotifications} from './src/state/useNotifications.js';
 import {themedStyles} from './src/theme.js';
+import {PupResourceStrip,PupNeedPill,PupQuickAction} from '../shared-ui/PupGameChrome.jsx';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {ActivityIndicator,Alert,Animated,Easing,Image,ImageBackground,Modal,NativeModules,Pressable,ScrollView,StatusBar,Text,TextInput,Vibration,View,Platform,BackHandler,useColorScheme,useWindowDimensions} from 'react-native';
 import {colors as C} from './src/theme.js';
@@ -110,33 +111,13 @@ function PageHeader({title,subtitle,action,withLogo=false}){
   </View>{action||null}</View>;
 }
 function Wallet({game}){
- return <View testID="resource-strip" style={styles.wallet}>
-  {[['🍪','Treats',game.treats],['🦴','Bones',game.bones],['🪙','Pup Coins',game.pupCoins],['🐾','Casino Chips',game.casinoChips]].map(([icon,label,value])=>
-   <Pressable key={label} accessibilityRole="button"
-    accessibilityLabel={label+' exact balance: '+Number(value).toLocaleString('en-US')}
-    onPress={()=>Alert.alert(label+' · Exact balance',Number(value).toLocaleString('en-US')+' '+label)}
-    style={styles.walletCell}>
-    <Txt style={styles.walletEmoji}>{icon}</Txt>
-    <Txt numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.52}
-     style={styles.walletNumber}>{v6WalletFormat(value,game.compactNumbers!==false)}</Txt>
-    <Txt numberOfLines={1} style={styles.walletLabel}>{label}</Txt>
-   </Pressable>)}
- </View>;
+ return <PupResourceStrip game={game} styles={styles} colors={C} formatValue={v6WalletFormat}/>;
 }
 function NeedPill({icon,value}){
- const safe=Math.min(100,Math.max(0,Number(value)||0));
- return <View style={[styles.needPill,safe<=10&&styles.needPillLow]}>
-  <Txt style={styles.needPillText}>{icon} {safe}%</Txt>
-  <View accessibilityRole="progressbar" accessibilityLabel={icon+' puppy care'}
-   accessibilityValue={{min:0,max:100,now:safe}} style={styles.needMeterTrack}>
-   <View style={[styles.needMeterFill,{width:safe+'%'}]}/>
-  </View>
- </View>;
+ return <PupNeedPill icon={icon} value={value} styles={styles}/>;
 }
 function QuickAction({emoji,title,subtitle,onPress,disabled=false}){
- return <Pressable accessibilityRole="button" accessibilityLabel={title} accessibilityState={{disabled}} disabled={disabled} onPress={onPress} style={({pressed})=>[styles.quickAction,disabled&&styles.buttonDisabled,pressed&&{opacity:0.75}]}>
-  <Txt style={styles.quickActionIcon}>{emoji}</Txt><Txt numberOfLines={1} style={styles.quickActionTitle}>{title}</Txt><Txt numberOfLines={1} style={styles.quickActionDescription}>{subtitle}</Txt>
- </Pressable>;
+ return <PupQuickAction emoji={emoji} title={title} subtitle={subtitle} onPress={onPress} disabled={disabled} styles={styles}/>;
 }
 function DailyGoalCard({g,goal,act,clock,onOpen,readOnly=false,compact=false,pendingTaps=0}){
  const date=webServerRewardsDate(clock),today=webServerEpochDay(clock);
