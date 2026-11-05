@@ -12,6 +12,8 @@ const initialSection=()=> {
  const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit|gifts|activity|pupeye-web)\/?$/);
  return match?.[1] || "users";
 };
+const joinSourceNames={friend:"Friend or player",discord:"Discord",youtube:"YouTube",tiktok:"TikTok",
+ instagram:"Instagram",reddit:"Reddit",google:"Google search",play_store:"Google Play",other:"Other"};
 const lastIp=user=>(user.connection?user.connection.ip:user.network?.ip)||null;
 const lastUserAgent=user=>(user.connection?user.connection.userAgent:user.network?.userAgent)||null;
 const normalizeError=(code)=>{
@@ -212,7 +214,7 @@ export default function AdminPortal(){
   </div>;
  }
  const visibleUsers=users.filter(u=>
-   [u.username,u.displayName,u.playerId,u.friendCode].some(v=>
+   [u.username,u.displayName,u.playerId,u.friendCode,u.joinSource,u.joinDetails].some(v=>
      String(v||"").toLowerCase().includes(query.trim().toLowerCase())));
  const activeBans=bans.filter(b=>b.status==="active"&&!b.revoked_at&&
     (!b.expires_at || new Date(b.expires_at)>new Date())).length;
@@ -251,11 +253,13 @@ export default function AdminPortal(){
    </div>
    <p className="pup-admin-note">Registered Pup Accounts only. Manage access and review the latest website connection. Saved progress and Android installation records are preserved.</p>
    <div className="pup-admin-table-wrap"><table className="pup-admin-table">
-    <thead><tr><th>Player</th><th>Standing</th><th>Role</th><th>Latest connection</th><th>IP address</th><th>User-Agent</th><th>Actions</th></tr></thead>
+    <thead><tr><th>Player</th><th>Joined via</th><th>Standing</th><th>Role</th><th>Latest connection</th><th>IP address</th><th>User-Agent</th><th>Actions</th></tr></thead>
     <tbody>{visibleUsers.map(user=>
      <tr key={user.id}>
       <td><div className="pup-admin-player"><UserAvatar src={user.avatarUrl} name={user.displayName||user.username} className="pup-admin-avatar"/>
         <div><strong>{user.displayName||user.username}</strong><small>@{user.username}</small><small>{user.friendCode||"—"}</small>{user.contactEmail?<small>Support email: {user.contactEmail}</small>:null}</div></div></td>
+      <td><strong>{joinSourceNames[user.joinSource]||"Not provided"}</strong>
+       {user.joinDetails?<small>{user.joinDetails}</small>:null}</td>
       <td><span className={'pup-admin-status '+(user.status==='active'?'':'danger')}>{user.status||'unknown'}</span>
        {user.restriction?<><small>{user.restriction.reason}</small><small>{user.restriction.expiresAt?'Until '+formatTime(user.restriction.expiresAt):'Permanent'}</small></>:null}</td>
       <td>{staff.role==="DEVELOPER" && user.role!=="DEVELOPER"?

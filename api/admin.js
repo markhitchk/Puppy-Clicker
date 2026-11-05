@@ -80,6 +80,9 @@ async function users(db,query) {
   // must never hide registered Pup Accounts or expose installation identities.
   let network=[];
   const accountIds=filtered.map(a=>a.id);
+  const joined=accountIds.length?await db.from("pup_registration_sources")
+    .select("account_uuid,source,details").in("account_uuid",accountIds):{data:[]};
+  const sources=new Map((joined.error?[]:joined.data||[]).map(r=>[r.account_uuid,r]));
   if (accountIds.length) {
     const response=await db.from("pup_web_network_checks")
       .select("account_uuid,ip_address,user_agent,checked_at,vpn,proxy,tor,hosting,detection_status")
@@ -120,6 +123,8 @@ async function users(db,query) {
         expiresAt:restriction.expires_at,managedHere:String(restriction.issued_by||"").startsWith("web_admin:")}:null,
       accountStatus:a.status,createdAt:a.created_at,updatedAt:a.updated_at,
       contactEmail:a.contact_email || null,
+      joinSource:sources.get(a.id)?.source||null,
+      joinDetails:sources.get(a.id)?.details||null,
       connection:session?{ip:session.ip_address,userAgent:session.user_agent,path:session.path,
         startedAt:session.started_at,lastSeenAt:session.last_seen_at,
         recentlyActive:!session.ended_at&&Date.parse(session.last_seen_at)>Date.now()-90000}:null,

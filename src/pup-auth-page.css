@@ -40,3 +40,8 @@
  .pup-auth-form{padding:19px 14px;border-radius:18px}
 }
 @media(prefers-reduced-motion:reduce){.pup-auth-page *{scroll-behavior:auto}}
+
+.account-join-source{display:flex;flex-direction:column;gap:9px;margin:8px 0 16px;padding:16px;border:1px solid rgba(0,229,255,.20);border-radius:16px;background:rgba(10,12,18,.46)}
+.account-join-source label{font-weight:800;color:#e9faff}
+.account-join-source select,.account-join-source input{width:100%;min-height:44px;padding:10px 12px;border:1px solid #476579;border-radius:11px;background:#12151f;color:#f3fbff;font:inherit}
+.account-join-source small{font-size:12px;color:#b4cbd7;line-height:1.5}

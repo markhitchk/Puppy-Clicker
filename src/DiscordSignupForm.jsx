@@ -3,6 +3,7 @@ import {requestPuppyAuth,verifyPuppySession,puppyAuthMessage,
  clearPendingDiscordSignup} from "./native/web/puppyOAuth.js";
 import {client} from "./supabase.js";
 import {suggestUsername} from "./nameSuggestions.js";
+import JoinSourceFields from "./JoinSourceFields.jsx";
 
 const TERMS="/legal/terms";
 const PRIVACY="/legal/privacy";
@@ -12,6 +13,8 @@ export default function DiscordSignupForm({signup,onAuthenticated,onSignIn}){
  const proposed=(profile.username||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,20);
  const [username,setUsername]=useState(proposed.length>=3?proposed:"");
  const [useDiscordEmail,setUseDiscordEmail]=useState(false);
+ const [joinSource,setJoinSource]=useState("");
+ const [joinDetails,setJoinDetails]=useState("");
  const [terms,setTerms]=useState(false);
  const [privacy,setPrivacy]=useState(false);
  const [busy,setBusy]=useState(false),[registered,setRegistered]=useState(false);
@@ -28,7 +31,8 @@ export default function DiscordSignupForm({signup,onAuthenticated,onSignIn}){
   try{
    const result=await requestPuppyAuth("discord-register",{
     ticket,username:enteredName,termsAccepted:terms,privacyAccepted:privacy,
-    useDiscordEmail
+    useDiscordEmail,joinSource:joinSource||null,
+    joinDetails:joinSource?joinDetails.trim()||null:null
    });
    if(result.registered!==true)throw Error("PUP_SIGNUP_UNAVAILABLE");
    setRegistered(true);
@@ -84,6 +88,8 @@ export default function DiscordSignupForm({signup,onAuthenticated,onSignIn}){
     </>:<p>No verified email was returned by Discord. Email remains optional.</p>}
     <small>Discord email is not automatically used for Supabase password recovery.</small>
    </div>
+   <JoinSourceFields idPrefix="discord-register" source={joinSource} onSourceChange={setJoinSource}
+    details={joinDetails} onDetailsChange={setJoinDetails} disabled={busy||registered}/>
    <label className="account-auth-consent">
     <input type="checkbox" required checked={terms} disabled={busy||registered}
      onChange={e=>setTerms(e.target.checked)}/>

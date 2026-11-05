@@ -5,6 +5,7 @@ import {createHash} from "node:crypto";
 import {offerDiscordRegistration,registerDiscordWebAccount} from "./discordRegistration.ts";
 import {sanitizeDiscordIdentity} from "./discordSignup.ts";
 import {auditAuthResponse} from "../_shared/web-activity.ts";
+import {parseJoinSource,recordJoinSource} from "./joinSource.ts";
 
 // This is Puppy Clicker's own public OAuth2 application (same client ID as
 // the Android DiscordSignupAuth). Do not use shared Supabase Discord OAuth.
@@ -168,6 +169,7 @@ async function registerWebAccount(req,body,origin){
  if(contactEmail===null||contactEmail.length>254||
     (contactEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)))
   throw new PublicError(400,"PUP_CONTACT_EMAIL_INVALID");
+ const joinSource=parseJoinSource(body,PublicError);
  const network=req.headers.get("cf-connecting-ip")||
   req.headers.get("x-real-ip")||
   req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";
@@ -203,6 +205,7 @@ async function registerWebAccount(req,body,origin){
    throw new PublicError(409,"PUP_USERNAME_TAKEN");
   throw new PublicError(503,"PUP_SIGNUP_UNAVAILABLE");
  }
+ await recordJoinSource(admin,created.user.id,joinSource);
  // The new account remains usable via password login if auto-sign-in fails.
  const {data:signed,error:signError}=await auth.auth.signInWithPassword({
   email:internalEmail,password

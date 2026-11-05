@@ -1,5 +1,6 @@
 import {createHash} from "node:crypto";
 import {sanitizeDiscordIdentity,makeDiscordSignupTicket,verifyDiscordSignupTicket} from "./discordSignup.ts";
+import {parseJoinSource,recordJoinSource} from "./joinSource.ts";
 
 export async function offerDiscordRegistration({profile,origin,admin,json,PublicError,key}:any){
  let identity;
@@ -38,6 +39,7 @@ export async function registerDiscordWebAccount({req,body,origin,admin,json,Publ
   throw new PublicError(400,"PUP_USERNAME_INVALID");
  if(body.termsAccepted!==true||body.privacyAccepted!==true)
   throw new PublicError(400,"PUP_LEGAL_ACCEPTANCE_REQUIRED");
+ const joinSource=parseJoinSource(body,PublicError);
  let profile;
  try{profile=verifyDiscordSignupTicket(body.ticket,Deno.env.get("PUP_DISCORD_SIGNUP_SECRET")||key);}
  catch{throw new PublicError(401,"PUP_DISCORD_SIGNUP_EXPIRED");}
@@ -76,6 +78,7 @@ export async function registerDiscordWebAccount({req,body,origin,admin,json,Publ
    throw new PublicError(409,"PUP_USERNAME_TAKEN");
   throw new PublicError(503,"PUP_SIGNUP_UNAVAILABLE");
  }
+ await recordJoinSource(admin,created.user.id,joinSource);
  const {data:link,error:linkError}=await admin.auth.admin.generateLink({
   type:"magiclink",email:internalEmail
  });
