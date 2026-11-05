@@ -18,6 +18,7 @@ import {isPlayDemoRoute} from "./playDemoRoute.js";
 import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
 import AdminPortal from "./AdminPortal.jsx";
 import PupEyeBrand from "./PupEyeBrand.jsx";
+import {PupEyeOverview,PupEyeAccountStatus} from "./PupEyePages.jsx";
 import AdminPrivacy from "./AdminPrivacy.jsx";
 import WebPrivacy from "./WebPrivacy.jsx";
 import PrivacyCenter from "./privacy/PrivacyCenter.jsx";
@@ -80,6 +81,7 @@ function Header({page}){
    <a href="/" aria-current={page==="home"?"page":undefined}>{tr("home")}</a>
    <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 {tr("play")}</a>
    <a href="/puppies" aria-current={page==="puppies"?"page":undefined}>{tr("puppies")}</a>
+   <a href="/pupeye" aria-current={page==="pupeye"||page==="pupeye-status"?"page":undefined}><PupEyeBrand compact label="PupEye"/></a>
    <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>{tr("policies")}</a>
    <a href="/leaderboard" aria-current={page==="leaderboard"?"page":undefined}>🏆 {tr("leaderboard")}</a>
    <a href="/chat" aria-current={page==="chat"?"page":undefined}>💬 {tr("chat")}</a>
@@ -94,7 +96,7 @@ function Header({page}){
     <span className="site-nav-toggle-icon" aria-hidden="true">{menuOpen?"✕":"☰"}</span>
     <span className="site-nav-toggle-text">{tr("menu")}</span>
    </button>
-   <SiteAccountMenu active={page==="account"}/>
+   <SiteAccountMenu active={page==="account"||page==="pupeye-status"}/>
   </div>
  </header>;
 }
@@ -151,7 +153,7 @@ function Home(){
    </div>
    <div className="account-preview"><span>🐾</span><strong>Pup Account</strong><p>Verified login · Linked progress · Account settings</p></div>
   </section>
-  <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span><a href="/recovery">Recover Pup Account</a> · <a href="/privacy">Website privacy</a> · <a href="/legal/privacy">Policies</a> · Made for puppy fans 🐶</span></footer>
+  <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span><a href="/recovery">Recover Pup Account</a> · <a href="/privacy">Website privacy</a> · <a href="/legal/privacy">Policies</a> · <a href="/pupeye">PupEye Anticheat</a> · Made for puppy fans 🐶</span></footer>
  </div>;
 }
 const accountRole=role=>({DEVELOPER:"Developer",ADMIN:"Administrator",PUP_MEMBER:"Pup Member"})[role]||"Player";
@@ -341,6 +343,7 @@ function AccountDashboard(){
      {profile.contactEmail?detail("Support contact email",profile.contactEmail,"Visible only to your signed-in account."):null}
     </dl>
      <p className="pup-admin-note">For account security, the website records recent signed-in visits, IP address (when available), browser information and page path for authorized staff review. These are website sessions, not Android installations.</p>
+    <div className="account-actions"><a className="cta cta-secondary" href="/pupeye/status">👁️ Check my PupEye status</a><a className="cta cta-secondary" href="/pupeye">About PupEye</a></div>
     {["ADMIN","DEVELOPER"].includes(profile.guildRole)?<div className="account-actions"><a className="cta cta-secondary" href="/account/admin">🛡️ Open Admin Panel</a></div>:null}
     {profile.friendCode?<div className="account-actions"><button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button></div>:null}
     <div className="portal-divider"></div>
@@ -503,7 +506,7 @@ export default function App(){
  const callback=path==="/auth/discord/callback";
  const demo=isPlayDemoRoute(path,typeof window!=="undefined"?window.location.search:"");
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
-  const page=path==="/"?"home":path==="/chat"?"chat":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
+  const page=path==="/"?"home":path==="/pupeye"||path==="/pupeye/"?"pupeye":/^\/pupeye\/status\/?$/.test(path)?"pupeye-status":path==="/chat"?"chat":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity|pupeye-web))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account/inventory"?"account-inventory":path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   path==="/settings"||path==="/browser/settings"?"browser-settings":
@@ -511,7 +514,8 @@ export default function App(){
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
   <Header page={callback||page==="admin"||page==="admin-chat"||page==="admin-privacy"||page==="privacy-center"||page==="account-inventory"?"account":page==="demo"?"play":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
-   {page==="home"?<Home/>:page==="demo"?<DemoPage/>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
+   {page==="home"?<Home/>:page==="pupeye"?<PupEyeOverview/>:page==="pupeye-status"?<WebAccountGate><PupEyeAccountStatus/></WebAccountGate>:
+    page==="demo"?<DemoPage/>:page==="puppies"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
     page==="account-inventory"?<WebAccountGate><AccountInventoryPage/></WebAccountGate>:
     page==="browser-settings"?<BrowserSettings/>:
