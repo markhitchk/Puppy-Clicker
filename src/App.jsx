@@ -17,6 +17,7 @@ import {useDemoAccess} from "./useDemoAccess.js";
 import {isPlayDemoRoute} from "./playDemoRoute.js";
 import NetworkCheckReporter from "./NetworkCheckReporter.jsx";
 import AdminPortal from "./AdminPortal.jsx";
+import PupEyeBrand from "./PupEyeBrand.jsx";
 import AdminPrivacy from "./AdminPrivacy.jsx";
 import WebPrivacy from "./WebPrivacy.jsx";
 import PrivacyCenter from "./privacy/PrivacyCenter.jsx";
@@ -300,7 +301,7 @@ function AccountDashboard(){
   }catch(e){if(e?.name!=="AbortError")setStatus("Could not share. Select and copy the Friend Code shown above.");}
  };
  const detail=(label,value,description)=> <div className="account-detail" key={label}>
-  <dt>{label}</dt><dd>{value||"Not available"}</dd>{description?<small>{description}</small>:null}
+  <dt>{label==="PupEye Anticheat"?<PupEyeBrand compact label={label}/>:label}</dt><dd>{value||"Not available"}</dd>{description?<small>{description}</small>:null}
  </div>;
  const connected=profile.discordUserId?"Connected":"Not connected";
  const standing=profile.status==="VERIFIED"||!profile.status?"Verified":profile.status;
@@ -326,7 +327,7 @@ function AccountDashboard(){
      {detail("Role",profile.guildRole===undefined?"Checking…":accountRole(profile.guildRole))}
      {detail("Account connection",connection)}
      {detail("Gameplay access",gameplay)}
-     {detail("PupEye Web",profile.pupeyeWeb?.mode==="server-verified"?"Server protection active":"Checking protection…",
+     {detail("PupEye Anticheat",profile.pupeyeWeb?.mode==="server-verified"?"Server protection active":"Checking protection…",
        "Browser gameplay and privileged actions use server-side account verification and abuse limits. Browser identification is not Android device attestation.")}
      {detail("Discord",connected)}
      {profile.discordProfile?<>
