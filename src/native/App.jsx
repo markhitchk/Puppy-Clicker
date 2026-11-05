@@ -1064,7 +1064,7 @@ export default function App(){return <SafeAreaProvider><PuppyErrorBoundary><WebA
 export function PuppyApp({betaMode=false}){
  const insets=useSafeAreaInsets();
  const systemDark=useColorScheme()==='dark';
- const {state,gameForDisplay,queuedTaps,notificationInbox,act:gameAct,account,cloudState,startupError,syncStatus,gameplayBusy,refreshAccount,updateAccountName}=useGame({mode:betaMode?'beta':'guest'});
+ const {state,gameForDisplay,queuedTaps,notificationInbox,act:gameAct,account,cloudState,startupError,syncStatus,gameplayBusy,refreshAccount,updateAccountName,fairplay,refreshFairplay}=useGame({mode:betaMode?'beta':'guest'});
  const onboarding=useAccountOnboarding({enabled:betaMode,account,activateAccount:refreshAccount});
  const act=useCallback(action=>{
   gameAct(action);
@@ -1205,6 +1205,13 @@ export function PuppyApp({betaMode=false}){
   </View>:null}
 
 {state.notice?<Pressable accessibilityRole="alert" onPress={()=>act({type:'dismiss'})} style={styles.notice}><Txt style={styles.small}>{state.notice}  ✕</Txt></Pressable>:null}
+  {!betaMode&&['warning','restricted'].includes(fairplay?.status)?<div className={'pup-fairplay-banner '+(fairplay.status==='restricted'?'is-restricted':'')} role="status" aria-live="polite">
+   <span aria-hidden="true">🐶👁️</span><div><strong>{fairplay.status==='restricted'?'PupEye: temporary tap hold':'PupEye fair-play notice'}</strong>
+    <p>{fairplay.message||'Your tapping activity is being reviewed.'}
+    {fairplay.status==='restricted'&&fairplay.restrictedUntil?' Until '+new Date(fairplay.restrictedUntil).toLocaleTimeString()+'.':''}</p>
+   </div>
+   <button type="button" onClick={()=>void refreshFairplay()}>Refresh status</button>
+  </div>:null}
   {state.ready&&g.onboardingComplete&&!secondary&&tab==='play'?<View testID="play-viewport" onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={{flex:1,minHeight:0,minWidth:0,padding:8}}>{main()}</View>:<>
   <ScrollView key={secondary||tab} onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={styles.scroll} contentContainerStyle={[styles.content,(secondary==='settings'||['play','care','roster'].includes(tab)&&!secondary)&&{paddingTop:2,paddingBottom:0,paddingHorizontal:secondary==='settings'?16:tab==='roster'?12:14,gap:0},{maxWidth:desktop?1800:width>650?700:undefined,paddingHorizontal:desktop?24:14,paddingVertical:desktop?18:12}]} keyboardShouldPersistTaps="handled">
    {secondary&&secondary!=='exchange'&&secondary!=='account-details'?<View style={styles.back}><Button compact secondary onPress={()=>setSecondary(null)}>← Back to {TABS.find(x=>x[0]===tab)?.[2]}</Button><Txt style={styles.heading}>{secondary.toUpperCase()}</Txt></View>:null}
