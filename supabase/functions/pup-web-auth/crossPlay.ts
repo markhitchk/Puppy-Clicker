@@ -130,6 +130,14 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
  if(!Number.isSafeInteger(body.expectedRevision)||body.expectedRevision<1)
   reject(400,"CLOUD_REVISION_REQUIRED");
  if(Number(current.revision)!==body.expectedRevision)reject(409,"CLOUD_SAVE_CONFLICT");
+ if(intent.type==="tap"){
+  // Server time and verified identity control actual restrictions; browser hints never do.
+  const {data:guard,error:ge}=await admin.rpc("pupeye_web_fairplay_status",{
+   p_account_uuid:account.id
+  });
+  if(ge||!guard||typeof guard.status!=="string")reject(503,"PUPEYE_FAIRPLAY_UNAVAILABLE");
+  if(guard.status==="restricted")reject(429,"PUPEYE_FAIRPLAY_HOLD");
+ }
  if(/^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent.type)&&
     current.save_data?.stores?.puppy_clicker_save?.values?.casino_active_round_v1)
   reject(409,"PUP_CASINO_ANDROID_ROUND_PENDING");
@@ -142,8 +150,13 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
     :await applyBetaEconomy(current.save_data,intent);
  }catch(e){
   const code=String((e as Error)?.message||"");
-  if(code==="PUP_TAP_RATE_LIMIT")
+  if(code==="PUP_TAP_RATE_LIMIT"){
+   // Rejected taps do not earn rewards. Count server-verified burst failures.
+   try{await admin.rpc("pupeye_web_fairplay_record",{
+    p_account_uuid:account.id,p_signal:"tap_rate_rejected",p_observation:{}
+   });}catch{/* A telemetry failure may not turn a rejected tap into a reward. */}
    reject(429,"PUP_TAP_RATE_LIMIT");
+  }
   // Only known, non-sensitive rule failures may reach the UI.
   if(new Set(["GACHA_INSUFFICIENT_TREATS","GACHA_INSUFFICIENT_TICKET",
    "NOT_ENOUGH_CASINO_CHIPS","BLACKJACK_INSUFFICIENT_CHIPS",
@@ -203,5 +216,16 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
    detail:{action:intent.type,revision:Number(written.revision)}
   });}catch{console.error("Cross-play audit unavailable after commit");}
  }
- return {saved:true,...(durable?{operationId}:{}),cloud:publicCloudSnapshot(written)};
+ let fairplay;
+ if(intent.type==="tap"){
+  try{
+   const {data,error}=await admin.rpc("pupeye_web_fairplay_record",{
+    p_account_uuid:account.id,p_signal:"tap_accepted",p_observation:{}
+   });
+   if(error)throw error;
+   fairplay=data;
+  }catch{console.error("PupEye Web tap telemetry unavailable after commit");}
+ }
+ return {saved:true,...(durable?{operationId}:{}),cloud:publicCloudSnapshot(written),
+  ...(fairplay?{fairplay}:{} )};
 }
