@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {JOIN_SOURCE_OPTIONS,registrationError,loginError,passwordRules} from '../src/shared/usePupAuthForm.js';
+test('Pup Account website and Android use the same validation contract',()=>{
+ const good={username:'SunnyPaw_1234',password:'StrongPup1!',confirm:'StrongPup1!',terms:true,privacy:true};
+ assert.equal(registrationError(good),'');
+ assert.match(registrationError({...good,password:'password',confirm:'password'}),/uppercase/);
+ assert.match(registrationError({...good,terms:false}),/both/);
+ assert.match(registrationError({...good,contactEmail:'bad'}),/email/);
+ assert.ok(passwordRules('StrongPup1!').every(rule=>rule.passed));
+ assert.equal(loginError('SunnyPaw_1234','StrongPup1!'),'');
+ assert.equal(JOIN_SOURCE_OPTIONS.length,9);
+ const register=readFileSync(new URL('../src/WebRegister.jsx',import.meta.url),'utf8');
+ const gate=readFileSync(new URL('../src/native/web/AccountGate.jsx',import.meta.url),'utf8');
+ assert.ok(register.includes("usePupAuthForm('signup')"));
+ assert.ok(register.includes('registrationError({username:name'));
+ assert.ok(gate.includes('usePupAuthForm()'));
+ assert.ok(gate.includes('loginError(enteredLogin,enteredPassword)'));
+});
