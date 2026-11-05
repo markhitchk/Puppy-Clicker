@@ -6,6 +6,12 @@ export function crossplayDb(save, {owner=true, race=false, webOnly=false}={}) {
  let writes=0;
  const receipts=new Map();
  const admin={async rpc(name,args){
+  // Mirror the existing server-owned PupEye RPC contract in isolated gameplay
+  // tests. A clean fair-play status must not increment gameplay write counts.
+  if(name==='pupeye_web_fairplay_status'||name==='pupeye_web_fairplay_record'){
+   if(args?.p_account_uuid!==account.id)throw Error('Wrong PupEye account');
+   return {data:{status:'clear',restrictedUntil:null,message:null},error:null};
+  }
   if(name==='pup_web_gameplay_receipt'){
    const old=receipts.get(args.p_operation_id);
    return {data:old?old.hash===args.p_intent_hash?{status:'saved',revision:old.revision}:{status:'reused_id'}:{status:'unknown'},error:null};
