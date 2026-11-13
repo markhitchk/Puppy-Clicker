@@ -89,7 +89,7 @@ export default function BrowserSettings(){
     <BrowserChoices label="Theme" value={prefs.themeMode} choices={themeOptions} onChange={value=>change('themeMode',value)}/>
     <fieldset className="browser-settings-choices"><legend>Accent color</legend><div className="browser-settings-colors">
      {ACCENT_PRESETS.map(([name,color])=><label key={color} title={name}>
-      <input type="radio" name="browser-accent" aria-label={name} checked={prefs.accentHex===color} onChange={()=>change('accentHex',color)}/>
+      <input type="radio" name="browser-accent" aria-label={name} checked={prefs.accentHex===color||(color==='#00B8F0'&&prefs.accentHex==='#00E5FF')} onChange={()=>change('accentHex',color)}/>
       <span style={{background:color,borderRadius:99,width:23,height:23,display:'inline-block'}}/>{name}</label>)}
     </div></fieldset>
     <BrowserChoices label="Interface size" value={prefs.uiScale} choices={[["compact","Compact"],["default","Default"],["large","Large"]]} onChange={value=>change('uiScale',value)}/>

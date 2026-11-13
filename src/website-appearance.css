@@ -1,0 +1,211 @@
+/* Website-wide browser appearance. Keep account/gameplay data separate from local UI preferences. */
+:root{
+  --site-accent:#00E5FF;
+  --site-accent-ink:color-mix(in srgb,var(--site-accent) 68%,#12313c);
+}
+:root[data-puppy-theme="dark"]{
+  color-scheme:dark;
+  --site-page:#0b1a24;--site-panel:#152f3e;--site-text:#effbff;
+  --site-muted:#b5d0df;--site-border:#315466;--site-header:#102735;
+}
+:root[data-puppy-theme="light"]{
+  color-scheme:light;
+  --site-page:#f4f8fc;--site-panel:#ffffff;--site-text:#1b2b37;
+  --site-muted:#526775;--site-border:#c3d5e0;--site-header:#eaf3f9;
+  --site-accent-ink:color-mix(in srgb,var(--site-accent) 40%,#172c39);
+}
+.site-header .site-nav a[aria-current="page"]{
+  border:1px solid var(--site-accent);
+  background:color-mix(in srgb,var(--site-accent) 16%,transparent);
+  color:var(--site-accent-ink);
+}
+.site-header .site-nav a:hover,.site-header .site-nav-more>summary:hover{
+  background:color-mix(in srgb,var(--site-accent) 12%,transparent);
+}
+.site-nav-more>summary{list-style:none;cursor:pointer;user-select:none}
+.site-nav-more>summary::-webkit-details-marker{display:none}
+.site-nav-more>summary:focus-visible{outline:3px solid var(--site-accent);outline-offset:2px}
+.site-nav-more-list{box-shadow:0 18px 48px #0006}
+@media(min-width:1280px){
+  .site-header{height:58px;min-height:58px;gap:12px}
+  .site-header .site-brand{gap:7px;font-size:15px}
+  .site-header .site-brand img{height:36px;width:36px}
+  .site-header .site-brand small{font-size:9px}
+  .site-header .site-nav{gap:4px}
+  .site-header .site-nav>a{min-height:36px;padding:8px 11px;font-size:13px}
+  .site-header .site-nav .puppy-language-picker select{min-height:36px;max-width:116px;padding:5px 8px;font-size:12px}
+  .site-header .site-nav-more{position:relative;flex:0 0 auto}
+  .site-header .site-nav-more>summary{display:flex;align-items:center;gap:7px;
+    padding:8px 11px;min-height:36px;border-radius:12px;font-size:13px;
+    color:#c2d8e5;font-weight:800}
+  .site-header .site-nav-more[open]>summary{background:color-mix(in srgb,var(--site-accent) 16%,transparent)}
+  .site-header .site-nav-more-list{position:absolute;top:calc(100% + 9px);right:0;
+    display:flex;flex-direction:column;gap:3px;width:224px;z-index:85;
+    padding:9px;border:1px solid var(--site-border,#315466);border-radius:15px;
+    background:var(--site-header,#102735)}
+  .site-header .site-nav-more-list>a{display:flex;align-items:center;justify-content:flex-start;
+    width:100%;padding:10px 11px;min-height:40px;font-size:13px;border-radius:10px;white-space:nowrap}
+  .site-header .site-nav-mobile-extras{display:none}
+}
+@media(max-width:1279px){
+  .site-header .site-nav-more{display:none}
+  .site-header .site-nav-mobile-extras{display:contents}
+  .site-header .site-nav .site-nav-mobile-extras>a{
+    display:flex;justify-content:flex-start;width:100%;min-height:46px;
+    padding:12px 14px;font-size:15px;white-space:normal;
+  }
+}
+@media(max-width:760px){
+  .site-header .site-nav .site-nav-mobile-extras>a{
+    min-width:0;min-height:44px;padding:9px 10px;font-size:13px;line-height:1.35;
+    border:1px solid transparent;border-radius:11px;overflow-wrap:anywhere;
+  }
+  .site-header .site-nav .site-nav-mobile-extras>a[aria-current="page"]{border-color:var(--site-accent)}
+}
+/* Accent controls change actual navigation, CTAs, headings and focused controls. */
+.hero h1 span,.eyebrow{color:var(--site-accent-ink)}
+.cta-primary,.browser-settings-action:not(.secondary){background:var(--site-accent);color:#091922}
+.cta-primary:hover,.browser-settings-action:not(.secondary):hover{filter:brightness(1.09)}
+.browser-settings-choices input,.browser-settings-option input{accent-color:var(--site-accent)}
+.browser-settings-choices label:has(input:checked){border-color:var(--site-accent);background:color-mix(in srgb,var(--site-accent) 14%,#1a2836)}
+.site-nav-toggle:focus-visible,.browser-settings-action:focus-visible,.browser-settings-links a:focus-visible{
+  outline-color:var(--site-accent);
+}
+:root[data-puppy-contrast="high"] .site-header,
+:root[data-puppy-contrast="high"] .browser-settings-panel{
+  border-color:var(--site-accent);border-width:2px;
+}
+:root[data-puppy-reduced-motion="true"] :where(.site-header,.site-frame,.browser-settings-page,.landing) *,
+:root[data-puppy-reduced-motion="true"] :where(.site-header,.site-frame,.browser-settings-page,.landing) *::before,
+:root[data-puppy-reduced-motion="true"] :where(.site-header,.site-frame,.browser-settings-page,.landing) *::after{
+  animation:none!important;transition:none!important;scroll-behavior:auto!important;
+}
+/* Light mode is for the complete public site shell, not only the cursor artwork. */
+html[data-puppy-theme="light"],html[data-puppy-theme="light"] body,
+html[data-puppy-theme="light"] #root,html[data-puppy-theme="light"] .site-frame,
+html[data-puppy-theme="light"] .page-mount{
+  background:var(--site-page);color:var(--site-text);
+}
+html[data-puppy-theme="light"] .site-header{
+  background:var(--site-header);border-color:var(--site-border);color:var(--site-text);
+}
+html[data-puppy-theme="light"] .site-brand small{color:var(--site-muted)}
+html[data-puppy-theme="light"] .site-header .site-nav a,
+html[data-puppy-theme="light"] .site-header .site-nav-more>summary,
+html[data-puppy-theme="light"] .site-header-tools>.site-account-signed-out{
+  color:var(--site-text);
+}
+html[data-puppy-theme="light"] .site-header .site-nav a[aria-current="page"]{color:var(--site-accent-ink)}
+html[data-puppy-theme="light"] .site-header .site-nav.is-open{
+  background:#ffffff;border-color:var(--site-border);
+}
+html[data-puppy-theme="light"] .site-nav-more-list{
+  background:#ffffff;border-color:var(--site-border);
+}
+html[data-puppy-theme="light"] .site-header .site-nav .puppy-language-picker select,
+html[data-puppy-theme="light"] .site-nav-toggle{
+  background:#fff;border-color:var(--site-border);color:var(--site-text);
+}
+html[data-puppy-theme="light"] .site-nav-scrim{background:rgba(35,57,74,.32)}
+html[data-puppy-theme="light"] .site-account-trigger,
+html[data-puppy-theme="light"] .site-account-dropdown{
+  background:#fff;color:var(--site-text);border-color:var(--site-border);
+}
+html[data-puppy-theme="light"] .site-account-trigger:hover{
+  background:#f0f8fd;border-color:var(--site-accent);
+}
+html[data-puppy-theme="light"] .site-account-trigger-identity small{color:var(--site-muted)}
+html[data-puppy-theme="light"] .hero-lede,
+html[data-puppy-theme="light"] .hero-note,
+html[data-puppy-theme="light"] .section-intro p:not(.eyebrow),
+html[data-puppy-theme="light"] .split-cta p:not(.eyebrow),
+html[data-puppy-theme="light"] .feature-card p,
+html[data-puppy-theme="light"] .hero-art-caption,
+html[data-puppy-theme="light"] .site-footer{
+  color:var(--site-muted);
+}
+html[data-puppy-theme="light"] .feature-card,
+html[data-puppy-theme="light"] .portal-card,
+html[data-puppy-theme="light"] .account-preview,
+html[data-puppy-theme="light"] .split-cta,
+html[data-puppy-theme="light"] .account-detail{
+  background:var(--site-panel);border-color:var(--site-border);color:var(--site-text);
+}
+html[data-puppy-theme="light"] .account-detail dd,
+html[data-puppy-theme="light"] .profile-row strong{color:var(--site-text)}
+html[data-puppy-theme="light"] .account-detail dt,
+html[data-puppy-theme="light"] .account-detail small,
+html[data-puppy-theme="light"] .profile-head small,
+html[data-puppy-theme="light"] .profile-row small{color:var(--site-muted)}
+html[data-puppy-theme="light"] .hero-pup{
+  background:linear-gradient(160deg,#eaf9ff,#cce9f4);
+  border-color:var(--site-border);box-shadow:0 20px 60px #30405022;
+}
+html[data-puppy-theme="light"] .art-glow{background:radial-gradient(circle,#dcf9ff,#e8f3f9 55%,transparent 76%)}
+html[data-puppy-theme="light"] .art-tag{
+  background:#ffffffed;color:var(--site-text);border-color:var(--site-border);
+}
+html[data-puppy-theme="light"] .cta-secondary,
+html[data-puppy-theme="light"] .small-action{
+  background:#eef6fb;color:var(--site-text);border-color:var(--site-border);
+}
+html[data-puppy-theme="light"] .profile-form label,
+html[data-puppy-theme="light"] .account-auth-description,
+html[data-puppy-theme="light"] .account-auth-register .account-security-note{
+  color:var(--site-muted);
+}
+html[data-puppy-theme="light"] .profile-form input{
+  background:#fff;color:var(--site-text);border-color:var(--site-border);
+}
+html[data-puppy-theme="light"] .portal-message,
+html[data-puppy-theme="light"] .cloud-status{
+  background:#e8f6ff;color:var(--site-text);border-color:var(--site-border);
+}
+/* Browser Settings needs its own light palette: previously its panels stayed dark. */
+html[data-puppy-theme="light"] .browser-settings-page{color:var(--site-text)}
+html[data-puppy-theme="light"] .browser-settings-intro p,
+html[data-puppy-theme="light"] .browser-settings-panel p,
+html[data-puppy-theme="light"] .browser-settings-option small,
+html[data-puppy-theme="light"] .browser-settings-detail{color:var(--site-muted)!important}
+html[data-puppy-theme="light"] .browser-settings-panel{
+  background:#fff;border-color:var(--site-border);color:var(--site-text);
+  box-shadow:0 8px 26px #193f5810;
+}
+html[data-puppy-theme="light"] .browser-settings-choices label{
+  background:#f3f8fc;color:var(--site-text);border-color:var(--site-border);
+}
+html[data-puppy-theme="light"] .browser-settings-choices label:has(input:checked){
+  background:color-mix(in srgb,var(--site-accent) 16%,white);
+  border-color:var(--site-accent);
+}
+html[data-puppy-theme="light"] .browser-settings-option{border-color:var(--site-border)}
+html[data-puppy-theme="light"] .browser-settings-action.secondary{
+  background:#e9f3fa;color:var(--site-text);border-color:var(--site-border);
+}
+html[data-puppy-theme="light"] .browser-settings-links a{color:var(--site-accent-ink)}
+html[data-puppy-theme="light"] .browser-settings-feedback{
+  background:#e4f6fc;color:var(--site-text);border-color:var(--site-border);
+}
+
+/* Current page remains indicated even when it lives in the grouped menu. */
+.site-header .site-nav-more:has(a[aria-current="page"])>summary{
+  color:var(--site-accent-ink);
+  border:1px solid var(--site-accent);
+  background:color-mix(in srgb,var(--site-accent) 12%,transparent);
+}
+html[data-puppy-theme="light"] .site-nav-more:has(a[aria-current="page"])>summary{
+  color:var(--site-accent-ink);
+}
+/* Apply the browser's compact/large scale without zooming the gameplay canvas. */
+.site-frame-page .browser-settings-page h1{font-size:calc(clamp(26px,4vw,38px) * var(--site-scale,1))}
+.site-frame-page .browser-settings-panel h2{font-size:calc(20px * var(--site-scale,1))}
+.site-frame-page .browser-settings-panel p,
+.site-frame-page .browser-settings-option strong,
+.site-frame-page .browser-settings-choices label{font-size:calc(13px * var(--site-scale,1))}
+.site-frame-page .hero-lede{font-size:calc(18px * var(--site-scale,1))}
+.site-frame-page .hero-note{font-size:calc(12px * var(--site-scale,1))}
+@media(max-width:790px){
+  .site-frame-page .browser-settings-page h1{font-size:calc(clamp(23px,6vw,29px) * var(--site-scale,1))}
+  .site-frame-page .browser-settings-panel h2{font-size:calc(18px * var(--site-scale,1))}
+  .site-frame-page .browser-settings-panel p{font-size:calc(13px * var(--site-scale,1))}
+}

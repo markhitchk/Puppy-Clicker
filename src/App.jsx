@@ -35,12 +35,27 @@ import {suggestUsername,suggestDisplayName,generateStrongPassword} from "./nameS
 import SiteAccountMenu,{ProfileAvatar,PUP_ACCOUNT_CHANGED} from "./SiteAccountMenu.jsx";
 import ConfirmSignOut from "./ConfirmSignOut.jsx";
 import "./styles.css";
+import "./website-appearance.css";
 
 const logo="/assets/logos/puppy_clicker.png";
 function Header({page}){
  const {t:tr}=useLanguage();
  const [menuOpen,setMenuOpen]=useState(false);
- const navId=useId(),navRef=useRef(null),menuButton=useRef(null);
+ const navId=useId(),navRef=useRef(null),menuButton=useRef(null),moreRef=useRef(null);
+ useEffect(()=>{
+  const keyDown=event=>{
+   if(event.key==="Escape"&&moreRef.current?.open){
+    moreRef.current.open=false;
+    moreRef.current.querySelector("summary")?.focus();
+   }
+  };
+  const outside=event=>{
+   if(moreRef.current?.open&&!moreRef.current.contains(event.target))moreRef.current.open=false;
+  };
+  document.addEventListener("keydown",keyDown);
+  document.addEventListener("pointerdown",outside);
+  return()=>{document.removeEventListener("keydown",keyDown);document.removeEventListener("pointerdown",outside);};
+ },[]);
  useEffect(()=>{
   if(!menuOpen)return;
   const keyDown=event=>{
@@ -81,11 +96,21 @@ function Header({page}){
    <a href="/" aria-current={page==="home"?"page":undefined}>{tr("home")}</a>
    <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 {tr("play")}</a>
    <a href="/puppies" aria-current={page==="puppies"?"page":undefined}>{tr("puppies")}</a>
-   <a href="/pupeye" aria-current={page==="pupeye"||page==="pupeye-status"?"page":undefined}><PupEyeBrand compact label="PupEye"/></a>
+   <details className="site-nav-more" ref={moreRef}>
+    <summary>More <span aria-hidden="true">▾</span></summary>
+    <div className="site-nav-more-list">   <a href="/pupeye" aria-current={page==="pupeye"||page==="pupeye-status"?"page":undefined}><PupEyeBrand compact label="PupEye"/></a>
    <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>{tr("policies")}</a>
    <a href="/leaderboard" aria-current={page==="leaderboard"?"page":undefined}>🏆 {tr("leaderboard")}</a>
    <a href="/chat" aria-current={page==="chat"?"page":undefined}>💬 {tr("chat")}</a>
    <a href="/settings" aria-current={page==="browser-settings"?"page":undefined}>⚙ Browser Settings</a>
+    </div>
+   </details>
+   <div className="site-nav-mobile-extras">   <a href="/pupeye" aria-current={page==="pupeye"||page==="pupeye-status"?"page":undefined}><PupEyeBrand compact label="PupEye"/></a>
+   <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>{tr("policies")}</a>
+   <a href="/leaderboard" aria-current={page==="leaderboard"?"page":undefined}>🏆 {tr("leaderboard")}</a>
+   <a href="/chat" aria-current={page==="chat"?"page":undefined}>💬 {tr("chat")}</a>
+   <a href="/settings" aria-current={page==="browser-settings"?"page":undefined}>⚙ Browser Settings</a>
+   </div>
    <LanguagePicker compact/>
   </nav>
   <div className="site-header-tools">
@@ -464,34 +489,39 @@ export default function App(){
    if(event.pointerType==='mouse'||event.pointerType==='pen')
     root.dataset.puppyCursorInput='mouse';
   };
-  const syncPawCursor=event=>{
-   const saved=loadWebPreferences();
-   // An in-tab settings change also works when browser storage is unavailable.
-   const enabled=typeof event?.detail?.puppyPointerEnabled==='boolean'
-    ?event.detail.puppyPointerEnabled
-    :saved.puppyPointerEnabled!==false;
-   const mode=event?.detail?.themeMode??saved.themeMode;
-   const dark=mode==='dark'||(mode!=='light'&&systemTheme.matches);
-   document.documentElement.dataset.puppyCursor=enabled?'enabled':'disabled';
-   document.documentElement.dataset.puppyCursorTheme=dark?'dark':'light';
+  const syncSiteAppearance=event=>{
+   const prefs={...loadWebPreferences(),...(event?.detail??{})};
+   const dark=prefs.themeMode==='dark'||(prefs.themeMode!=='light'&&systemTheme.matches);
+   root.dataset.puppyCursor=prefs.puppyPointerEnabled!==false?'enabled':'disabled';
+   root.dataset.puppyCursorTheme=dark?'dark':'light';
+   root.dataset.puppyTheme=dark?'dark':'light';
+   root.dataset.puppyContrast=prefs.highContrast?'high':'normal';
+   root.dataset.puppyReducedMotion=prefs.reducedMotion?'true':'false';
+   root.style.setProperty('--site-accent',prefs.accentHex||'#00E5FF');
+   root.style.setProperty('--site-scale',prefs.uiScale==='compact'?'0.94':prefs.uiScale==='large'?'1.08':'1');
   };
-  syncPawCursor();
-  window.addEventListener(WEB_PREFERENCES_CHANGED,syncPawCursor);
-  window.addEventListener('storage',syncPawCursor);
-  systemTheme.addEventListener('change',syncPawCursor);
+  syncSiteAppearance();
+  window.addEventListener(WEB_PREFERENCES_CHANGED,syncSiteAppearance);
+  window.addEventListener('storage',syncSiteAppearance);
+  systemTheme.addEventListener('change',syncSiteAppearance);
   window.addEventListener('pointerdown',pointerInput,{passive:true});
   window.addEventListener('pointermove',pointerMovement,{passive:true});
   window.addEventListener('pointerover',pointerMovement,{passive:true});
   return()=>{
-   window.removeEventListener(WEB_PREFERENCES_CHANGED,syncPawCursor);
-   window.removeEventListener('storage',syncPawCursor);
-   systemTheme.removeEventListener('change',syncPawCursor);
+   window.removeEventListener(WEB_PREFERENCES_CHANGED,syncSiteAppearance);
+   window.removeEventListener('storage',syncSiteAppearance);
+   systemTheme.removeEventListener('change',syncSiteAppearance);
    window.removeEventListener('pointerdown',pointerInput);
    window.removeEventListener('pointermove',pointerMovement);
    window.removeEventListener('pointerover',pointerMovement);
    delete root.dataset.puppyCursor;
    delete root.dataset.puppyCursorTheme;
    delete root.dataset.puppyCursorInput;
+   delete root.dataset.puppyTheme;
+   delete root.dataset.puppyContrast;
+   delete root.dataset.puppyReducedMotion;
+   root.style.removeProperty('--site-accent');
+   root.style.removeProperty('--site-scale');
   };
  },[]);
  // Keep historical /register bookmarks, but make /account the one auth endpoint.

@@ -38,9 +38,15 @@ for(const width of [1280,1440,1920]){
   const nav=page.getByRole("navigation",{name:"Website"});
   await expect(nav).toBeVisible();
   await expect(page.getByRole("button",{name:"Open navigation menu"})).toBeHidden();
+  const more=nav.locator(".site-nav-more > summary");
+  await expect(more).toBeVisible();
+  await more.click();
   await expect(nav.getByRole("link",{name:"🏆 Leaderboard"})).toBeVisible();
   await expect(nav.getByRole("link",{name:"💬 Community chat"})).toBeVisible();
+  await expect(nav.getByRole("link",{name:"⚙ Browser Settings"})).toBeVisible();
   await expect(nav.getByLabel("Choose language")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(nav.getByRole("link",{name:"🏆 Leaderboard"})).toBeHidden();
   const bounds=await Promise.all([
    header.locator(".site-brand").boundingBox(),
    nav.boundingBox(),
