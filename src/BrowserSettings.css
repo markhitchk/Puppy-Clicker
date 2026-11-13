@@ -76,3 +76,35 @@
  .browser-pointer-preview-grid{gap:5px}
  .browser-pointer-preview{padding:10px}
 }
+
+
+/* Cursor/source redesign: balanced full desktop sections; avoid two miniature
+ * desktop columns on a touch phone requesting the desktop website. */
+@media (min-width:1101px) and (hover:hover) and (pointer:fine){
+ .browser-settings-page{width:min(1220px,100%)}
+ .browser-settings-grid{
+  grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);
+  grid-template-areas:"appearance pointer" "performance pointer" "storage notifications";
+  gap:16px;
+ }
+ .browser-settings-panel[aria-labelledby="browser-appearance"]{grid-area:appearance}
+ .browser-settings-panel[aria-labelledby="browser-pointer-heading"]{grid-area:pointer}
+ .browser-settings-panel[aria-labelledby="browser-performance"]{grid-area:performance}
+ .browser-settings-panel[aria-labelledby="browser-notifications"]{grid-area:notifications}
+ .browser-settings-panel[aria-labelledby="browser-storage"]{grid-area:storage}
+}
+@media (max-width:1100px), (any-pointer:coarse){
+ .browser-settings-page{width:min(780px,100%);padding:clamp(14px,3vw,25px) 14px 36px}
+ .browser-settings-grid{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:none;gap:14px}
+ .browser-settings-panel{padding:clamp(15px,2.6vw,23px)}
+ .browser-settings-choices label{min-height:42px}
+ .browser-pointer-preview-grid{gap:8px}
+}
+.browser-pointer-controls{min-width:0}
+.browser-pointer-preview[data-cursor-theme='dark'] .browser-pointer-preview-tile{
+ background:#e9f4fa;color:#152432;border-color:#b6d1df;
+}
+.browser-pointer-preview[data-cursor-theme='light'] .browser-pointer-preview-tile{
+ background:#14283a;color:#f6faff;border-color:#3b6981;
+}
+.browser-pointer-preview-tile img{flex-shrink:0;max-height:96px}
