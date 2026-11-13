@@ -118,7 +118,7 @@ export default function BrowserSettings(){
     {prefs.puppyPointerEnabled?<div className="browser-pointer-controls">
      <BrowserChoices label="Pointer theme" value={prefs.puppyPointerTheme} choices={pointerThemeOptions} onChange={value=>change('puppyPointerTheme',value)}/>
      <BrowserOption label="Highlight mouse clicks" detail="Show a brief accent-color ring at each click. Disabled with reduced motion." checked={prefs.puppyPointerClickHighlight} onChange={value=>change('puppyPointerClickHighlight',value)}/>
-     <div className="browser-pointer-preview" aria-label="Puppy pointer theme preview">
+     <div className="browser-pointer-preview" data-cursor-theme={pointerThemeFor(prefs,systemDark)} aria-label="Puppy pointer theme preview">
       <strong>Preview · {pointerThemeFor(prefs,systemDark)==='dark'?'Dark cursor':'Light cursor'}</strong>
       <div className="browser-pointer-preview-grid">
        {([['default','Normal'],['hover','Hover'],['click','Click']]).map(([state,title])=>
