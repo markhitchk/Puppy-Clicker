@@ -12,7 +12,7 @@
   color-scheme:light;
   --site-page:#f4f8fc;--site-panel:#ffffff;--site-text:#1b2b37;
   --site-muted:#526775;--site-border:#c3d5e0;--site-header:#eaf3f9;
-  --site-accent-ink:color-mix(in srgb,var(--site-accent) 56%,#172c39);
+  --site-accent-ink:color-mix(in srgb,var(--site-accent) 40%,#172c39);
 }
 .site-header .site-nav a[aria-current="page"]{
   border:1px solid var(--site-accent);
