@@ -186,3 +186,26 @@ html[data-puppy-theme="light"] .browser-settings-links a{color:var(--site-accent
 html[data-puppy-theme="light"] .browser-settings-feedback{
   background:#e4f6fc;color:var(--site-text);border-color:var(--site-border);
 }
+
+/* Current page remains indicated even when it lives in the grouped menu. */
+.site-header .site-nav-more:has(a[aria-current="page"])>summary{
+  color:var(--site-accent-ink);
+  border:1px solid var(--site-accent);
+  background:color-mix(in srgb,var(--site-accent) 12%,transparent);
+}
+html[data-puppy-theme="light"] .site-nav-more:has(a[aria-current="page"])>summary{
+  color:var(--site-accent-ink);
+}
+/* Apply the browser's compact/large scale without zooming the gameplay canvas. */
+.site-frame-page .browser-settings-page h1{font-size:calc(clamp(26px,4vw,38px) * var(--site-scale,1))}
+.site-frame-page .browser-settings-panel h2{font-size:calc(20px * var(--site-scale,1))}
+.site-frame-page .browser-settings-panel p,
+.site-frame-page .browser-settings-option strong,
+.site-frame-page .browser-settings-choices label{font-size:calc(13px * var(--site-scale,1))}
+.site-frame-page .hero-lede{font-size:calc(18px * var(--site-scale,1))}
+.site-frame-page .hero-note{font-size:calc(12px * var(--site-scale,1))}
+@media(max-width:790px){
+  .site-frame-page .browser-settings-page h1{font-size:calc(clamp(23px,6vw,29px) * var(--site-scale,1))}
+  .site-frame-page .browser-settings-panel h2{font-size:calc(18px * var(--site-scale,1))}
+  .site-frame-page .browser-settings-panel p{font-size:calc(13px * var(--site-scale,1))}
+}
