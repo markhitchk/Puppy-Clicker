@@ -2,7 +2,7 @@ import React,{useEffect,useState} from 'react';
 import LanguagePicker from './LanguagePicker.jsx';
 import {ACCENT_PRESETS} from './native/src/engine/settings.js';
 import {
- WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,POINTER_SIZES,pointerThemeFor,
+ WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,pointerThemeFor,isMobilePointerEnvironment,effectivePointerSize,
  loadWebPreferences,saveWebPreferences,updateWebPreference
 } from './native/web/preferences.js';
 import {GRAPHICS_BACKENDS} from './graphics/graphicsCapabilities.js';
@@ -11,8 +11,8 @@ import './BrowserSettings.css';
 const qualityOptions=[['automatic','Automatic'],['quality','Quality'],['battery_saver','Battery saver']];
 const themeOptions=[['system','Follow device'],['dark','Dark'],['light','Light']];
 const pointerThemeOptions=[['auto','Match website'],['dark','Dark cursor'],['light','Light cursor']];
-function pointerPreviewSource(prefs,state,systemDark){
- const size=POINTER_SIZES[prefs.uiScale]??64;
+function pointerPreviewSource(prefs,state,systemDark,mobile){
+ const size=effectivePointerSize(prefs,mobile);
  const appearance=pointerThemeFor(prefs,systemDark);
  return `/assets/pointers/themes/puppy_pointer_${appearance}_${state}_${size}.png`;
 }
@@ -42,6 +42,7 @@ function graphicsSupport(){
 export default function BrowserSettings(){
  const [prefs,setPrefs]=useState(()=>loadWebPreferences());
  const [systemDark,setSystemDark]=useState(()=>window.matchMedia('(prefers-color-scheme: dark)').matches);
+ const [mobilePointer,setMobilePointer]=useState(()=>isMobilePointerEnvironment(window));
  const [message,setMessage]=useState('');
  const [confirmReset,setConfirmReset]=useState(false);
  const [permission,setPermission]=useState(()=>typeof Notification==='undefined'?'unsupported':Notification.permission);
@@ -60,6 +61,12 @@ export default function BrowserSettings(){
   const onTheme=()=>setSystemDark(media.matches);
   media.addEventListener('change',onTheme);
   return()=>media.removeEventListener('change',onTheme);
+ },[]);
+ useEffect(()=>{
+  const media=window.matchMedia('(pointer: coarse)');
+  const update=()=>setMobilePointer(isMobilePointerEnvironment(window));
+  media.addEventListener('change',update);
+  return()=>media.removeEventListener('change',update);
  },[]);
  useEffect(()=>{
   const onFullScreen=()=>setFullscreen(Boolean(document.fullscreenElement));
@@ -114,7 +121,7 @@ export default function BrowserSettings(){
     <p className="browser-settings-detail">Customize the actual mouse or trackpad cursor. Changes apply across Puppy Clicker immediately and remain on this browser.</p>
     <BrowserChoices label="Mouse pointer" value={prefs.puppyPointerEnabled?'puppy':'system'} choices={[["system","System pointer"],["puppy","Original Puppy pointer"]]} onChange={value=>change('puppyPointerEnabled',value==='puppy')}/>
     <p className="browser-settings-detail">System uses your operating system's normal arrow and text cursor. Puppy mode uses the original Puppy Clicker pointer pack. Touch input stays unchanged.</p>
-    <p className="browser-settings-detail" role="status">Pointer size follows <strong>Interface size</strong>: Compact 48 px · Default 64 px · Large 96 px. Current: <strong>{POINTER_SIZES[prefs.uiScale]??64} px</strong>.</p>
+    <p className="browser-settings-detail" role="status">Pointer size follows <strong>Interface size</strong>: Compact 48 px · Default 64 px · Large 96 px. Current: <strong>{effectivePointerSize(prefs,mobilePointer)} px</strong>{mobilePointer&&prefs.uiScale==='compact'?' · Mobile uses Default 64 px for readability.':''}.</p>
     {prefs.puppyPointerEnabled?<div className="browser-pointer-controls">
      <BrowserChoices label="Pointer theme" value={prefs.puppyPointerTheme} choices={pointerThemeOptions} onChange={value=>change('puppyPointerTheme',value)}/>
      <BrowserOption label="Highlight mouse clicks" detail="Show a brief accent-color ring at each click. Disabled with reduced motion." checked={prefs.puppyPointerClickHighlight} onChange={value=>change('puppyPointerClickHighlight',value)}/>
@@ -123,7 +130,7 @@ export default function BrowserSettings(){
       <div className="browser-pointer-preview-grid">
        {([['default','Normal'],['hover','Hover'],['click','Click']]).map(([state,title])=>
         <div className="browser-pointer-preview-tile" key={state}>
-         <img src={pointerPreviewSource(prefs,state,systemDark)} alt="" width={POINTER_SIZES[prefs.uiScale]??64} height={POINTER_SIZES[prefs.uiScale]??64}/>
+         <img src={pointerPreviewSource(prefs,state,systemDark,mobilePointer)} alt="" width={effectivePointerSize(prefs,mobilePointer)} height={effectivePointerSize(prefs,mobilePointer)}/>
          <span>{title}</span>
         </div>)}
       </div>

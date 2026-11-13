@@ -8,7 +8,7 @@ import MeetPuppies from "./MeetPuppies.jsx";
 import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
-import {loadWebPreferences,pointerThemeFor,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
+import {loadWebPreferences,pointerThemeFor,isMobilePointerEnvironment,effectivePointerSizeKey,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
 import {beginPuppyDiscord,verifyPuppySession,puppyAuthMessage} from "./native/web/puppyOAuth.js";
 import {DISCORD_ICON_URL} from "./discordIcon.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
@@ -476,6 +476,7 @@ export default function App(){
   // Root-level styling includes Home, Play, Account, and all website routes.
   const systemTheme=window.matchMedia('(prefers-color-scheme: dark)');
   const primaryMouse=window.matchMedia('(hover: hover) and (pointer: fine)');
+  const mobilePointer=window.matchMedia('(pointer: coarse)');
   const root=document.documentElement;
   // Touchscreens can retain :hover after a tap (including when a mouse is
   // connected). Only enable the custom pointer for actual mouse/pen input.
@@ -494,7 +495,7 @@ export default function App(){
    const dark=prefs.themeMode==='dark'||(prefs.themeMode!=='light'&&systemTheme.matches);
    root.dataset.puppyCursor=prefs.puppyPointerEnabled!==false?'enabled':'disabled';
    root.dataset.puppyCursorTheme=pointerThemeFor(prefs,systemTheme.matches);
-   root.dataset.puppyCursorSize=prefs.uiScale;
+   root.dataset.puppyCursorSize=effectivePointerSizeKey(prefs,isMobilePointerEnvironment(window));
    root.dataset.puppyPointerHalo=prefs.puppyPointerClickHighlight&&prefs.puppyPointerEnabled!==false&&!prefs.reducedMotion?'enabled':'disabled';
    root.dataset.puppyTheme=dark?'dark':'light';
    root.dataset.puppyContrast=prefs.highContrast?'high':'normal';
@@ -523,6 +524,7 @@ export default function App(){
   window.addEventListener(WEB_PREFERENCES_CHANGED,syncSiteAppearance);
   window.addEventListener('storage',syncSiteAppearance);
   systemTheme.addEventListener('change',syncSiteAppearance);
+  mobilePointer.addEventListener('change',syncSiteAppearance);
   window.addEventListener('pointerdown',pointerInput,{passive:true});
   window.addEventListener('pointermove',pointerMovement,{passive:true});
   window.addEventListener('pointerover',pointerMovement,{passive:true});
@@ -530,6 +532,7 @@ export default function App(){
    window.removeEventListener(WEB_PREFERENCES_CHANGED,syncSiteAppearance);
    window.removeEventListener('storage',syncSiteAppearance);
    systemTheme.removeEventListener('change',syncSiteAppearance);
+   mobilePointer.removeEventListener('change',syncSiteAppearance);
    window.removeEventListener('pointerdown',pointerInput);
    window.removeEventListener('pointermove',pointerMovement);
    window.removeEventListener('pointerover',pointerMovement);

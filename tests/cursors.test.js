@@ -73,6 +73,6 @@ test('the original Puppy cursor follows compact/default/large interface sizes',(
  assert.ok(sized.includes('12 12')&&sized.includes('16 16')&&sized.includes('24 24'));
  assert.ok(sync.includes('generateThemedVariants'));
  assert.ok(sync.includes('contrast-outline-v2-compact48'));
- assert.ok(app.includes('root.dataset.puppyCursorSize=prefs.uiScale'));
+ assert.ok(app.includes('root.dataset.puppyCursorSize=effectivePointerSizeKey(prefs,isMobilePointerEnvironment(window))'));
  assert.ok(app.includes('pointerThemeFor(prefs,systemTheme.matches)'));
 });

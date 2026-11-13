@@ -60,3 +60,18 @@ test('browser cursor mode and theme follow shared interface size',async()=>{
  assert.equal(migrated.puppyPointerSize,undefined);
  assert.equal(JSON.parse(stored).cloudSave,undefined);
 });
+
+
+test('mobile uses Default 64px pointer even when interface is Compact',async()=>{
+ const {isMobilePointerEnvironment,effectivePointerSizeKey,effectivePointerSize,POINTER_SIZES}=await import('../src/native/web/preferences.js');
+ const compact={uiScale:'compact'};
+ assert.equal(effectivePointerSize(compact,false),48);
+ assert.equal(effectivePointerSize(compact,true),64);
+ assert.equal(effectivePointerSizeKey(compact,true),'default');
+ assert.equal(effectivePointerSize({uiScale:'default'},true),64);
+ assert.equal(effectivePointerSize({uiScale:'large'},true),96);
+ assert.equal(POINTER_SIZES.compact,48);
+ assert.equal(isMobilePointerEnvironment({navigator:{userAgent:'Mozilla/5.0 (Linux; Android 17; SM-A176U1) AppleWebKit'}}),true);
+ assert.equal(isMobilePointerEnvironment({navigator:{userAgent:'Desktop'},matchMedia:()=>({matches:true})}),true);
+ assert.equal(isMobilePointerEnvironment({navigator:{userAgent:'Desktop'},matchMedia:()=>({matches:false})}),false);
+});

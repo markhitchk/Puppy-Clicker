@@ -6,6 +6,23 @@ export const WEB_PREFERENCES_CHANGED='puppy-clicker:web-preferences-changed';
 // Size is derived from the shared Interface size; old standalone size/style options
 // are intentionally ignored when upgrading stored browser settings.
 export const POINTER_SIZES=Object.freeze({compact:48,default:64,large:96});
+/* Mobile devices use the normal 64px Puppy cursor even when their interface is
+ * Compact (48px on desktop). The layout preference itself is not modified. */
+export function isMobilePointerEnvironment(environment=globalThis){
+ const navigatorInfo=environment?.navigator;
+ const agent=navigatorInfo?.userAgent??'';
+ return Boolean(navigatorInfo?.userAgentData?.mobile)
+  || /Android|iPhone|iPad|iPod|Mobile/i.test(agent)
+  || Boolean(environment?.matchMedia?.('(pointer: coarse)')?.matches);
+}
+export function effectivePointerSizeKey(preferences,mobile=false){
+ const scale=Object.hasOwn(POINTER_SIZES,preferences?.uiScale)?preferences.uiScale:'default';
+ return mobile&&scale==='compact'?'default':scale;
+}
+export function effectivePointerSize(preferences,mobile=false){
+ return POINTER_SIZES[effectivePointerSizeKey(preferences,mobile)];
+}
+
 export const POINTER_THEMES=Object.freeze(['auto','dark','light']);
 const cursorDefaults=Object.freeze({puppyPointerTheme:'auto',puppyPointerClickHighlight:false});
 const fields=['themeMode','accentHex','uiScale','performancePreset','animatedUi','buttonAnimations','reducedMotion','highContrast','animationsEnabled','compactNumbers','puppyPointerEnabled','puppyPointerTheme','puppyPointerClickHighlight','dailyRewardNotifications','gameEventNotifications'];
