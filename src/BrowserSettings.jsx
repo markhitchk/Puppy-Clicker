@@ -114,7 +114,7 @@ export default function BrowserSettings(){
     <p className="browser-settings-detail">Customize the actual mouse or trackpad cursor. Changes apply across Puppy Clicker immediately and remain on this browser.</p>
     <BrowserChoices label="Mouse pointer" value={prefs.puppyPointerEnabled?'puppy':'system'} choices={[["system","System pointer"],["puppy","Original Puppy pointer"]]} onChange={value=>change('puppyPointerEnabled',value==='puppy')}/>
     <p className="browser-settings-detail">System uses your operating system's normal arrow and text cursor. Puppy mode uses the original Puppy Clicker pointer pack. Touch input stays unchanged.</p>
-    <p className="browser-settings-detail" role="status">Pointer size follows <strong>Interface size</strong>: Compact 32 px · Default 64 px · Large 96 px. Current: <strong>{POINTER_SIZES[prefs.uiScale]??64} px</strong>.</p>
+    <p className="browser-settings-detail" role="status">Pointer size follows <strong>Interface size</strong>: Compact 48 px · Default 64 px · Large 96 px. Current: <strong>{POINTER_SIZES[prefs.uiScale]??64} px</strong>.</p>
     {prefs.puppyPointerEnabled?<div className="browser-pointer-controls">
      <BrowserChoices label="Pointer theme" value={prefs.puppyPointerTheme} choices={pointerThemeOptions} onChange={value=>change('puppyPointerTheme',value)}/>
      <BrowserOption label="Highlight mouse clicks" detail="Show a brief accent-color ring at each click. Disabled with reduced motion." checked={prefs.puppyPointerClickHighlight} onChange={value=>change('puppyPointerClickHighlight',value)}/>
