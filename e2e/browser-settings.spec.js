@@ -144,3 +144,23 @@ test('desktop settings collapse to readable single-column layout on tablet-sized
  expect(panel.width).toBeGreaterThan(580);
  expect(panel.width).toBeLessThan(800);
 });
+
+
+test('Android browser uses Default pointer size in Compact interface mode',async({browser})=>{
+ const context=await browser.newContext({
+  viewport:{width:390,height:844},isMobile:true,hasTouch:true,
+  userAgent:'Mozilla/5.0 (Linux; Android 17; SM-A176U1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36'
+ });
+ try{
+  const page=await context.newPage();
+  await page.goto('/settings#puppy-pointer-settings');
+  await page.getByRole('radio',{name:'Compact',exact:true}).check();
+  await expect(page.getByRole('radio',{name:'Compact',exact:true})).toBeChecked();
+  await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor-size','default');
+  await expect(page.locator('#puppy-pointer-settings')).toContainText('Current: 64 px');
+  await expect(page.locator('.browser-pointer-preview img').first()).toHaveAttribute('src','/assets/pointers/themes/puppy_pointer_dark_default_64.png');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor-size','default');
+  await expect(page.getByRole('radio',{name:'Compact',exact:true})).toBeChecked();
+ }finally{await context.close();}
+});
