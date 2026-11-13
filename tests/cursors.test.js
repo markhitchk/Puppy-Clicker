@@ -28,7 +28,9 @@ test('website and game use preference theme, system theme, and mouse-only cursor
  assert.ok(css.includes("var(--puppy-not-allowed)"));
  assert.ok(app.includes('dataset.puppyCursorTheme'));
  assert.ok(app.includes("systemTheme.addEventListener('change'"));
- assert.ok(prefs.includes('themeMode:cleaned.themeMode'));
+ assert.ok(prefs.includes('detail:{...cleaned}'));
+ assert.ok(app.includes('dataset.puppyTheme'));
+ assert.ok(app.includes('dataset.puppyCursorTheme'));
 });
 
 test('nested controls inherit one cursor state and disabled wins over pressed/hover',()=>{
