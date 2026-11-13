@@ -78,7 +78,7 @@ export async function syncPuppyPointers(){
   // Bounded concurrency avoids overloading the upstream repository.
   for(let index=0;index<NAMES.length;index+=6)
    await Promise.all(NAMES.slice(index,index+6).map(syncOne));
-  await writeFile(REVISION_FILE,SOURCE_REF+'\\n','utf8');
+  await writeFile(REVISION_FILE,SOURCE_REF+'\n','utf8');
   console.log(`Puppy pointers: synced ${NAMES.length} original PNGs from pup-clinker@${SOURCE_REF.slice(0,12)}`);
  }
  await generateSizedVariants(!fresh);
