@@ -39,3 +39,36 @@ test('mobile navigation is compact and settings controls remain reachable',async
  await notification.uncheck();
  await expect(notification).not.toBeChecked();
 });
+
+test('appearance, light mode, accent and puppy mouse cursor update immediately and persist',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});
+ await page.goto('/settings');
+ await page.getByRole('radio',{name:'Light',exact:true}).check();
+ await expect(page.locator('html')).toHaveAttribute('data-puppy-theme','light');
+ await expect(page.locator('.browser-settings-panel').first()).toHaveCSS('background-color','rgb(255, 255, 255)');
+ await page.getByRole('radio',{name:'Purple',exact:true}).check();
+ await expect(page.locator('html')).toHaveCSS('--site-accent','#8B5CF6');
+ await page.getByRole('switch',{name:'Puppy mouse cursor'}).uncheck();
+ await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor','disabled');
+ await page.reload();
+ await expect(page.getByRole('radio',{name:'Light',exact:true})).toBeChecked();
+ await expect(page.getByRole('radio',{name:'Purple',exact:true})).toBeChecked();
+ await expect(page.getByRole('switch',{name:'Puppy mouse cursor'})).not.toBeChecked();
+ await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor','disabled');
+ await page.goto('/');
+ await expect(page.locator('html')).toHaveAttribute('data-puppy-theme','light');
+ await expect(page.locator('html')).toHaveCSS('--site-accent','#8B5CF6');
+});
+
+test('follow-device theme tracks system changes and reset restores default colors',async({page})=>{
+ await page.emulateMedia({colorScheme:'light'});
+ await page.goto('/settings');
+ await page.getByRole('radio',{name:'Follow device'}).check();
+ await expect(page.locator('html')).toHaveAttribute('data-puppy-theme','light');
+ await page.emulateMedia({colorScheme:'dark'});
+ await expect(page.locator('html')).toHaveAttribute('data-puppy-theme','dark');
+ await page.getByRole('button',{name:'Reset browser preferences'}).click();
+ await page.getByRole('button',{name:'Confirm reset'}).click();
+ await expect(page.locator('html')).toHaveAttribute('data-puppy-theme','dark');
+ await expect(page.getByRole('radio',{name:'Puppy Cyan'})).toBeChecked();
+});
