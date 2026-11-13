@@ -48,12 +48,12 @@ test('appearance, light mode, accent and puppy mouse cursor update immediately a
  await expect(page.locator('.browser-settings-panel').first()).toHaveCSS('background-color','rgb(255, 255, 255)');
  await page.getByRole('radio',{name:'Purple',exact:true}).check();
  await expect(page.locator('html')).toHaveCSS('--site-accent','#8B5CF6');
- await page.getByRole('switch',{name:'Puppy mouse cursor'}).uncheck();
+ await page.getByRole('radio',{name:'System pointer'}).check();
  await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor','disabled');
  await page.reload();
  await expect(page.getByRole('radio',{name:'Light',exact:true})).toBeChecked();
  await expect(page.getByRole('radio',{name:'Purple',exact:true})).toBeChecked();
- await expect(page.getByRole('switch',{name:'Puppy mouse cursor'})).not.toBeChecked();
+ await expect(page.getByRole('radio',{name:'System pointer'})).toBeChecked();
  await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor','disabled');
  await page.goto('/');
  await expect(page.locator('html')).toHaveAttribute('data-puppy-theme','light');
@@ -74,37 +74,73 @@ test('follow-device theme tracks system changes and reset restores default color
 });
 
 
-test('pointer controls change raster cursor size, artwork and theme across routes',async({page})=>{
+test('system vs original Puppy pointer and shared interface sizing apply site-wide',async({page})=>{
  await page.setViewportSize({width:1440,height:900});
  await page.goto('/settings#puppy-pointer-settings');
  const root=page.locator('html');
- await expect(page.getByRole('heading',{name:'Puppy mouse pointer'})).toBeVisible();
- await page.getByRole('radio',{name:'Small · 32 px'}).check();
- await expect(root).toHaveAttribute('data-puppy-cursor-size','small');
- expect(await page.locator('body').evaluate(node=>getComputedStyle(node).cursor)).toContain('puppy_pointer_dark_default_32.png');
- const first=await page.request.get('/assets/pointers/sizes/puppy_pointer_dark_default_32.png');
- expect(first.ok()).toBe(true);
- const raw=await first.body();
+ await expect(page.getByRole('radio',{name:'Original Puppy pointer'})).toBeChecked();
+ await expect(page.getByRole('radio',{name:'Classic paw'})).toHaveCount(0);
+ await expect(page.getByRole('radio',{name:'Small · 32 px'})).toHaveCount(0);
+ await page.getByRole('radio',{name:'System pointer'}).check();
+ await expect(root).toHaveAttribute('data-puppy-cursor','disabled');
+ await expect(page.getByRole('radio',{name:'Dark cursor'})).toHaveCount(0);
+ expect(await page.locator('body').evaluate(node=>getComputedStyle(node).cursor)).not.toContain('puppy_pointer_');
+ await page.getByRole('radio',{name:'Original Puppy pointer'}).check();
+ await page.getByRole('radio',{name:'Compact',exact:true}).check();
+ await expect(root).toHaveAttribute('data-puppy-cursor-size','compact');
+ await expect(root).toHaveAttribute('data-puppy-cursor','enabled');
+ await page.getByRole('radio',{name:'Dark cursor'}).check();
+ await expect(root).toHaveAttribute('data-puppy-cursor-theme','dark');
+ await expect(page.locator('.browser-pointer-preview img').first()).toHaveAttribute('src','/assets/pointers/themes/puppy_pointer_dark_default_32.png');
+ const dark=await page.request.get('/assets/pointers/themes/puppy_pointer_dark_default_32.png');
+ expect(dark.ok()).toBe(true);
+ const raw=await dark.body();
  expect(raw.readUInt32BE(16)).toBe(32);
  expect(raw.readUInt32BE(20)).toBe(32);
- await page.getByRole('radio',{name:'Classic paw'}).check();
- await expect(root).toHaveAttribute('data-puppy-cursor-style','paw');
- expect(await page.locator('body').evaluate(node=>getComputedStyle(node).cursor)).toContain('paw_pointer_default_32.png');
  await page.getByRole('radio',{name:'Light cursor'}).check();
  await expect(root).toHaveAttribute('data-puppy-cursor-theme','light');
+ await expect(page.locator('.browser-pointer-preview img').first()).toHaveAttribute('src','/assets/pointers/themes/puppy_pointer_light_default_32.png');
+ const light=await page.request.get('/assets/pointers/themes/puppy_pointer_light_default_32.png');
+ expect(light.ok()).toBe(true);
+ expect((await light.body()).equals(raw)).toBe(false);
  await page.getByRole('switch',{name:'Highlight mouse clicks'}).check();
  await expect(root).toHaveAttribute('data-puppy-pointer-halo','enabled');
  await page.reload();
- await expect(page.getByRole('radio',{name:'Small · 32 px'})).toBeChecked();
- await expect(page.getByRole('radio',{name:'Classic paw'})).toBeChecked();
+ await expect(page.getByRole('radio',{name:'Compact',exact:true})).toBeChecked();
+ await expect(page.getByRole('radio',{name:'Original Puppy pointer'})).toBeChecked();
  await expect(page.getByRole('radio',{name:'Light cursor'})).toBeChecked();
- await expect(page.getByRole('switch',{name:'Highlight mouse clicks'})).toBeChecked();
+ await page.getByRole('radio',{name:'Large',exact:true}).check();
+ await expect(root).toHaveAttribute('data-puppy-cursor-size','large');
+ await expect(page.locator('.browser-pointer-preview img').first()).toHaveAttribute('src','/assets/pointers/themes/puppy_pointer_light_default_96.png');
  await page.goto('/');
- await expect(root).toHaveAttribute('data-puppy-cursor-size','small');
- await expect(root).toHaveAttribute('data-puppy-cursor-style','paw');
+ await expect(root).toHaveAttribute('data-puppy-cursor-theme','light');
+ await expect(root).toHaveAttribute('data-puppy-cursor-size','large');
  await page.goto('/settings#puppy-pointer-settings');
  await page.getByRole('button',{name:'Reset pointer customization'}).click();
- await expect(root).toHaveAttribute('data-puppy-cursor-size','large');
- await expect(root).toHaveAttribute('data-puppy-cursor-style','puppy');
+ await expect(root).toHaveAttribute('data-puppy-cursor-theme','dark');
  await expect(root).toHaveAttribute('data-puppy-pointer-halo','disabled');
+});
+
+test('matching website pointer theme reacts to device changes when site follows system',async({page})=>{
+ await page.emulateMedia({colorScheme:'light'});
+ await page.goto('/settings#puppy-pointer-settings');
+ await page.getByRole('radio',{name:'Follow device'}).check();
+ await page.getByRole('radio',{name:'Match website'}).check();
+ await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor-theme','light');
+ await expect(page.locator('.browser-pointer-preview img').first()).toHaveAttribute('src','/assets/pointers/themes/puppy_pointer_light_default_64.png');
+ await page.emulateMedia({colorScheme:'dark'});
+ await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor-theme','dark');
+ await expect(page.locator('.browser-pointer-preview img').first()).toHaveAttribute('src','/assets/pointers/themes/puppy_pointer_dark_default_64.png');
+});
+
+test('desktop settings collapse to readable single-column layout on tablet-sized widths',async({page})=>{
+ await page.setViewportSize({width:1000,height:900});
+ await page.goto('/settings');
+ const grid=page.locator('.browser-settings-grid');
+ const columns=await grid.evaluate(element=>getComputedStyle(element).gridTemplateColumns.split(' ').length);
+ expect(columns).toBe(1);
+ await expect(page.getByRole('heading',{name:'Puppy mouse pointer'})).toBeVisible();
+ const panel=await page.locator('#puppy-pointer-settings').boundingBox();
+ expect(panel.width).toBeGreaterThan(580);
+ expect(panel.width).toBeLessThan(800);
 });

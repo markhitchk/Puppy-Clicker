@@ -1,36 +1,36 @@
 /* Exact 64px cursor art from pup-clinker/Mobile/assets/pointers.
  * The build copies the original 24 Android PNGs to public/assets/pointers.
- * Keep the legacy SVGs only as browser/offline fallbacks.
+ * The canonical PNGs fall back to normal OS cursor states if unavailable.
  * Applies to every website route and the React Native Web game on mouse/trackpad.
- * Settings > Play & performance > Puppy mouse pointer controls the opt-in.
+ * Browser Settings switches between OS pointer and the original Puppy set.
  */
 html[data-puppy-cursor-theme='dark'] {
-  --puppy-default: url('/assets/pointers/puppy_pointer_dark_default.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
-  --puppy-hover: url('/assets/pointers/puppy_pointer_dark_hover.png') 16 16, url('/assets/cursors/paw_hover.svg') 16 16, pointer;
-  --puppy-click: url('/assets/pointers/puppy_pointer_dark_click.png') 16 16, url('/assets/cursors/paw_click.svg') 16 16, pointer;
-  --puppy-text-select: url('/assets/pointers/puppy_pointer_dark_text_select.png') 16 16, url('/assets/cursors/paw_text.svg') 16 16, text;
-  --puppy-link: url('/assets/pointers/puppy_pointer_dark_link.png') 16 16, url('/assets/cursors/paw_link.svg') 16 16, pointer;
-  --puppy-grab: url('/assets/pointers/puppy_pointer_dark_grab.png') 16 16, url('/assets/cursors/paw_drag.svg') 16 16, grab;
-  --puppy-grabbing: url('/assets/pointers/puppy_pointer_dark_grabbing.png') 16 16, url('/assets/cursors/paw_drag.svg') 16 16, grabbing;
-  --puppy-not-allowed: url('/assets/pointers/puppy_pointer_dark_not_allowed.png') 16 16, url('/assets/cursors/paw_disabled.svg') 16 16, not-allowed;
-  --puppy-working: url('/assets/pointers/puppy_pointer_dark_working.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, progress;
-  --puppy-precision: url('/assets/pointers/puppy_pointer_dark_precision.png') 16 16, url('/assets/cursors/paw_casino.svg') 32 32, crosshair;
-  --puppy-alternate: url('/assets/pointers/puppy_pointer_dark_alternate.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
-  --puppy-secondary: url('/assets/pointers/puppy_pointer_dark_secondary.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-default: url('/assets/pointers/puppy_pointer_dark_default.png') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/puppy_pointer_dark_hover.png') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/puppy_pointer_dark_click.png') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/puppy_pointer_dark_text_select.png') 16 16, text;
+  --puppy-link: url('/assets/pointers/puppy_pointer_dark_link.png') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/puppy_pointer_dark_grab.png') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/puppy_pointer_dark_grabbing.png') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/puppy_pointer_dark_not_allowed.png') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/puppy_pointer_dark_working.png') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/puppy_pointer_dark_precision.png') 16 16, crosshair;
+  --puppy-alternate: url('/assets/pointers/puppy_pointer_dark_alternate.png') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/puppy_pointer_dark_secondary.png') 16 16, auto;
 }
 html[data-puppy-cursor-theme='light'] {
-  --puppy-default: url('/assets/pointers/puppy_pointer_light_default.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
-  --puppy-hover: url('/assets/pointers/puppy_pointer_light_hover.png') 16 16, url('/assets/cursors/paw_hover.svg') 16 16, pointer;
-  --puppy-click: url('/assets/pointers/puppy_pointer_light_click.png') 16 16, url('/assets/cursors/paw_click.svg') 16 16, pointer;
-  --puppy-text-select: url('/assets/pointers/puppy_pointer_light_text_select.png') 16 16, url('/assets/cursors/paw_text.svg') 16 16, text;
-  --puppy-link: url('/assets/pointers/puppy_pointer_light_link.png') 16 16, url('/assets/cursors/paw_link.svg') 16 16, pointer;
-  --puppy-grab: url('/assets/pointers/puppy_pointer_light_grab.png') 16 16, url('/assets/cursors/paw_drag.svg') 16 16, grab;
-  --puppy-grabbing: url('/assets/pointers/puppy_pointer_light_grabbing.png') 16 16, url('/assets/cursors/paw_drag.svg') 16 16, grabbing;
-  --puppy-not-allowed: url('/assets/pointers/puppy_pointer_light_not_allowed.png') 16 16, url('/assets/cursors/paw_disabled.svg') 16 16, not-allowed;
-  --puppy-working: url('/assets/pointers/puppy_pointer_light_working.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, progress;
-  --puppy-precision: url('/assets/pointers/puppy_pointer_light_precision.png') 16 16, url('/assets/cursors/paw_casino.svg') 32 32, crosshair;
-  --puppy-alternate: url('/assets/pointers/puppy_pointer_light_alternate.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
-  --puppy-secondary: url('/assets/pointers/puppy_pointer_light_secondary.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-default: url('/assets/pointers/puppy_pointer_light_default.png') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/puppy_pointer_light_hover.png') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/puppy_pointer_light_click.png') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/puppy_pointer_light_text_select.png') 16 16, text;
+  --puppy-link: url('/assets/pointers/puppy_pointer_light_link.png') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/puppy_pointer_light_grab.png') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/puppy_pointer_light_grabbing.png') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/puppy_pointer_light_not_allowed.png') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/puppy_pointer_light_working.png') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/puppy_pointer_light_precision.png') 16 16, crosshair;
+  --puppy-alternate: url('/assets/pointers/puppy_pointer_light_alternate.png') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/puppy_pointer_light_secondary.png') 16 16, auto;
 }
 
 

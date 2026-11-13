@@ -2,22 +2,22 @@ import {DEFAULT_PREFERENCES,preferenceValue} from '../src/engine/settings.js';
 
 export const WEB_PREFERENCES_KEY='puppy-clicker:web-preferences:v1';
 export const WEB_PREFERENCES_CHANGED='puppy-clicker:web-preferences-changed';
-// Browser-only cursor choices do not affect cloud saves or Android preference schemas.
-export const POINTER_SIZES=Object.freeze({small:32,medium:48,large:64,extra_large:96});
-export const POINTER_STYLES=Object.freeze(['puppy','paw']);
+// Keep browser-only pointer preferences separate from Pup Account/gameplay saves.
+// Size is derived from the shared Interface size; old standalone size/style options
+// are intentionally ignored when upgrading stored browser settings.
+export const POINTER_SIZES=Object.freeze({compact:32,default:64,large:96});
 export const POINTER_THEMES=Object.freeze(['auto','dark','light']);
-const cursorDefaults=Object.freeze({
- puppyPointerSize:'large',puppyPointerStyle:'puppy',puppyPointerTheme:'auto',
- puppyPointerClickHighlight:false
-});
-const fields=['themeMode','accentHex','uiScale','performancePreset','animatedUi','buttonAnimations','reducedMotion','highContrast','animationsEnabled','compactNumbers','puppyPointerEnabled','puppyPointerSize','puppyPointerStyle','puppyPointerTheme','puppyPointerClickHighlight','dailyRewardNotifications','gameEventNotifications'];
+const cursorDefaults=Object.freeze({puppyPointerTheme:'auto',puppyPointerClickHighlight:false});
+const fields=['themeMode','accentHex','uiScale','performancePreset','animatedUi','buttonAnimations','reducedMotion','highContrast','animationsEnabled','compactNumbers','puppyPointerEnabled','puppyPointerTheme','puppyPointerClickHighlight','dailyRewardNotifications','gameEventNotifications'];
 export const WEB_PREFERENCE_DEFAULTS=Object.freeze({...Object.fromEntries(fields.map(key=>[key,DEFAULT_PREFERENCES[key]??cursorDefaults[key]])),themeMode:'dark',accentHex:'#00E5FF'});
 function validValue(name,value){
- if(name==='puppyPointerSize')return Object.hasOwn(POINTER_SIZES,value)?value:undefined;
- if(name==='puppyPointerStyle')return POINTER_STYLES.includes(value)?value:undefined;
  if(name==='puppyPointerTheme')return POINTER_THEMES.includes(value)?value:undefined;
  if(name==='puppyPointerClickHighlight')return typeof value==='boolean'?value:undefined;
  return preferenceValue(name,value);
+}
+export function pointerThemeFor(preferences,systemDark=false){
+ if(preferences.puppyPointerTheme==='dark'||preferences.puppyPointerTheme==='light')return preferences.puppyPointerTheme;
+ return preferences.themeMode==='dark'||(preferences.themeMode!=='light'&&systemDark)?'dark':'light';
 }
 function sanitize(input){return Object.fromEntries(fields.map(key=>[key,validValue(key,input?.[key])??WEB_PREFERENCE_DEFAULTS[key]]));}
 export function loadWebPreferences(storage){
