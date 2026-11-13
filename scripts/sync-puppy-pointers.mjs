@@ -79,7 +79,7 @@ async function generateThemedVariants(force){
    await sharp(rendered).resize(size,size).png().toFile(target);
   }));
  }
- await writeFile(THEME_MARKER,SOURCE_REF+':'+THEME_RENDER_VERSION+'\\n','utf8');
+ await writeFile(THEME_MARKER,SOURCE_REF+':'+THEME_RENDER_VERSION+'\n','utf8');
  console.log('Puppy cursor themes: enhanced dark/light contrast at 32, 64 and 96 px');
 }
 export async function syncPuppyPointers(){
