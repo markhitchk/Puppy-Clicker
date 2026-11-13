@@ -8,7 +8,7 @@ import MeetPuppies from "./MeetPuppies.jsx";
 import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
-import {loadWebPreferences,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
+import {loadWebPreferences,pointerThemeFor,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
 import {beginPuppyDiscord,verifyPuppySession,puppyAuthMessage} from "./native/web/puppyOAuth.js";
 import {DISCORD_ICON_URL} from "./discordIcon.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
@@ -493,9 +493,8 @@ export default function App(){
    const prefs={...loadWebPreferences(),...(event?.detail??{})};
    const dark=prefs.themeMode==='dark'||(prefs.themeMode!=='light'&&systemTheme.matches);
    root.dataset.puppyCursor=prefs.puppyPointerEnabled!==false?'enabled':'disabled';
-   root.dataset.puppyCursorTheme=prefs.puppyPointerTheme==='auto'?(dark?'dark':'light'):prefs.puppyPointerTheme;
-   root.dataset.puppyCursorSize=prefs.puppyPointerSize;
-   root.dataset.puppyCursorStyle=prefs.puppyPointerStyle;
+   root.dataset.puppyCursorTheme=pointerThemeFor(prefs,systemTheme.matches);
+   root.dataset.puppyCursorSize=prefs.uiScale;
    root.dataset.puppyPointerHalo=prefs.puppyPointerClickHighlight&&prefs.puppyPointerEnabled!==false&&!prefs.reducedMotion?'enabled':'disabled';
    root.dataset.puppyTheme=dark?'dark':'light';
    root.dataset.puppyContrast=prefs.highContrast?'high':'normal';
@@ -538,7 +537,6 @@ export default function App(){
    halo.removeEventListener('animationend',haloEnd);
    halo.remove();
    delete root.dataset.puppyCursorSize;
-   delete root.dataset.puppyCursorStyle;
    delete root.dataset.puppyPointerHalo;
    delete root.dataset.puppyCursor;
    delete root.dataset.puppyCursorTheme;
