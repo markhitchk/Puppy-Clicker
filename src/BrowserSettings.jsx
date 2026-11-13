@@ -2,7 +2,7 @@ import React,{useEffect,useState} from 'react';
 import LanguagePicker from './LanguagePicker.jsx';
 import {ACCENT_PRESETS} from './native/src/engine/settings.js';
 import {
- WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,POINTER_SIZES,
+ WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,POINTER_SIZES,pointerThemeFor,
  loadWebPreferences,saveWebPreferences,updateWebPreference
 } from './native/web/preferences.js';
 import {GRAPHICS_BACKENDS} from './graphics/graphicsCapabilities.js';
@@ -10,18 +10,11 @@ import './BrowserSettings.css';
 
 const qualityOptions=[['automatic','Automatic'],['quality','Quality'],['battery_saver','Battery saver']];
 const themeOptions=[['system','Follow device'],['dark','Dark'],['light','Light']];
-const pointerSizeOptions=[['small','Small · 32 px'],['medium','Medium · 48 px'],['large','Large · 64 px'],['extra_large','Extra large · 96 px']];
-const pointerStyleOptions=[['puppy','Original Puppy'],['paw','Classic paw']];
 const pointerThemeOptions=[['auto','Match website'],['dark','Dark cursor'],['light','Light cursor']];
-function pointerPreviewSource(prefs,state){
- const size=POINTER_SIZES[prefs.puppyPointerSize]??64;
- if(prefs.puppyPointerStyle==='paw')return `/assets/pointers/sizes/paw_pointer_${state}_${size}.png`;
- const appearance=prefs.puppyPointerTheme==='auto'
-  ?(prefs.themeMode==='dark'||(prefs.themeMode==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light')
-  :prefs.puppyPointerTheme;
- return size===64
-  ?`/assets/pointers/puppy_pointer_${appearance}_${state}.png`
-  :`/assets/pointers/sizes/puppy_pointer_${appearance}_${state}_${size}.png`;
+function pointerPreviewSource(prefs,state,systemDark){
+ const size=POINTER_SIZES[prefs.uiScale]??64;
+ const appearance=pointerThemeFor(prefs,systemDark);
+ return `/assets/pointers/themes/puppy_pointer_${appearance}_${state}_${size}.png`;
 }
 function BrowserOption({label,detail,checked,onChange}){
  return <label className="browser-settings-option">
@@ -48,6 +41,7 @@ function graphicsSupport(){
 }
 export default function BrowserSettings(){
  const [prefs,setPrefs]=useState(()=>loadWebPreferences());
+ const [systemDark,setSystemDark]=useState(()=>window.matchMedia('(prefers-color-scheme: dark)').matches);
  const [message,setMessage]=useState('');
  const [confirmReset,setConfirmReset]=useState(false);
  const [permission,setPermission]=useState(()=>typeof Notification==='undefined'?'unsupported':Notification.permission);
@@ -60,6 +54,12 @@ export default function BrowserSettings(){
   window.addEventListener(WEB_PREFERENCES_CHANGED,sync);
   window.addEventListener('storage',sync);
   return()=>{window.removeEventListener(WEB_PREFERENCES_CHANGED,sync);window.removeEventListener('storage',sync);};
+ },[]);
+ useEffect(()=>{
+  const media=window.matchMedia('(prefers-color-scheme: dark)');
+  const onTheme=()=>setSystemDark(media.matches);
+  media.addEventListener('change',onTheme);
+  return()=>media.removeEventListener('change',onTheme);
  },[]);
  useEffect(()=>{
   const onFullScreen=()=>setFullscreen(Boolean(document.fullscreenElement));
@@ -112,29 +112,29 @@ export default function BrowserSettings(){
    <section className="browser-settings-panel browser-pointer-panel" id="puppy-pointer-settings" aria-labelledby="browser-pointer-heading">
     <h2 id="browser-pointer-heading">🖱️ Puppy mouse pointer</h2>
     <p className="browser-settings-detail">Customize the actual mouse or trackpad cursor. Changes apply across Puppy Clicker immediately and remain on this browser.</p>
-    <BrowserOption label="Puppy mouse cursor" detail="Turn off to use your normal system pointer. Touch remains unchanged." checked={prefs.puppyPointerEnabled} onChange={value=>change('puppyPointerEnabled',value)}/>
-    <div className="browser-pointer-controls">
-     <BrowserChoices label="Pointer size" value={prefs.puppyPointerSize} choices={pointerSizeOptions} onChange={value=>change('puppyPointerSize',value)}/>
-     <BrowserChoices label="Pointer artwork" value={prefs.puppyPointerStyle} choices={pointerStyleOptions} onChange={value=>change('puppyPointerStyle',value)}/>
+    <BrowserChoices label="Mouse pointer" value={prefs.puppyPointerEnabled?'puppy':'system'} choices={[["system","System pointer"],["puppy","Original Puppy pointer"]]} onChange={value=>change('puppyPointerEnabled',value==='puppy')}/>
+    <p className="browser-settings-detail">System uses your operating system's normal arrow and text cursor. Puppy mode uses the original Puppy Clicker pointer pack. Touch input stays unchanged.</p>
+    <p className="browser-settings-detail" role="status">Pointer size follows <strong>Interface size</strong>: Compact 32 px · Default 64 px · Large 96 px. Current: <strong>{POINTER_SIZES[prefs.uiScale]??64} px</strong>.</p>
+    {prefs.puppyPointerEnabled?<div className="browser-pointer-controls">
      <BrowserChoices label="Pointer theme" value={prefs.puppyPointerTheme} choices={pointerThemeOptions} onChange={value=>change('puppyPointerTheme',value)}/>
      <BrowserOption label="Highlight mouse clicks" detail="Show a brief accent-color ring at each click. Disabled with reduced motion." checked={prefs.puppyPointerClickHighlight} onChange={value=>change('puppyPointerClickHighlight',value)}/>
-    </div>
-    <div className="browser-pointer-preview" aria-label="Pointer artwork preview">
-     <strong>Live pointer preview</strong>
-     <div className="browser-pointer-preview-grid">
-      {([['default','Normal'],['hover','Hover'],['click','Click']]).map(([state,title])=>
-       <div className="browser-pointer-preview-tile" key={state}>
-        <img src={pointerPreviewSource(prefs,state)} alt="" width={POINTER_SIZES[prefs.puppyPointerSize]} height={POINTER_SIZES[prefs.puppyPointerSize]}/>
-        <span>{title}</span>
-       </div>)}
+     <div className="browser-pointer-preview" aria-label="Puppy pointer theme preview">
+      <strong>Preview · {pointerThemeFor(prefs,systemDark)==='dark'?'Dark cursor':'Light cursor'}</strong>
+      <div className="browser-pointer-preview-grid">
+       {([['default','Normal'],['hover','Hover'],['click','Click']]).map(([state,title])=>
+        <div className="browser-pointer-preview-tile" key={state}>
+         <img src={pointerPreviewSource(prefs,state,systemDark)} alt="" width={POINTER_SIZES[prefs.uiScale]??64} height={POINTER_SIZES[prefs.uiScale]??64}/>
+         <span>{title}</span>
+        </div>)}
+      </div>
+      <small>Dark cursor has a deep outline; Light cursor has a bright outline. The preview and actual cursor use the same PNGs. Some browsers restrict 96 px custom cursors.</small>
      </div>
-     <small>Try hovering over the buttons above with your mouse. Your system or browser may limit extra-large cursor dimensions.</small>
-    </div>
-    <button className="browser-settings-action secondary" type="button" onClick={()=>{
-     const next={...prefs,...Object.fromEntries(['puppyPointerSize','puppyPointerStyle','puppyPointerTheme','puppyPointerClickHighlight'].map(key=>[key,WEB_PREFERENCE_DEFAULTS[key]]))};
-     if(saveWebPreferences(next)){setPrefs(next);setMessage('Pointer customization reset to defaults.');}
-     else setMessage('Could not save pointer defaults. Check browser storage permissions.');
-    }}>Reset pointer customization</button>
+     <button className="browser-settings-action secondary" type="button" onClick={()=>{
+      const next={...prefs,puppyPointerTheme:WEB_PREFERENCE_DEFAULTS.puppyPointerTheme,puppyPointerClickHighlight:WEB_PREFERENCE_DEFAULTS.puppyPointerClickHighlight};
+      if(saveWebPreferences(next)){setPrefs(next);setMessage('Puppy pointer theme and click highlight reset.');}
+      else setMessage('Could not save pointer defaults. Check browser storage permissions.');
+     }}>Reset pointer customization</button>
+    </div>:<p className="browser-settings-detail" role="status">System pointer active. Custom Puppy theme and preview controls are hidden until you select Original Puppy pointer.</p>}
    </section>
    <section className="browser-settings-panel" aria-labelledby="browser-performance"><h2 id="browser-performance">🎮 Graphics & performance</h2>
     <p><strong>Graphics mode: Automatic</strong> — WebGPU → WebGL 2 → WebGL 1 → Canvas 2D → CSS. Your browser chooses the underlying Vulkan, Metal or Direct3D backend.</p>
