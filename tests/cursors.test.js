@@ -59,22 +59,20 @@ test('touch stops sticky mouse hover until an actual hardware pointer moves agai
 });
 
 
-test('pointer sizes have real PNG variants with per-size hotspot coordinates',()=>{
+test('the original Puppy cursor follows compact/default/large interface sizes',()=>{
  const sized=readFileSync(new URL('../src/native/web/cursor-sizes.css',import.meta.url),'utf8');
- for(const [size,px] of [['small',32],['medium',48],['extra_large',96]]){
+ for(const [name,px] of [['compact',32],['default',64],['large',96]]){
   for(const theme of ['dark','light']){
-   assert.ok(sized.includes(`data-puppy-cursor-theme='${theme}'][data-puppy-cursor-size='${size}'`));
+   assert.ok(sized.includes(`data-puppy-cursor-theme='${theme}'][data-puppy-cursor-size='${name}'`));
    for(const state of states)
-    assert.ok(sized.includes(`puppy_pointer_${theme}_${state}_${px}.png`),theme+' '+state+' '+size);
+    assert.ok(sized.includes(`/assets/pointers/themes/puppy_pointer_${theme}_${state}_${px}.png`),theme+' '+state+' '+name);
   }
  }
- for(const [size,px] of [['small',32],['medium',48],['large',64],['extra_large',96]]){
-  assert.ok(sized.includes(`data-puppy-cursor-style='paw'][data-puppy-cursor-size='${size}'`));
-  for(const state of states)assert.ok(sized.includes(`paw_pointer_${state}_${px}.png`));
- }
- assert.ok(sized.includes('8 8'));assert.ok(sized.includes('12 12'));assert.ok(sized.includes('24 24'));
- assert.ok(sync.includes('generateSizedVariants'));
- assert.ok(app.includes('dataset.puppyCursorSize'));
- assert.ok(app.includes('dataset.puppyCursorStyle'));
- assert.ok(app.includes('dataset.puppyPointerHalo'));
+ assert.ok(!sized.includes('paw_pointer_'));
+ assert.ok(!css.includes('/assets/cursors/paw_'));
+ assert.ok(sized.includes('8 8')&&sized.includes('16 16')&&sized.includes('24 24'));
+ assert.ok(sync.includes('generateThemedVariants'));
+ assert.ok(sync.includes('contrast-outline-v1'));
+ assert.ok(app.includes('root.dataset.puppyCursorSize=prefs.uiScale'));
+ assert.ok(app.includes('pointerThemeFor(prefs,systemTheme.matches)'));
 });
