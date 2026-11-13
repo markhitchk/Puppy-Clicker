@@ -5,7 +5,7 @@ export const WEB_PREFERENCES_CHANGED='puppy-clicker:web-preferences-changed';
 // Keep browser-only pointer preferences separate from Pup Account/gameplay saves.
 // Size is derived from the shared Interface size; old standalone size/style options
 // are intentionally ignored when upgrading stored browser settings.
-export const POINTER_SIZES=Object.freeze({compact:32,default:64,large:96});
+export const POINTER_SIZES=Object.freeze({compact:48,default:64,large:96});
 export const POINTER_THEMES=Object.freeze(['auto','dark','light']);
 const cursorDefaults=Object.freeze({puppyPointerTheme:'auto',puppyPointerClickHighlight:false});
 const fields=['themeMode','accentHex','uiScale','performancePreset','animatedUi','buttonAnimations','reducedMotion','highContrast','animationsEnabled','compactNumbers','puppyPointerEnabled','puppyPointerTheme','puppyPointerClickHighlight','dailyRewardNotifications','gameEventNotifications'];
