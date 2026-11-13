@@ -25,26 +25,38 @@ test('invalid or blocked browser storage falls back safely',async()=>{
 });
 
 
-test('pointer customization defaults and validation stay browser-local',async()=>{
- const {loadWebPreferences,saveWebPreferences,updateWebPreference,POINTER_SIZES}=await import('../src/native/web/preferences.js');
- let serialized=null;
- const storage={getItem:()=>serialized,setItem:(_key,value)=>{serialized=value;}};
+test('browser cursor mode and theme follow shared interface size',async()=>{
+ const {loadWebPreferences,saveWebPreferences,updateWebPreference,POINTER_SIZES,pointerThemeFor}=await import('../src/native/web/preferences.js');
+ let stored=null;
+ const storage={getItem:()=>stored,setItem:(_key,value)=>{stored=value;}};
  const defaults=loadWebPreferences(storage);
- assert.equal(defaults.puppyPointerSize,'large');
- assert.equal(defaults.puppyPointerStyle,'puppy');
+ assert.equal(defaults.uiScale,'default');
+ assert.deepEqual(POINTER_SIZES,{compact:32,default:64,large:96});
+ assert.equal(defaults.puppyPointerEnabled,true);
  assert.equal(defaults.puppyPointerTheme,'auto');
- assert.equal(defaults.puppyPointerClickHighlight,false);
- assert.deepEqual(Object.values(POINTER_SIZES),[32,48,64,96]);
- let updated=updateWebPreference(defaults,'puppyPointerSize','small');
- updated=updateWebPreference(updated,'puppyPointerStyle','paw');
- updated=updateWebPreference(updated,'puppyPointerTheme','light');
- updated=updateWebPreference(updated,'puppyPointerClickHighlight',true);
- assert.equal(saveWebPreferences(updated,storage),true);
- assert.equal(loadWebPreferences(storage).puppyPointerSize,'small');
- assert.equal(loadWebPreferences(storage).puppyPointerStyle,'paw');
- assert.equal(loadWebPreferences(storage).puppyPointerTheme,'light');
- assert.equal(loadWebPreferences(storage).puppyPointerClickHighlight,true);
- for(const [name,value] of [['puppyPointerSize','huge'],['puppyPointerStyle','remote'],['puppyPointerTheme','pink'],['puppyPointerClickHighlight','true']])
-  assert.deepEqual(updateWebPreference(updated,name,value),updated);
- assert.equal(JSON.parse(serialized).cloudSave,undefined);
+ assert.equal(pointerThemeFor(defaults,false),'dark');
+ assert.equal(pointerThemeFor({...defaults,themeMode:'system'},false),'light');
+ assert.equal(pointerThemeFor({...defaults,themeMode:'system'},true),'dark');
+ let prefs=updateWebPreference(defaults,'uiScale','compact');
+ prefs=updateWebPreference(prefs,'puppyPointerEnabled',false);
+ prefs=updateWebPreference(prefs,'puppyPointerTheme','light');
+ prefs=updateWebPreference(prefs,'puppyPointerClickHighlight',true);
+ assert.equal(saveWebPreferences(prefs,storage),true);
+ const loaded=loadWebPreferences(storage);
+ assert.equal(loaded.uiScale,'compact');
+ assert.equal(loaded.puppyPointerEnabled,false);
+ assert.equal(loaded.puppyPointerTheme,'light');
+ assert.equal(loaded.puppyPointerClickHighlight,true);
+ assert.equal(pointerThemeFor(loaded,true),'light');
+ assert.equal(loaded.puppyPointerStyle,undefined);
+ assert.equal(loaded.puppyPointerSize,undefined);
+ assert.deepEqual(updateWebPreference(loaded,'puppyPointerStyle','paw'),loaded);
+ assert.deepEqual(updateWebPreference(loaded,'puppyPointerSize','extra_large'),loaded);
+ assert.deepEqual(updateWebPreference(loaded,'puppyPointerTheme','pink'),loaded);
+ assert.deepEqual(updateWebPreference(loaded,'puppyPointerClickHighlight','true'),loaded);
+ const legacy={getItem:()=>JSON.stringify({...loaded,puppyPointerStyle:'paw',puppyPointerSize:'extra_large'})};
+ const migrated=loadWebPreferences(legacy);
+ assert.equal(migrated.puppyPointerStyle,undefined);
+ assert.equal(migrated.puppyPointerSize,undefined);
+ assert.equal(JSON.parse(stored).cloudSave,undefined);
 });
