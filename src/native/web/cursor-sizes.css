@@ -140,3 +140,21 @@ html[data-puppy-cursor-style='paw'][data-puppy-cursor-size='extra_large'] {
   --puppy-alternate: url('/assets/pointers/sizes/paw_pointer_alternate_96.png') 24 24, url('/assets/cursors/paw_default.svg') 16 16, auto;
   --puppy-secondary: url('/assets/pointers/sizes/paw_pointer_secondary_96.png') 24 24, url('/assets/cursors/paw_default.svg') 16 16, auto;
 }
+
+
+/* Optional visual click confirmation: overlay never participates in hit testing. */
+.puppy-pointer-click-halo{
+ position:fixed;left:-200px;top:-200px;width:46px;height:46px;
+ border:3px solid var(--site-accent,#00E5FF);border-radius:50%;
+ box-shadow:0 0 15px color-mix(in srgb,var(--site-accent,#00E5FF) 45%,transparent);
+ pointer-events:none;user-select:none;opacity:0;z-index:2147483640;
+ transform:translate(-50%,-50%) scale(.55);
+}
+.puppy-pointer-click-halo.is-active{animation:puppy-pointer-halo-out 410ms ease-out both}
+@keyframes puppy-pointer-halo-out{
+ 0%{opacity:.9;transform:translate(-50%,-50%) scale(.45)}
+ 100%{opacity:0;transform:translate(-50%,-50%) scale(1.55)}
+}
+@media(prefers-reduced-motion:reduce){
+ .puppy-pointer-click-halo.is-active{animation:none}
+}
