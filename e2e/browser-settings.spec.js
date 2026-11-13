@@ -72,3 +72,39 @@ test('follow-device theme tracks system changes and reset restores default color
  await expect(page.locator('html')).toHaveAttribute('data-puppy-theme','dark');
  await expect(page.getByRole('radio',{name:'Puppy Cyan'})).toBeChecked();
 });
+
+
+test('pointer controls change raster cursor size, artwork and theme across routes',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});
+ await page.goto('/settings#puppy-pointer-settings');
+ const root=page.locator('html');
+ await expect(page.getByRole('heading',{name:'Puppy mouse pointer'})).toBeVisible();
+ await page.getByRole('radio',{name:'Small · 32 px'}).check();
+ await expect(root).toHaveAttribute('data-puppy-cursor-size','small');
+ expect(await page.locator('body').evaluate(node=>getComputedStyle(node).cursor)).toContain('puppy_pointer_dark_default_32.png');
+ const first=await page.request.get('/assets/pointers/sizes/puppy_pointer_dark_default_32.png');
+ expect(first.ok()).toBe(true);
+ const raw=await first.body();
+ expect(raw.readUInt32BE(16)).toBe(32);
+ expect(raw.readUInt32BE(20)).toBe(32);
+ await page.getByRole('radio',{name:'Classic paw'}).check();
+ await expect(root).toHaveAttribute('data-puppy-cursor-style','paw');
+ expect(await page.locator('body').evaluate(node=>getComputedStyle(node).cursor)).toContain('paw_pointer_default_32.png');
+ await page.getByRole('radio',{name:'Light cursor'}).check();
+ await expect(root).toHaveAttribute('data-puppy-cursor-theme','light');
+ await page.getByRole('switch',{name:'Highlight mouse clicks'}).check();
+ await expect(root).toHaveAttribute('data-puppy-pointer-halo','enabled');
+ await page.reload();
+ await expect(page.getByRole('radio',{name:'Small · 32 px'})).toBeChecked();
+ await expect(page.getByRole('radio',{name:'Classic paw'})).toBeChecked();
+ await expect(page.getByRole('radio',{name:'Light cursor'})).toBeChecked();
+ await expect(page.getByRole('switch',{name:'Highlight mouse clicks'})).toBeChecked();
+ await page.goto('/');
+ await expect(root).toHaveAttribute('data-puppy-cursor-size','small');
+ await expect(root).toHaveAttribute('data-puppy-cursor-style','paw');
+ await page.goto('/settings#puppy-pointer-settings');
+ await page.getByRole('button',{name:'Reset pointer customization'}).click();
+ await expect(root).toHaveAttribute('data-puppy-cursor-size','large');
+ await expect(root).toHaveAttribute('data-puppy-cursor-style','puppy');
+ await expect(root).toHaveAttribute('data-puppy-pointer-halo','disabled');
+});

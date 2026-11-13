@@ -56,3 +56,23 @@
  .browser-settings-page{padding-left:10px;padding-right:10px}
  .browser-settings-panel{padding:13px}
 }
+
+
+/* Browser pointer customization: intentional real pixel sizes, compact on phones. */
+.browser-pointer-panel{scroll-margin-top:84px}
+.browser-pointer-controls{display:grid;gap:14px}
+.browser-pointer-preview{display:grid;gap:12px;padding:14px;border:1px solid #31556a;border-radius:16px;background:#152838}
+.browser-pointer-preview>strong{font-size:14px}
+.browser-pointer-preview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.browser-pointer-preview-tile{display:flex;min-height:134px;flex-direction:column;justify-content:space-between;align-items:center;gap:9px;padding:10px 5px;border:1px solid #35576b;background:#112232;border-radius:12px;text-align:center}
+.browser-pointer-preview-tile img{display:block;max-width:100%;object-fit:contain}
+.browser-pointer-preview-tile span{font-size:12px;font-weight:800}
+.browser-pointer-preview small{color:#9cbace;font-size:12px;line-height:1.5}
+:root[data-puppy-theme="light"] .browser-pointer-preview{background:#f1f7fb;border-color:var(--site-border)}
+:root[data-puppy-theme="light"] .browser-pointer-preview-tile{background:#fff;border-color:var(--site-border);color:var(--site-text)}
+:root[data-puppy-theme="light"] .browser-pointer-preview small{color:var(--site-muted)}
+@media(max-width:480px){
+ .browser-pointer-preview-tile{min-height:116px;padding:8px 2px}
+ .browser-pointer-preview-grid{gap:5px}
+ .browser-pointer-preview{padding:10px}
+}

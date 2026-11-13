@@ -1,0 +1,160 @@
+/* Generated-size variants are real raster pixels: CSS cursor images cannot be sized with width/height.
+ * Keep the original 64px Android PNG untouched for default Puppy cursor. */
+html[data-puppy-cursor-theme='dark'][data-puppy-cursor-size='small'] {
+  --puppy-default: url('/assets/pointers/sizes/puppy_pointer_dark_default_32.png') 8 8, url('/assets/pointers/puppy_pointer_dark_default.png') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/sizes/puppy_pointer_dark_hover_32.png') 8 8, url('/assets/pointers/puppy_pointer_dark_hover.png') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/sizes/puppy_pointer_dark_click_32.png') 8 8, url('/assets/pointers/puppy_pointer_dark_click.png') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/sizes/puppy_pointer_dark_text_select_32.png') 8 8, url('/assets/pointers/puppy_pointer_dark_text_select.png') 16 16, text;
+  --puppy-link: url('/assets/pointers/sizes/puppy_pointer_dark_link_32.png') 8 8, url('/assets/pointers/puppy_pointer_dark_link.png') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/sizes/puppy_pointer_dark_grab_32.png') 8 8, url('/assets/pointers/puppy_pointer_dark_grab.png') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/sizes/puppy_pointer_dark_grabbing_32.png') 8 8, url('/assets/pointers/puppy_pointer_dark_grabbing.png') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/sizes/puppy_pointer_dark_not_allowed_32.png') 8 8, url('/assets/pointers/puppy_pointer_dark_not_allowed.png') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/sizes/puppy_pointer_dark_working_32.png') 8 8, url('/assets/pointers/puppy_pointer_dark_working.png') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/sizes/puppy_pointer_dark_precision_32.png') 16 16, url('/assets/pointers/puppy_pointer_dark_precision.png') 32 32, crosshair;
+  --puppy-alternate: url('/assets/pointers/sizes/puppy_pointer_dark_alternate_32.png') 8 8, url('/assets/pointers/puppy_pointer_dark_alternate.png') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/sizes/puppy_pointer_dark_secondary_32.png') 8 8, url('/assets/pointers/puppy_pointer_dark_secondary.png') 16 16, auto;
+}
+html[data-puppy-cursor-theme='dark'][data-puppy-cursor-size='medium'] {
+  --puppy-default: url('/assets/pointers/sizes/puppy_pointer_dark_default_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_default.png') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/sizes/puppy_pointer_dark_hover_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_hover.png') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/sizes/puppy_pointer_dark_click_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_click.png') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/sizes/puppy_pointer_dark_text_select_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_text_select.png') 16 16, text;
+  --puppy-link: url('/assets/pointers/sizes/puppy_pointer_dark_link_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_link.png') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/sizes/puppy_pointer_dark_grab_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_grab.png') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/sizes/puppy_pointer_dark_grabbing_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_grabbing.png') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/sizes/puppy_pointer_dark_not_allowed_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_not_allowed.png') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/sizes/puppy_pointer_dark_working_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_working.png') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/sizes/puppy_pointer_dark_precision_48.png') 24 24, url('/assets/pointers/puppy_pointer_dark_precision.png') 32 32, crosshair;
+  --puppy-alternate: url('/assets/pointers/sizes/puppy_pointer_dark_alternate_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_alternate.png') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/sizes/puppy_pointer_dark_secondary_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_secondary.png') 16 16, auto;
+}
+html[data-puppy-cursor-theme='dark'][data-puppy-cursor-size='extra_large'] {
+  --puppy-default: url('/assets/pointers/sizes/puppy_pointer_dark_default_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_default.png') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/sizes/puppy_pointer_dark_hover_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_hover.png') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/sizes/puppy_pointer_dark_click_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_click.png') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/sizes/puppy_pointer_dark_text_select_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_text_select.png') 16 16, text;
+  --puppy-link: url('/assets/pointers/sizes/puppy_pointer_dark_link_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_link.png') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/sizes/puppy_pointer_dark_grab_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_grab.png') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/sizes/puppy_pointer_dark_grabbing_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_grabbing.png') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/sizes/puppy_pointer_dark_not_allowed_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_not_allowed.png') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/sizes/puppy_pointer_dark_working_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_working.png') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/sizes/puppy_pointer_dark_precision_96.png') 48 48, url('/assets/pointers/puppy_pointer_dark_precision.png') 32 32, crosshair;
+  --puppy-alternate: url('/assets/pointers/sizes/puppy_pointer_dark_alternate_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_alternate.png') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/sizes/puppy_pointer_dark_secondary_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_secondary.png') 16 16, auto;
+}
+html[data-puppy-cursor-theme='light'][data-puppy-cursor-size='small'] {
+  --puppy-default: url('/assets/pointers/sizes/puppy_pointer_light_default_32.png') 8 8, url('/assets/pointers/puppy_pointer_light_default.png') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/sizes/puppy_pointer_light_hover_32.png') 8 8, url('/assets/pointers/puppy_pointer_light_hover.png') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/sizes/puppy_pointer_light_click_32.png') 8 8, url('/assets/pointers/puppy_pointer_light_click.png') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/sizes/puppy_pointer_light_text_select_32.png') 8 8, url('/assets/pointers/puppy_pointer_light_text_select.png') 16 16, text;
+  --puppy-link: url('/assets/pointers/sizes/puppy_pointer_light_link_32.png') 8 8, url('/assets/pointers/puppy_pointer_light_link.png') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/sizes/puppy_pointer_light_grab_32.png') 8 8, url('/assets/pointers/puppy_pointer_light_grab.png') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/sizes/puppy_pointer_light_grabbing_32.png') 8 8, url('/assets/pointers/puppy_pointer_light_grabbing.png') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/sizes/puppy_pointer_light_not_allowed_32.png') 8 8, url('/assets/pointers/puppy_pointer_light_not_allowed.png') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/sizes/puppy_pointer_light_working_32.png') 8 8, url('/assets/pointers/puppy_pointer_light_working.png') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/sizes/puppy_pointer_light_precision_32.png') 16 16, url('/assets/pointers/puppy_pointer_light_precision.png') 32 32, crosshair;
+  --puppy-alternate: url('/assets/pointers/sizes/puppy_pointer_light_alternate_32.png') 8 8, url('/assets/pointers/puppy_pointer_light_alternate.png') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/sizes/puppy_pointer_light_secondary_32.png') 8 8, url('/assets/pointers/puppy_pointer_light_secondary.png') 16 16, auto;
+}
+html[data-puppy-cursor-theme='light'][data-puppy-cursor-size='medium'] {
+  --puppy-default: url('/assets/pointers/sizes/puppy_pointer_light_default_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_default.png') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/sizes/puppy_pointer_light_hover_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_hover.png') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/sizes/puppy_pointer_light_click_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_click.png') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/sizes/puppy_pointer_light_text_select_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_text_select.png') 16 16, text;
+  --puppy-link: url('/assets/pointers/sizes/puppy_pointer_light_link_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_link.png') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/sizes/puppy_pointer_light_grab_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_grab.png') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/sizes/puppy_pointer_light_grabbing_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_grabbing.png') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/sizes/puppy_pointer_light_not_allowed_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_not_allowed.png') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/sizes/puppy_pointer_light_working_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_working.png') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/sizes/puppy_pointer_light_precision_48.png') 24 24, url('/assets/pointers/puppy_pointer_light_precision.png') 32 32, crosshair;
+  --puppy-alternate: url('/assets/pointers/sizes/puppy_pointer_light_alternate_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_alternate.png') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/sizes/puppy_pointer_light_secondary_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_secondary.png') 16 16, auto;
+}
+html[data-puppy-cursor-theme='light'][data-puppy-cursor-size='extra_large'] {
+  --puppy-default: url('/assets/pointers/sizes/puppy_pointer_light_default_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_default.png') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/sizes/puppy_pointer_light_hover_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_hover.png') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/sizes/puppy_pointer_light_click_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_click.png') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/sizes/puppy_pointer_light_text_select_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_text_select.png') 16 16, text;
+  --puppy-link: url('/assets/pointers/sizes/puppy_pointer_light_link_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_link.png') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/sizes/puppy_pointer_light_grab_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_grab.png') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/sizes/puppy_pointer_light_grabbing_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_grabbing.png') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/sizes/puppy_pointer_light_not_allowed_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_not_allowed.png') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/sizes/puppy_pointer_light_working_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_working.png') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/sizes/puppy_pointer_light_precision_96.png') 48 48, url('/assets/pointers/puppy_pointer_light_precision.png') 32 32, crosshair;
+  --puppy-alternate: url('/assets/pointers/sizes/puppy_pointer_light_alternate_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_alternate.png') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/sizes/puppy_pointer_light_secondary_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_secondary.png') 16 16, auto;
+}
+html[data-puppy-cursor-style='paw'][data-puppy-cursor-size='small'] {
+  --puppy-default: url('/assets/pointers/sizes/paw_pointer_default_32.png') 8 8, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/sizes/paw_pointer_hover_32.png') 8 8, url('/assets/cursors/paw_hover.svg') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/sizes/paw_pointer_click_32.png') 8 8, url('/assets/cursors/paw_click.svg') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/sizes/paw_pointer_text_select_32.png') 8 8, url('/assets/cursors/paw_text.svg') 16 16, text;
+  --puppy-link: url('/assets/pointers/sizes/paw_pointer_link_32.png') 8 8, url('/assets/cursors/paw_link.svg') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/sizes/paw_pointer_grab_32.png') 8 8, url('/assets/cursors/paw_drag.svg') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/sizes/paw_pointer_grabbing_32.png') 8 8, url('/assets/cursors/paw_drag.svg') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/sizes/paw_pointer_not_allowed_32.png') 8 8, url('/assets/cursors/paw_disabled.svg') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/sizes/paw_pointer_working_32.png') 8 8, url('/assets/cursors/paw_default.svg') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/sizes/paw_pointer_precision_32.png') 16 16, url('/assets/cursors/paw_casino.svg') 32 32, crosshair;
+  --puppy-alternate: url('/assets/pointers/sizes/paw_pointer_alternate_32.png') 8 8, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/sizes/paw_pointer_secondary_32.png') 8 8, url('/assets/cursors/paw_default.svg') 16 16, auto;
+}
+html[data-puppy-cursor-style='paw'][data-puppy-cursor-size='medium'] {
+  --puppy-default: url('/assets/pointers/sizes/paw_pointer_default_48.png') 12 12, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/sizes/paw_pointer_hover_48.png') 12 12, url('/assets/cursors/paw_hover.svg') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/sizes/paw_pointer_click_48.png') 12 12, url('/assets/cursors/paw_click.svg') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/sizes/paw_pointer_text_select_48.png') 12 12, url('/assets/cursors/paw_text.svg') 16 16, text;
+  --puppy-link: url('/assets/pointers/sizes/paw_pointer_link_48.png') 12 12, url('/assets/cursors/paw_link.svg') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/sizes/paw_pointer_grab_48.png') 12 12, url('/assets/cursors/paw_drag.svg') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/sizes/paw_pointer_grabbing_48.png') 12 12, url('/assets/cursors/paw_drag.svg') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/sizes/paw_pointer_not_allowed_48.png') 12 12, url('/assets/cursors/paw_disabled.svg') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/sizes/paw_pointer_working_48.png') 12 12, url('/assets/cursors/paw_default.svg') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/sizes/paw_pointer_precision_48.png') 24 24, url('/assets/cursors/paw_casino.svg') 32 32, crosshair;
+  --puppy-alternate: url('/assets/pointers/sizes/paw_pointer_alternate_48.png') 12 12, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/sizes/paw_pointer_secondary_48.png') 12 12, url('/assets/cursors/paw_default.svg') 16 16, auto;
+}
+html[data-puppy-cursor-style='paw'][data-puppy-cursor-size='large'] {
+  --puppy-default: url('/assets/pointers/sizes/paw_pointer_default_64.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/sizes/paw_pointer_hover_64.png') 16 16, url('/assets/cursors/paw_hover.svg') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/sizes/paw_pointer_click_64.png') 16 16, url('/assets/cursors/paw_click.svg') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/sizes/paw_pointer_text_select_64.png') 16 16, url('/assets/cursors/paw_text.svg') 16 16, text;
+  --puppy-link: url('/assets/pointers/sizes/paw_pointer_link_64.png') 16 16, url('/assets/cursors/paw_link.svg') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/sizes/paw_pointer_grab_64.png') 16 16, url('/assets/cursors/paw_drag.svg') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/sizes/paw_pointer_grabbing_64.png') 16 16, url('/assets/cursors/paw_drag.svg') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/sizes/paw_pointer_not_allowed_64.png') 16 16, url('/assets/cursors/paw_disabled.svg') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/sizes/paw_pointer_working_64.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/sizes/paw_pointer_precision_64.png') 32 32, url('/assets/cursors/paw_casino.svg') 32 32, crosshair;
+  --puppy-alternate: url('/assets/pointers/sizes/paw_pointer_alternate_64.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/sizes/paw_pointer_secondary_64.png') 16 16, url('/assets/cursors/paw_default.svg') 16 16, auto;
+}
+html[data-puppy-cursor-style='paw'][data-puppy-cursor-size='extra_large'] {
+  --puppy-default: url('/assets/pointers/sizes/paw_pointer_default_96.png') 24 24, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-hover: url('/assets/pointers/sizes/paw_pointer_hover_96.png') 24 24, url('/assets/cursors/paw_hover.svg') 16 16, pointer;
+  --puppy-click: url('/assets/pointers/sizes/paw_pointer_click_96.png') 24 24, url('/assets/cursors/paw_click.svg') 16 16, pointer;
+  --puppy-text-select: url('/assets/pointers/sizes/paw_pointer_text_select_96.png') 24 24, url('/assets/cursors/paw_text.svg') 16 16, text;
+  --puppy-link: url('/assets/pointers/sizes/paw_pointer_link_96.png') 24 24, url('/assets/cursors/paw_link.svg') 16 16, pointer;
+  --puppy-grab: url('/assets/pointers/sizes/paw_pointer_grab_96.png') 24 24, url('/assets/cursors/paw_drag.svg') 16 16, grab;
+  --puppy-grabbing: url('/assets/pointers/sizes/paw_pointer_grabbing_96.png') 24 24, url('/assets/cursors/paw_drag.svg') 16 16, grabbing;
+  --puppy-not-allowed: url('/assets/pointers/sizes/paw_pointer_not_allowed_96.png') 24 24, url('/assets/cursors/paw_disabled.svg') 16 16, not-allowed;
+  --puppy-working: url('/assets/pointers/sizes/paw_pointer_working_96.png') 24 24, url('/assets/cursors/paw_default.svg') 16 16, progress;
+  --puppy-precision: url('/assets/pointers/sizes/paw_pointer_precision_96.png') 48 48, url('/assets/cursors/paw_casino.svg') 32 32, crosshair;
+  --puppy-alternate: url('/assets/pointers/sizes/paw_pointer_alternate_96.png') 24 24, url('/assets/cursors/paw_default.svg') 16 16, auto;
+  --puppy-secondary: url('/assets/pointers/sizes/paw_pointer_secondary_96.png') 24 24, url('/assets/cursors/paw_default.svg') 16 16, auto;
+}
+
+
+/* Optional visual click confirmation: overlay never participates in hit testing. */
+.puppy-pointer-click-halo{
+ position:fixed;left:-200px;top:-200px;width:46px;height:46px;
+ border:3px solid var(--site-accent,#00E5FF);border-radius:50%;
+ box-shadow:0 0 15px color-mix(in srgb,var(--site-accent,#00E5FF) 45%,transparent);
+ pointer-events:none;user-select:none;opacity:0;z-index:2147483640;
+ transform:translate(-50%,-50%) scale(.55);
+}
+.puppy-pointer-click-halo.is-active{animation:puppy-pointer-halo-out 410ms ease-out both}
+@keyframes puppy-pointer-halo-out{
+ 0%{opacity:.9;transform:translate(-50%,-50%) scale(.45)}
+ 100%{opacity:0;transform:translate(-50%,-50%) scale(1.55)}
+}
+@media(prefers-reduced-motion:reduce){
+ .puppy-pointer-click-halo.is-active{animation:none}
+}

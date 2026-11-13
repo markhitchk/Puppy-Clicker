@@ -57,6 +57,7 @@ export default function WebSettings({g,act,onOpen,registry,notifications,account
    <Toggle title="Button animations" value={g.buttonAnimations} onChange={value=>pref('buttonAnimations',value)}/>
    <Toggle title="Compact numbers" detail="Use K, M and B for large balances." value={g.compactNumbers} onChange={value=>pref('compactNumbers',value)}/>
    <Toggle title="Puppy mouse pointer" detail="For a mouse or trackpad; touch controls keep working." value={g.puppyPointerEnabled} onChange={value=>pref('puppyPointerEnabled',value)}/>
+   <a className="cyber-button secondary" href="/settings#puppy-pointer-settings">🖱️ Customize pointer size, artwork &amp; theme</a>
    <Choices label="Effects quality" value={g.performancePreset} items={[["automatic","Automatic"],["quality","Quality"],["battery_saver","Battery Saver"]]} onChange={value=>pref('performancePreset',value)}/>
    {document.fullscreenEnabled?<button className="cyber-button secondary" onClick={async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();onOpen('play');}catch{setMessage('Fullscreen is unavailable in this browser window.');}}}>{fullscreen?'Exit fullscreen':'Play in fullscreen'}</button>:<p>Fullscreen availability depends on your browser.</p>}
   </>)}

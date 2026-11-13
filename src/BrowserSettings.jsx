@@ -2,7 +2,7 @@ import React,{useEffect,useState} from 'react';
 import LanguagePicker from './LanguagePicker.jsx';
 import {ACCENT_PRESETS} from './native/src/engine/settings.js';
 import {
- WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,
+ WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,POINTER_SIZES,
  loadWebPreferences,saveWebPreferences,updateWebPreference
 } from './native/web/preferences.js';
 import {GRAPHICS_BACKENDS} from './graphics/graphicsCapabilities.js';
@@ -10,6 +10,19 @@ import './BrowserSettings.css';
 
 const qualityOptions=[['automatic','Automatic'],['quality','Quality'],['battery_saver','Battery saver']];
 const themeOptions=[['system','Follow device'],['dark','Dark'],['light','Light']];
+const pointerSizeOptions=[['small','Small · 32 px'],['medium','Medium · 48 px'],['large','Large · 64 px'],['extra_large','Extra large · 96 px']];
+const pointerStyleOptions=[['puppy','Original Puppy'],['paw','Classic paw']];
+const pointerThemeOptions=[['auto','Match website'],['dark','Dark cursor'],['light','Light cursor']];
+function pointerPreviewSource(prefs,state){
+ const size=POINTER_SIZES[prefs.puppyPointerSize]??64;
+ if(prefs.puppyPointerStyle==='paw')return `/assets/pointers/sizes/paw_pointer_${state}_${size}.png`;
+ const appearance=prefs.puppyPointerTheme==='auto'
+  ?(prefs.themeMode==='dark'||(prefs.themeMode==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light')
+  :prefs.puppyPointerTheme;
+ return size===64
+  ?`/assets/pointers/puppy_pointer_${appearance}_${state}.png`
+  :`/assets/pointers/sizes/puppy_pointer_${appearance}_${state}_${size}.png`;
+}
 function BrowserOption({label,detail,checked,onChange}){
  return <label className="browser-settings-option">
   <span><strong>{label}</strong>{detail?<small>{detail}</small>:null}</span>
@@ -96,6 +109,33 @@ export default function BrowserSettings(){
     <BrowserOption label="High contrast" checked={prefs.highContrast} onChange={value=>change('highContrast',value)}/>
     <BrowserOption label="Reduced motion" detail="Disable animated GPU effects and reduce other game movement." checked={prefs.reducedMotion} onChange={value=>change('reducedMotion',value)}/>
    </section>
+   <section className="browser-settings-panel browser-pointer-panel" id="puppy-pointer-settings" aria-labelledby="browser-pointer-heading">
+    <h2 id="browser-pointer-heading">🖱️ Puppy mouse pointer</h2>
+    <p className="browser-settings-detail">Customize the actual mouse or trackpad cursor. Changes apply across Puppy Clicker immediately and remain on this browser.</p>
+    <BrowserOption label="Puppy mouse cursor" detail="Turn off to use your normal system pointer. Touch remains unchanged." checked={prefs.puppyPointerEnabled} onChange={value=>change('puppyPointerEnabled',value)}/>
+    <div className="browser-pointer-controls">
+     <BrowserChoices label="Pointer size" value={prefs.puppyPointerSize} choices={pointerSizeOptions} onChange={value=>change('puppyPointerSize',value)}/>
+     <BrowserChoices label="Pointer artwork" value={prefs.puppyPointerStyle} choices={pointerStyleOptions} onChange={value=>change('puppyPointerStyle',value)}/>
+     <BrowserChoices label="Pointer theme" value={prefs.puppyPointerTheme} choices={pointerThemeOptions} onChange={value=>change('puppyPointerTheme',value)}/>
+     <BrowserOption label="Highlight mouse clicks" detail="Show a brief accent-color ring at each click. Disabled with reduced motion." checked={prefs.puppyPointerClickHighlight} onChange={value=>change('puppyPointerClickHighlight',value)}/>
+    </div>
+    <div className="browser-pointer-preview" aria-label="Pointer artwork preview">
+     <strong>Live pointer preview</strong>
+     <div className="browser-pointer-preview-grid">
+      {([['default','Normal'],['hover','Hover'],['click','Click']]).map(([state,title])=>
+       <div className="browser-pointer-preview-tile" key={state}>
+        <img src={pointerPreviewSource(prefs,state)} alt="" width={POINTER_SIZES[prefs.puppyPointerSize]} height={POINTER_SIZES[prefs.puppyPointerSize]}/>
+        <span>{title}</span>
+       </div>)}
+     </div>
+     <small>Try hovering over the buttons above with your mouse. Your system or browser may limit extra-large cursor dimensions.</small>
+    </div>
+    <button className="browser-settings-action secondary" type="button" onClick={()=>{
+     const next={...prefs,...Object.fromEntries(['puppyPointerSize','puppyPointerStyle','puppyPointerTheme','puppyPointerClickHighlight'].map(key=>[key,WEB_PREFERENCE_DEFAULTS[key]]))};
+     if(saveWebPreferences(next)){setPrefs(next);setMessage('Pointer customization reset to defaults.');}
+     else setMessage('Could not save pointer defaults. Check browser storage permissions.');
+    }}>Reset pointer customization</button>
+   </section>
    <section className="browser-settings-panel" aria-labelledby="browser-performance"><h2 id="browser-performance">🎮 Graphics & performance</h2>
     <p><strong>Graphics mode: Automatic</strong> — WebGPU → WebGL 2 → WebGL 1 → Canvas 2D → CSS. Your browser chooses the underlying Vulkan, Metal or Direct3D backend.</p>
     <p className="browser-settings-detail">Supported on this browser: {supports.join(' · ')}</p>
@@ -105,7 +145,6 @@ export default function BrowserSettings(){
     <BrowserOption label="Tap animations" checked={prefs.animationsEnabled} onChange={value=>change('animationsEnabled',value)}/>
     <BrowserOption label="Button animations" checked={prefs.buttonAnimations} onChange={value=>change('buttonAnimations',value)}/>
     <BrowserOption label="Compact numbers" checked={prefs.compactNumbers} onChange={value=>change('compactNumbers',value)}/>
-    <BrowserOption label="Puppy mouse cursor" detail="Mouse and trackpad only. Touch input stays normal." checked={prefs.puppyPointerEnabled} onChange={value=>change('puppyPointerEnabled',value)}/>
    </section>
    <section className="browser-settings-panel" aria-labelledby="browser-notifications"><h2 id="browser-notifications">🔔 Notifications & display</h2>
     <p>Browser notification permission: <strong>{permission==='granted'?'Allowed':permission==='denied'?'Blocked':permission==='unsupported'?'Unavailable':'Not requested'}</strong></p>

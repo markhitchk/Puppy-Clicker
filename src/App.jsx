@@ -493,13 +493,33 @@ export default function App(){
    const prefs={...loadWebPreferences(),...(event?.detail??{})};
    const dark=prefs.themeMode==='dark'||(prefs.themeMode!=='light'&&systemTheme.matches);
    root.dataset.puppyCursor=prefs.puppyPointerEnabled!==false?'enabled':'disabled';
-   root.dataset.puppyCursorTheme=dark?'dark':'light';
+   root.dataset.puppyCursorTheme=prefs.puppyPointerTheme==='auto'?(dark?'dark':'light'):prefs.puppyPointerTheme;
+   root.dataset.puppyCursorSize=prefs.puppyPointerSize;
+   root.dataset.puppyCursorStyle=prefs.puppyPointerStyle;
+   root.dataset.puppyPointerHalo=prefs.puppyPointerClickHighlight&&prefs.puppyPointerEnabled!==false&&!prefs.reducedMotion?'enabled':'disabled';
    root.dataset.puppyTheme=dark?'dark':'light';
    root.dataset.puppyContrast=prefs.highContrast?'high':'normal';
    root.dataset.puppyReducedMotion=prefs.reducedMotion?'true':'false';
    root.style.setProperty('--site-accent',prefs.accentHex||'#00E5FF');
    root.style.setProperty('--site-scale',prefs.uiScale==='compact'?'0.94':prefs.uiScale==='large'?'1.08':'1');
   };
+  // Optional click feedback follows the real mouse; it never intercepts taps.
+  const halo=document.createElement('span');
+  halo.className='puppy-pointer-click-halo';
+  halo.setAttribute('aria-hidden','true');
+  document.body.appendChild(halo);
+  const haloClick=event=>{
+   if((event.pointerType!=='mouse'&&event.pointerType!=='pen')||root.dataset.puppyPointerHalo!=='enabled')return;
+   halo.style.left=event.clientX+'px';
+   halo.style.top=event.clientY+'px';
+   halo.classList.remove('is-active');
+   // Restart for rapid successive clicks, without touching gameplay actions.
+   void halo.offsetWidth;
+   halo.classList.add('is-active');
+  };
+  const haloEnd=()=>halo.classList.remove('is-active');
+  halo.addEventListener('animationend',haloEnd);
+  window.addEventListener('pointerdown',haloClick,{passive:true});
   syncSiteAppearance();
   window.addEventListener(WEB_PREFERENCES_CHANGED,syncSiteAppearance);
   window.addEventListener('storage',syncSiteAppearance);
@@ -514,6 +534,12 @@ export default function App(){
    window.removeEventListener('pointerdown',pointerInput);
    window.removeEventListener('pointermove',pointerMovement);
    window.removeEventListener('pointerover',pointerMovement);
+   window.removeEventListener('pointerdown',haloClick);
+   halo.removeEventListener('animationend',haloEnd);
+   halo.remove();
+   delete root.dataset.puppyCursorSize;
+   delete root.dataset.puppyCursorStyle;
+   delete root.dataset.puppyPointerHalo;
    delete root.dataset.puppyCursor;
    delete root.dataset.puppyCursorTheme;
    delete root.dataset.puppyCursorInput;
