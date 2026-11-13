@@ -132,3 +132,15 @@ test('matching website pointer theme reacts to device changes when site follows 
  await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor-theme','dark');
  await expect(page.locator('.browser-pointer-preview img').first()).toHaveAttribute('src','/assets/pointers/themes/puppy_pointer_dark_default_64.png');
 });
+
+test('desktop settings collapse to readable single-column layout on tablet-sized widths',async({page})=>{
+ await page.setViewportSize({width:1000,height:900});
+ await page.goto('/settings');
+ const grid=page.locator('.browser-settings-grid');
+ const columns=await grid.evaluate(element=>getComputedStyle(element).gridTemplateColumns.split(' ').length);
+ expect(columns).toBe(1);
+ await expect(page.getByRole('heading',{name:'Puppy mouse pointer'})).toBeVisible();
+ const panel=await page.locator('#puppy-pointer-settings').boundingBox();
+ expect(panel.width).toBeGreaterThan(580);
+ expect(panel.width).toBeLessThan(800);
+});
