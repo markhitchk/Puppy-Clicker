@@ -61,7 +61,7 @@ test('touch stops sticky mouse hover until an actual hardware pointer moves agai
 
 test('the original Puppy cursor follows compact/default/large interface sizes',()=>{
  const sized=readFileSync(new URL('../src/native/web/cursor-sizes.css',import.meta.url),'utf8');
- for(const [name,px] of [['compact',32],['default',64],['large',96]]){
+ for(const [name,px] of [['compact',48],['default',64],['large',96]]){
   for(const theme of ['dark','light']){
    assert.ok(sized.includes(`data-puppy-cursor-theme='${theme}'][data-puppy-cursor-size='${name}'`));
    for(const state of states)
@@ -70,9 +70,9 @@ test('the original Puppy cursor follows compact/default/large interface sizes',(
  }
  assert.ok(!sized.includes('paw_pointer_'));
  assert.ok(!css.includes('/assets/cursors/paw_'));
- assert.ok(sized.includes('8 8')&&sized.includes('16 16')&&sized.includes('24 24'));
+ assert.ok(sized.includes('12 12')&&sized.includes('16 16')&&sized.includes('24 24'));
  assert.ok(sync.includes('generateThemedVariants'));
- assert.ok(sync.includes('contrast-outline-v1'));
+ assert.ok(sync.includes('contrast-outline-v2-compact48'));
  assert.ok(app.includes('root.dataset.puppyCursorSize=prefs.uiScale'));
  assert.ok(app.includes('pointerThemeFor(prefs,systemTheme.matches)'));
 });

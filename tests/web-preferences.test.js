@@ -31,7 +31,7 @@ test('browser cursor mode and theme follow shared interface size',async()=>{
  const storage={getItem:()=>stored,setItem:(_key,value)=>{stored=value;}};
  const defaults=loadWebPreferences(storage);
  assert.equal(defaults.uiScale,'default');
- assert.deepEqual(POINTER_SIZES,{compact:32,default:64,large:96});
+ assert.deepEqual(POINTER_SIZES,{compact:48,default:64,large:96});
  assert.equal(defaults.puppyPointerEnabled,true);
  assert.equal(defaults.puppyPointerTheme,'auto');
  assert.equal(pointerThemeFor(defaults,false),'dark');
