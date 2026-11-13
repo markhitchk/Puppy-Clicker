@@ -11,9 +11,9 @@ const SOURCE_ROOT=`https://raw.githubusercontent.com/markhitchk/pup-clinker/${SO
 const OUTPUT_DIR=fileURLToPath(new URL('../public/assets/pointers/',import.meta.url));
 const REVISION_FILE=join(OUTPUT_DIR,'.source-revision');
 const THEMED_DIR=join(OUTPUT_DIR,'themes');
-const THEME_RENDER_VERSION='contrast-outline-v1';
+const THEME_RENDER_VERSION='contrast-outline-v2-compact48';
 const THEME_MARKER=join(THEMED_DIR,'.theme-revision');
-const SIZES=[32,64,96];
+const SIZES=[48,64,96];
 const THEMES=['dark','light'];
 const STATES=['default','hover','click','text_select','link','grab','grabbing','not_allowed','working','precision','alternate','secondary'];
 const NAMES=THEMES.flatMap(theme=>STATES.map(state=>`puppy_pointer_${theme}_${state}.png`));
@@ -80,7 +80,7 @@ async function generateThemedVariants(force){
   }));
  }
  await writeFile(THEME_MARKER,SOURCE_REF+':'+THEME_RENDER_VERSION+'\n','utf8');
- console.log('Puppy cursor themes: enhanced dark/light contrast at 32, 64 and 96 px');
+ console.log('Puppy cursor themes: enhanced dark/light contrast at 48, 64 and 96 px');
 }
 export async function syncPuppyPointers(){
  await mkdir(OUTPUT_DIR,{recursive:true});
