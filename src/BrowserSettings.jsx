@@ -2,7 +2,7 @@ import React,{useEffect,useState} from 'react';
 import LanguagePicker from './LanguagePicker.jsx';
 import {ACCENT_PRESETS} from './native/src/engine/settings.js';
 import {
- WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,POINTER_SIZES,pointerThemeFor,isMobilePointerEnvironment,effectivePointerSize,
+ WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,pointerThemeFor,isMobilePointerEnvironment,effectivePointerSize,
  loadWebPreferences,saveWebPreferences,updateWebPreference
 } from './native/web/preferences.js';
 import {GRAPHICS_BACKENDS} from './graphics/graphicsCapabilities.js';
