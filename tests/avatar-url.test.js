@@ -20,12 +20,28 @@ test("unsafe, private or malformed avatar URLs cannot be stored",()=>{
  }
 });
 
+test("external image-host page URLs are not treated as image files",()=>{
+ for(const url of ["https://imgur.com/abc","https://imgur.com/a/album",
+  "https://ibb.co/example","https://imgbb.com/","https://postimg.cc/abc",
+  "https://i.imgur.com/abc.mp4","https://i.imgur.com/abc"]){
+  assert.equal(normalizeAvatarUrl(url),null,url);
+ }
+ for(const url of ["https://i.imgur.com/abc.jpg","https://i.imgur.com/abc.webp",
+  "https://i.ibb.co/abc/puppy.png","https://i.postimg.cc/abc/puppy.jpg"]){
+  assert.equal(normalizeAvatarUrl(url),url);
+ }
+});
+
 test("website avatar editor is URL-based and API persists the dedicated field",()=>{
  const editor=read("src/ProfileAvatarEditor.jsx");
  const api=read("api/avatar.js");
  const identity=read("api/_lib/pupIdentity.js");
  assert.match(editor,/type="url"/);
  assert.match(editor,/Save avatar URL/);
+ assert.match(editor,/https:\/\/imgur\.com\//);
+ assert.match(editor,/https:\/\/imgbb\.com\//);
+ assert.match(editor,/https:\/\/postimages\.org\//);
+ assert.match(editor,/direct image URL/);
  assert.doesNotMatch(editor,/type="file"|storage\.from|\.upload\(/);
  assert.match(api,/profile_avatar_url:url,profile_avatar_path:null/);
  assert.match(api,/profile_avatar_url:null,profile_avatar_path:path/);

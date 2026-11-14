@@ -13,3 +13,10 @@
 .pup-avatar-editor-actions button{font-size:13px;text-align:center}
 .pup-avatar-editor-actions button:disabled{opacity:.6;cursor:not-allowed}
 @media(max-width:540px){.pup-avatar-editor{padding:16px}.pup-avatar-editor-actions button{width:100%}}
+
+.pup-avatar-hosts{margin-top:16px;border:1px solid #316279;border-radius:14px;padding:12px;background:#0c2030}
+.pup-avatar-hosts p{color:#a9c1d2;font-size:13px;line-height:1.5;margin:7px 0 11px}
+.pup-avatar-host-links{display:flex;gap:8px;flex-wrap:wrap}
+.pup-avatar-host-links a{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 12px;border:1px solid #447a8c;border-radius:12px;color:#e4faff;text-decoration:underline;font-size:13px;font-weight:700}
+.pup-avatar-host-links a:hover,.pup-avatar-host-links a:focus-visible{border-color:#00d9f0;color:#fff;outline-offset:2px}
+@media(max-width:540px){.pup-avatar-host-links a{flex:1 1 100%}}
