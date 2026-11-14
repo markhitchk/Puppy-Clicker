@@ -15,7 +15,7 @@ export function normalizeAvatarUrl(value) {
   if (["imgur.com", "www.imgur.com", "m.imgur.com",
        "imgbb.com", "www.imgbb.com", "ibb.co", "www.ibb.co",
        "postimg.cc", "www.postimg.cc"].includes(host)) return null;
-  if (host === "i.imgur.com" && !/\\.(png|jpe?g|webp|gif|avif)$/i.test(url.pathname)) return null;
+  if (host === "i.imgur.com" && !/\.(png|jpe?g|webp|gif|avif)$/i.test(url.pathname)) return null;
   return url.href;
  } catch { return null; }
 }
