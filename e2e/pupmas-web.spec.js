@@ -6,7 +6,7 @@ for(const width of [390,768,1440]){
   await page.goto('/events/pupmas');
   await expect(page.getByRole('heading',{name:/Pupmas 2026/})).toBeVisible();
   await expect(page.locator('.pupmas-day-grid button')).toHaveCount(25);
-  await expect(page.getByRole('heading',{name:'Christmas Theme Pack'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:/Christmas Theme Pack/})).toBeVisible();
   await expect(page.getByRole('button',{name:'Claiming not enabled yet'})).toBeDisabled();
   await page.getByRole('button',{name:/Day 25,/}).click();
   await expect(page.getByRole('heading',{name:'Legendary Pupmas Gift Box'})).toBeVisible();
