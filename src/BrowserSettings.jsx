@@ -115,6 +115,10 @@ export default function BrowserSettings(){
     <BrowserChoices label="Interface size" value={prefs.uiScale} choices={[["compact","Compact"],["default","Default"],["large","Large"]]} onChange={value=>change('uiScale',value)}/>
     <BrowserOption label="High contrast" checked={prefs.highContrast} onChange={value=>change('highContrast',value)}/>
     <BrowserOption label="Reduced motion" detail="Disable animated GPU effects and reduce other game movement." checked={prefs.reducedMotion} onChange={value=>change('reducedMotion',value)}/>
+     <div id="pupmas-theme-settings" className="browser-pupmas-setting">
+      <BrowserOption label="Pupmas Christmas theme" detail="Add the site-matched winter decorations automatically from November 27 through January 5. Does not change gameplay." checked={prefs.pupmasThemeEnabled} onChange={value=>change('pupmasThemeEnabled',value)}/>
+      <div className="browser-settings-links"><a href="/events/pupmas">🎁 View Pupmas Advent Calendar</a></div>
+     </div>
    </section>
    <section className="browser-settings-panel browser-pointer-panel" id="puppy-pointer-settings" aria-labelledby="browser-pointer-heading">
     <h2 id="browser-pointer-heading">🖱️ Puppy mouse pointer</h2>

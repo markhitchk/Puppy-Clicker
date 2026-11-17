@@ -50,6 +50,7 @@ export default function WebSettings({g,act,onOpen,registry,notifications,account
    <Choices label="Interface size" value={g.uiScale} items={[["compact","Compact"],["default","Default"],["large","Large"]]} onChange={value=>pref('uiScale',value)}/>
    <Toggle title="High contrast" detail="Strengthen text and border contrast." value={g.highContrast} onChange={value=>pref('highContrast',value)}/>
    <Toggle title="Reduced motion" detail="Reduce puppy and interface movement." value={g.reducedMotion} onChange={value=>pref('reducedMotion',value)}/>
+    <a className="cyber-button secondary" href="/settings#pupmas-theme-settings">🎄 Pupmas Christmas theme · seasonal decorations</a>
   </>)}
   {section('play','Play & performance','Browser effects, input and display',<>
    <Toggle title="Tap animations" value={g.animationsEnabled} onChange={value=>pref('animationsEnabled',value)}/>

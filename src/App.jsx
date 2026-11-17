@@ -3,6 +3,8 @@ import React,{useEffect,useId,useRef,useState} from "react";
 import NativeApp from "./native/App.jsx";
 import AdaptiveGraphics from "./AdaptiveGraphics.jsx";
 import BrowserSettings from "./BrowserSettings.jsx";
+import PupmasCalendar from "./pupmas/PupmasCalendar.jsx";
+import {pupmasVisualsActive} from "./pupmas/pupmasSeason.js";
 import RecoveryPage from "./RecoveryPage.jsx";
 import MeetPuppies from "./MeetPuppies.jsx";
 import WebLoading from "./WebLoading.jsx";
@@ -102,14 +104,16 @@ function Header({page}){
    <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>{tr("policies")}</a>
    <a href="/leaderboard" aria-current={page==="leaderboard"?"page":undefined}>🏆 {tr("leaderboard")}</a>
    <a href="/chat" aria-current={page==="chat"?"page":undefined}>💬 {tr("chat")}</a>
-   <a href="/settings" aria-current={page==="browser-settings"?"page":undefined}>⚙ Browser Settings</a>
+   <a href="/events/pupmas" aria-current={page==="pupmas"?"page":undefined}>🎄 Pupmas Advent</a>
+    <a href="/settings" aria-current={page==="browser-settings"?"page":undefined}>⚙ Browser Settings</a>
     </div>
    </details>
    <div className="site-nav-mobile-extras">   <a href="/pupeye" aria-current={page==="pupeye"||page==="pupeye-status"?"page":undefined}><PupEyeBrand compact label="PupEye"/></a>
    <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>{tr("policies")}</a>
    <a href="/leaderboard" aria-current={page==="leaderboard"?"page":undefined}>🏆 {tr("leaderboard")}</a>
    <a href="/chat" aria-current={page==="chat"?"page":undefined}>💬 {tr("chat")}</a>
-   <a href="/settings" aria-current={page==="browser-settings"?"page":undefined}>⚙ Browser Settings</a>
+   <a href="/events/pupmas" aria-current={page==="pupmas"?"page":undefined}>🎄 Pupmas Advent</a>
+    <a href="/settings" aria-current={page==="browser-settings"?"page":undefined}>⚙ Browser Settings</a>
    </div>
    <LanguagePicker compact/>
   </nav>
@@ -500,6 +504,7 @@ export default function App(){
    root.dataset.puppyTheme=dark?'dark':'light';
    root.dataset.puppyContrast=prefs.highContrast?'high':'normal';
    root.dataset.puppyReducedMotion=prefs.reducedMotion?'true':'false';
+    root.dataset.pupmasTheme=prefs.pupmasThemeEnabled!==false&&pupmasVisualsActive()?'on':'off';
    root.style.setProperty('--site-accent',prefs.accentHex||'#00E5FF');
    root.style.setProperty('--site-scale',prefs.uiScale==='compact'?'0.94':prefs.uiScale==='large'?'1.08':'1');
   };
@@ -547,6 +552,7 @@ export default function App(){
    delete root.dataset.puppyTheme;
    delete root.dataset.puppyContrast;
    delete root.dataset.puppyReducedMotion;
+    delete root.dataset.pupmasTheme;
    root.style.removeProperty('--site-accent');
    root.style.removeProperty('--site-scale');
   };
@@ -566,7 +572,8 @@ export default function App(){
   const page=path==="/"?"home":path==="/pupeye"||path==="/pupeye/"?"pupeye":/^\/pupeye\/status\/?$/.test(path)?"pupeye-status":path==="/chat"?"chat":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity|pupeye-web))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account/inventory"?"account-inventory":path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
-  path==="/settings"||path==="/browser/settings"?"browser-settings":
+  path==="/events/pupmas"||path==="/pupmas"?"pupmas":
+   path==="/settings"||path==="/browser/settings"?"browser-settings":
   callback?"callback":demo?"demo":path==="/play"?"play":"error";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
   <Header page={callback||page==="admin"||page==="admin-chat"||page==="admin-privacy"||page==="privacy-center"||page==="account-inventory"?"account":page==="demo"?"play":page}/>
@@ -576,6 +583,7 @@ export default function App(){
     page==="account"?<AccountPortal/>:
     page==="account-inventory"?<WebAccountGate><AccountInventoryPage/></WebAccountGate>:
     page==="browser-settings"?<BrowserSettings/>:
+     page==="pupmas"?<PupmasCalendar/>:
     page==="privacy"?<WebPrivacy/>:
     page==="privacy-center"?<PrivacyCenter/>:
     page==="legal"?<LegalReader type={path.includes("/terms")?"terms":"privacy"}/>:
