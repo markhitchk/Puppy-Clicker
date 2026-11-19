@@ -1,3 +1,4 @@
+import PasswordField from "./PasswordField.jsx";
 import React,{useEffect,useState} from "react";
 import {client} from "./supabase.js";
 import {beginPuppyDiscord,verifyPuppySession} from "./native/web/puppyOAuth.js";
@@ -226,18 +227,18 @@ export default function RecoveryPage(){
       {account.passwordLoginEnabled?
        <form className="profile-form" onSubmit={resetPassword}>
         <label htmlFor="recoverNewPassword">New password</label>
-        <input id="recoverNewPassword" type="password" minLength={8} maxLength={128}
+        <PasswordField id="recoverNewPassword" visibilityLabel="recovery password" minLength={8} maxLength={128}
          required autoComplete="new-password" value={newPassword}
          onChange={e=>setNewPassword(e.target.value)}/>
         <label htmlFor="recoverConfirmPassword">Confirm new password</label>
-        <input id="recoverConfirmPassword" type="password" minLength={8} maxLength={128}
+        <PasswordField id="recoverConfirmPassword" visibilityLabel="recovery confirmation password" minLength={8} maxLength={128}
          required autoComplete="new-password" value={confirmPassword}
          onChange={e=>setConfirmPassword(e.target.value)}/>
         <button className="cta cta-primary stretch" type="submit" disabled={resetBusy}>
          {resetBusy?"Updating password…":"Reset Pup Account password"}
         </button>
        </form>:
-       <p>Password login is not set up yet. <a className="recovery-link" href="/account">Add it under Account Management</a> after verifying your account.</p>}
+       <p>Password login is not set up yet. <a className="recovery-link pup-link-button" href="/account">Add it under Account Management</a> after verifying your account.</p>}
       {resetMessage?<p className="portal-message" role="status">{resetMessage}</p>:null}
       <a className="cta cta-secondary stretch" href="/account">Manage account settings</a>
      </div>:
