@@ -89,6 +89,24 @@ export function createEncryptedAuthStorage({
   );
   return new TextDecoder().decode(plain);
  }
+ async function setItem(key,value){
+  const text=String(value);
+  try{
+   const ciphertext=await encrypt(key,text);
+   if(!storage)throw Error("PERSISTENCE_UNAVAILABLE");
+   storage.setItem(key,ciphertext);
+   memoryOnly.delete(key);
+  }catch{
+   // Fail closed: retain sessions in memory, never write plaintext tokens.
+   memoryOnly.set(key,text);
+   // Remove *legacy plaintext*. An existing encrypted session is kept in case
+   // IndexedDB or Web Crypto was temporarily unavailable.
+   try{
+    const previous=storage?.getItem(key);
+    if(previous!==null&&previous!==undefined&&!previous.startsWith(PREFIX))storage?.removeItem(key);
+   }catch{}
+  }
+ }
  return {
   async getItem(key){
    let stored=null;
@@ -96,30 +114,16 @@ export function createEncryptedAuthStorage({
    if(stored===null)return memoryOnly.get(key)??null;
    if(stored.startsWith(PREFIX)){
     try{return await decrypt(key,stored);}catch{
-     // Lost/corrupt vault keys must not expose encrypted data or cause crashes.
-     try{storage?.removeItem(key);}catch{}
-     return null;
+     // Never expose ciphertext as an auth session. Preserve it in case
+     // the vault is temporarily unavailable, so recovery remains possible.
+     return memoryOnly.get(key)??null;
     }
    }
-   // One-time migration of existing plaintext Supabase sessions. Never discard
-   // a working session until the ciphertext is written or saved in memory.
-   await this.setItem(key,stored);
+   // One-time migration. Preserve the current session during the upgrade.
+   await setItem(key,stored);
    return stored;
   },
-  async setItem(key,value){
-   const text=String(value);
-   try{
-    const ciphertext=await encrypt(key,text);
-    if(!storage)throw Error("PERSISTENCE_UNAVAILABLE");
-    storage.setItem(key,ciphertext);
-    memoryOnly.delete(key);
-   }catch{
-    // Fail closed: in browsers with blocked crypto/IndexedDB/localStorage,
-    // retain the session in memory only, NEVER persist raw access tokens.
-    memoryOnly.set(key,text);
-    try{storage?.removeItem(key);}catch{}
-   }
-  },
+  setItem,
   async removeItem(key){
    memoryOnly.delete(key);
    try{storage?.removeItem(key);}catch{}
