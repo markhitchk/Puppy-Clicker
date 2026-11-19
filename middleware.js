@@ -5,10 +5,14 @@ import {applyPuppySharePreview,getPuppySharePreview} from "./src/puppySharePrevi
 
 import {puppyService} from "./src/supabaseConfig.js";
 
-export const config={matcher:["/puppies"]};
+export const config={matcher:["/pupdex","/puppies"]};
 
 export default async function middleware(request){
  const url=new URL(request.url);
+ if(url.pathname==="/puppies"||url.pathname==="/puppies/"){
+  url.pathname="/pupdex";
+  return Response.redirect(url,308);
+ }
  let preview=getPuppySharePreview(url.search);
  if(preview){
   try{
