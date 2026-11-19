@@ -88,3 +88,10 @@
 .puppy-cookie-clear-confirm{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
 .puppy-cookie-clear-confirm p{flex-basis:100%;font-size:12px}
 @media (prefers-reduced-motion:reduce){.puppy-cookie-banner,.puppy-cookie-dialog{scroll-behavior:auto}}
+
+/* The notice must not steal puppy taps or game controls underneath it. Its
+   actual consent buttons remain interactive; on other pages the full notice
+   remains scrollable as normal. */
+.site-frame-game .puppy-cookie-banner{pointer-events:none}
+.site-frame-game .puppy-cookie-banner .puppy-cookie-actions,
+.site-frame-game .puppy-cookie-banner .puppy-cookie-btn{pointer-events:auto}
