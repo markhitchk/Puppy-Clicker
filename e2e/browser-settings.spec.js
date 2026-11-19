@@ -189,6 +189,7 @@ test('Android Compact interface leaves matching system-like Puppy cursor size un
  });
  try{
   const page=await context.newPage();
+  await page.addInitScript(()=>localStorage.setItem('puppy-clicker:cookie-choice:v1',JSON.stringify({version:1,essential:true,functional:true,analytics:false,advertising:false,savedAt:Date.now()})));
   await page.goto('/settings#puppy-pointer-settings');
   await page.getByRole('radio',{name:'Compact',exact:true}).check();
   await expect(page.getByRole('radio',{name:'Compact',exact:true})).toBeChecked();
