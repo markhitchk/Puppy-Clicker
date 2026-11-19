@@ -1,4 +1,4 @@
-// Public roster URLs accept stable game IDs and source asset filenames.
+// Public PupDex URLs accept stable game IDs and source asset filenames.
 // Canonical share URLs use ?pup=v1_midnight; older ?=v1_midnight URLs work too.
 export const PUPPY_QUERY_KEYS=['pup','puppy','id','asset',''];
 
@@ -26,7 +26,7 @@ export function matchPuppy(puppies,identifier){
 }
 
 export function puppyDetailsHref(puppy){
- return '/puppies?pup='+encodeURIComponent(puppyAssetId(puppy));
+ return '/pupdex?pup='+encodeURIComponent(puppyAssetId(puppy));
 }
 
 export function withoutPuppyQuery(search){
