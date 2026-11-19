@@ -576,3 +576,73 @@ html .pup-graphics-layer[data-graphics-backend="css"]{
 .pup-fairplay-banner p{margin:2px 0 0;font-size:11px;color:#d3d9e8}
 .pup-fairplay-banner button{flex-shrink:0;color:#a8f3ff;background:transparent;border:1px solid #669cad;border-radius:999px;cursor:pointer;font-size:11px;padding:7px 11px;font-weight:750}
 @media(max-width:600px){.pup-fairplay-banner{gap:6px;padding:7px}.pup-fairplay-banner p{font-size:10px}.pup-fairplay-banner button{max-width:90px;padding:6px 8px;white-space:normal}}
+
+
+/* Shared button appearance for navigation links.
+   Keep real <a href> semantics for back navigation, copy link and new-tab. */
+.pup-link-button,
+.site-footer-links a{
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ min-width:0;min-height:44px;padding:10px 16px;
+ border:1px solid var(--site-accent,#4ccce5);
+ border-radius:13px;
+ background:color-mix(in srgb,var(--site-accent,#00d4f2) 10%,#13202b);
+ color:var(--site-accent-ink,#9af0ff);
+ font:inherit;font-size:14px;font-weight:750;line-height:1.35;
+ text-align:center;text-decoration:none;white-space:normal;overflow-wrap:anywhere;
+ box-sizing:border-box;cursor:pointer;
+ transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease;
+}
+.pup-link-button.is-primary{
+ background:var(--site-accent,#00d4f2);color:#071a21;border-color:var(--site-accent,#00d4f2);
+}
+.pup-link-button:hover,
+.site-footer-links a:hover{background:#1a4455;border-color:#81eeff;color:#fff;text-decoration:none}
+.pup-link-button.is-primary:hover{background:#8ceeff;color:#071a21}
+.pup-link-button:focus-visible,
+.site-footer-links a:focus-visible{outline:3px solid var(--site-accent,#00d4f2);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.pup-link-button,.site-footer-links a{transition:none}}
+
+/* Home recovery is a visible, full-size action rather than an unstyled link. */
+html .split-cta .home-account-recovery.pup-link-button{
+ display:flex;align-items:center;justify-content:center;
+ width:fit-content;max-width:100%;min-height:46px;
+ margin-top:16px;padding:11px 18px;
+ border:1px solid #3d859a;border-radius:14px;
+ color:#b0effa;background:#132c3b;text-decoration:none;
+ font-size:14px;line-height:1.4;text-align:center;
+}
+html .split-cta .home-account-recovery.pup-link-button:hover{border-color:#76e7ff;background:#194154;text-decoration:none}
+@media(max-width:760px){html .split-cta .home-account-recovery.pup-link-button{width:100%}}
+
+/* Rebuilt footer: short branding + legible button grid. No dot separators. */
+.site-footer{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:16px 22px;flex-wrap:wrap;
+ max-width:1180px;margin:22px auto 0;
+ padding:20px clamp(14px,3vw,24px) 26px;
+ border-top:1px solid #2b4b5b;color:#9bb6c7;
+ font-size:12px;line-height:1.4;
+}
+.site-footer-brand{display:flex;flex-direction:column;gap:4px;min-width:0}
+.site-footer-brand strong{font-size:14px;color:#e0f5fc;font-weight:800}
+.site-footer-brand span{color:#a9c4d1}
+.site-footer-links{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;min-width:0}
+.site-footer-links a{min-height:40px;padding:8px 12px;font-size:12px;border-color:#356278}
+@media(max-width:760px){
+ .site-footer{align-items:stretch;margin-top:12px;padding:20px 8px 24px;gap:18px}
+ .site-footer-brand{align-items:center;text-align:center;width:100%}
+ .site-footer-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;width:100%}
+ .site-footer-links a{min-height:44px;width:100%}
+}
+@media(max-width:360px){.site-footer-links{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Website activity notice actions, sized for touch without horizontal overflow. */
+.website-privacy-actions{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,165px),1fr));
+ gap:10px;margin-top:26px;padding-top:22px;
+ border-top:1px solid #31586c;min-width:0;
+}
+.website-privacy-actions .pup-link-button{width:100%;min-width:0}
+.website-privacy-page .pup-admin-panel{max-width:960px;margin:0 auto}
+@media(max-width:480px){.website-privacy-actions{grid-template-columns:minmax(0,1fr)}}
