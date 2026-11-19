@@ -25,7 +25,7 @@ export default function AdminPrivacy(){
  return <div className="pup-admin-container"><header className="pup-admin-head"><div>
  <p className="pup-admin-kicker">PUPPY CLICKER · DATA PROTECTION</p><h1>Privacy requests</h1>
  <p>Restricted case review. No automatic account deletion or export is enabled.</p></div>
- <a className="pup-admin-link" href="/account/admin">← Administration</a></header>
+ <a className="pup-admin-link pup-link-button" href="/account/admin">← Administration</a></header>
  {error?<p role="alert" className="pup-admin-error">{error}</p>:null}
  <section className="pup-admin-panel"><h2>Requests ({rows.length})</h2>
  <p className="pup-admin-note">Review requests before their response deadline. Complete access and export requests only after personally verifying fulfillment. Erasure completion requires a separate verified deletion workflow.</p>
