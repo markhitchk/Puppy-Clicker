@@ -7,7 +7,14 @@ create table puppy_rarity.config (
  owner_id uuid references puppy_accounts.pup_accounts(id),
  version bigint not null default 1
 );
-insert into puppy_rarity.config(singleton) values(true);
+-- Bind the sole owner to the verified immutable Pup Account ID, not to a
+-- username, editable display name, or the generic DEVELOPER role.
+-- Leave unbound (fail closed) in disposable fixtures without this account.
+insert into puppy_rarity.config(singleton,owner_id)
+select true,(select a.id from puppy_accounts.pup_accounts a
+ join puppy_pupeye.pupeye_players p on p.id=a.player_uuid
+ where a.id='a3186fd1-c075-4ec0-958c-45a29edf9ac4'::uuid
+ and a.status='active' and p.status='active' and p.guild_role='DEVELOPER');
 
 create table puppy_rarity.catalog (
  puppy_id text primary key references puppy_exchange.pup_exchange_transfer_policy(puppy_id),
