@@ -10,7 +10,7 @@ import {suggestPuppyName} from '../../../nameSuggestions.js';
  * confirmation; it never mutates progress without the caller's action.
  */
 export default function PuppyDetailsDialog({puppy,visible,onClose,portrait,assetId,originalName,
- displayName,unlocked,current,favorite,onToggleFavorite,onRetryArtwork,onViewAsset,onUse,onRename}){
+ displayName,unlocked,current,favorite,onToggleFavorite,onRetryArtwork,onViewAsset,onClaimFree,onUse,onRename}){
  const insets=useSafeAreaInsets();
  const [mode,setMode]=useState('preview');
  const [name,setName]=useState('');
@@ -19,7 +19,8 @@ export default function PuppyDetailsDialog({puppy,visible,onClose,portrait,asset
  const finish=()=>{setMode('preview');onClose?.();};
  const renameValue=name.trim().replace(/\n/g,' ').slice(0,18);
  const webAssetViewer=Platform.OS==='web'&&typeof onViewAsset==='function';
- const title=mode==='rename'?'Rename Puppy':mode==='use'?'Use Puppy':unlocked?'Puppy Details':'How to Unlock';
+ const freeTest=Platform.OS==='web'&&['test_v1_crash_dummy','test_v2_crash_dummy'].includes(puppy?.id)&&puppy?.rarity==='common'&&puppy?.acquisition==='standard'&&typeof onClaimFree==='function';
+ const title=mode==='rename'?'Rename Puppy':mode==='use'?'Use Puppy':unlocked||freeTest?'Puppy Details':'How to Unlock';
  const performUse=()=>{if(!unlocked||current)return;onUse?.(puppy.id);finish();};
  const performRename=()=>{if(!current||!renameValue)return;onRename?.(renameValue);finish();};
  return <Modal visible={Boolean(visible)} transparent statusBarTranslucent navigationBarTranslucent
@@ -65,6 +66,7 @@ export default function PuppyDetailsDialog({puppy,visible,onClose,portrait,asset
      {mode==='preview'&&!unlocked?<View style={s.section}>
       <Text style={s.sectionHeading}>Unlock requirement</Text>
       <Text style={s.sectionBody}>{puppy.unlockSource||'Unlock instructions are not available yet.'}</Text>
+      {freeTest?<Pressable accessibilityRole="button" accessibilityLabel={'Claim '+originalName+' for free'} style={s.primary} onPress={onClaimFree}><Text style={s.primaryText}>Claim Free</Text></Pressable>:null}
       {webAssetViewer?<Pressable accessibilityRole="button" accessibilityLabel="View Asset" style={s.secondary} onPress={onViewAsset}><Text style={s.secondaryText}>View Asset</Text></Pressable>:
       <Pressable accessibilityRole="button" accessibilityLabel="Retry puppy artwork" style={s.secondary} onPress={onRetryArtwork}><Text style={s.secondaryText}>↻ Retry Art</Text></Pressable>}
      </View>:null}
