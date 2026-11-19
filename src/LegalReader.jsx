@@ -15,7 +15,7 @@ function Inline({value}){
   if(match.index>cursor)parts.push(source.slice(cursor,match.index));
   if(match[1]!==undefined){
    const href=safeLegalHref(match[2]);
-   parts.push(href?<a key={match.index} className="legal-inline-button" href={href} rel={href.startsWith("https://")?"noopener noreferrer":undefined} target={href.startsWith("https://")?"_blank":undefined}>{match[1]}</a>:match[1]);
+   parts.push(href?<a key={match.index} className="pup-link-button legal-inline-button" href={href} rel={href.startsWith("https://")?"noopener noreferrer":undefined} target={href.startsWith("https://")?"_blank":undefined}>{match[1]}</a>:match[1]);
   }else if(match[3]!==undefined)parts.push(<strong key={match.index}>{match[3]}</strong>);
   else if(match[4]!==undefined)parts.push(<code key={match.index}>{match[4]}</code>);
   else parts.push(<em key={match.index}>{match[5]}</em>);
