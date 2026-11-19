@@ -74,6 +74,7 @@ const rarities=["common","uncommon","rare","epic","legendary"];
  * Kotlin PuppyCatalogV6 + assets/test/manifest.json. All other v1/v2
  * puppies are redeemOnly or protected and MUST NOT be minted by beta Gacha.
  */
+const FREE_TEST_PUPPY_IDS=new Set(["test_v1_crash_dummy","test_v2_crash_dummy"]);
 const FREE_GACHA_PUPPIES=[
  {id:"classic",name:"Buddy"}, {id:"golden",name:"Sunny"},
  {id:"poodle",name:"Mochi"}, {id:"spotty",name:"Pepper"},
@@ -410,6 +411,19 @@ export async function applyBetaEconomy(raw:unknown,intent:BetaEconomyIntent,now=
    expect(num(v,"treats")>=amount,"EXCHANGE_NOT_AFFORDABLE");
    setLong(v,t,"treats",num(v,"treats")-amount);
    addLong(v,t,"casino_chips_v7",amount/10);break;
+  }
+  case "claimFreeTest":{
+   // Free public testing assets: no tickets, treats, RNG, or XP involved.
+   // Validate against the published server catalog; never trust client rarity.
+   const id=intent.id;
+   expect(typeof id==="string"&&FREE_TEST_PUPPY_IDS.has(id),"FREE_TEST_PUPPY_INVALID");
+   expect(catalog.some(row=>row.puppy_id===id&&row.published&&
+     row.rarity==="common"&&row.acquisition==="standard"),"FREE_TEST_PUPPY_UNAVAILABLE");
+   const unlocked=new Set([...own(v,"unlocked_puppies"),"classic","golden","poodle","spotty"]);
+   expect(!unlocked.has(id),"FREE_TEST_PUPPY_ALREADY_OWNED");
+   unlocked.add(id);
+   write(v,t,"unlocked_puppies",[...unlocked],"string_set");
+   break;
   }
   case "gacha":{
    const payment=intent.payment;
