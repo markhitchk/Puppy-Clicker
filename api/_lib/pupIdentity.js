@@ -47,7 +47,7 @@ export async function getPupIdentity(req,db){
  if(!player||player.status!=="active")throw new PupError(403,"ACCOUNT_NOT_ACTIVE");
  // Player or Discord bans also block staff actions and gifts.
  const predicates=["player_uuid.eq."+player.id];
- if(account.discord_user_id&&/^\\d{15,22}$/.test(account.discord_user_id))
+ if(account.discord_user_id&&/^\d{15,22}$/.test(account.discord_user_id))
   predicates.push("discord_user_id.eq."+account.discord_user_id);
  const bans=ensure(await read("pupeye_ban_targets")
   .select("ban_uuid").or(predicates.join(",")))||[];

@@ -15,7 +15,11 @@ export function gameplayFixtureServer(){return {
     const db=crossplayDb(record.saveData);
     // Preserve the fixture's browser-local revision across requests.
     const row=db.row();
-    const admin={from(table){
+    const admin={async rpc(name,args){
+     const response=await db.admin.rpc(name,{...args,p_expected_revision:args?.p_expected_revision-record.revision+1});
+     if(response.data?.revision)response.data.revision+=record.revision-1;
+     return response;
+    },from(table){
      const query=db.admin.from(table);
      if(table==='pup_account_saves'){
       const original=query.maybeSingle;

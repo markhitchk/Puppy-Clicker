@@ -81,6 +81,7 @@
     }
   ],
   "rewrites": [
+    {"source": "/api/gifts", "destination": "/api/gifts"},
     {
       "source": "/api/leaderboard",
       "destination": "/api/leaderboard"

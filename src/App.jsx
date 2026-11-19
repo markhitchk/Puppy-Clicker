@@ -6,6 +6,7 @@ import RecoveryPage from "./RecoveryPage.jsx";
 import MeetPuppies from "./MeetPuppies.jsx";
 import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
+import RarityAdmin from './RarityAdmin.jsx';
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
 import {loadWebPreferences,pointerThemeFor,effectivePointerSize,effectivePointerSizeKey,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
 import {beginPuppyDiscord,verifyPuppySession,puppyAuthMessage} from "./native/web/puppyOAuth.js";
@@ -386,6 +387,7 @@ function AccountDashboard(){
     </dl>
      <p className="pup-admin-note">For account security, the website records recent signed-in visits, IP address (when available), browser information and page path for authorized staff review. These are website sessions, not Android installations.</p>
     <div className="account-actions"><a className="cta cta-secondary" href="/pupeye/status">👁️ Check my PupEye status</a><a className="cta cta-secondary" href="/pupeye">About PupEye</a></div>
+    {["MODERATOR","MOD","ADMIN","DEVELOPER"].includes(profile.guildRole)&&<a className="cta cta-secondary" href="/account/admin/rarity">Puppy rarities</a>}
     {["ADMIN","DEVELOPER"].includes(profile.guildRole)?<div className="account-actions"><a className="cta cta-secondary" href="/account/admin">🛡️ Open Admin Panel</a></div>:null}
     {profile.friendCode?<div className="account-actions"><button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button></div>:null}
     <div className="portal-divider"></div>
@@ -603,7 +605,7 @@ export default function App(){
  const callback=path==="/auth/discord/callback";
  const demo=isPlayDemoRoute(path,typeof window!=="undefined"?window.location.search:"");
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
-  const page=path==="/"?"home":path==="/pupeye"||path==="/pupeye/"?"pupeye":/^\/pupeye\/status\/?$/.test(path)?"pupeye-status":path==="/chat"?"chat":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
+  const page=path==="/"?"home":path==="/pupeye"||path==="/pupeye/"?"pupeye":/^\/pupeye\/status\/?$/.test(path)?"pupeye-status":path==="/chat"?"chat":/^\/account\/admin\/rarity\/?$/.test(path)?"admin-rarity":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":path==="/puppies"?"puppies":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity|pupeye-web))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account/inventory"?"account-inventory":path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   path==="/settings"||path==="/browser/settings"?"browser-settings":
@@ -621,6 +623,7 @@ export default function App(){
     page==="legal"?<LegalReader type={path.includes("/terms")?"terms":"privacy"}/>:
     page==="leaderboard"?<Leaderboard/>:
     page==="chat"?<CommunityChat/>:
+    page==="admin-rarity"?<WebAccountGate><RarityAdmin/></WebAccountGate>:
     page==="admin-chat"?<AdminChat/>:
     page==="admin-privacy"?<WebAccountGate><AdminPrivacy/></WebAccountGate>:
     page==="admin"?<AdminPage/>:

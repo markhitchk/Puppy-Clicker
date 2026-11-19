@@ -16,7 +16,8 @@ export function crossplayDb(save, {owner=true, race=false, webOnly=false}={}) {
    const old=receipts.get(args.p_operation_id);
    return {data:old?old.hash===args.p_intent_hash?{status:'saved',revision:old.revision}:{status:'reused_id'}:{status:'unknown'},error:null};
   }
-  if(name==='pup_web_gameplay_commit'){
+  if(name==='pup_rarity_reward_snapshot')return {data:{version:1,rows:['classic','golden','poodle','spotty','test_v1_crash_dummy','test_v2_crash_dummy','cloud','midnight'].map(puppy_id=>({puppy_id,rarity:'common',published:true,acquisition:'standard'}))},error:null};
+  if(name==='pup_web_gameplay_commit'||name==='pup_rarity_reward_commit'){
    const old=receipts.get(args.p_operation_id);
    if(old)return {data:old.hash===args.p_intent_hash?{status:'duplicate',revision:old.revision}:{status:'reused_id'},error:null};
    if(race||!row||row.revision!==args.p_expected_revision)return {data:{status:'conflict'},error:null};

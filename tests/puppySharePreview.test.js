@@ -106,6 +106,7 @@ test("middleware serves preview metadata in HTML to all user agents",async()=>{
  const before=globalThis.fetch;
  let fetched=null;
  globalThis.fetch=async input=>{
+  if(String(input).endsWith("/pup_rarity_public"))return Response.json([{puppy_id:"aurora",published:true}]);
   fetched=String(input);
   return new Response(html,{headers:{"content-type":"text/html"}});
  };

@@ -1,27 +1,16 @@
 import {checkWebPupEye,WebPupEyeError} from './_lib/webPupEye.js';
-import {createHash} from "node:crypto";
-import {dbClient,ensure,validateRequest,getPupIdentity,PupError,fail,isStaff,canonicalJson} from "./_lib/pupIdentity.js";
+import {randomUUID} from "node:crypto";
+import {dbClient,ensure,validateRequest,getPupIdentity,PupError,fail,isStaff} from "./_lib/pupIdentity.js";
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const validId=value=>typeof value==="string"&&UUID.test(value);
 const validPuppy=value=>typeof value==="string"&&/^[a-z0-9_]{2,80}$/.test(value);
 const staffRequired=actor=>{if(!isStaff(actor))throw new PupError(403,"STAFF_ACCESS_REQUIRED");};
-const ownedList=value=>Array.isArray(value)?value.filter(x=>typeof x==="string"):[];
 async function policy(db,puppyId){
  if(!validPuppy(puppyId))throw new PupError(400,"INVALID_PUPPY");
  const row=ensure(await db.from("pup_exchange_transfer_policy")
   .select("puppy_id,giftable,tradeable,bound,source_copy").eq("puppy_id",puppyId).maybeSingle());
  if(!row)throw new PupError(404,"PUPPY_UNKNOWN");
  return row;
-}
-async function targetAccount(db,id){
- if(!validId(id))throw new PupError(400,"INVALID_TARGET");
- const account=ensure(await db.from("pup_accounts")
-  .select("id,player_uuid,username,status").eq("player_uuid",id).maybeSingle());
- if(!account||account.status!=="active")throw new PupError(409,"TARGET_ACCOUNT_NOT_ACTIVE");
- const player=ensure(await db.from("pupeye_players")
-  .select("id,status").eq("id",id).maybeSingle());
- if(!player||player.status!=="active")throw new PupError(409,"TARGET_ACCOUNT_NOT_ACTIVE");
- return account;
 }
 async function audit(db,actor,target,action,detail){
  const result=await db.from("pup_admin_actions").insert({
@@ -30,72 +19,28 @@ async function audit(db,actor,target,action,detail){
  });
  return result.error?["Audit recording failed"]: [];
 }
-async function sendNotice(db,actor,target,puppyId){
- const response=await db.from("pup_system_notifications").insert({
-  player_uuid:target,created_by_player_uuid:actor.player.id,
-  kind:"developer",title:"A puppy has joined your collection 🐾",
-  body:puppyId+" was granted to your Pup Account by Puppy Clicker staff.",
-  detail:{source:"web_admin_system_gift",puppyId}
- });
- return response.error?["Player notification failed"]:[];
+async function callRarity(db,name,args){
+ const {data,error}=await db.rpc(name,args);
+ if(!error)return data;
+ const codes={OWNER_REQUIRED:403,STAFF_REQUIRED:403,VERSION_CONFLICT:409,OPERATION_REUSED:409,
+  INVALID_CHANGE:400,INVALID_GIFT:400,PUPPY_ALREADY_OWNED:409,REQUEST_NOT_PENDING:409,
+  TARGET_ACCOUNT_NOT_ACTIVE:409,TARGET_CLOUD_SAVE_REQUIRED:409,PUPPY_NOT_REQUESTABLE:403};
+ if(Object.hasOwn(codes,error.message))throw new PupError(codes[error.message],error.message);
+ if(["23514","23502","22P02","P0002"].includes(error.code))throw new PupError(400,"INVALID_CATALOG_ENTRY");
+ throw new PupError(503,"PUP_DATA_UNAVAILABLE");
 }
 async function grant(db,actor,body){
  staffRequired(actor);
- const playerId=body.targetPlayerId;
- const puppyId=body.puppyId;
- const target=await targetAccount(db,playerId);
- const rule=await policy(db,puppyId);
- // Administrators may grant only ordinary transferable puppies. Explicit
- // Developer permission is required for account-bound/test/developer puppies.
- if((rule.bound||!rule.giftable)&&actor.role!=="DEVELOPER")
-  throw new PupError(403,"DEVELOPER_GIFT_REQUIRED");
- let request=null;
- if(body.requestId!=null){
-  if(!validId(body.requestId))throw new PupError(400,"INVALID_REQUEST");
-  request=ensure(await db.from("pup_gift_requests").select("*")
-   .eq("id",body.requestId).maybeSingle());
-  if(!request||request.status!=="pending"||
-   request.player_uuid!==playerId||request.puppy_id!==puppyId||
-   request.account_uuid!==target.id)throw new PupError(409,"REQUEST_NOT_PENDING");
- }
- const save=ensure(await db.from("pup_account_saves").select("player_uuid,revision,save_data")
-  .eq("player_uuid",playerId).maybeSingle());
- if(!save||!save.save_data?.stores?.puppy_clicker_save?.values||
-    !save.save_data?.stores?.puppy_clicker_save?.types)
-  throw new PupError(409,"TARGET_CLOUD_SAVE_REQUIRED");
- const data=structuredClone(save.save_data);
- const store=data.stores.puppy_clicker_save;
- const unlocked=new Set(ownedList(store.values.unlocked_puppies));
- if(unlocked.has(puppyId))throw new PupError(409,"PUPPY_ALREADY_OWNED");
- unlocked.add(puppyId);
- store.values.unlocked_puppies=[...unlocked].sort();
- store.types.unlocked_puppies="string_set";
- data.savedAtEpochMs=Date.now();
- const revision=Number(save.revision)+1;
- const hash=createHash("sha256").update(canonicalJson(data)).digest("hex");
- const saved=ensure(await db.from("pup_account_saves")
-  .update({save_data:data,revision,payload_hash_sha256:hash,updated_at:new Date().toISOString()})
-  .eq("player_uuid",playerId).eq("revision",save.revision)
-  .select("revision").maybeSingle());
- if(!saved)throw new PupError(409,"GIFT_SAVE_CONFLICT");
- const warnings=[];
- if(request){
-  const update=await db.from("pup_gift_requests").update({
-   status:"approved",reviewed_at:new Date().toISOString(),
-   reviewed_by_player_uuid:actor.player.id, gifted_revision:revision
-  }).eq("id",request.id).eq("status","pending").select("id").maybeSingle();
-  if(update.error||!update.data)warnings.push("Request status could not be updated; puppy was granted.");
- }
- warnings.push(...await audit(db,actor,playerId,"WEB_SYSTEM_PUPPY_GRANTED",{
-  puppyId,revision,requestId:request?.id||null,bound:!!rule.bound
- }));
- warnings.push(...await sendNotice(db,actor,playerId,puppyId));
- return {granted:true,revision,warnings};
+ if(!validId(body.targetPlayerId)||!validPuppy(body.puppyId))throw new PupError(400,"INVALID_GIFT");
+ return callRarity(db,"pup_rarity_gift",{p_actor:actor.account.id,p_target:body.targetPlayerId,
+  p_puppy:body.puppyId,p_operation:body.operationId||body.requestId||randomUUID(),
+  p_reason:body.reason||"System puppy gift",p_request:body.requestId||null});
 }
 async function submitRequest(db,actor,body){
  const puppyId=body.puppyId;
  const rule=await policy(db,puppyId);
- if(!rule.giftable||rule.bound)throw new PupError(403,"PUPPY_NOT_REQUESTABLE");
+ const published=ensure(await db.rpc("pup_rarity_public"));
+ if(!published.some(p=>p.puppy_id===puppyId&&p.rarity!=="unobtainable")||!rule.giftable||rule.bound||rule.source_copy)throw new PupError(403,"PUPPY_NOT_REQUESTABLE");
  const note=String(body.note??"").trim();
  if(note.length>400)throw new PupError(400,"NOTE_TOO_LONG");
  const prev=ensure(await db.from("pup_gift_requests")
@@ -133,11 +78,21 @@ export default async function handler(req,res){
   await checkWebPupEye(db,actor.account.id,'gift',req.headers,{vercel:process.env.VERCEL==='1'});
   const {action}=req.body||{};
   let result;
-  if(action==="catalog"){
-   const rows=ensure(await db.from("pup_exchange_transfer_policy")
-    .select("puppy_id,giftable,tradeable,bound").order("puppy_id"))||[];
-   result={puppies:rows.filter(p=>isStaff(actor)||p.giftable&&!p.bound),
-    role:actor.role};
+  if(action==="pupdex-owned"){
+   const save=ensure(await db.from("pup_account_saves")
+    .select("save_data").eq("player_uuid",actor.player.id).eq("account_uuid",actor.account.id).maybeSingle());
+   const saved=save?.save_data?.stores?.puppy_clicker_save?.values?.unlocked_puppies;
+   const owned=new Set(["classic","golden","spotty","poodle",...(Array.isArray(saved)?saved:[])]);
+   const published=ensure(await db.rpc("pup_rarity_public"));
+   result={owned:published.filter(p=>owned.has(p.puppy_id)).map(p=>p.puppy_id)};
+  }else if(action==="catalog"){
+   const rows=ensure(await db.rpc("pup_rarity_public"));
+   const staff=isStaff(actor);
+   const owner=staff&&(await callRarity(db,"pup_rarity_manage",{p_actor:actor.account.id,p_action:"read",p_body:{}})).canEdit;
+   result={puppies:rows.filter(p=>owner||p.giftable&&!p.bound&&!p.source_copy&&p.rarity!=="unobtainable"),role:actor.role};
+  }else if(action==="rarity-read"||action==="rarity-update"){
+   result=await callRarity(db,"pup_rarity_manage",{p_actor:actor.account.id,
+    p_action:action==="rarity-read"?"read":"update",p_body:req.body});
   }else if(action==="my-requests"){
    const requests=ensure(await db.from("pup_gift_requests")
     .select("id,puppy_id,note,status,created_at,reviewed_at,review_note")

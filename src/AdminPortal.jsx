@@ -2,6 +2,7 @@ import React,{useCallback,useEffect,useState} from "react";
 import {useWebAccount} from "./native/web/AccountGate.jsx";
 import "./AdminPortal.css";
 import UserAvatar from "./UserAvatar.jsx";
+import RarityAdmin from "./RarityAdmin.jsx";
 import AdminPuppyGifts from "./AdminPuppyGifts.jsx";
 import {banTargetFromLocation,banAccountUrl} from "./banRoute.js";
 import AdminActivity from "./AdminActivity.jsx";
@@ -10,7 +11,7 @@ import AdminRestrictionDialog from "./AdminRestrictionDialog.jsx";
 import {formatTime,describeDevice,presentAuditEvent} from "./adminPresentation.js";
 
 const initialSection=()=> {
- const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit|gifts|activity|pupeye-web)\/?$/);
+ const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit|gifts|rarity|activity|pupeye-web)\/?$/);
  return match?.[1] || "users";
 };
 const joinSourceNames={friend:"Friend or player",discord:"Discord",youtube:"YouTube",tiktok:"TikTok",
@@ -258,7 +259,7 @@ export default function AdminPortal(){
    <Stat label="Errors in 24 hours" value={activity.summary?.errors24h??'—'}/>
   </div>
   <nav className="pup-admin-tabs" aria-label="Administration sections">
-   {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["pupeye-web",<PupEyeBrand compact label="PupEye Anticheat"/>],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"]].map(([tab,label])=>
+   {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["pupeye-web",<PupEyeBrand compact label="PupEye Anticheat"/>],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"],["rarity","Puppy rarities"]].map(([tab,label])=>
     <button key={tab} type="button" className={section===tab?"is-selected":""}
      aria-current={section===tab?"page":undefined} onClick={()=>navigate(tab)}>{label}</button>)}
    <a className="pup-admin-link" href="/account/admin/chat">💬 Chat moderation</a>
@@ -361,6 +362,7 @@ export default function AdminPortal(){
  {!webPupEyeEvents.length&&!tabLoading?<p className="pup-admin-empty">No PupEye Web security incidents recorded.</p>:null}
 </section>:null}
 
+  {section==="rarity"?<RarityAdmin/>:null}
   {section==="gifts"?<AdminPuppyGifts request={request} role={staff.role}/>:null}
   {section==="bans"?<section className="pup-admin-panel">
    <h2>Suspension & ban history</h2><p className="pup-admin-note">Restrictions apply to Android and the website. Timed restrictions stop applying at their end time. Bans issued outside this panel must be managed by their original system.</p>

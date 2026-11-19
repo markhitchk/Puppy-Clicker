@@ -1,3 +1,4 @@
+import type {RarityRow} from "./puppy-rarity.ts";
 import {grantCasinoBonuses} from "./beta-casino-rewards.ts";
 /**
  * Server-only deterministic Blackjack shoe derived from the service secret.
@@ -48,7 +49,7 @@ function completedOutcome(round:Round,dealerCards:number[]){
  });
  return {dealerTotal,dealerBlackjack:dealerBj,dealerBust,hands,totalPayout:hands.reduce((n,h)=>n+h.payout,0)};
 }
-async function finish(v:Dict,t:Dict,round:Round,deck:number[],now:number){
+async function finish(v:Dict,t:Dict,round:Round,deck:number[],now:number,catalog:RarityRow[]){
  const dealer=[deck[1],deck[3]];
  let cursor=round.drawIndex;
  if(round.hands.some(h=>score(h.cards)<=21)&&!natural(dealer)){
@@ -63,7 +64,7 @@ async function finish(v:Dict,t:Dict,round:Round,deck:number[],now:number){
  const bonus=await grantCasinoBonuses(v,t,{
   roundId:round.roundId,
   wager:round.hands.reduce((n,h)=>n+h.wager,0),payout:outcome.totalPayout
- },now);
+ },now,catalog);
  v.beta_last_blackjack_result_v1=JSON.stringify({state:finished,outcome,bonus});
  t.beta_last_blackjack_result_v1="string";
  v.beta_casino_round_v1="";t.beta_casino_round_v1="string";
@@ -71,7 +72,7 @@ async function finish(v:Dict,t:Dict,round:Round,deck:number[],now:number){
 function activeIndex(round:Round):number {
  return round.hands.findIndex(h=>!h.stood&&score(h.cards)<21&&!h.splitAces);
 }
-export async function applyBetaBlackjack(raw:unknown,intent:Intent,now=Date.now()):Promise<Dict>{
+export async function applyBetaBlackjack(raw:unknown,intent:Intent,now=Date.now(),catalog:RarityRow[]=[]):Promise<Dict>{
  const source=obj(raw);
  check(source.format==="puppy-clicker-cloud-save"&&source.version===1,"UNSUPPORTED_KOTLIN_SAVE");
  const stores=obj(source.stores),main=obj(stores.puppy_clicker_save);
@@ -91,7 +92,7 @@ export async function applyBetaBlackjack(raw:unknown,intent:Intent,now=Date.now(
   if(natural(player)||natural([deck[1],deck[3]])){
    // Kotlin resolves either initial natural immediately; a dealer Blackjack
    // must never leave Double or Split available to a client.
-   await finish(v,t,round,deck,now);
+   await finish(v,t,round,deck,now,catalog);
   }else{
    v.beta_casino_round_v1=JSON.stringify(round);t.beta_casino_round_v1="string";
    v.beta_last_blackjack_result_v1="";t.beta_last_blackjack_result_v1="string";
@@ -123,7 +124,7 @@ export async function applyBetaBlackjack(raw:unknown,intent:Intent,now=Date.now(
   }else throw Error("BLACKJACK_UNKNOWN_ACTION");
   round.drawIndex=index;
   const next=activeIndex(round);
-  if(next<0)await finish(v,t,round,deck,now);
+  if(next<0)await finish(v,t,round,deck,now,catalog);
   else{
    round.activeHandIndex=next;
    v.beta_casino_round_v1=JSON.stringify(round);t.beta_casino_round_v1="string";

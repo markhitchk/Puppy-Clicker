@@ -8,7 +8,7 @@ test('puppy asset deep link opens a public in-game-style details dialog',async (
  await expect(dialog.getByRole('heading',{name:'Midnight'})).toBeVisible();
  await expect(dialog.getByText('v1_midnight')).toBeVisible();
  await expect(dialog.getByText('A moonlit version of the original pup.')).toBeVisible();
- await expect(dialog.getByText('Special unlock')).toBeVisible();
+ await expect(dialog.getByText('Casino puppy reward')).toBeVisible();
  await dialog.getByRole('button',{name:'Close puppy details'}).click();
  await expect(dialog).toHaveCount(0);
  await expect(page).toHaveURL(/\/puppies$/);
@@ -43,7 +43,7 @@ test('public puppy modal retains the same dark visual hierarchy as the game on A
  await expect(dialog).toBeVisible();
  await expect(dialog.getByRole('heading',{name:'Crash Test Pup V2'})).toBeVisible();
  await expect(dialog.getByText('v2_test_crash_dummy')).toBeVisible();
- await expect(dialog.getByText('Testing only')).toBeVisible();
+ await expect(dialog.getByText('Puppy Gacha')).toBeVisible();
  await expect(dialog.getByRole('button',{name:'Retry Art'})).toBeVisible();
  await expect(dialog.getByRole('button',{name:'Done'})).toBeVisible();
  const styles=await dialog.evaluate(node=>{

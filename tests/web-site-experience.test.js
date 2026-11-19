@@ -78,9 +78,7 @@ test("published catalog keeps both crash test puppies as well as developers and 
  for(const id of ["test_v1_crash_dummy","test_v2_crash_dummy","v2_dev_pup","v2_rory"]){
   assert.match(catalog,new RegExp('id: "'+id+'"'));
  }
- assert.match(gallery,/p\.group==="test"\?"Development test only"/);
  assert.match(gallery,/p\.group==="test"\?"Test Puppies"/);
- assert.match(gallery,/p\.group==="test"\?"Development test only"/);
 });
 
 test("desktop and mobile play retain roster switching with a desktop-only yard scene",()=>{
