@@ -1,7 +1,8 @@
 import {ANDROID_BANNER_LAST_SEEN,ANDROID_BANNER_PERMANENTLY_DISMISSED} from "../androidBannerPolicy.js";
 import {COOKIE_CHOICE_KEY,clearCookieChoice} from "./cookiePreferences.js";
 import {WEB_PREFERENCES_KEY,WEB_PREFERENCES_CHANGED,resetVolatileWebPreferences} from "../native/web/preferences.js";
-import {LANGUAGE_KEY,LANGUAGE_CHANGED,resetVolatileLanguage} from "../communityI18n.js";
+import {LANGUAGE_KEY,LANGUAGE_CHANGED} from "../communityI18n.js";
+import {resetVolatileWebLanguage as resetVolatileLanguage} from "./webLanguagePreference.js";
 
 export const CLEARABLE_WEBSITE_DATA=Object.freeze([
  "customization","notificationDisplay","appReminder","cookieDecision","login"
