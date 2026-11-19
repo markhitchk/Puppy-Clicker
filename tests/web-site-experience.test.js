@@ -27,8 +27,8 @@ test("public roster uses published roster metadata rather than hardcoded placeho
 
 test("site routing exposes puppy roster and explicit 400 and 404 errors",()=>{
  const app=read("src/App.jsx");
- assert.match(app,/href="\/puppies"/);
- assert.match(app,/page==="puppies"\?/);
+ assert.match(app,/href="\/pupdex"/);
+ assert.match(app,/page==="pupdex"\?/);
  assert.match(app,/<MeetPuppies preview\/>/);
  assert.match(app,/page==="error"\?<WebErrorPage/);
  assert.ok(app.includes('path==="/"?"home"'));
