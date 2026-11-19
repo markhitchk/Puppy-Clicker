@@ -22,7 +22,8 @@ test('homepage has a traditional footer with all three original brand logos',()=
   assert.ok(home.includes('<a href="'+url+'">')||home.includes('<a href="'+url+'" className='),url);
  }
  assert.ok(home.includes('href="mailto:harleytg.hq@gmail.com"'));
- assert.doesNotMatch(home,/className="site-footer-links"[^]*?className="pup-link-button"/);
+ const footer=home.slice(home.indexOf('<footer className="site-footer"'),home.indexOf('</footer>',home.indexOf('<footer className="site-footer"')));
+ assert.doesNotMatch(footer,/pup-link-button|<button/);
  assert.match(css,/\.site-footer-links a\{[^}]*border:0;/);
  assert.match(css,/\.site-footer-links a\{[^}]*background:transparent;/);
  assert.match(css,/\.site-footer-brandmark img\{/);
