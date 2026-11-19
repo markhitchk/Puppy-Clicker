@@ -194,14 +194,6 @@ function Home(){
    </div>
    <div className="site-footer-bottom">
     <p>© {new Date().getFullYear()} Harley's Studios. All rights reserved.</p>
-    <nav className="site-footer-links" aria-label="Legal and support">
-     <a href="/legal/privacy">Privacy Policy</a>
-     <a href="/legal/terms">Terms of Use</a>
-     <a href="/privacy">Website Privacy</a>
-     <a href="/account/privacy">Privacy Center</a>
-     <a href="/pupeye">PupEye</a>
-     <a href="mailto:harleytg.hq@gmail.com">Contact</a>
-    </nav>
    </div>
   </footer>
  </div>;
