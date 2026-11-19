@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 test('puppy asset deep link opens a public in-game-style details dialog',async ({page})=>{
- await page.goto('/puppies?pup=v1_midnight');
+ await page.goto('/pupdex?pup=v1_midnight');
  const dialog=page.locator('dialog.meet-puppy-dialog');
  await expect(dialog).toBeVisible();
  await expect(dialog.getByRole('heading',{name:'Puppy Details'})).toBeVisible();
@@ -11,34 +11,34 @@ test('puppy asset deep link opens a public in-game-style details dialog',async (
  await expect(dialog.getByText('Casino puppy reward')).toBeVisible();
  await dialog.getByRole('button',{name:'Close puppy details'}).click();
  await expect(dialog).toHaveCount(0);
- await expect(page).toHaveURL(/\/puppies$/);
+ await expect(page).toHaveURL(/\/pupdex$/);
 });
 
 test('public puppy cards open details without a reload, and Escape closes them',async ({page})=>{
- await page.goto('/puppies');
+ await page.goto('/pupdex');
  const card=page.getByRole('link',{name:'View Midnight puppy details'});
- await expect(card).toHaveAttribute('href','/puppies?pup=v1_midnight');
+ await expect(card).toHaveAttribute('href','/pupdex?pup=v1_midnight');
  await card.click();
- await expect(page).toHaveURL(/\/puppies\?pup=v1_midnight$/);
+ await expect(page).toHaveURL(/\/pupdex\?pup=v1_midnight$/);
  await expect(page.locator('dialog.meet-puppy-dialog')).toBeVisible();
  await page.keyboard.press('Escape');
  await expect(page.locator('dialog.meet-puppy-dialog')).toHaveCount(0);
- await expect(page).toHaveURL(/\/puppies$/);
+ await expect(page).toHaveURL(/\/pupdex$/);
 });
 
 test('asset aliases and home preview links resolve correctly',async ({page})=>{
- await page.goto('/puppies?=v1_midnight');
+ await page.goto('/pupdex?=v1_midnight');
  await expect(page.locator('dialog.meet-puppy-dialog').getByRole('heading',{name:'Midnight'})).toBeVisible();
  await page.goto('/');
  await page.getByRole('link',{name:'View Buddy puppy details'}).click();
- await expect(page).toHaveURL(/\/puppies\?pup=v1_classic$/);
+ await expect(page).toHaveURL(/\/pupdex\?pup=v1_classic$/);
  await expect(page.locator('dialog.meet-puppy-dialog').getByRole('heading',{name:'Buddy'})).toBeVisible();
 });
 
 
 test('public puppy modal retains the same dark visual hierarchy as the game on Android-size screens',async ({page})=>{
  await page.setViewportSize({width:360,height:780});
- await page.goto('/puppies?pup=v2_test_crash_dummy');
+ await page.goto('/pupdex?pup=v2_test_crash_dummy');
  const dialog=page.locator('dialog.meet-puppy-dialog');
  await expect(dialog).toBeVisible();
  await expect(dialog.getByRole('heading',{name:'Crash Test Pup V2'})).toBeVisible();
@@ -91,10 +91,16 @@ test('public puppy modal retains the same dark visual hierarchy as the game on A
 
 test('public puppy dialog can dismiss by tapping outside on mobile',async ({page})=>{
  await page.setViewportSize({width:390,height:844});
- await page.goto('/puppies?pup=v1_midnight');
+ await page.goto('/pupdex?pup=v1_midnight');
  const dialog=page.locator('dialog.meet-puppy-dialog');
  await expect(dialog).toBeVisible();
  await page.mouse.click(2,2);
  await expect(dialog).toHaveCount(0);
- await expect(page).toHaveURL(/\/puppies$/);
+ await expect(page).toHaveURL(/\/pupdex$/);
+});
+
+test('legacy /puppies links canonicalize to PupDex while preserving selected puppy and tracking',async({page})=>{
+ await page.goto('/puppies?pup=v1_midnight&utm_source=old');
+ await expect(page).toHaveURL(/\/pupdex\?pup=v1_midnight&utm_source=old$/);
+ await expect(page.locator('dialog.meet-puppy-dialog').getByRole('heading',{name:'Midnight'})).toBeVisible();
 });
