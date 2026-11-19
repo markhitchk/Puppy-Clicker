@@ -2,8 +2,6 @@ import React,{useEffect,useRef,useState} from 'react';
 import PuppyArtwork from './PuppyArtwork.jsx';
 import {rarityLabels,unlockText} from '../../puppyRarity.js';
 import {PUPPY_IMAGES} from '../src/assets/puppies.js';
-import '../../puppy-details.css';
-import './play-pupdex.css';
 
 // Shared artwork and rarity styles with /puppies, while keeping all gameplay
 // mutations inside the existing verified /play actions.
