@@ -84,8 +84,8 @@ test("published catalog keeps both crash test puppies as well as developers and 
 test("desktop and mobile play retain roster switching with a desktop-only yard scene",()=>{
  const platform=read("src/native/web/WebsiteDesign.jsx");
  const play=read("src/native/App.jsx");
- const desktop=read("src/native/web/desktop-reference.css");
- const theme=read("src/styles.css");
+ const desktop=read("src/styles/desktop/layout.css");
+ const theme=read("src/styles/mobile/layout.css");
  assert.doesNotMatch(platform,/platform-arrow|onPrevious|onNext/);
  assert.doesNotMatch(play,/cycle\(-1\)|cycle\(1\)|onPrevious=\{|onNext=\{/);
  assert.match(play,/className="cyber-button secondary small switch-puppy-action"/);

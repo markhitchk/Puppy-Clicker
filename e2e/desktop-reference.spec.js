@@ -43,7 +43,7 @@ for(const [width,height] of [[960,800],[980,800],[1000,600],[1000,900],[1100,900
 
  test('desktop dashboard remains readable with the website light theme',async({page})=>{
  await page.setViewportSize({width:1536,height:864});await page.goto('/play');
- await page.getByRole('button',{name:'Open settings',exact:true}).click();
+ await page.getByTestId('desktop-navigation').getByRole('button',{name:'Settings',exact:true}).click();
  await page.getByRole('button',{name:'Appearance',exact:true}).click();
  await page.getByRole('radio',{name:'Light',exact:true}).check();
  await page.getByRole('button',{name:'← Back to Play',exact:true}).click();

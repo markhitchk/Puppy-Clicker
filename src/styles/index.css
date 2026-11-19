@@ -1,0 +1,30 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@import "./shared/tokens.css";
+@import "./shared/colors.css";
+@import "./shared/typography.css";
+@import "./shared/animations.css";
+@import "./shared/buttons.css";
+@import "./shared/modals.css";
+@import "./shared/navigation.css";
+@import "./shared/account.css";
+@import "./shared/inventory.css";
+@import "./shared/settings.css";
+@import "./shared/app-banner.css";
+@import "./shared/demo.css";
+@import "./shared/admin.css";
+@import "./shared/pupeye.css";
+@import "./shared/privacy.css";
+@import "./shared/legal.css";
+@import "./shared/leaderboard.css";
+@import "./shared/chat.css";
+@import "./shared/roster.css";
+@import "./shared/game.css";
+@import "./shared/layout.css";
+@import "./shared/cursors.css";
+@import "./shared/cursor-sizes.css";
+@import "./shared/appearance.css";
+
+@import "./mobile/index.css" (width < 960px);
+@import "./desktop/index.css" (min-width: 960px);

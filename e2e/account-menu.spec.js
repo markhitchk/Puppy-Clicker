@@ -17,7 +17,7 @@ test.describe("verified Pup Account site navigation",()=>{
   const dropdown=menu.getByTestId("site-account-dropdown");
   await expect(dropdown).toBeVisible();
   await expect(dropdown.getByRole("link",{name:/View full profile/})).toHaveAttribute("href","/account");
-  await expect(dropdown.getByRole("link",{name:/Edit display name/})).toHaveAttribute("href","/account#profile-settings");
+  await expect(dropdown.getByRole("link",{name:/Edit name & avatar/})).toHaveAttribute("href","/account#profile-settings");
   await expect(dropdown.getByRole("link",{name:/Login & security/})).toHaveAttribute("href","/account#account-security");
   await expect(dropdown.getByRole("link",{name:/Account settings/})).toHaveAttribute("href","/account#account-management");
   await expect(dropdown.getByRole("link",{name:/Administration/})).toHaveCount(0);

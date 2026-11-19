@@ -14,12 +14,12 @@ for(const width of [360,768,1280,1920]){
   await expect(websiteNav).toBeVisible();
   await expect(page.getByRole("link",{name:"Home",exact:true})).toBeVisible();
   await expect(page.getByRole("link",{name:"🐾 Play",exact:true})).toBeVisible();
-  await expect(page.getByRole("link",{name:"Account",exact:true})).toBeVisible();
+  await expect(page.getByRole("button",{name:"Account menu for Test Player"})).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
   await page.getByRole("link",{name:"🐾 Play",exact:true}).click();
   await expect(page).toHaveURL(/\/play$/);
   await expect(page.getByRole("button",{name:"Tap Buddy to earn Treats"})).toBeVisible();
-  if(width>=1000){
+  if(width>=960){
    await page.getByText("More game modes",{exact:true}).click();
    await expect(page.getByRole("button",{name:"Casino",exact:true})).toBeVisible();
    await expect(page.getByRole("heading",{name:"Pup Care Status",exact:true})).toBeVisible();
@@ -29,7 +29,8 @@ for(const width of [360,768,1280,1920]){
    await expect(page.getByRole("button",{name:"🎁 Rewards & daily goals"})).toHaveCount(0);
   }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
-  await page.getByRole("link",{name:"Account",exact:true}).click();
+  await page.getByRole("button",{name:"Account menu for Test Player"}).click();
+  await page.getByRole("link",{name:/View full profile/}).click();
   await expect(page).toHaveURL(/\/account$/);
   await expect(page.getByRole("heading",{name:"Your account"})).toBeVisible();
   await expect(page.getByText("Cloud backup found")).toBeVisible();

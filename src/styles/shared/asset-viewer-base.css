@@ -1,0 +1,43 @@
+.meet-asset-dialog{
+ position:fixed;inset:0;margin:auto;box-sizing:border-box;overflow:auto;
+ padding:0;border:1px solid #3a6074;
+ background:#122935;color:#f5fbff;box-shadow:0 27px 95px #000d;
+ overscroll-behavior:contain;scrollbar-width:thin;
+}
+.meet-asset-dialog::backdrop{background:#02050de8;backdrop-filter:blur(6px)}
+.meet-asset-inner{display:flex;flex-direction:column;gap:12px;padding:16px;min-width:0}
+.meet-asset-header{display:flex;justify-content:space-between;align-items:center;gap:12px;min-width:0}
+.meet-asset-header>div{min-width:0}
+.meet-asset-header h2{font-size:clamp(20px,3.5vw,31px);line-height:1.15;margin:3px 0 0;overflow-wrap:anywhere}
+.meet-asset-eyebrow{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#8ee7ff;margin:0}
+.meet-asset-close{flex:0 0 44px;width:44px;height:44px;display:grid;place-items:center;border:1px solid #42687a;border-radius:12px;background:#173746;color:#fff;font-size:31px;cursor:pointer}
+.meet-asset-layout{min-width:0;min-height:0}
+.meet-asset-panel{display:flex;flex-direction:column;gap:12px;min-width:0}
+.meet-asset-stage{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;border:1px solid rgb(var(--rarity-rgb) / .45);
+ background:radial-gradient(ellipse at 50% 50%,rgb(var(--rarity-rgb) / .23),transparent 70%),#0a1320;
+}
+.meet-asset-stage.meet-asset-checker{
+ --checker-size:clamp(16px,4vw,26px);
+ background-image:radial-gradient(ellipse at center,rgb(var(--rarity-rgb) / .14),transparent 75%),
+  conic-gradient(#29313d 25%,#172330 0 50%,#29313d 0 75%,#172330 0);
+ background-size:auto,var(--checker-size) var(--checker-size);
+}
+.meet-asset-stage img.puppy-artwork{
+ display:block;width:auto!important;height:auto!important;
+ max-width:100%;max-height:100%;
+ object-fit:contain;image-rendering:auto;
+ filter:none!important;transform:none!important;
+}
+.meet-asset-stage .puppy-art-unavailable{font-size:70px}
+.meet-asset-info{display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:#d8e8f4;font-size:13px;min-width:0}
+.meet-asset-id{font:700 13px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere;color:#b7d6e5}
+.meet-asset-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.meet-asset-actions>*{min-width:0;width:100%;border-radius:12px}
+.meet-asset-actions .meet-detail-retry,
+.meet-asset-actions .meet-detail-done{min-height:46px}
+.meet-asset-actions .meet-detail-done{grid-column:1 / -1}
+.meet-asset-panel .meet-detail-copy-status{margin:0}
+.meet-asset-dialog button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){
+ .meet-asset-dialog::backdrop{backdrop-filter:none}
+}

@@ -19,7 +19,7 @@ test('Puppy mouse pointer toggle applies instantly to the entire site and persis
  await page.setViewportSize({width:1280,height:800});
  await page.goto('/play');
  await expect(page.getByTestId('desktop-navigation')).toBeVisible();
- await page.getByRole('button',{name:'Open settings',exact:true}).click();
+ await page.getByTestId('desktop-navigation').getByRole('button',{name:'Settings',exact:true}).click();
  await page.getByRole('button',{name:'Play & performance',exact:true}).click();
  const toggle=page.getByRole('switch',{name:'Puppy mouse pointer'});
  await expect(toggle).toBeChecked();
@@ -30,7 +30,7 @@ test('Puppy mouse pointer toggle applies instantly to the entire site and persis
  expect(await page.locator('body').evaluate(node=>getComputedStyle(node).cursor)).not.toContain('puppy_pointer_dark_default_32.png');
 
  await page.goto('/play');
- await page.getByRole('button',{name:'Open settings',exact:true}).click();
+ await page.getByTestId('desktop-navigation').getByRole('button',{name:'Settings',exact:true}).click();
  await page.getByRole('button',{name:'Play & performance',exact:true}).click();
  await page.getByRole('switch',{name:'Puppy mouse pointer'}).check();
  await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor','enabled');

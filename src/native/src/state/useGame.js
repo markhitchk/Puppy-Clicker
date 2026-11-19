@@ -237,6 +237,9 @@ export function useGame(){
      try{
       const game=projectKotlinCloudSave(data.cloud.saveJson,pupAccount?.displayName||pupAccount?.username);
       dispatch({type:"hydrate",game:decorateGame(game),now:Date.now(),readOnly:true});
+      if(op.intent.type==="casinoRecoverLegacy"){
+       dispatch({type:"webActionNotice",message:"Old round recovered. Your reserved Chips have been returned."});
+      }
       setCloudState("LIVE_SYNCED");
      }catch{
       setSyncStatus({state:"SAVED_DISPLAY_ERROR",revision:revision.current,

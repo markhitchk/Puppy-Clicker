@@ -2,7 +2,6 @@ import React,{useEffect,useId,useRef,useState} from "react";
 import {client} from "./supabase.js";
 import ConfirmSignOut from "./ConfirmSignOut.jsx";
 import {verifyPuppySession} from "./native/web/puppyOAuth.js";
-import "./site-account-menu.css";
 import {avatarForAccount} from "./pupWebApi.js";
 
 export const PUP_ACCOUNT_CHANGED="puppy-clicker:pup-account-changed";

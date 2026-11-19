@@ -1,6 +1,5 @@
 import React,{useEffect,useState} from "react";
 import {pupWebApi} from "./pupWebApi.js";
-import "./pup-gift-requests.css";
 const human=id=>id?.replace(/^v[0-9]_/, "").replaceAll("_"," ")||"Puppy";
 const time=t=>t?new Date(t).toLocaleString():"—";
 

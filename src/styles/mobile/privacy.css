@@ -1,0 +1,4 @@
+@media(max-width:760px){
+ .privacy-layout{grid-template-columns:1fr}
+ .privacy-card{padding:18px}
+ .privacy-center{padding:16px}}

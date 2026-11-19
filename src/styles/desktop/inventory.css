@@ -1,0 +1,2 @@
+.pup-inventory-account-wrap{max-width:1320px}
+.pup-inventory-puppies{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))}

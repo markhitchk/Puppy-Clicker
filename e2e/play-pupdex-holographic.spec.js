@@ -42,7 +42,7 @@ for(const width of [320,360,1366]){
 test('in-game details open a full-size asset viewer without mutating the collection',async({page})=>{
  const grid=await openRoster(page,360);
  await grid.locator('[data-pup-card="aurora"]').getByRole('button',{name:'View Details'}).click();
- await expect(page.getByText('Aurora-purple and teal fur glow.')).toBeVisible();
+ await expect(page.getByRole('dialog').getByText('v1_aurora',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'View Asset'}).click();
  const viewer=page.locator('dialog.play-pupdex-asset-dialog');
  await expect(viewer).toBeVisible();

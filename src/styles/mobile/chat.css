@@ -1,0 +1,4 @@
+@media(max-width:700px){
+ .community-chat-grid{grid-template-columns:1fr}
+ .community-chat-channels{flex-direction:row;flex-wrap:wrap}
+ .community-chat-channels h2{flex-basis:100%}}

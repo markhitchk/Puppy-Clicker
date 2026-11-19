@@ -1,0 +1,21 @@
+@media(max-width:900px){
+ .pupeye-hero{grid-template-columns:1fr}
+ .pupeye-hero-art{min-height:160px}
+ .pupeye-hero-art>img{width:min(52%,190px)}
+ .pupeye-hero-halo{width:210px}
+ .pupeye-feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pupeye-explainer{grid-template-columns:1fr}}
+@media(max-width:600px){
+ .pupeye-page{padding:18px 14px 58px}
+ .pupeye-hero{padding:22px;border-radius:22px;gap:12px}
+ .pupeye-hero h1 .pupeye-brand,.pupeye-status-hero h1 .pupeye-brand{gap:.15em}
+ .pupeye-hero-art{min-height:145px}
+ .pupeye-hero-art-caption{font-size:9px}
+ .pupeye-actions{align-items:stretch}
+ .pupeye-actions .pupeye-button{width:100%}
+ .pupeye-feature-grid,.pupeye-status-grid{grid-template-columns:1fr}
+ .pupeye-feature{padding:19px}
+ .pupeye-section{margin-top:34px}
+ .pupeye-explainer,.pupeye-status-hero,.pupeye-next-steps{padding:22px}
+ .pupeye-final-cta{flex-direction:column;align-items:stretch;padding:22px}
+ .pupeye-sanction dl{grid-template-columns:1fr}}

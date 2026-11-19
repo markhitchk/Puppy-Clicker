@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-const css=readFileSync(new URL('../src/native/web/cursors.css',import.meta.url),'utf8');
+const css=readFileSync(new URL('../src/styles/shared/cursors.css',import.meta.url),'utf8');
 const sync=readFileSync(new URL('../scripts/sync-puppy-pointers.mjs',import.meta.url),'utf8');
 const app=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
 const prefs=readFileSync(new URL('../src/native/web/preferences.js',import.meta.url),'utf8');
@@ -23,7 +23,7 @@ test('both Vite dev and build prepare the canonical cursor assets',()=>{
  assert.ok(pkg.scripts.build.includes('node scripts/sync-puppy-pointers.mjs &&'));
 });
 test('website and game use preference theme, system theme, and mouse-only cursor rules',()=>{
- assert.match(css,/\@media \(any-hover: hover\) and \(any-pointer: fine\)/);
+ assert.match(css,/\@media\s*\(any-hover: hover\) and \(any-pointer: fine\)/);
  assert.ok(css.includes("data-testid='puppy-scratch-coating'"));
  assert.ok(css.includes("var(--puppy-not-allowed)"));
  assert.ok(app.includes('dataset.puppyCursorTheme'));
@@ -60,7 +60,7 @@ test('touch stops sticky mouse hover until an actual hardware pointer moves agai
 
 
 test('Puppy cursor uses the original artwork with custom size CSS variables',()=>{
- const sized=readFileSync(new URL('../src/native/web/cursor-sizes.css',import.meta.url),'utf8');
+ const sized=readFileSync(new URL('../src/styles/shared/cursor-sizes.css',import.meta.url),'utf8');
  for(const [name,px] of [['compact',48],['default',64],['large',96]]){
   for(const theme of ['dark','light']){
    assert.ok(sized.includes(`data-puppy-cursor-theme='${theme}'][data-puppy-cursor-size='${name}'`));

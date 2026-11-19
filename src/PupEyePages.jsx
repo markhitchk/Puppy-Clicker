@@ -3,7 +3,6 @@ import PupEyeBrand from "./PupEyeBrand.jsx";
 import {useWebAccount} from "./native/web/AccountGate.jsx";
 import {accountStandingPresentation,androidConnectionPresentation,
  fairplayPresentation,gameplayPresentation} from "./pupeyeStatusPresentation.js";
-import "./PupEyePages.css";
 
 const displayTime=value=>{
  if(!value)return null;

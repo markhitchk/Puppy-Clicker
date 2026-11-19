@@ -1,0 +1,2 @@
+.account-grid{grid-template-columns:minmax(0,1fr)}
+.account-content{max-width:780px}

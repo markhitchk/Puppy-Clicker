@@ -9,7 +9,7 @@ test('account and homepage actions have named, independent flex/grid containers'
  assert.match(jsx,/className="home-account-recovery pup-link-button"/);
  assert.match(jsx,/className="account-management-actions"/);
  assert.match(jsx,/className="portal-card account-management-card"/);
- const css=read('src/styles.css');
+ const css=read('src/styles/shared/account.css');
  assert.match(css,/\.home-account-actions\s*\{/);
  assert.match(css,/\.account-management-actions\s*\{/);
  assert.doesNotMatch(css,/\.account-content \.portal-card \.small-action\s*\{/);

@@ -8,7 +8,6 @@ import {
   isAndroidPhone,
   shouldShowAndroidBanner,
 } from "./androidBannerPolicy.js";
-import "./AndroidAppBanner.css";
 
 const androidUrl = getConfiguredAndroidUrl(
   import.meta.env.VITE_ANDROID_APP_URL ||

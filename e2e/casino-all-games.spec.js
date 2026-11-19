@@ -11,6 +11,7 @@ async function setup(page,extra={}){
 }
 async function openCasino(page){
  await page.getByRole('button',{name:'🎁 Rewards & daily goals'}).click();
+ await page.getByRole('button',{name:/Adventures & games/}).click();
  await page.getByRole('button',{name:'Open',exact:true}).nth(1).click();
  await page.getByRole('button',{name:/Continue/}).click();
 }

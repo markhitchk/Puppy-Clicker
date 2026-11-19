@@ -1,0 +1,16 @@
+@media(min-width:1450px){
+ html [data-testid="puppy-roster-grid"]{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+ }
+}
+.desktop-roster-shop{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(350px,1fr);gap:24px;width:100%;align-items:start}
+.desktop-roster-shop>section,.desktop-roster-shop>aside{min-width:0}
+.desktop-roster-shop>aside{padding-left:24px;border-left:1px solid var(--cyber-border)}
+@media(min-width:1650px){
+ [data-testid=puppy-roster-grid]{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:1100px){
+ .desktop-roster-shop{grid-template-columns:minmax(0,1fr) minmax(300px,1fr);gap:16px}
+ .desktop-roster-shop>aside{padding-left:16px}
+ .desktop-roster-shop [data-testid=puppy-roster-grid]{grid-template-columns:repeat(2,minmax(0,1fr))}
+}

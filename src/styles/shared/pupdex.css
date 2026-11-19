@@ -1,0 +1,108 @@
+.meet-puppy-link{display:block;height:100%;color:inherit;text-decoration:none;cursor:pointer}
+.meet-puppy-link:focus-visible{outline:3px solid #00e5ff;outline-offset:-3px;border-radius:24px}
+.meet-puppy-link .meet-puppy-view{display:block;margin-top:10px;color:#00e5ff;font-size:12px;font-weight:850}
+.meet-puppy-card:has(.meet-puppy-link:focus-visible){border-color:#00e5ff;box-shadow:0 0 20px #00e5ff2a}
+html .meet-puppy-card[data-rarity]{
+ position:relative;isolation:isolate;overflow:hidden;min-width:0;
+ border:1px solid rgb(var(--rarity-rgb) / .55);
+ background:linear-gradient(160deg,rgb(var(--rarity-rgb) / .12),#191c2b 44%,#10131f);
+ box-shadow:inset 0 1px 0 rgb(255 255 255 / .10),0 10px 28px #0006,0 0 16px rgb(var(--rarity-rgb) / .14);
+ transition:border-color .22s,box-shadow .22s,transform .22s;
+}
+html .meet-puppy-card[data-rarity]:hover,
+html .meet-puppy-card[data-rarity]:focus-within{
+ transform:translateY(-3px);border-color:rgb(var(--rarity-rgb) / .95);
+ box-shadow:0 17px 36px #0008,0 0 28px rgb(var(--rarity-rgb) / .34);
+}
+.meet-puppy-card .meet-puppy-link{height:100%;display:flex;flex-direction:column;position:relative;min-width:0}
+.meet-puppy-card .meet-puppy-link::after{
+ content:"";pointer-events:none;position:absolute;inset:0;z-index:4;border-radius:inherit;
+ background:linear-gradient(112deg,transparent 27%,rgb(var(--rarity-rgb) / .07) 37%,
+  rgb(255 255 255 / .21) 47%,rgb(var(--rarity-rgb) / .14) 54%,transparent 69%);
+ opacity:.6;transform:translateX(-150%) skewX(-12deg);
+}
+html .meet-puppy-card[data-rarity] .meet-puppy-art{
+ overflow:hidden;flex:0 0 auto;
+ background:radial-gradient(ellipse at 50% 53%,rgb(var(--rarity-rgb) / .29),transparent 70%),
+  radial-gradient(circle at 18% 8%,rgb(255 255 255 / .09),transparent 45%),#111726;
+ border-bottom:1px solid rgb(var(--rarity-rgb) / .24);
+}
+.meet-puppy-card .meet-puppy-art::after{
+ content:"";position:absolute;pointer-events:none;inset:0;
+ background:linear-gradient(140deg,rgb(255 255 255 / .10),transparent 29%,transparent 70%,rgb(var(--rarity-rgb) / .08));
+}
+.meet-puppy-card .meet-puppy-art img{position:relative;z-index:1;filter:drop-shadow(0 11px 13px #0007)}
+.meet-puppy-card .meet-puppy-group{z-index:3;border-color:rgb(var(--rarity-rgb) / .52);color:#e4f7ff;background:#112331e8}
+.meet-puppy-card .meet-puppy-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:11px;padding:18px}
+.meet-puppy-card .meet-puppy-body h3{font-size:clamp(16px,1.6vw,20px);line-height:1.3;margin:0;overflow-wrap:anywhere}
+.meet-puppy-card .meet-puppy-body p{flex:1;min-height:0;margin:0;color:#c7d6e3;line-height:1.55;overflow-wrap:anywhere}
+.meet-puppy-badges{display:flex;flex-wrap:wrap;align-items:flex-start;gap:7px;min-width:0}
+.meet-puppy-badge{
+ max-width:100%;display:inline-flex;align-items:center;gap:4px;
+ border-radius:999px;border:1px solid #3e566c;padding:6px 9px;
+ background:#263140;color:#e8f5fe;font-size:11px;font-weight:800;line-height:1.3;
+ overflow-wrap:anywhere;white-space:normal;text-transform:none;letter-spacing:normal;
+}
+.meet-puppy-badge-rarity{color:var(--rarity-ink,#eef5ff);border-color:rgb(var(--rarity-rgb) / .6);
+ background:rgb(var(--rarity-rgb) / .17)}
+.meet-puppy-badge-status{background:#163d36;border-color:#3d8876;color:#c6ffe8}
+.meet-puppy-card .meet-puppy-view{
+ margin-top:auto;display:flex;align-items:center;justify-content:space-between;
+ gap:8px;min-height:42px;padding:10px 12px;border-radius:12px;
+ background:rgb(var(--rarity-rgb) / .13);border:1px solid rgb(var(--rarity-rgb) / .38);
+ font-size:12px;font-weight:900;line-height:1.3;color:var(--rarity-ink);letter-spacing:0;text-transform:none;
+}
+.meet-puppy-card .meet-puppy-view span{font-size:18px}
+.meet-puppy-card:hover .meet-puppy-view,.meet-puppy-card:focus-within .meet-puppy-view{
+ background:rgb(var(--rarity-rgb) / .23);border-color:rgb(var(--rarity-rgb) / .7);
+}
+@media(prefers-reduced-motion:no-preference){
+ .meet-puppy-card:hover .meet-puppy-link::after,.meet-puppy-card:focus-within .meet-puppy-link::after{animation:pupdex-foil-sweep 1.6s ease-out 1}
+ .meet-puppy-card:is([data-rarity="epic"],[data-rarity="legendary"],[data-rarity="unobtainable"]) .meet-puppy-link::after{animation:pupdex-foil-sweep 9s ease-in-out infinite}}
+html[data-puppy-reduced-motion="true"] .meet-puppy-link::after{animation:none!important}
+html[data-puppy-reduced-motion="true"] .meet-puppy-card{transition:none!important}
+@media(prefers-reduced-motion:reduce){
+ .meet-puppy-link::after{animation:none!important}
+ .meet-puppy-card{transition:none!important}
+ .meet-puppy-card:hover{transform:none!important}}
+@media(hover:none){
+ html .meet-puppy-card[data-rarity]:hover{transform:none}}
+.meet-puppies-full .section-intro{max-width:760px;margin-bottom:28px}
+.meet-puppies-full .section-intro p:not(.eyebrow){font-size:clamp(14px,2vw,17px);line-height:1.55}
+.meet-puppy-controls .meet-search{width:100%;max-width:720px;font-size:13px}
+.meet-puppy-controls .meet-search input{min-height:48px;max-width:100%;padding:11px 14px;border-radius:13px}
+.meet-puppy-filters button{width:100%;min-width:0;line-height:1.3;white-space:normal}
+.meet-puppy-sort-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:min(590px,100%)}
+.meet-puppy-sort-controls label{display:flex;flex-direction:column;gap:6px;min-width:0;color:#c3e5f4;font-size:13px;font-weight:800}
+.meet-puppy-sort-controls select{width:100%;min-width:0;min-height:46px;border-radius:12px;border:1px solid #48788d;padding:10px 12px;background:#14313f;color:#effbff;font:inherit;font-size:14px;color-scheme:dark}
+.meet-puppy-counts{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;max-width:100%;min-width:0}
+.meet-puppy-counts .meet-count{margin:0;line-height:1.6;overflow-wrap:anywhere}
+.meet-puppies{padding:50px 24px 70px}
+.meet-puppies-full{padding-top:58px}
+.meet-puppy-grid{display:grid;gap:18px}
+.meet-puppy-card{overflow:hidden;min-width:0;border:1px solid #315466;border-radius:24px;background:linear-gradient(155deg,#163847,#142b3a);box-shadow:0 16px 40px #06151c26}
+.meet-puppy-art{height:235px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 43%,#2b708a 0%,#173647 60%,#112a39 100%);padding:16px}
+.meet-puppy-art img{width:100%;height:100%;max-width:215px;object-fit:contain;transition:transform .2s}
+.meet-puppy-card:hover .meet-puppy-art img{transform:scale(1.06)}
+.meet-puppy-group{position:absolute;right:14px;top:14px;padding:6px 11px;border:1px solid #458399;border-radius:99px;background:#102d3be6;color:#b1eeff;font-size:11px;font-weight:900}
+.meet-puppy-body{padding:20px}
+.meet-puppy-body h3{font-size:19px;margin:0 0 10px}
+.meet-puppy-body p{font-size:13px;line-height:1.65;color:#b7cddd;min-height:43px;margin:0 0 12px}
+.meet-puppy-body>span{font-size:11px;color:#81dffc;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
+.meet-puppy-filters button{border:1px solid #39687e;color:#c8e9f5;background:#153242;border-radius:12px;cursor:pointer;font-weight:800}
+.meet-puppy-filters button.active,.meet-puppy-filters button[aria-pressed=true]{background:#75dffa;border-color:#75dffa;color:#062430}
+@media(prefers-reduced-motion:reduce){
+ .web-loading-mascot img,.web-loading-indicator,.meet-puppy-art img{animation:none;transition:none}}
+.meet-puppy-art img.puppy-artwork{width:100%!important;height:100%!important;max-width:215px;max-height:215px;object-fit:contain}
+.meet-puppy-art .puppy-art-unavailable{display:flex;justify-content:center;align-items:center;font-size:52px;min-height:100px;max-width:100%;color:#9adef7}
+html .meet-puppy-card,html .meet-puppy-art{
+ border-color:rgba(0,229,255,.25);
+}
+html .meet-puppy-card{
+ background:linear-gradient(145deg,#1A1E2B,#12151F);
+ border-radius:22px;
+}
+html .meet-puppy-art{
+ background:radial-gradient(ellipse at center,rgba(0,229,255,.12),transparent 73%),#12151F;
+}
+html .meet-puppy-card:hover{border-color:#00E5FF;box-shadow:0 0 18px rgba(0,229,255,.18)}

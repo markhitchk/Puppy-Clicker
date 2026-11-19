@@ -2,7 +2,6 @@ import React,{useMemo,useState} from "react";
 import privacyMarkdown from "./legal/privacy-policy.md?raw";
 import termsMarkdown from "./legal/terms-of-use.md?raw";
 import {LEGAL_DOCS,parseLegalMarkdown,safeLegalHref} from "./legalMarkdown.js";
-import "./LegalReader.css";
 import {useLanguage} from "./LanguagePicker.jsx";
 
 // No raw HTML injection. Markdown source text is always rendered through React escaping.

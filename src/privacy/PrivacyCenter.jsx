@@ -2,7 +2,6 @@ import React,{useCallback,useEffect,useState} from 'react';
 import {client} from '../supabase.js';
 import {useLanguage} from '../LanguagePicker.jsx';
 import {privacyApi} from './privacyClient.js';
-import './PrivacyCenter.css';
 
 const RIGHTS=[
  {type:'access',en:'Access my data',es:'Acceder a mis datos'},

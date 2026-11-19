@@ -13,7 +13,7 @@ function Choices({label,value,items,onChange}){
  const group=useId();
  return <fieldset className="web-setting-choices"><legend>{label}</legend><div>{items.map(([id,title])=><label className="web-setting-option" key={id}><input type="radio" name={group} aria-label={title} checked={value===id} onChange={()=>onChange(id)}/><span>{title}</span></label>)}</div></fieldset>;
 }
-export default function WebSettings({g,act,onOpen,registry,notifications,account,syncStatus,gameplayBusy=false,cloudState,onRefreshAccount,onUpdateAccountName,onConnectAccount}){
+export default function WebSettings({g,act,onOpen,registry,notifications,account,syncStatus,gameplayBusy=false,queuedTaps=0,cloudState,onRefreshAccount,onUpdateAccountName,onConnectAccount}){
  const [expanded,setExpanded]=useState(null),[name,setName]=useState(g.guestName),[hex,setHex]=useState(g.accentHex),[custom,setCustom]=useState(false);
  const [busy,setBusy]=useState(false),[message,setMessage]=useState(''),[reset,setReset]=useState(false),[refreshing,setRefreshing]=useState(false);
  const [fullscreen,setFullscreen]=useState(Boolean(document.fullscreenElement));
@@ -82,7 +82,7 @@ export default function WebSettings({g,act,onOpen,registry,notifications,account
   {section('about','About this website','Updates, privacy and terms',<>
    <p><strong>Puppy Clicker · Web Edition</strong><br/>Built by Harley’s Studios</p>
    <p>Reload the page to load the latest website update.</p>
-   <button className="cyber-button secondary" disabled={gameplayBusy} onClick={()=>window.location.reload()}>Reload website</button>
+   <button className="cyber-button secondary" disabled={gameplayBusy||queuedTaps>0} onClick={()=>window.location.reload()}>Reload website</button>
    <div className="web-setting-actions"><a href="/legal/privacy" className="cyber-button secondary">Privacy policy</a><a href="/legal/terms" className="cyber-button secondary">Terms of use</a></div>
   </>)}
   <ConfirmSignOut open={confirmSignOut} busy={busy} error={signOutError}

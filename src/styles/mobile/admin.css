@@ -1,0 +1,17 @@
+@media(max-width:650px){
+ .pup-admin-stats{gap:8px}
+ .pup-admin-stat{padding:12px}
+ .pup-admin-stat strong{font-size:22px}
+ .pup-admin-panel{padding:12px}
+ .pup-admin-tabs button{padding:10px 13px}
+ .pup-admin-tabs .pup-admin-refresh{margin-left:0}}
+@media(max-width:900px){
+ .pup-admin-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){
+ .pup-admin-tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .pup-admin-tabs button,.pup-admin-tabs a.pup-admin-link{font-size:13px;min-height:52px;padding:10px 8px;border-radius:13px}
+ .pup-admin-tabs .pup-admin-refresh{grid-column:1/-1}
+ .pup-admin-player .pup-admin-avatar{width:34px;height:34px}}
+@media(max-width:750px){
+ .pup-admin-gift-form{grid-template-columns:1fr}
+ .pup-admin-gift-form label{margin-top:4px}}

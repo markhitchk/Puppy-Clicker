@@ -1,0 +1,6 @@
+@media(max-width:380px){
+ .pup-signout-actions{flex-direction:column}}
+@media(max-width:500px){
+ .casino-intro{padding:24px}
+ .casino-dialog-actions{gap:8px}
+ .casino-dialog-actions button{padding:12px}}

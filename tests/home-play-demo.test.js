@@ -48,7 +48,7 @@ test("homepage demo changes puppies, restores energy, and resets without an acco
 
 test("the demo exists only on /play?=demo and is not embedded in the homepage",()=>{
  const app=read("src/App.jsx"),demo=read("src/HomePlayDemo.jsx");
- const state=read("src/homePlayDemoState.js"),styles=read("src/HomePlayDemo.css");
+ const state=read("src/homePlayDemoState.js"),styles=read("src/styles/shared/demo.css")+read("src/styles/mobile/demo.css");
  const home=app.slice(app.indexOf("function Home(){"),app.indexOf("const accountRole="));
  assert.match(app,/import HomePlayDemo from "\.\/HomePlayDemo\.jsx"/);
  assert.match(app,/function TryDemoLink\(\)/);

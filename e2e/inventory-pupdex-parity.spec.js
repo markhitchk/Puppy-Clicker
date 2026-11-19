@@ -116,20 +116,21 @@ for(const width of [320,360,390,1366]){
   const badge=art.locator('.meet-puppy-group');
   await expect(art).toBeVisible();
   await expect(badge).toBeVisible();
+  await art.locator("img").evaluate(img=>img.decode());
   const geometry=await art.evaluate(node=>{
    const artBox=node.getBoundingClientRect();
    const badge=node.querySelector('.meet-puppy-group');
    const pillBox=badge.getBoundingClientRect();
    const img=node.querySelector('img.puppy-artwork');
    const imageStyle=getComputedStyle(img);
-   const pillStyle=getComputedStyle(badge);
+   const pillStyle=badge.computedStyleMap();
    return {
     artWidth:artBox.width,artHeight:artBox.height,
     badgeHeight:pillBox.height,badgeWidth:pillBox.width,
     coverage:(pillBox.width*pillBox.height)/(artBox.width*artBox.height),
     insetTop:pillBox.top-artBox.top,
     insetRight:artBox.right-pillBox.right,
-    badgeBottom:pillStyle.bottom,badgeLeft:pillStyle.left,
+    badgeBottom:String(pillStyle.get('bottom')),badgeLeft:String(pillStyle.get('left')),
     imageRadius:imageStyle.borderRadius,
     imageOpacity:imageStyle.opacity,
     pictureLoaded:img.complete&&img.naturalWidth>0

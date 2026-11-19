@@ -1,0 +1,5 @@
+@media(max-width:420px){
+ .puppy-android-banner {gap:10px;padding:14px 36px 14px 12px;border-radius:16px;}
+ .puppy-android-banner-icon {width:34px;height:34px;font-size:20px;}
+ .puppy-android-banner-actions {gap:6px;}
+ .puppy-android-banner-actions a,.puppy-android-banner-actions button {padding:8px 10px;font-size:11px;}}

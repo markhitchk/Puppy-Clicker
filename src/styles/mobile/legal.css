@@ -1,0 +1,12 @@
+@media(max-width:760px){
+ .legal-layout{grid-template-columns:minmax(0,1fr)}
+ .legal-contents{position:relative;top:auto;max-height:none}
+ .legal-contents-toggle{display:flex;justify-content:space-between;width:100%;color:#e5faff;background:transparent;border:0;font:inherit;font-weight:800;padding:6px;cursor:pointer}
+ .legal-contents nav{display:none;margin-top:8px}
+ .legal-contents nav.is-open{display:flex}
+ .legal-hero{padding:21px 17px}
+ .legal-document-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .legal-article footer .pup-link-button,.legal-article footer button.pup-link-button{width:100%}
+ .legal-document-brand{text-align:center}}
+@media(max-width:365px){
+ .legal-document-actions{grid-template-columns:minmax(0,1fr)}}

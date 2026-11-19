@@ -1,0 +1,37 @@
+@media(max-width:430px){
+ .pup-banned-card{padding:24px 17px}
+ .pup-banned-details>div{grid-template-columns:1fr;gap:3px}}
+@media(max-width:540px){
+ .pup-avatar-editor{padding:16px}
+ .pup-avatar-editor-actions button{width:100%}}
+@media(max-width:420px){
+ .android-auth-provider,.discord-signup{padding:12px}
+ .android-auth-title h2{font-size:21px}
+ .discord-signup-profile{gap:9px}
+ .discord-signup-avatar{width:50px;height:50px}}
+.pup-auth-page .pup-auth-form{margin:auto}
+@media(max-width:480px){
+ .pup-auth-page{padding:12px 10px 30px}
+ .pup-auth-form{padding:19px 14px;border-radius:18px}}
+@media(max-width:760px){
+ .account-preview{min-height:170px}
+ .account-content{padding:32px 16px 60px}
+ .account-grid{grid-template-columns:1fr;gap:15px}
+ .portal-card{padding:20px}
+ .profile-head{flex-wrap:wrap}
+ .profile-head img{height:58px;width:58px}
+ .verified{margin-left:0}
+ .metadata{display:none}}
+@media(max-width:680px){
+ .account-details{grid-template-columns:1fr}
+ .account-detail{padding:13px 15px}
+ .account-actions .cta{width:100%}}
+@media(max-width:850px){
+ .recovery-grid,.recovery-status-card{grid-template-columns:1fr}}
+@media(max-width:760px){
+ .recovery-grid{gap:15px}
+ .recovery-grid h2,.recovery-status-card h2{font-size:21px}
+ html .split-cta .home-account-actions{flex-direction:column}
+ html .split-cta .home-account-actions .cta{width:100%;flex:none}
+ .split-cta .home-account-recovery{margin-top:18px}
+ html .split-cta .home-account-recovery.pup-link-button{width:100%}}
