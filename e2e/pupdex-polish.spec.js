@@ -3,7 +3,7 @@ import {test,expect} from '@playwright/test';
 for(const [device,width,height] of [['small phone',320,640],['Android phone',360,780],['tablet',800,900],['desktop',1366,768]]){
  test(device+' PupDex uses distinct rarity pills and responsive controls',async({page})=>{
   await page.setViewportSize({width,height});
-  await page.goto('/puppies');
+  await page.goto('/pupdex');
   const card=page.getByRole('link',{name:'View Aurora puppy details'});
   await expect(card).toBeVisible();
   await expect(card.locator('.meet-puppy-badge')).toHaveCount(2);
@@ -36,7 +36,7 @@ for(const [device,width,height] of [['small phone',320,640],['Android phone',360
 
 test('asset viewer opens from public details, previews transparency, and closes with Escape',async({page})=>{
  await page.setViewportSize({width:360,height:780});
- await page.goto('/puppies?pup=v1_aurora');
+ await page.goto('/pupdex?pup=v1_aurora');
  const details=page.locator('dialog.meet-puppy-dialog');
  await expect(details).toBeVisible();
  await expect(details.locator('.meet-detail-identity')).toHaveAttribute('data-rarity','epic');
@@ -66,12 +66,12 @@ test('asset viewer opens from public details, previews transparency, and closes 
  await expect(details).toBeVisible();
  await page.keyboard.press('Escape');
  await expect(details).toHaveCount(0);
- await expect(page).toHaveURL(/\/puppies$/);
+ await expect(page).toHaveURL(/\/pupdex$/);
 });
 
 test('Puppy Details keeps utility actions together and primary action distinct',async({page})=>{
  await page.setViewportSize({width:360,height:780});
- await page.goto('/puppies?pup=v1_aurora');
+ await page.goto('/pupdex?pup=v1_aurora');
  const details=page.locator('dialog.meet-puppy-dialog');
  await expect(details.locator('.meet-detail-actions button')).toHaveCount(2);
  await expect(details.getByRole('link',{name:'Use Puppy in Game'})).toHaveAttribute('href','/play');
@@ -92,7 +92,7 @@ test('Puppy Details keeps utility actions together and primary action distinct',
 
 test('every View Asset preserves native resolution for small original artwork',async({page})=>{
  await page.setViewportSize({width:360,height:780});
- await page.goto('/puppies?pup=v2_test_crash_dummy');
+ await page.goto('/pupdex?pup=v2_test_crash_dummy');
  const details=page.locator('dialog.meet-puppy-dialog');
  await expect(details).toBeVisible();
  await details.getByRole('button',{name:'View Asset'}).click();
@@ -112,7 +112,7 @@ test('every View Asset preserves native resolution for small original artwork',a
 for(const width of [960,1366,1920]){
  test('desktop collection filters form a compact 3-by-2 grid at '+width+'px',async({page})=>{
   await page.setViewportSize({width,height:800});
-  await page.goto('/puppies');
+  await page.goto('/pupdex');
   const controls=page.locator('.meet-puppy-controls');
   const filters=controls.getByRole('group',{name:'Puppy collection'});
   const buttons=filters.getByRole('button');
