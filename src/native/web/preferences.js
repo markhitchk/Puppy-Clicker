@@ -2,12 +2,13 @@ import {DEFAULT_PREFERENCES,preferenceValue} from '../src/engine/settings.js';
 
 export const WEB_PREFERENCES_KEY='puppy-clicker:web-preferences:v1';
 export const WEB_PREFERENCES_CHANGED='puppy-clicker:web-preferences-changed';
-// Keep browser-only pointer preferences separate from Pup Account/gameplay saves.
-// Size is derived from the shared Interface size; old standalone size/style options
-// are intentionally ignored when upgrading stored browser settings.
-export const POINTER_SIZES=Object.freeze({compact:48,default:64,large:96});
-/* Mobile devices use the normal 64px Puppy cursor even when their interface is
- * Compact (48px on desktop). The layout preference itself is not modified. */
+// Browser-only pointer settings never modify the user's game/cloud save.
+// A webpage cannot read ChromeOS/Windows/macOS native cursor-size preferences,
+// so Match system size uses a conventional 32 CSS-pixel pointer rendering.
+// User-selected custom sizes are true raster PNGs (not CSS transforms).
+export const SYSTEM_LIKE_POINTER_SIZE=32;
+export const POINTER_SIZE_STEPS=Object.freeze([24,32,40,48,56,64,72,80,88,96]);
+export const POINTER_SIZE_MODES=Object.freeze(['system','custom']);
 export function isMobilePointerEnvironment(environment=globalThis){
  const navigatorInfo=environment?.navigator;
  const agent=navigatorInfo?.userAgent??'';
@@ -15,21 +16,23 @@ export function isMobilePointerEnvironment(environment=globalThis){
   || /Android|iPhone|iPad|iPod|Mobile/i.test(agent)
   || Boolean(environment?.matchMedia?.('(pointer: coarse)')?.matches);
 }
-export function effectivePointerSizeKey(preferences,mobile=false){
- const scale=Object.hasOwn(POINTER_SIZES,preferences?.uiScale)?preferences.uiScale:'default';
- return mobile&&scale==='compact'?'default':scale;
+export function effectivePointerSize(preferences){
+ return preferences?.puppyPointerSizeMode==='custom'&&POINTER_SIZE_STEPS.includes(preferences?.puppyPointerCustomSize)
+  ?preferences.puppyPointerCustomSize:SYSTEM_LIKE_POINTER_SIZE;
 }
-export function effectivePointerSize(preferences,mobile=false){
- return POINTER_SIZES[effectivePointerSizeKey(preferences,mobile)];
+export function effectivePointerSizeKey(preferences){
+ return preferences?.puppyPointerSizeMode==='custom'?'custom-'+effectivePointerSize(preferences):'system';
 }
 
 export const POINTER_THEMES=Object.freeze(['auto','dark','light']);
-const cursorDefaults=Object.freeze({puppyPointerTheme:'auto',puppyPointerClickHighlight:false});
-const fields=['themeMode','accentHex','uiScale','performancePreset','animatedUi','buttonAnimations','reducedMotion','highContrast','animationsEnabled','compactNumbers','puppyPointerEnabled','puppyPointerTheme','puppyPointerClickHighlight','dailyRewardNotifications','gameEventNotifications'];
+const cursorDefaults=Object.freeze({puppyPointerTheme:'auto',puppyPointerClickHighlight:true,puppyPointerSizeMode:'system',puppyPointerCustomSize:48});
+const fields=['themeMode','accentHex','uiScale','performancePreset','animatedUi','buttonAnimations','reducedMotion','highContrast','animationsEnabled','compactNumbers','puppyPointerEnabled','puppyPointerTheme','puppyPointerClickHighlight','puppyPointerSizeMode','puppyPointerCustomSize','dailyRewardNotifications','gameEventNotifications'];
 export const WEB_PREFERENCE_DEFAULTS=Object.freeze({...Object.fromEntries(fields.map(key=>[key,DEFAULT_PREFERENCES[key]??cursorDefaults[key]])),themeMode:'dark',accentHex:'#00E5FF'});
 function validValue(name,value){
  if(name==='puppyPointerTheme')return POINTER_THEMES.includes(value)?value:undefined;
  if(name==='puppyPointerClickHighlight')return typeof value==='boolean'?value:undefined;
+ if(name==='puppyPointerSizeMode')return POINTER_SIZE_MODES.includes(value)?value:undefined;
+ if(name==='puppyPointerCustomSize')return POINTER_SIZE_STEPS.includes(value)?value:undefined;
  return preferenceValue(name,value);
 }
 export function pointerThemeFor(preferences,systemDark=false){
