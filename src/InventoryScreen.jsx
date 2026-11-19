@@ -1,8 +1,15 @@
-import React,{useEffect,useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
 import {ROSTER,UPGRADES,RARITIES} from './native/src/engine/game.js';
+import {LEGACY_V6_PUPPIES} from './native/src/engine/rosterV6.js';
+import {PUPPY_IMAGES} from './native/src/assets/puppies.js';
 import PuppyArtwork from './native/web/PuppyArtwork.jsx';
+import {WebPlayPuppyAssetViewer} from './native/web/WebPlayPupDex.jsx';
+import {usePuppyRarity} from './usePuppyRarity.js';
+import {rarityLabels,rarityOrder,unlockText,transferText} from './puppyRarity.js';
+import {puppyDetailsHref,puppyAssetId} from './puppyLinks.js';
 import {useWebAccount} from './native/web/AccountGate.jsx';
 import {projectKotlinCloudSave} from './native/src/production/kotlinCloudPreview.js';
+import './puppy-details.css';
 import './InventoryScreen.css';
 
 const numeric=value=>Number.isFinite(Number(value))?Math.max(0,Math.trunc(Number(value))):0;
@@ -22,26 +29,157 @@ const sections=[
  ['upgrades','⬆️','Upgrades'],
  ['wallet','🍪','Wallet']
 ];
+const puppyInfo=new Map(LEGACY_V6_PUPPIES.map(p=>[p.id,p]));
+const puppyGroup=p=>p.groupId==='test'||p.id.startsWith('test_')?'Test Puppies':
+ p.groupId==='v2'||p.id.startsWith('v2_')&&p.id!=='v2_discord_pup'?'V2 Puppies':
+ p.id==='v2_discord_pup'?'Community':'V1 Puppies';
+const puppyDisplay=(p,game)=>game.puppyNames?.[p.id]||(p.id===game.puppyStyle?game.puppyName:p.name);
+const artworkUri=p=>{
+ const image=PUPPY_IMAGES[p.id]?.uri||p.image||'';
+ return image.replace(/^\/assets\/(v1|v2)\//,'/assets/transparent/$1/');
+};
+const safeRarity=p=>rarityLabels[p.rarity]||'Rarity unavailable';
+
+function InventoryPuppyDetails({puppy,name,onClose,onViewAsset}){
+ const ref=useRef(null);
+ const [copyStatus,setCopyStatus]=useState('');
+ const url=puppyDetailsHref(puppy);
+ const assetId=puppyAssetId({...puppy,image:artworkUri(puppy)});
+ useEffect(()=>{
+  const node=ref.current;
+  if(node&&!node.open)node.showModal();
+  return()=>{if(node?.open)node.close();};
+ },[]);
+ const copyLink=async()=>{
+  try{
+   if(!navigator.clipboard?.writeText)throw Error('Clipboard unavailable');
+   await navigator.clipboard.writeText(new URL(url,window.location.origin).href);
+   setCopyStatus('Puppy link copied!');
+  }catch{setCopyStatus('Clipboard unavailable. Use Open in PupDex to share this puppy.');}
+ };
+ return <dialog ref={ref} className="meet-puppy-dialog pup-inventory-detail-dialog"
+  aria-labelledby="pup-inventory-detail-title"
+  onCancel={event=>{event.preventDefault();onClose();}}
+  onClick={event=>{if(event.target===ref.current)onClose();}}>
+  <div className="meet-puppy-dialog-inner">
+   <header className="meet-detail-heading">
+    <h2 id="pup-inventory-detail-title">Owned Puppy Details</h2>
+    <button type="button" className="meet-detail-close" onClick={onClose} aria-label="Close puppy details">×</button>
+   </header>
+   <div className="meet-detail-main">
+    <div className="meet-detail-identity" data-rarity={puppy.rarity||'unknown'}>
+     <div className="meet-detail-artwork">
+      <PuppyArtwork id={puppy.id} name={name+' puppy artwork'}
+       uri={artworkUri(puppy)} size={164}/>
+     </div>
+     <div className="meet-detail-name">
+      <h3>{name}</h3><p className="meet-detail-asset-id">{assetId}</p>
+      <div className="meet-detail-pills">
+       <span>{puppyGroup(puppy)}</span>
+       <span className="meet-detail-rarity">{safeRarity(puppy)}</span>
+       <span>{unlockText(puppy.rarity?puppy:null)}</span>
+       <span className="pup-inventory-owned-pill">Owned</span>
+       {puppy.current&&<span>Current puppy</span>}
+       {puppy.favorite&&<span>♥ Favorite</span>}
+      </div>
+     </div>
+    </div>
+    <div className="meet-detail-aside">
+     <section className="meet-detail-about">
+      <h3>About</h3>
+      <p>{puppy.description||'This puppy is in your protected Pup Account collection.'}</p>
+      {puppy.rarity&&<p className="pup-inventory-transfer">{transferText(puppy)}</p>}
+     </section>
+     <div className="meet-detail-actions" aria-label="Owned puppy tools">
+      <button type="button" className="meet-detail-secondary" onClick={()=>void copyLink()}>Copy Link</button>
+      <button type="button" className="meet-detail-secondary" onClick={onViewAsset}>View Asset</button>
+     </div>
+     {copyStatus&&<p className="meet-detail-copy-status" role="status">{copyStatus}</p>}
+     <p className="meet-detail-disclaimer">Inventory is read-only. Use the game Roster to switch puppies or update favorites.</p>
+     <div className="meet-detail-main-actions">
+      <a href={url} className="meet-detail-primary">Open in PupDex</a>
+      <button type="button" className="meet-detail-done" onClick={onClose}>Done</button>
+     </div>
+    </div>
+   </div>
+  </div>
+ </dialog>;
+}
+
+function OwnedPuppyCard({puppy,game,onInspect}){
+ const name=puppyDisplay(puppy,game);
+ const current=game.puppyStyle===puppy.id;
+ const favorite=Array.isArray(game.favoritePuppies)&&game.favoritePuppies.includes(puppy.id);
+ return <article className="meet-puppy-card pup-inventory-puppy" data-rarity={puppy.rarity||'unknown'}
+  data-pup-inventory-id={puppy.id}>
+  <div className="meet-puppy-link pup-inventory-card-content">
+   <div className="meet-puppy-art">
+    <PuppyArtwork id={puppy.id} name={name+' in your inventory'}
+     uri={artworkUri(puppy)} size={215} lazy/>
+    <span className="meet-puppy-group">{puppyGroup(puppy)}</span>
+   </div>
+   <div className="meet-puppy-body">
+    <h3>{name}</h3>
+    <p className="pup-inventory-puppy-description">{puppy.description||'Owned puppy'}</p>
+    <div className="meet-puppy-badges" aria-label="Rarity and collection status">
+     <span className="meet-puppy-badge meet-puppy-badge-rarity">{safeRarity(puppy)}</span>
+     <span className="meet-puppy-badge">{unlockText(puppy.rarity?puppy:null)}</span>
+     <span className="meet-puppy-badge meet-puppy-badge-status">Owned</span>
+     {current&&<span className="meet-puppy-badge pup-inventory-current-badge">Current</span>}
+     {favorite&&<span className="meet-puppy-badge pup-inventory-favorite-badge">♥ Favorite</span>}
+    </div>
+    <button type="button" className="meet-puppy-view pup-inventory-view"
+     onClick={()=>onInspect(puppy.id)} aria-label={'View '+name+' puppy details'}>
+     View Puppy Details <span aria-hidden="true">↗</span>
+    </button>
+   </div>
+  </div>
+ </article>;
+}
 
 export default function InventoryScreen({game,origin='account',onBack,updatedAt,onRefresh,refreshing=false}){
  const [selected,setSelected]=useState('puppies');
  const [search,setSearch]=useState('');
+ const [rarityFilter,setRarityFilter]=useState('all');
+ const [sort,setSort]=useState('roster');
+ const [detailsId,setDetailsId]=useState(null);
+ const [assetId,setAssetId]=useState(null);
+ const catalog=usePuppyRarity();
  if(!game)return null;
  const ownedIds=[...new Set(Array.isArray(game.unlockedPuppies)?game.unlockedPuppies:[])].filter(id=>typeof id==='string');
- const knownPuppies=ROSTER.filter(pup=>ownedIds.includes(pup.id));
+ const knownPuppies=ROSTER.filter(pup=>ownedIds.includes(pup.id)).map(pup=>{
+  const row=catalog.rows.find(item=>item.puppy_id===pup.id);
+  const legacy=puppyInfo.get(pup.id);
+  return {...pup,...row,description:legacy?.description||pup.description,
+   emoji:legacy?.emoji||'🐾',current:pup.id===game.puppyStyle,
+   favorite:game.favoritePuppies?.includes(pup.id)||false};
+ });
  const otherPuppies=ownedIds.filter(id=>!ROSTER.some(pup=>pup.id===id));
  const accessories=[...new Set(Array.isArray(game.ownedAccessories)?game.ownedAccessories:[])].filter(name=>typeof name==='string'&&name!=='None');
  const purchasedUpgrades=UPGRADES.filter(upgrade=>numeric(game.upgrades?.[upgrade.id])>0);
  const filter=search.trim().toLowerCase();
- const visiblePuppies=knownPuppies.filter(pup=>(pup.name+' '+(game.puppyNames?.[pup.id]||'')+' '+pup.id).toLowerCase().includes(filter));
- const visibleOther=otherPuppies.filter(id=>id.toLowerCase().includes(filter));
+ const visiblePuppies=knownPuppies.filter(pup=>
+  (rarityFilter==='all'||pup.rarity===rarityFilter)&&
+  (pup.name+' '+(game.puppyNames?.[pup.id]||'')+' '+pup.id+' '+puppyGroup(pup)).toLowerCase().includes(filter))
+  .sort((a,b)=>sort==='name'?puppyDisplay(a,game).localeCompare(puppyDisplay(b,game)):
+   sort==='rarity'?(rarityOrder.indexOf(b.rarity)-rarityOrder.indexOf(a.rarity)):
+   sort==='favorites'?Number(game.favoritePuppies?.includes(b.id))-Number(game.favoritePuppies?.includes(a.id)):
+   a.number-b.number);
+ const visibleOther=rarityFilter==='all'?otherPuppies.filter(id=>id.toLowerCase().includes(filter)):[];
  const counts={puppies:ownedIds.length,accessories:accessories.length,tickets:RARITIES.reduce((n,r)=>n+numeric(game.ticketInventory?.[r]),0),upgrades:purchasedUpgrades.length,wallet:4};
  const safeDate=updatedAt&&!Number.isNaN(new Date(updatedAt).valueOf())?new Date(updatedAt).toLocaleString():null;
- return <section className={'pup-inventory '+(origin==='play'?'pup-inventory-play':'pup-inventory-account')} aria-label="Puppy Clicker Inventory" data-testid="pup-inventory">
+ const inspectedPuppy=detailsId?knownPuppies.find(p=>p.id===detailsId):null;
+ const viewerPuppy=assetId?knownPuppies.find(p=>p.id===assetId):null;
+ const closeDetails=()=>{setDetailsId(null);setAssetId(null);};
+ return <section className={'pup-inventory '+(origin==='play'?'pup-inventory-play':'pup-inventory-account')}
+  aria-label="Puppy Clicker Inventory" data-testid="pup-inventory">
   <header className="pup-inventory-heading">
-   <div><p className="pup-inventory-eyebrow">🎒 PUP ACCOUNT COLLECTION</p><h1>Inventory</h1><p>Your actual owned puppies, items and balances from your protected game progress.</p></div>
+   <div><p className="pup-inventory-eyebrow">🎒 PUP ACCOUNT COLLECTION</p>
+    <h1>Inventory</h1><p>Your owned puppies, items and balances from your protected game progress.</p>
+   </div>
    <div className="pup-inventory-actions">
-    {onBack?<button type="button" className="pup-inventory-button" onClick={onBack}>← Back to game</button>:<a className="pup-inventory-button" href="/account">← Account</a>}
+    {onBack?<button type="button" className="pup-inventory-button" onClick={onBack}>← Back to game</button>:
+     <a className="pup-inventory-button" href="/account">← Account</a>}
     {onRefresh?<button type="button" className="pup-inventory-button primary" disabled={refreshing} onClick={onRefresh}>{refreshing?'Refreshing…':'↻ Refresh'}</button>:null}
    </div>
   </header>
@@ -52,44 +190,98 @@ export default function InventoryScreen({game,origin='account',onBack,updatedAt,
    <div><span>⬆️ Upgrade types</span><strong>{number(purchasedUpgrades.length)}</strong></div>
   </div>
   <nav className="pup-inventory-tabs" aria-label="Inventory categories">
-   {sections.map(([id,emoji,label])=><button key={id} type="button" aria-current={selected===id?'page':undefined} className={selected===id?'active':''} onClick={()=>setSelected(id)}>{emoji} {label}<span>{number(counts[id])}</span></button>)}
+   {sections.map(([id,emoji,label])=><button key={id} type="button" aria-current={selected===id?'page':undefined}
+    className={selected===id?'active':''} onClick={()=>setSelected(id)}>
+    {emoji} {label}<span>{number(counts[id])}</span></button>)}
   </nav>
   <div className="pup-inventory-panel">
    {selected==='puppies'?<>
-    <div className="pup-inventory-section-head"><div><h2>🐶 Puppy collection</h2><p>Currently playing: {game.puppyName||'Your puppy'}. Switch puppies in the Roster screen.</p></div>
-     <label className="pup-inventory-search">Search puppies<input type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Search your puppies…" /></label>
+    <div className="pup-inventory-section-head">
+     <div><h2>🐶 Puppy collection</h2>
+      <p>Only puppies owned by this Pup Account. Switch puppies in the game Roster.</p>
+     </div>
+     <div className="pup-inventory-filter-controls">
+      <label className="pup-inventory-search">Search puppies
+       <input type="search" value={search} onChange={event=>setSearch(event.target.value)}
+        placeholder="Name or asset ID…" aria-label="Search inventory puppies"/>
+      </label>
+      <label>Rarity
+       <select value={rarityFilter} onChange={event=>setRarityFilter(event.target.value)}
+        aria-label="Filter inventory by rarity">
+        <option value="all">All rarities</option>
+        {rarityOrder.map(key=><option key={key} value={key}>{rarityLabels[key]}</option>)}
+       </select>
+      </label>
+      <label>Sort
+       <select value={sort} onChange={event=>setSort(event.target.value)} aria-label="Sort inventory puppies">
+        <option value="roster">Roster order</option>
+        <option value="rarity">Rarity</option>
+        <option value="name">Name A–Z</option>
+        <option value="favorites">Favorites first</option>
+       </select>
+      </label>
+     </div>
     </div>
+    {catalog.error&&<p className="pup-inventory-notice" role="status">Rarity catalog is temporarily unavailable; your owned puppies are still shown without guessed rarity labels.</p>}
+    <p className="pup-inventory-count" aria-live="polite">{visiblePuppies.length+visibleOther.length} of {ownedIds.length} owned puppies</p>
     {visiblePuppies.length||visibleOther.length?<div className="pup-inventory-puppies">
-     {visiblePuppies.map(pup=><article key={pup.id} className="pup-inventory-puppy">
-      <div className="pup-inventory-art"><PuppyArtwork id={pup.id} name={pup.name} uri={pup.image} size={105} lazy/></div>
-      <div><strong>{game.puppyNames?.[pup.id]|| (pup.id===game.puppyStyle?game.puppyName:pup.name)}</strong><small>{pup.name} · {pup.id.startsWith('v2_')?'V2':pup.id.startsWith('test_')?'Test':'V1'}</small></div>
-      <div className="pup-inventory-tags">{pup.id===game.puppyStyle?<span className="is-current">Current</span>:null}{Array.isArray(game.favoritePuppies)&&game.favoritePuppies.includes(pup.id)?<span>♥ Favorite</span>:null}</div>
+     {visiblePuppies.map(pup=><OwnedPuppyCard key={pup.id} puppy={pup} game={game} onInspect={setDetailsId}/>)}
+     {visibleOther.map(id=><article key={id} className="pup-inventory-unknown">
+      <div className="pup-inventory-art" aria-hidden="true">🐾</div>
+      <div><strong>{game.puppyNames?.[id]||id.replaceAll('_',' ')}</strong>
+       <small>Owned puppy · artwork and rarity unavailable</small>
+      </div>
+      <span className="meet-puppy-badge meet-puppy-badge-status">Owned</span>
      </article>)}
-     {visibleOther.map(id=><article key={id} className="pup-inventory-puppy"><div className="pup-inventory-art" aria-hidden="true">🐾</div><div><strong>{game.puppyNames?.[id]||id.replaceAll('_',' ')}</strong><small>Owned puppy · artwork unavailable</small></div></article>)}
-    </div>:<p className="pup-inventory-empty">No owned puppies match your search.</p>}
+    </div>:<div className="pup-inventory-empty"><p>No owned puppies match these filters.</p>
+     <button type="button" className="pup-inventory-button" onClick={()=>{setSearch('');setRarityFilter('all');setSort('roster');}}>Reset filters</button>
+    </div>}
    </>:null}
    {selected==='accessories'?<>
-    <div className="pup-inventory-section-head"><div><h2>🎀 Accessories</h2><p>Purchased accessories are permanent. Equip them in the Shop.</p></div></div>
+    <div className="pup-inventory-section-head"><div><h2>🎀 Accessories</h2>
+     <p>Purchased accessories are permanent. Equip them in the game Shop.</p></div></div>
     {accessories.length?<div className="pup-inventory-items">
-     {accessories.map(name=><article className="pup-inventory-item" key={name}><span className="pup-inventory-item-icon" aria-hidden="true">{accessoryIcons[name]||'🎁'}</span><div><strong>{name}</strong><small>Owned permanently</small></div>{game.accessory===name?<span className="pup-inventory-equipped">Equipped</span>:null}</article>)}
+     {accessories.map(name=><article className="pup-inventory-item" data-rarity="neutral" key={name}>
+      <span className="pup-inventory-item-icon" aria-hidden="true">{accessoryIcons[name]||'🎁'}</span>
+      <div><strong>{name}</strong><small>Owned permanently</small></div>
+      {game.accessory===name?<span className="pup-inventory-equipped">Equipped</span>:<span className="meet-puppy-badge meet-puppy-badge-status">Owned</span>}
+     </article>)}
     </div>:<p className="pup-inventory-empty">No purchased accessories yet. Visit the Shop to collect some.</p>}
    </>:null}
    {selected==='tickets'?<>
-    <div className="pup-inventory-section-head"><div><h2>🎟️ Upgrade tickets</h2><p>Spend these on eligible Shop upgrades. Quantities reflect your verified game save.</p></div></div>
+    <div className="pup-inventory-section-head"><div><h2>🎟️ Upgrade tickets</h2>
+     <p>Ticket colors match their rarity. Spend them on eligible Shop upgrades.</p></div></div>
     <div className="pup-inventory-items">
-     {RARITIES.map(rarity=><article className="pup-inventory-item" key={rarity}><span className="pup-inventory-item-icon" aria-hidden="true">{rarityIcons[rarity]}</span><div><strong>{rarity.charAt(0)+rarity.slice(1).toLowerCase()} ticket</strong><small>{rarity.toLowerCase()} rarity</small></div><b>×{number(game.ticketInventory?.[rarity])}</b></article>)}
+     {RARITIES.map(rarity=><article className="pup-inventory-item" data-rarity={rarity.toLowerCase()} key={rarity}>
+      <span className="pup-inventory-item-icon" aria-hidden="true">{rarityIcons[rarity]}</span>
+      <div><strong>{rarity.charAt(0)+rarity.slice(1).toLowerCase()} ticket</strong>
+       <small>{rarityLabels[rarity.toLowerCase()]}</small></div>
+      <b>×{number(game.ticketInventory?.[rarity])}</b>
+     </article>)}
     </div>
    </>:null}
    {selected==='upgrades'?<>
-    <div className="pup-inventory-section-head"><div><h2>⬆️ Purchased upgrades</h2><p>These are your owned upgrade levels, not available Shop offers.</p></div></div>
+    <div className="pup-inventory-section-head"><div><h2>⬆️ Purchased upgrades</h2>
+     <p>Only purchased upgrade levels, not Shop offers.</p></div></div>
     {purchasedUpgrades.length?<div className="pup-inventory-items">
-     {purchasedUpgrades.map(upgrade=><article key={upgrade.id} className="pup-inventory-item"><span className="pup-inventory-item-icon" aria-hidden="true">{upgrade.emoji}</span><div><strong>{upgrade.name}</strong><small>{upgrade.description}</small></div><b>Lv. {number(game.upgrades[upgrade.id])}</b></article>)}
+     {purchasedUpgrades.map(upgrade=><article key={upgrade.id} className="pup-inventory-item"
+      data-rarity={upgrade.rarity?.toLowerCase()||'neutral'}>
+      <span className="pup-inventory-item-icon" aria-hidden="true">{upgrade.emoji}</span>
+      <div><strong>{upgrade.name}</strong><small>{upgrade.description}</small>
+       {upgrade.rarity?<span className="pup-inventory-item-rarity">{rarityLabels[upgrade.rarity.toLowerCase()]}</span>:null}
+      </div><b>Lv. {number(game.upgrades[upgrade.id])}</b>
+     </article>)}
     </div>:<p className="pup-inventory-empty">You haven't purchased any upgrades yet.</p>}
    </>:null}
    {selected==='wallet'?<>
-    <div className="pup-inventory-section-head"><div><h2>🍪 Wallet</h2><p>Current game currency balances. No inventory action changes your balance.</p></div></div>
+    <div className="pup-inventory-section-head"><div><h2>🍪 Wallet</h2>
+     <p>Current protected game balances. Viewing inventory never changes them.</p></div></div>
     <div className="pup-inventory-items">
-     {currencies.map(([emoji,label,key])=><article className="pup-inventory-item" key={key}><span className="pup-inventory-item-icon" aria-hidden="true">{emoji}</span><div><strong>{label}</strong><small>Available balance</small></div><b>{number(game[key])}</b></article>)}
+     {currencies.map(([emoji,label,key])=><article className="pup-inventory-item" data-rarity="neutral" key={key}>
+      <span className="pup-inventory-item-icon" aria-hidden="true">{emoji}</span>
+      <div><strong>{label}</strong><small>Available balance</small></div>
+      <b>{number(game[key])}</b>
+     </article>)}
     </div>
    </>:null}
   </div>
@@ -98,6 +290,12 @@ export default function InventoryScreen({game,origin='account',onBack,updatedAt,
    {safeDate?<span>Last server save: {safeDate}</span>:null}
    <span><a href="/play">Open game</a> · <a href="/account">Pup Account</a></span>
   </footer>
+  {inspectedPuppy&&<InventoryPuppyDetails key={inspectedPuppy.id} puppy={inspectedPuppy}
+   name={puppyDisplay(inspectedPuppy,game)}
+   onClose={closeDetails} onViewAsset={()=>setAssetId(inspectedPuppy.id)}/>}
+  {viewerPuppy&&<WebPlayPuppyAssetViewer key={viewerPuppy.id} puppy={viewerPuppy}
+   assetId={puppyAssetId({...viewerPuppy,image:artworkUri(viewerPuppy)})}
+   name={puppyDisplay(viewerPuppy,game)} onClose={()=>setAssetId(null)}/>}
  </section>;
 }
 
