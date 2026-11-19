@@ -636,7 +636,8 @@ export async function applyBetaEconomy(raw:unknown,intent:BetaEconomyIntent,now=
    await casino(v,t,intent,now,catalog);break;
   default:throw Error("BETA_ACTION_NOT_PORTED");
  }
- settleBetaAchievements(v,t);
+ // Claiming a free test asset must not silently settle unrelated rewards.
+ if(intent.type!=="claimFreeTest")settleBetaAchievements(v,t);
  setLong(v,t,"last_seen",now);
  return result;
 }
