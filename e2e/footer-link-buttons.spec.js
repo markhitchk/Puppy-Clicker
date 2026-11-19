@@ -27,7 +27,7 @@ for(const width of [360,390,768]){
  }
 }
 for(const width of [320,360,390,768,1440]){
- test('traditional logo footer uses plain text links and fits '+width+'px',async({page})=>{
+ test('non-interactive branded footer fits '+width+'px',async({page})=>{
   await page.setViewportSize({width,height:850});
   await page.goto('/');
   const footer=page.locator('.site-footer');
@@ -49,19 +49,9 @@ for(const width of [320,360,390,768,1440]){
    expect(rect.x).toBeGreaterThanOrEqual(-1);
    expect(rect.x+rect.width).toBeLessThanOrEqual(width+1);
   }
-  await expect(footer.getByRole('button')).toHaveCount(0);
-  const links=footer.locator('.site-footer-links a');
-  await expect(links).toHaveCount(6);
-  for(const destination of ['/legal/privacy','/legal/terms','/privacy','/account/privacy','/pupeye','mailto:harleytg.hq@gmail.com']){
-   await expect(links.locator('[href="'+destination+'"]')).toHaveCount(1);
-  }
-  const styles=await links.first().evaluate(node=>{
-   const c=getComputedStyle(node);
-   return {border:c.borderTopWidth,background:c.backgroundColor,minHeight:c.minHeight};
-  });
-  expect(styles.border).toBe('0px');
-  expect(styles.background).toBe('rgba(0, 0, 0, 0)');
-  expect(styles.minHeight).toBe('0px');
+  await expect(footer.locator('a, button, [role="button"], [href], nav, form')).toHaveCount(0);
+  await expect(footer).toContainText("All rights reserved");
+  await expect(footer.locator('.site-footer-bottom')).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
  });
 }
