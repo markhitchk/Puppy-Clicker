@@ -505,6 +505,7 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
    favorite={Boolean(details&&g.favoritePuppies.includes(details.id))}
    onToggleFavorite={()=>{if(detailsOwned)act({type:'favorite',id:details.id});}}
    onViewAsset={Platform.OS==='web'?()=>{if(details)setViewAssetId(details.id);}:undefined}
+   onClaimFree={Platform.OS==='web'&&details&&['test_v1_crash_dummy','test_v2_crash_dummy'].includes(details.id)?()=>act({type:'claimFreeTest',id:details.id}):undefined}
    onRetryArtwork={()=>{if(details)retry(details.id);}}
    onUse={id=>onUse?onUse(id):act({type:'switch',id,now:Date.now()})}
    onRename={name=>act({type:'rename',name})}/>
