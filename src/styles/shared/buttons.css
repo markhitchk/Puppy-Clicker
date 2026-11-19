@@ -68,3 +68,13 @@ html .cta-secondary,html .small-action{background:var(--bg-secondary);border-col
 @media(prefers-reduced-motion:reduce){
  .site-frame a[href]{transition:none!important}
 }
+
+/* Compact secondary navigation: button affordances without bloated legal or breadcrumb rows. */
+.site-frame .pupeye-crumbs a.pup-link-button,
+.site-frame .legal-contents nav a.pup-link-button{
+ min-height:34px;padding:6px 10px;border-radius:9px;font-size:12px;
+}
+.site-frame .legal-tabs a.pup-link-button{min-height:40px;padding:9px 12px;font-size:13px}
+.pup-inventory-shortcuts{display:inline-flex;align-items:center;flex-wrap:wrap;gap:8px}
+.pup-inventory-shortcuts a.pup-link-button{min-height:38px;padding:7px 11px;font-size:12px}
+.site-frame .account-auth-consent a.pup-link-button{text-decoration:none}
