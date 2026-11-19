@@ -294,7 +294,7 @@ html[data-puppy-reduced-motion="true"] .meet-puppy-card{transition:none!importan
 
 /* Compact mobile artwork sheet. Fits in portrait on Android/iOS without
    scaling the image beyond its source; scrolls within the dialog if needed. */
-@media(max-width:899px){
+@media(max-width:959px){
  .meet-asset-inner{padding:clamp(10px,3vw,16px);gap:10px}
  .meet-asset-layout{gap:10px}
  .meet-asset-panel{gap:10px}
@@ -324,7 +324,7 @@ html[data-puppy-reduced-motion="true"] .meet-puppy-card{transition:none!importan
 
 /* Desktop artwork inspection workspace. Large preview to the left; rarity,
    asset ID, and controls grouped in a separate right-side tools panel. */
-@media(min-width:900px){
+@media(min-width:960px){
  .meet-asset-dialog{
   width:min(1120px,calc(100vw - 64px));max-width:1120px;
   max-height:calc(100dvh - 48px);border-radius:26px;
