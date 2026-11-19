@@ -12,3 +12,11 @@
  .browser-settings-panel[aria-labelledby="browser-notifications"]{grid-area:notifications}
  .browser-settings-panel[aria-labelledby="browser-storage"]{grid-area:storage}
 }
+
+@container browser-settings (min-width:64rem){
+ .browser-settings-toolbar{flex-wrap:nowrap}
+ .browser-settings-toolbar>label{flex-basis:380px}
+ .browser-settings-shortcuts{gap:8px}
+ .browser-settings-grid>.browser-settings-panel{gap:9px}
+ .browser-pointer-panel .browser-pointer-controls{gap:8px}
+}
