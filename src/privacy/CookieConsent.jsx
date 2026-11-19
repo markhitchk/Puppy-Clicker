@@ -6,7 +6,7 @@ import {
  saveCookieChoice,openCookiePreferences
 } from "./cookiePreferences.js";
 import {loadWebPreferences,saveWebPreferences,resetVolatileWebPreferences} from "../native/web/preferences.js";
-import {readLanguage,writeLanguage,resetVolatileLanguage} from "../communityI18n.js";
+import {readWebLanguage as readLanguage,writeWebLanguage as writeLanguage,resetVolatileWebLanguage as resetVolatileLanguage} from "./webLanguagePreference.js";
 import {clearSelectedWebsiteData} from "./clearWebsiteData.js";
 
 const copy={
