@@ -105,6 +105,11 @@
   ],
   "redirects": [
     {
+      "source": "/puppies",
+      "destination": "/pupdex",
+      "permanent": true
+    },
+    {
       "source": "/assets/legal/privacy-policy.md",
       "destination": "/legal/privacy",
       "permanent": true
