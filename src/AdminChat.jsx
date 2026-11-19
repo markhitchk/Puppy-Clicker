@@ -67,7 +67,7 @@ function StaffChat(){
   <header className="community-chat-header"><p className="eyebrow">PUPPY CLICKER · PUPEYE</p>
    <h1>🛡️ Chat moderation</h1>
    <p>PupEye automatically publishes messages that pass screening. Review flagged or uncertain messages here, and remove reported content when necessary. Automated screening can miss harmful content; staff decisions still require a recorded reason.</p>
-   <a href="/account/admin">Back to Administration</a>
+   <a className="pup-link-button" href="/account/admin">Back to Administration</a>
   </header>
   {error?<p className="community-chat-alert" role="alert">{error}</p>:null}
   {notice?<p className="community-chat-note" role="status">{notice}</p>:null}
