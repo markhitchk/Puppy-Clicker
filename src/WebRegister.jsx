@@ -6,6 +6,7 @@ import {DISCORD_ICON_URL} from "./discordIcon.js";
 import {client} from "./supabase.js";
 import {suggestUsername,generateStrongPassword} from "./nameSuggestions.js";
 import JoinSourceFields from "./JoinSourceFields.jsx";
+import PasswordField from "./PasswordField.jsx";
 
 // Mirror the Supabase Auth password policy before submitting a new account.
 const PASSWORD_SYMBOLS=new Set(["!","@","#","$","%","^","&","*","(",")","_","+","-","=","[","]","{","}",";","'","\\",":","\"","|","<",">","?",",",".","/","`","~"]);
@@ -113,7 +114,7 @@ export default function WebRegister({onAuthenticated,onSignIn}){
    <button className="account-auth-text-button" type="button" disabled={busy||registered}
     onClick={()=>{try{setUsername(suggestUsername(username));setMessage("");}catch{setMessage("Secure name suggestions are not available in this browser.");}}}>🎲 Generate username</button>
    <label htmlFor="reg-pass">Password</label>
-   <input id="reg-pass" type="password" name="new-password" autoComplete="new-password" required minLength={8}
+   <PasswordField id="reg-pass" visibilityLabel="registration password" name="new-password" autoComplete="new-password" required minLength={8}
     maxLength={128} value={password} onChange={e=>setPassword(e.target.value)} onInput={e=>setPassword(e.currentTarget.value)} disabled={busy||registered}/>
    <p className="account-security-note">Tap the password field to use Google Password Manager, Samsung Pass, Bitwarden, 1Password, or your browser's suggested strong password. You can also generate one here.</p>
    <button className="account-auth-text-button" type="button" disabled={busy||registered}
@@ -125,7 +126,7 @@ export default function WebRegister({onAuthenticated,onSignIn}){
     </span>)}
    </div>
    <label htmlFor="reg-confirm">Confirm password</label>
-   <input id="reg-confirm" type="password" name="confirm-password" autoComplete="new-password" required minLength={8}
+   <PasswordField id="reg-confirm" visibilityLabel="registration confirmation password" name="confirm-password" autoComplete="new-password" required minLength={8}
     maxLength={128} value={confirm} onChange={e=>setConfirm(e.target.value)} onInput={e=>setConfirm(e.currentTarget.value)} disabled={busy||registered}/>
    <label htmlFor="reg-email">Support contact email (optional)</label>
    <input id="reg-email" type="email" name="email" autoComplete="email" maxLength={254}
