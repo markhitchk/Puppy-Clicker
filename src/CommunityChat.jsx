@@ -96,7 +96,7 @@ function CommunityChatBody(){
      <h3>{tr("communityRules")}</h3>
      <p>{tr("rulesBody")}</p>
      <button className="cta cta-primary" disabled={busy} type="button" onClick={()=>void action("accept-rules",{})}>{tr("agreeRules")}</button>
-     <p><a href="/legal/privacy">Privacy Policy</a> · <a href="/legal/terms">Terms</a></p>
+     <p><a className="pup-link-button" href="/legal/privacy">Privacy Policy</a> · <a className="pup-link-button" href="/legal/terms">Terms</a></p>
     </div>:!joined?<div className="community-chat-rules">
      <p>{tr("communityJoin")}</p>
      <button className="cta cta-primary" disabled={busy} onClick={()=>void action("join",{serverId:selected.server_id})}>{tr("joinCommunity")}</button>
