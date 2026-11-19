@@ -1,0 +1,23 @@
+-- Isolated database fixture. All IDs and accounts are synthetic.
+create role anon;
+create role authenticated;
+create role service_role;
+create schema puppy_accounts;
+create schema puppy_game;
+create schema puppy_exchange;
+create schema puppy_pupeye;
+create schema puppy_admin;
+create schema extensions;
+create table puppy_accounts.pup_accounts(id uuid primary key,player_uuid uuid,status text);
+create table puppy_pupeye.pupeye_players(id uuid primary key,guild_role text,status text);
+create table puppy_exchange.pup_exchange_transfer_policy(puppy_id text primary key,bound boolean,giftable boolean,tradeable boolean,source_copy boolean);
+create table puppy_exchange.pup_exchange_privileged_gifters(account_uuid uuid,enabled boolean);
+create table puppy_exchange.pup_exchange_offers(id uuid,sender uuid,recipient uuid,kind text,offered text[]);
+create table puppy_exchange.pup_gift_requests(id uuid,status text,reviewed_at timestamptz,reviewed_by_player_uuid uuid,gifted_revision bigint,puppy_id text,account_uuid uuid,player_uuid uuid);
+create table puppy_game.pup_account_saves(player_uuid uuid,account_uuid uuid,revision bigint,save_data jsonb,updated_at timestamptz,payload_hash_sha256 text);
+create table puppy_admin.pup_admin_actions(actor_player_uuid uuid,target_player_uuid uuid,action_code text,detail jsonb);
+create table puppy_game.pup_system_notifications(player_uuid uuid,created_by_player_uuid uuid,kind text,title text,body text,detail jsonb);
+create function public.pup_exchange_canonical(jsonb) returns text language sql as 'select $1::text';
+create function extensions.digest(text,text) returns bytea language sql as 'select sha256(convert_to($1,''UTF8''))';
+create function public.pup_exchange_complete(p_offer uuid,p_actor uuid) returns jsonb language sql as 'select jsonb_build_object(''offer'',p_offer)';
+create function public.pup_web_gameplay_commit(uuid,uuid,bigint,uuid,text,text,jsonb,text) returns jsonb language sql as 'select jsonb_build_object(''status'',''saved'')';

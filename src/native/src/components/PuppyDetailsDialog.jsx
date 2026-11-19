@@ -1,3 +1,4 @@
+import {rarityLabels} from '../../../puppyRarity.js';
 import React,{useEffect,useState} from 'react';
 import {Modal,Pressable,ScrollView,Text,TextInput,View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -34,11 +35,12 @@ export default function PuppyDetailsDialog({puppy,visible,onClose,portrait,asset
        <Text style={s.name}>{displayName||originalName}</Text>
        <Text style={s.muted}>{assetId}</Text>
        <View style={s.pills}>
-        <View style={s.pill}><Text style={s.pillText}>{puppy.groupTitle||'Puppies'}</Text></View>
+        <View style={s.pill}><Text style={s.pillText}>{puppy.groupTitle||'Puppies'} · {rarityLabels[puppy.rarity]}</Text></View>
         <View style={s.pill}><Text style={s.pillText}>{current?'Current':unlocked?'Unlocked':'🔒 Locked'}</Text></View>
        </View>
       </View>
      </View>
+     <Text style={s.sectionBody}>{puppy.unlockSource} · {puppy.transfer}</Text>
      {mode==='preview'&&unlocked?<>
       <View style={s.section}><Text style={s.sectionHeading}>About</Text>
        <Text style={s.sectionBody}>{puppy.description||'No additional puppy details are available yet.'}</Text>

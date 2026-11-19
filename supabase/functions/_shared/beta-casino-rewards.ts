@@ -1,3 +1,4 @@
+import {eligibleIds, weightedChoice, secureInt, type RarityRow} from "./puppy-rarity.ts";
 /**
  * Server-side port of Kotlin PuppyCasinoRewardEngine v2 and
  * PuppyCasinoPuppyRewardEngine v1.
@@ -50,18 +51,18 @@ function chance(wager:number,payout:number,kind:"ticket"|"puppy"):number{
  if(payout>=wager*2)return 50;
  return 25;
 }
-export function canWheelUnlock(v:Values,now:number):boolean{
- const pool=CASINO_PUPPY_POOL.filter(id=>!owned(v).has(id));
+export function canWheelUnlock(v:Values,now:number,catalog:RarityRow[]):boolean{
+ const pool=unownedCasinoPuppies(v,catalog);
  if(pool.length===0)return false;
  const ledger=readLedger(v,"casino_puppy_reward_ledger_v1",dateDay(now),"dailyPuppyUnlocks");
  return (ledger.dailyPuppyUnlocks||0)<1;
 }
-export function unownedCasinoPuppies(v:Values):string[]{
+export function unownedCasinoPuppies(v:Values,catalog:RarityRow[]):string[]{
  const before=owned(v);
- return CASINO_PUPPY_POOL.filter(id=>!before.has(id));
+ return eligibleIds(CASINO_PUPPY_POOL,catalog).filter(id=>!before.has(id));
 }
 /** Return short presentational bonus details; only server-calculated fields mutate. */
-export async function grantCasinoBonuses(v:Values,t:Values,round:CasinoSettlement,now:number){
+export async function grantCasinoBonuses(v:Values,t:Values,round:CasinoSettlement,now:number,catalog:RarityRow[]){
  if(!/^[A-Za-z0-9_-]{8,80}$/.test(round.roundId)||
   !Number.isSafeInteger(round.wager)||round.wager<20||
   !Number.isSafeInteger(round.payout)||round.payout<0)throw Error("INVALID_CASINO_BONUS_ROUND");
@@ -91,14 +92,14 @@ export async function grantCasinoBonuses(v:Values,t:Values,round:CasinoSettlemen
  let awardedPuppy:string|null=null;
  if(!puppy.evaluatedRoundIds.includes(round.roundId)){
   puppy.evaluatedRoundIds=[...puppy.evaluatedRoundIds,round.roundId].slice(-512);
-  const pool=unownedCasinoPuppies(v),candidate=round.guaranteedPuppyId;
+  const pool=unownedCasinoPuppies(v,catalog),candidate=round.guaranteedPuppyId;
   if((puppy.dailyPuppyUnlocks||0)<1&&pool.length>0){
    if(candidate&&pool.includes(candidate)){
     awardedPuppy=candidate;
    }else if(!candidate&&winner){
     const puppyChance=chance(round.wager,round.payout,"puppy");
     if(await roll(1,"puppy-drop",round.roundId,10000)<puppyChance){
-     awardedPuppy=pool[await roll(1,"puppy-choice",round.roundId,pool.length)];
+     awardedPuppy=weightedChoice(pool,catalog,secureInt);
     }
    }
    if(awardedPuppy){

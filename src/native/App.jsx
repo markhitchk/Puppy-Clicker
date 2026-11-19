@@ -1,3 +1,5 @@
+import {rarityLabels,rarityOrder,collectionStats,unlockText,transferText,poolOdds} from '../puppyRarity.js';
+import {usePuppyRarity} from '../usePuppyRarity.js';
 import DesktopNavigation,{DesktopHelp} from './web/DesktopNavigation.jsx';
 import {useLanguage} from "../LanguagePicker.jsx";
 import PuppyArtwork from './web/PuppyArtwork.jsx';
@@ -53,7 +55,7 @@ import LuckyWheelV6 from './src/components/LuckyWheelV6.jsx';
 import {V6_PLAY_LAYOUT,v6PlaySizing,v6Format,v6WalletFormat,v6CooldownSeconds,v6PlayTapLabel} from './src/engine/playV6.js';
 import {V6_CARE_LAYOUT,canPerformCare,dailyGiftPreview,parkPreview} from './src/engine/careV6.js';
 import {TICKET_RARITY_PRESENTATION,PRESTIGE_SKILL_PRESENTATION,upgradesForShopTab,upgradeOffer,ticketShopOffer,accessoryOffer,prestigeOffer,canBuySkill} from './src/engine/shopV6.js';
-import {LEGACY_V6_PUPPIES,legacyRosterSections,unlockedLegacyCount} from './src/engine/rosterV6.js';
+import {LEGACY_V6_PUPPIES} from './src/engine/rosterV6.js';
 import {GACHA_ART} from './src/assets/gacha.js';
 import {GACHA_MACHINE,gachaMachineFrame} from './src/engine/gachaV6.js';
 
@@ -403,7 +405,15 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
  const [status,setStatus]=useState('all');
  const [favoritesOnly,setFavoritesOnly]=useState(false);
  const [category,setCategory]=useState('all');
- const available=registry.items;
+ const {rows,loading,error}=usePuppyRarity();
+ const [tier,setTier]=useState('all');
+ const allEntries=new Map(registry.items.map(p=>[p.id,p]));
+ for(const id of g.unlockedPuppies)if(!allEntries.has(id))allEntries.set(id,{id,name:id,groupTitle:'Owned',groupId:'owned',groupOrder:999,number:0});
+ const available=[...allEntries.values()].flatMap(p=>{
+  const row=rows.find(r=>r.puppy_id===p.id);
+  if(!row&&!g.unlockedPuppies.includes(p.id))return [];
+  return [{...p,...row,unlockSource:unlockText(row),transfer:transferText(row)}];
+ });
  const [sort,setSort]=useState('unlocked');
  const [inspected,setInspected]=useState(g.puppyStyle);
  const [detailsId,setDetailsId]=useState(null);
@@ -415,27 +425,28 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
  const puppyName=p=>LEGACY_V6_PUPPIES.find(legacy=>legacy.id===p.id)?.name||p.name;
  const displayName=p=>p.id===g.puppyStyle?g.puppyName:puppyName(p);
  const retry=id=>setRetries(current=>({...current,[id]:(current[id]||0)+1}));
- const sorts=[['unlocked','Unlocked First'],['name','Name A–Z'],['name-desc','Name Z–A'],['newest','Newest Added'],['number','Oldest Added'],['category','Category']];
- const sections=legacyRosterSections(registry.items);
+ const sorts=[['rarity','Rarity'],['unlocked','Unlocked First'],['name','Name A–Z'],['name-desc','Name Z–A'],['newest','Newest Added'],['number','Oldest Added'],['category','Category']];
+ const sections=[...new Set(available.map(p=>p.groupTitle))].map(title=>({id:title,title,items:available.filter(p=>p.groupTitle===title)}));
  useEffect(()=>setEditing(g.puppyName),[g.puppyName]);
 
  const selected=available.find(p=>p.id===g.puppyStyle)||available[0];
  const details=available.find(p=>p.id===detailsId);
  const detailsOwned=details?g.unlockedPuppies.includes(details.id):false;
  const detailsCurrent=details?.id===g.puppyStyle;
- const selectedOwned=g.unlockedPuppies.includes(selected.id);
- const selectedFavorite=g.favoritePuppies.includes(selected.id);
+ const selectedOwned=g.unlockedPuppies.includes(selected?.id);
+ const selectedFavorite=g.favoritePuppies.includes(selected?.id);
  const matches=available.filter(p=>{
   const owned=g.unlockedPuppies.includes(p.id);
-  return (status==='all'||(status==='unlocked'&&owned)||(status==='locked'&&!owned))&&
+  return (tier==='all'||p.rarity===tier)&&(status==='all'||(status==='unlocked'&&owned)||(status==='locked'&&!owned))&&
    (!favoritesOnly||g.favoritePuppies.includes(p.id))&&
    (category==='all'||p.groupId===category)&&
    (puppyName(p).toLowerCase().includes(search.toLowerCase().trim())||nativeId(p).toLowerCase().includes(search.toLowerCase().trim())||p.id.includes(search.toLowerCase().trim()));
- }).sort((a,b)=>sort==='name'?puppyName(a).localeCompare(puppyName(b)):sort==='name-desc'?puppyName(b).localeCompare(puppyName(a)):sort==='newest'?b.number-a.number:sort==='number'?a.number-b.number:sort==='category'?a.groupOrder-b.groupOrder||puppyName(a).localeCompare(puppyName(b)):Number(g.unlockedPuppies.includes(b.id))-Number(g.unlockedPuppies.includes(a.id)));
- const reset=()=>{setSearch('');setStatus('all');setCategory('all');setFavoritesOnly(false);setSort('unlocked');};
+ }).sort((a,b)=>sort==='rarity'?rarityOrder.indexOf(b.rarity)-rarityOrder.indexOf(a.rarity):sort==='name'?puppyName(a).localeCompare(puppyName(b)):sort==='name-desc'?puppyName(b).localeCompare(puppyName(a)):sort==='newest'?b.number-a.number:sort==='number'?a.number-b.number:sort==='category'?a.groupOrder-b.groupOrder||puppyName(a).localeCompare(puppyName(b)):Number(g.unlockedPuppies.includes(b.id))-Number(g.unlockedPuppies.includes(a.id)));
+ const reset=()=>{setTier('all');setSearch('');setStatus('all');setCategory('all');setFavoritesOnly(false);setSort('unlocked');};
+ if(!selected)return <Txt>{loading?'Loading PupDex…':error?'PupDex unavailable':'No published puppies.'}</Txt>;
  if(view==='collection')return <View style={styles.gamePage}>
-  <PageHeader withLogo title="Puppy Collection" subtitle="V1 classics and V2 puppies in one collection."/>
-  <Txt style={styles.itemName}>Unlocked {unlockedLegacyCount(g.unlockedPuppies)} / {LEGACY_V6_PUPPIES.length}</Txt>
+  <PageHeader withLogo title="PupDex" subtitle={collectionStats(rows,g.unlockedPuppies)}/>
+  <Txt muted>{error?"Catalog unavailable":loading?"Loading collection…":""}</Txt>
   {sections.map(section=><View key={section.id} style={styles.rosterCollectionGroup}>
    <Txt style={styles.sectionTitle}>{section.title}</Txt>
    {section.items.map(p=>{
@@ -450,7 +461,7 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
      <View style={{flex:1,gap:5}}>
       <Txt style={styles.itemName}>{p.name}</Txt>
       <Txt muted style={styles.small}>{p.description}</Txt>
-      {p.redeemOnly?<Txt muted style={styles.tiny}>{section.id.toUpperCase()} Puppy Code {owned?'unlocked':'unlock'}</Txt>:null}
+      <Txt muted style={styles.tiny}>{rarityLabels[p.rarity]} · {p.unlockSource}</Txt>
      </View>
      <Txt style={styles.itemName}>{selected?'✓':owned?'Choose':'🔒'}</Txt>
     </Pressable>;
@@ -495,6 +506,7 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
    onRename={name=>act({type:'rename',name})}/>
   <View style={styles.restoredRosterHeader}><View style={{flex:1,minWidth:0}}><Txt style={styles.pageTitle}>Puppy Roster</Txt><Txt muted numberOfLines={1} style={styles.pageSubtitle}>Browse every streamed puppy in the live roster.</Txt></View><Pressable accessibilityRole="button" accessibilityLabel="Open Puppy Exchange" onPress={onOpenExchange} style={styles.rosterOutline}><Txt style={styles.rosterActionText}>🎁 Exchange</Txt></Pressable></View>
   <View style={styles.restoredRosterFilters}>{[['all','All'],['unlocked','Unlocked'],['locked','Locked']].map(([id,label])=><Pressable key={id} accessibilityRole="tab" accessibilityState={{selected:status===id}} onPress={()=>setStatus(id)} style={[styles.rosterStatus,status===id&&styles.rosterStatusSelected]}><Txt style={[styles.rosterControlText,status===id&&styles.rosterSelectedText]}>{label}</Txt></Pressable>)}</View>
+  <label>Rarity <select value={tier} onChange={e=>setTier(e.target.value)}><option value="all">All rarities</option>{rarityOrder.map(k=><option key={k} value={k}>{rarityLabels[k]}</option>)}</select></label>
   <TextInput accessibilityLabel="Search puppies or ID" placeholder="🔍  Search puppies or ID" placeholderTextColor={C.muted} style={styles.rosterSearch} maxLength={64} value={search} onChangeText={setSearch}/>
   <View style={styles.restoredRosterFilters}>
    <Pressable accessibilityRole="button" accessibilityLabel="Sort puppies" accessibilityState={{expanded:sortOpen}} onPress={()=>setSortOpen(!sortOpen)} style={[styles.rosterOutline,{flex:1,alignItems:'flex-start'}]}><Txt style={styles.rosterControlText}>Sort: {sorts.find(([id])=>id===sort)?.[1]}</Txt></Pressable>
@@ -523,13 +535,13 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
    return <View key={p.id} style={[styles.restoredRosterTile,inspected===p.id&&{borderColor:C.accent}]}>
     <Pressable accessibilityRole="button" accessibilityLabel={'Inspect '+puppyName(p)} onPress={()=>{setInspected(p.id);setDetailsId(p.id);}} style={{width:'100%',alignItems:'center',gap:6}}>
     <Portrait key={p.id+':'+(retries[p.id]||0)} puppy={p} size={rosterViewport<400?104:116} unlocked={owned} lazy/>
-    <Txt numberOfLines={1} style={styles.rosterTileName}>{displayName(p)}</Txt><Txt numberOfLines={1} style={styles.rosterMeta}>{nativeId(p)}</Txt><View style={styles.rosterGroupBadge}><Txt numberOfLines={1} style={styles.rosterMeta}>{p.groupTitle}</Txt></View><Txt style={styles.rosterMeta}>{p.id===g.puppyStyle?'Current':owned?'Unlocked':'🔒 Locked'}</Txt>
+    <Txt numberOfLines={1} style={styles.rosterTileName}>{displayName(p)}</Txt><Txt style={styles.rosterMeta}>{rarityLabels[p.rarity]}</Txt><Txt numberOfLines={1} style={styles.rosterMeta}>{nativeId(p)}</Txt><View style={styles.rosterGroupBadge}><Txt numberOfLines={1} style={styles.rosterMeta}>{p.groupTitle}</Txt></View><Txt style={styles.rosterMeta}>{p.id===g.puppyStyle?'Current':owned?'Unlocked':'🔒 Locked'}</Txt>
     </Pressable>
     <Pressable accessibilityRole="button" accessibilityLabel={(fav?'Remove ':'Add ')+displayName(p)+(fav?' from favorites':' to favorites')} disabled={!owned} onPress={e=>{e.stopPropagation?.();act({type:'favorite',id:p.id});}} style={[styles.rosterHeart,{position:'absolute',right:0,top:0}]}><Txt style={[styles.rosterHeartText,fav&&{color:'#FF5C9D'}]}>{fav?'♥':'♡'}</Txt></Pressable>
     <Pressable accessibilityRole="button" accessibilityLabel={'Retry artwork for '+puppyName(p)} onPress={e=>{e.stopPropagation?.();retry(p.id);}} style={styles.rosterRetry}><Txt style={styles.rosterMeta}>↻</Txt></Pressable>
    </View>;
   })}</View>:<Card title="No puppies match these filters."><Button secondary onPress={reset}>Reset filters</Button></Card>}
-  <Pressable accessibilityRole="button" onPress={()=>setView('collection')} style={styles.rosterOutline}><Txt style={styles.rosterActionText}>Puppy Collection</Txt></Pressable>
+  <Pressable accessibilityRole="button" onPress={()=>setView('collection')} style={styles.rosterOutline}><Txt style={styles.rosterActionText}>PupDex</Txt></Pressable>
  </View>;
 }
 // Part 4: source-matched mechanical Gacha stages 0 idle / 1 turn+drop /
@@ -547,7 +559,11 @@ function GachaScreen({g,act,state,registry,onBack}){
  const frame=gachaMachineFrame(Math.max(0,Math.min(width-44,560)));
  const selected=registry.items.find(p=>p.id===result?.puppyId)
   ||ROSTER.find(p=>p.id===result?.puppyId);
- const pool=gachaPool(ROSTER,g.unlockedPuppies);
+ const {rows}=usePuppyRarity();
+ const pool=gachaPool(ROSTER.flatMap(p=>{
+  const row=rows.find(r=>r.puppy_id===p.id&&r.acquisition==='standard'&&r.rarity!=='unobtainable');
+  return row?[{...p,...row}]:[];
+ }),g.unlockedPuppies);
  const missing=pool.filter(p=>!g.unlockedPuppies.includes(p.id));
  const purchasesAllowed=!g.gameplayBusy&&stage===0&&!result?.success&&pool.length>0;
  useEffect(()=>{
@@ -652,7 +668,7 @@ function GachaScreen({g,act,state,registry,onBack}){
     missing.length+' new puppies remain · new puppies are guaranteed first.'}
   </Txt>
   <Txt muted style={[styles.tiny,{textAlign:'center'}]}>
-   Redeem-only and special locked puppies are excluded. Uses earned Treats or Common Upgrade Tickets only; no real money or cash-out.
+   {poolOdds(pool)}{'\n'}Redeem-only and special locked puppies are excluded. Uses earned Treats or Common Upgrade Tickets only; no real money or cash-out.
   </Txt>
   <Txt muted style={[styles.tiny,{textAlign:'center'}]}>
    Rewards require authoritative PupEye verification before they can affect progression.

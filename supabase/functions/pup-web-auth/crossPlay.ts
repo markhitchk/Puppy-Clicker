@@ -141,13 +141,22 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
  if(/^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent.type)&&
     current.save_data?.stores?.puppy_clicker_save?.values?.casino_active_round_v1)
   reject(409,"PUP_CASINO_ANDROID_ROUND_PENDING");
+ const puppyReward = /^(gacha$|slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent.type);
+ let catalog = [];
+ let catalogVersion = null;
+ if (puppyReward) {
+  const {data,error}=await admin.rpc("pup_rarity_reward_snapshot");
+  if(error || !Array.isArray(data?.rows) || !Number.isSafeInteger(data.version)) reject(503,"PUP_CATALOG_UNAVAILABLE");
+  catalog=data.rows;
+  catalogVersion=data.version;
+ }
  let next;
  try{
   next=intent.type==="casinoRecoverLegacy"?recoverLegacyCasino(current.save_data):intent.type==="tap"||intent.type==="care"
    ?applyBetaLiveGameplay(current.save_data,intent)
    :intent.type.startsWith("blackjack")
-    ?await applyBetaBlackjack(current.save_data,intent)
-    :await applyBetaEconomy(current.save_data,intent);
+    ?await applyBetaBlackjack(current.save_data,intent,Date.now(),catalog)
+    :await applyBetaEconomy(current.save_data,intent,Date.now(),catalog);
  }catch(e){
   const code=String((e as Error)?.message||"");
   if(code==="PUP_TAP_RATE_LIMIT"){
@@ -177,13 +186,14 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
  }
  const savedAt=new Date().toISOString();
  let written:Dict|null=null;
- if(durable){
+ if(durable || puppyReward){
   // Postgres locks the original save row and atomically applies the new save
   // and the unique receipt. A concurrent duplicate never applies twice.
-  const {data:commit,error}=await admin.rpc("pup_web_gameplay_commit",{
+  const {data:commit,error}=await admin.rpc(puppyReward?"pup_rarity_reward_commit":"pup_web_gameplay_commit",{
+   ...(puppyReward?{p_catalog_version:catalogVersion}:{}),
    p_player_uuid:account.player_uuid,p_account_uuid:account.id,
-   p_expected_revision:body.expectedRevision,p_operation_id:operationId,
-   p_intent_hash:intentHash,p_intent_type:intent.type,
+   p_expected_revision:body.expectedRevision,p_operation_id:operationId??crypto.randomUUID(),
+   p_intent_hash:intentHash??sha256Hex(canonicalJson(intent)),p_intent_type:intent.type,
    p_save_data:next,p_payload_hash:sha256Hex(canonicalJson(next))
   });
   if(error||!commit)reject(503,"PUP_CLOUD_WRITE_UNAVAILABLE");

@@ -6,7 +6,7 @@ test("homepage introduces puppies from the real roster",async({page})=>{
  await expect(page.getByRole("heading",{name:/Buddy/}).first()).toBeVisible();
  await page.getByRole("link",{name:/See the full puppy roster/}).click();
  await expect(page).toHaveURL(/\/puppies$/);
- await expect(page.getByRole("heading",{name:"Meet the Puppy Clicker roster"})).toBeVisible();
+ await expect(page.getByRole("heading",{name:"PupDex"})).toBeVisible();
 });
 
 test("public full roster supports filtering and searching without signing in",async({page})=>{

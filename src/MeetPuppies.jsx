@@ -1,6 +1,11 @@
 import React,{useEffect,useMemo,useRef,useState} from "react";
 // Import alongside the dialog so styling cannot be omitted by a partial stylesheet deploy.
 import "./puppy-details.css";
+import {usePuppyRarity} from './usePuppyRarity.js';
+import {client} from './supabase.js';
+import {pupWebApi} from './pupWebApi.js';
+import {useRoster} from './native/src/state/useRoster.js';
+import {collectionStats,rarityLabels,rarityOrder,unlockText,transferText} from './puppyRarity.js';
 import roster from "./data/roster.js";
 import {LEGACY_V6_PUPPIES} from "./native/src/engine/rosterV6.js";
 import PuppyArtwork from "./native/web/PuppyArtwork.jsx";
@@ -11,7 +16,7 @@ const info=new Map(LEGACY_V6_PUPPIES.map(p=>[p.id,p]));
 const catalog=new Map(roster.map(p=>[p.id,p]));
 // Merge the published roster and bundled image IDs. Test and developer puppies
 // are first-class roster entries, not hidden simply because they are restricted.
-export const publicPuppies=[...new Set([...roster.map(p=>p.id),...Object.keys(PUPPY_IMAGES)])]
+const artworkCatalog=[...new Set([...roster.map(p=>p.id),...Object.keys(PUPPY_IMAGES)])]
  .map(id=>{
   const p=catalog.get(id)||{id};
   const details=info.get(id);
@@ -35,7 +40,7 @@ const categories=[
 ];
 const specialPuppy=p=>p.redeemOnly||p.id.includes("dev_pup")||p.group==="discord";
 const groupLabel=p=>p.group==="v1"?"V1 Puppies":p.group==="v2"?"V2 Puppies":p.group==="discord"?"Community":p.group==="test"?"Test Puppies":"Special Puppies";
-const transparentImage=p=>p.image.replace(/^\/assets\/(v1|v2)\//,"/assets/transparent/$1/");
+const transparentImage=p=>(p.image||'').replace(/^\/assets\/(v1|v2)\//,"/assets/transparent/$1/");
 
 function PuppyCard({p,onSelect}){
  // The original opaque V1/V2 image is not used on public roster cards.
@@ -50,7 +55,9 @@ function PuppyCard({p,onSelect}){
    <div className="meet-puppy-body">
     <h3>{p.emoji} {p.name}</h3>
     <p>{p.description}</p>
-    <span>{p.group==="test"?"Development test only":p.id.includes("dev_pup")?"Developer puppy":p.group==="discord"?"Community reward":p.redeemOnly?"Special unlock":"Starter puppy"}</span>
+    <span>{rarityLabels[p.rarity]}</span>
+    <span>{unlockText(p)}</span>
+    {p.collectionStatus&&<span>{p.collectionStatus}</span>}
     <span className="meet-puppy-view">View puppy details →</span>
    </div>
   </a>
@@ -98,7 +105,7 @@ function PublicPuppyDetails({puppy,onDismiss}){
      <p className="meet-detail-asset-id">{assetId}</p>
      <div className="meet-detail-pills">
       <span>{groupLabel(puppy)}</span>
-      <span>{puppy.group==="test"?"Testing only":puppy.redeemOnly?"Special unlock":"Starter puppy"}</span>
+      <span>{rarityLabels[puppy.rarity]}</span><span>{unlockText(puppy)}</span><span>{transferText(puppy)}</span>{puppy.collectionStatus&&<span>{puppy.collectionStatus}</span>}
      </div>
     </div>
    </div>
@@ -123,15 +130,40 @@ function PublicPuppyDetails({puppy,onDismiss}){
 }
 
 export default function MeetPuppies({preview=false}){
+ const catalogState=usePuppyRarity();
+ const {items}=useRoster();
+ const [owned,setOwned]=useState(null);
+ useEffect(()=>{
+  if(preview||!client)return;
+  let active=true,version=0;
+  const sessionChanged=(_event,session)=>{
+   const request=++version;
+   setOwned(null);
+   if(session?.access_token)queueMicrotask(()=>pupWebApi({action:'pupdex-owned'}).then(data=>{
+    if(active&&request===version)setOwned(data.owned);
+   }).catch(()=>{}));
+  };
+  const {data}=client.auth.onAuthStateChange(sessionChanged);
+  return ()=>{active=false;data.subscription.unsubscribe();};
+ },[preview]);
+ const publicPuppies=useMemo(()=>catalogState.rows.map(row=>{
+  const remote=items.find(p=>p.id===row.puppy_id);
+  const art=artworkCatalog.find(p=>p.id===row.puppy_id)||{
+   ...remote,id:row.puppy_id,name:remote?.name||row.puppy_id,group:remote?.groupId||'special'
+  };
+  const collectionStatus=owned?owned.includes(row.puppy_id)?'Unlocked':'Locked':row.rarity==='unobtainable'?'Locked':null;
+  return {...art,...row,collectionStatus};
+ }),[catalogState.rows,items,owned]);
+ const [tier,setTier]=useState('all'),[order,setOrder]=useState('roster');
  const [query,setQuery]=useState("");
  const [category,setCategory]=useState("all");
  const [selectedId,setSelectedId]=useState(()=>!preview&&typeof window!=="undefined"
   ?readPuppyQuery(window.location.search):null);
  const puppies=useMemo(()=>preview?
   featuredIds.map(id=>publicPuppies.find(p=>p.id===id)).filter(Boolean):
-  publicPuppies.filter(p=>(category==="all"||p.group===category||(category==="special"&&specialPuppy(p)))&&
-   (p.name+" "+p.description+" "+puppyAssetId(p)).toLowerCase().includes(query.trim().toLowerCase())),
- [preview,category,query]);
+  publicPuppies.filter(p=>(tier==="all"||p.rarity===tier)&&(category==="all"||p.group===category||(category==="special"&&specialPuppy(p)))&&
+   (p.name+" "+p.description+" "+puppyAssetId(p)).toLowerCase().includes(query.trim().toLowerCase())).sort((a,b)=>order==="rarity"?rarityOrder.indexOf(b.rarity)-rarityOrder.indexOf(a.rarity):0),
+ [preview,category,query,tier,order,publicPuppies]);
  const selectedPuppy=!preview?matchPuppy(publicPuppies,selectedId):null;
 
  useEffect(()=>{
@@ -162,7 +194,7 @@ export default function MeetPuppies({preview=false}){
  return <section className={"meet-puppies "+(preview?"meet-puppies-preview":"meet-puppies-full")}>
   <div className="section-intro">
    <p className="eyebrow">🐶 OFFICIAL PUPPY ROSTER</p>
-   <h2>{preview?"Meet the puppies":"Meet the Puppy Clicker roster"}</h2>
+   <h2>{preview?"Meet the puppies":"PupDex"}</h2>
    <p>Meet the original companions, developer pups, community rewards and test puppies. Special and testing puppies are not automatically unlocked.</p>
   </div>
   {!preview?<div className="meet-puppy-controls">
@@ -174,12 +206,15 @@ export default function MeetPuppies({preview=false}){
     {categories.map(([id,label])=><button key={id} type="button" className={category===id?"active":""}
      aria-pressed={category===id} onClick={()=>setCategory(id)}>{label}</button>)}
    </div>
+   <label>Rarity <select aria-label="Rarity" value={tier} onChange={e=>setTier(e.target.value)}><option value="all">All rarities</option>{rarityOrder.map(k=><option key={k} value={k}>{rarityLabels[k]}</option>)}</select></label>
+   <label>Sort <select value={order} onChange={e=>setOrder(e.target.value)}><option value="roster">Roster order</option><option value="rarity">Rarity</option></select></label>
+   {owned&&<p className="meet-count">{collectionStats(catalogState.rows,owned)}</p>}
    <p className="meet-count">{puppies.length} of {publicPuppies.length} puppies</p>
   </div>:null}
   <div className="meet-puppy-grid">
    {puppies.map(p=><PuppyCard key={p.id} p={p} onSelect={selectPuppy}/>)}
   </div>
-  {!puppies.length?<p role="status" className="meet-empty">No puppies match your search. Try another name or collection.</p>:null}
+  {!puppies.length?<p role="status" className="meet-empty">{catalogState.loading?"Loading PupDex…":catalogState.error?"The PupDex is currently unavailable.":"No puppies match your filters."}</p>:null}
   {preview?<div className="meet-more"><a href="/puppies" className="cta cta-secondary">See the full puppy roster →</a></div>:
    <div className="meet-more"><p>Want to collect these puppies? Your unlocks are managed securely in the game.</p><a href="/play" className="cta cta-primary">🐾 Play Puppy Clicker</a></div>}
   {selectedPuppy?<PublicPuppyDetails key={selectedPuppy.id} puppy={selectedPuppy} onDismiss={dismissPuppy}/>:null}

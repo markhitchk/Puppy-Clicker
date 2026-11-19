@@ -3,11 +3,23 @@
 // Return the normal Vite document with its scripts intact for human visitors.
 import {applyPuppySharePreview,getPuppySharePreview} from "./src/puppySharePreview.js";
 
+import {puppyService} from "./src/supabaseConfig.js";
+
 export const config={matcher:["/puppies"]};
 
 export default async function middleware(request){
  const url=new URL(request.url);
- const preview=getPuppySharePreview(url.search);
+ let preview=getPuppySharePreview(url.search);
+ if(preview){
+  try{
+   const catalog=await fetch(puppyService.url+"/rest/v1/rpc/pup_rarity_public",{
+    method:"POST",headers:{apikey:puppyService.key,"Content-Type":"application/json"},body:"{}",cache:"no-store",
+    signal:AbortSignal.timeout(2500)
+   });
+   const rows=catalog.ok?await catalog.json():[];
+   if(!Array.isArray(rows)||!rows.some(p=>p.puppy_id===preview.id&&p.published))preview=null;
+  }catch{preview=null;}
+ }
  const documentUrl=new URL("/index.html",url);
  const headers=new Headers({accept:"text/html"});
  // Forward Vercel preview authentication only to the same deployment origin.
@@ -19,7 +31,7 @@ export default async function middleware(request){
  const output=applyPuppySharePreview(html,preview);
  const resultHeaders=new Headers({
   "Content-Type":"text/html; charset=utf-8",
-  "Cache-Control":"public, max-age=0, s-maxage=300, stale-while-revalidate=300",
+  "Cache-Control":"private, no-store",
   "X-Content-Type-Options":"nosniff"
  });
  for(const key of ["content-security-policy","referrer-policy","x-frame-options"]){

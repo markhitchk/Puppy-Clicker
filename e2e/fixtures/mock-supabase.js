@@ -1,3 +1,4 @@
+import roster from '../../src/data/roster.js';
 // E2E-only Supabase shim. Production imports the real authenticated Supabase client.
 // Emulates the live Kotlin-format Pup Account row, not the legacy web save RPC.
 const user={id:"e2e-puppy-clicker-user",email:"tester@example.invalid",user_metadata:{full_name:"Test Player"}};
@@ -22,6 +23,10 @@ const cloud=r=>({exists:true,revision:r.revision,updatedAt:r.updatedAt,saveJson:
 const failure=code=>({data:null,error:{context:new Response(JSON.stringify({error:code}),{status:409})}});
 const save=r=>localStorage.setItem(key,JSON.stringify(r));
 export const client={
+ async rpc(name){
+  if(name!=='pup_rarity_public')throw Error('Unexpected public RPC');
+  return {data:roster.map(p=>({puppy_id:p.id,rarity:['dev_pup','v2_dev_pup','v2_harleytg'].includes(p.id)?'unobtainable':'common',published:true,acquisition:'standard'}))};
+ },
  auth:{
   onAuthStateChange(listener){listeners.add(listener);queueMicrotask(()=>listener('INITIAL_SESSION',signedOut?null:{user}));return {data:{subscription:{unsubscribe(){listeners.delete(listener)}}}}},
   async getSession(){return{data:{session:signedOut?null:{user}},error:null}},

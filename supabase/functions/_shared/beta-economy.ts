@@ -1,3 +1,4 @@
+import {eligibleIds, weightedChoice, secureInt, type RarityRow} from "./puppy-rarity.ts";
 import {MAX_PLAYER_XP,MAX_UPGRADES_PER_ITEM,MAX_REWARD_STREAK_DAYS,xpLevel,addBoundedXp,boundedXp} from "./beta-progression.ts";
 import {grantCasinoBonuses,canWheelUnlock,unownedCasinoPuppies} from "./beta-casino-rewards.ts";
 /**
@@ -123,13 +124,6 @@ const setInt=(v:Dict,t:Dict,k:string,x:number)=>write(v,t,k,x,"int");
 const addLong=(v:Dict,t:Dict,k:string,amount:number)=>setLong(v,t,k,inc(num(v,k),amount));
 const earned=(v:Dict,t:Dict,amount:number)=>{addLong(v,t,"treats",amount);addLong(v,t,"lifetime_treats",amount);};
 const uuid=()=>crypto.randomUUID();
-function secureInt(limit:number):number {
- expect(Number.isSafeInteger(limit)&&limit>0&&limit<=0x100000000,"RNG_RANGE");
- const domain=0x100000000,threshold=domain-(domain%limit);
- const bytes=new Uint32Array(1);
- do{crypto.getRandomValues(bytes);}while(bytes[0]>=threshold);
- return bytes[0]%limit;
-}
 function own(v:Dict,k:string):string[]{const x=v[k];return Array.isArray(x)?x.filter(y=>typeof y==="string") as string[]:[];}
 const level=(v:Dict)=>xpLevel(num(v,"player_xp_v1",num(v,"lifetime_treats")));
 const careScore=(v:Dict)=>Math.floor((num(v,"happiness",100)+num(v,"fullness",100)+num(v,"energy",100)+num(v,"cleanliness_v5",100))/4);
@@ -304,7 +298,7 @@ function stakeAllowed(v:Dict,wager:unknown):asserts wager is number {
  expect(num(v,"casino_chips_v7")>=wager,"NOT_ENOUGH_CASINO_CHIPS");
 }
 const rollSymbol=(roll:number)=>{let count=0;for(const x of slotSymbols){count+=x.weight;if(roll<count)return x;}throw Error("BAD_SLOT_WEIGHTS");};
-function newCasinoRound(type:string,intent:BetaEconomyIntent,now:number,v:Dict):Dict{
+function newCasinoRound(type:string,intent:BetaEconomyIntent,now:number,v:Dict,catalog:RarityRow[]):Dict{
  const wager=intent.wager as number;
  const base={roundId:uuid(),wager,createdAt:now};
  if(type==="slotsStart"){
@@ -346,17 +340,17 @@ function newCasinoRound(type:string,intent:BetaEconomyIntent,now:number,v:Dict):
  if(type==="wheelStart"){
   const roll=secureInt(100);let sum=0,prize=wheelPrizes[0];
   for(const p of wheelPrizes){sum+=p.weight;if(roll<sum){prize=p;break;}}
-  const available=unownedCasinoPuppies(v);
-  const eligible=canWheelUnlock(v,now)&&available.length>0;
+  const available=unownedCasinoPuppies(v,catalog);
+  const eligible=canWheelUnlock(v,now,catalog)&&available.length>0;
   if(prize.id==="PUPPY_UNLOCK"&&!eligible)prize=wheelPrizes[2];
-  const puppyStyleId=prize.id==="PUPPY_UNLOCK"?available[secureInt(available.length)]:null;
+  const puppyStyleId=prize.id==="PUPPY_UNLOCK"?weightedChoice(available,catalog,secureInt):null;
   return {...base,type:"LUCKY_WHEEL",version:1,roll,prize:prize.id,
    segmentIndex:wheelPrizes.findIndex(p=>p.id===prize.id),puppyStyleId,
    payout:Math.floor(wager*prize.multi/100)};
  }
  throw Error("UNSUPPORTED_CASINO_GAME");
 }
-async function casino(v:Dict,t:Dict,intent:BetaEconomyIntent,now:number){
+async function casino(v:Dict,t:Dict,intent:BetaEconomyIntent,now:number,catalog:RarityRow[]){
  const current=v.beta_casino_round_v1;
  const round=typeof current==="string"&&current?requireObj(JSON.parse(current)):null;
  if(intent.type.endsWith("Start")){
@@ -365,7 +359,7 @@ async function casino(v:Dict,t:Dict,intent:BetaEconomyIntent,now:number){
   if(intent.type==="scratchStart")expect(Object.hasOwn(scratchCards,intent.wager as number),"UNSUPPORTED_SCRATCH_CARD");
   if(["plinkoStart","scratchStart","wheelStart"].includes(intent.type))
    expect((intent.wager as number)%20===0,"INVALID_CASINO_WAGER_INCREMENT");
-  const created=newCasinoRound(intent.type,intent,now,v);
+  const created=newCasinoRound(intent.type,intent,now,v,catalog);
   setLong(v,t,"casino_chips_v7",num(v,"casino_chips_v7")-(intent.wager as number));
   write(v,t,"beta_casino_round_v1",JSON.stringify(created),"string");
   write(v,t,"beta_last_casino_result_v1","","string");
@@ -373,12 +367,16 @@ async function casino(v:Dict,t:Dict,intent:BetaEconomyIntent,now:number){
   const names:Record<string,string>={slotsReveal:"SLOTS",rouletteReveal:"ROULETTE",plinkoReveal:"PLINKO",scratchReveal:"SCRATCHERS",wheelReveal:"LUCKY_WHEEL"};
   expect(round&&round.game===names[intent.type] || round?.type===names[intent.type],"CASINO_ROUND_NOT_FOUND");
   expect(Number.isSafeInteger(round?.payout)&&Number(round.payout)>=0,"CORRUPT_CASINO_ROUND");
+  if(round.type==="LUCKY_WHEEL" && round.prize==="PUPPY_UNLOCK" &&
+    (!canWheelUnlock(v,now,catalog) || !unownedCasinoPuppies(v,catalog).includes(String(round.puppyStyleId)))){
+   Object.assign(round,{prize:"REFUND",segmentIndex:2,puppyStyleId:null,payout:round.wager});
+  }
   setLong(v,t,"casino_chips_v7",inc(num(v,"casino_chips_v7"),Number(round.payout)));
   write(v,t,"beta_casino_round_v1","","string");
   const bonus=await grantCasinoBonuses(v,t,{
    roundId:String(round.roundId),wager:Number(round.wager),payout:Number(round.payout),
    guaranteedPuppyId:round.type==="LUCKY_WHEEL"&&round.prize==="PUPPY_UNLOCK"?String(round.puppyStyleId):null
-  },now);
+  },now,catalog);
   write(v,t,"beta_last_casino_result_v1",JSON.stringify({...round,bonus}),"string");
  }
 }
@@ -396,7 +394,7 @@ export function applyBetaSyncProbe(raw:unknown,now=Date.now()):Dict{
  return {...source,savedAtEpochMs:now,stores:{...stores,puppy_clicker_save:{...main,values,types}}};
 }
 /** Handles rewards, shops and casino using *only* the stored server-signed Kotlin save. */
-export async function applyBetaEconomy(raw:unknown,intent:BetaEconomyIntent,now=Date.now()):Promise<Dict>{
+export async function applyBetaEconomy(raw:unknown,intent:BetaEconomyIntent,now=Date.now(),catalog:RarityRow[]=[]):Promise<Dict>{
  const source=requireObj(raw);expect(source.format==="puppy-clicker-cloud-save"&&source.version===1,"UNSUPPORTED_KOTLIN_SAVE");
  const stores=requireObj(source.stores),main=requireObj(stores.puppy_clicker_save);
  const v={...requireObj(main.values)},t={...requireObj(main.types)};
@@ -417,8 +415,9 @@ export async function applyBetaEconomy(raw:unknown,intent:BetaEconomyIntent,now=
    const payment=intent.payment;
    expect(payment==="TREATS"||payment==="COMMON_TICKET","INVALID_GACHA_PAYMENT");
    const unlocked=new Set([...own(v,"unlocked_puppies"),"classic","golden","poodle","spotty"]);
-   const missing=FREE_GACHA_PUPPIES.filter(p=>!unlocked.has(p.id));
-   const pool=missing.length?missing:FREE_GACHA_PUPPIES.filter(p=>unlocked.has(p.id));
+   const eligible=eligibleIds(FREE_GACHA_PUPPIES.map(p=>p.id),catalog);
+   const missing=eligible.filter(id=>!unlocked.has(id));
+   const pool=missing.length?missing:eligible;
    expect(pool.length>0,"GACHA_NO_PUPPIES");
    if(payment==="TREATS"){
     expect(num(v,"treats")>=2500,"GACHA_INSUFFICIENT_TREATS");
@@ -428,7 +427,8 @@ export async function applyBetaEconomy(raw:unknown,intent:BetaEconomyIntent,now=
     expect(num(v,key)>=1,"GACHA_INSUFFICIENT_TICKET");
     setInt(v,t,key,num(v,key)-1);
    }
-   const choice=pool[secureInt(pool.length)];
+   const chosenId=weightedChoice(pool,catalog,secureInt);
+   const choice=FREE_GACHA_PUPPIES.find(p=>p.id===chosenId)!;
    const isNewUnlock=!unlocked.has(choice.id);
    if(isNewUnlock){
     unlocked.add(choice.id);
@@ -619,7 +619,7 @@ export async function applyBetaEconomy(raw:unknown,intent:BetaEconomyIntent,now=
   }
   case "slotsStart":case "rouletteStart":case "plinkoStart":case "scratchStart":case "wheelStart":
   case "slotsReveal":case "rouletteReveal":case "plinkoReveal":case "scratchReveal":case "wheelReveal":
-   await casino(v,t,intent,now);break;
+   await casino(v,t,intent,now,catalog);break;
   default:throw Error("BETA_ACTION_NOT_PORTED");
  }
  settleBetaAchievements(v,t);
