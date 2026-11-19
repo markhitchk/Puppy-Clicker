@@ -1,5 +1,16 @@
 import {test,expect} from '@playwright/test';
 
+// Existing settings regressions explicitly opt in to saved customization.
+// The separate cookie-privacy suite tests the no-consent and reject paths.
+test.beforeEach(async({page})=>{
+ await page.addInitScript(()=>{
+  localStorage.setItem('puppy-clicker:cookie-choice:v1',JSON.stringify({
+   version:1,essential:true,functional:true,analytics:false,advertising:false,savedAt:Date.now()
+  }));
+ });
+});
+
+
 test('paw cursor assets are available and used site-wide with a mouse',async({page})=>{
  await page.setViewportSize({width:1280,height:800});
  await page.goto('/');
