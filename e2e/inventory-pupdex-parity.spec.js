@@ -51,6 +51,16 @@ test('account inventory puppy details and full artwork viewer match PupDex witho
  const viewer=page.locator('dialog.play-pupdex-asset-dialog');
  await expect(viewer).toBeVisible();
  await expect(viewer.getByRole('img',{name:/full-size transparent puppy artwork/})).toBeVisible();
+ await expect.poll(()=>viewer.locator('img.puppy-artwork').evaluate(img=>img.naturalWidth)).toBeGreaterThan(0);
+ const image=await viewer.locator('img.puppy-artwork').evaluate(img=>({
+  path:new URL(img.currentSrc).pathname,
+  width:img.getBoundingClientRect().width,
+  natural:img.naturalWidth,
+  filter:getComputedStyle(img).filter
+ }));
+ expect(image.path).toBe('/assets/transparent/v1/v1_classic.png');
+ expect(image.width).toBeLessThanOrEqual(image.natural+1);
+ expect(image.filter).toBe('none');
  await expect(viewer.getByRole('button',{name:'Hide transparency grid'})).toHaveAttribute('aria-pressed','true');
  await viewer.getByRole('button',{name:'Close Viewer'}).click();
  await expect(viewer).toHaveCount(0);
