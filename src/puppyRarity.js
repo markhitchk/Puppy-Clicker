@@ -8,7 +8,7 @@ export const unlockText=row=>{
  const sources={event:'Seasonal event',code:'Puppy Code',community:'Community reward'};
  if(sources[row.acquisition])return sources[row.acquisition];
  if(['classic','golden','spotty','poodle'].includes(row.puppy_id))return 'Starter puppy';
- if(['test_v1_crash_dummy','test_v2_crash_dummy'].includes(row.puppy_id))return 'Puppy Gacha';
+ if(['test_v1_crash_dummy','test_v2_crash_dummy'].includes(row.puppy_id))return 'Free test puppy';
  return CASINO_PUPPY_POOL.includes(row.puppy_id)?'Casino puppy reward':'No standard reward currently available';
 };
 export const transferText=row=>!row?'':row.bound?'Account-bound':[
