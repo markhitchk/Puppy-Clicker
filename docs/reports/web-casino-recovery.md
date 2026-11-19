@@ -1,5 +1,7 @@
 # Web casino release — 2026-10-28
 
+> **Historical compatibility note (2026-11-18):** This report documents the original release behavior. The right-click/F12/View Source/DevTools inspection-deterrent implementation was subsequently removed. The website now explicitly preserves browser Developer Tools access across all routes. See [the permanent DevTools compatibility policy](../browser-devtools-compatibility.md). Server-side casino, account, and PupEye validations remain the security boundary.
+
 The production save had an accepted legacy Blackjack wager from the old Kotlin app. Both casino server reducers refuse new wagers while this reservation is present. The website previously omitted the reservation and hid rejected requests in Settings, so every game appeared unresponsive.
 
 This release includes the earlier unreleased web authentication/casino repair and adds a web-only recovery intent. The Casino shows a recovery control when the server verifies an incomplete legacy Blackjack round older than 24 hours. Recovery returns the saved reserved Chips, records the original completed-round ID, removes the reservation, and writes a receipt in one revision-checked update. It does not draw cards, pay winnings, award bonuses, or accept a browser-supplied refund. Current web rounds, committed outcomes, malformed decks/ledgers, duplicate IDs, unsafe balances and revoked owners are rejected. The original Kotlin refund semantics and completed-ID encoding are preserved. No Android source or shared server reducer changed.

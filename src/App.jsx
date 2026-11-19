@@ -1,4 +1,3 @@
-import {installInspectionDeterrent} from "./inspectionDeterrent.js";
 import React,{useEffect,useId,useRef,useState} from "react";
 import NativeApp from "./native/App.jsx";
 import AdaptiveGraphics from "./AdaptiveGraphics.jsx";
@@ -486,7 +485,6 @@ const puppyCursorVariants=[
  ['--puppy-secondary','secondary','auto']
 ];
 export default function App(){
- useEffect(()=>installInspectionDeterrent(),[]);
  useEffect(()=>{
   // Root-level styling includes Home, Play, Account, and all website routes.
   const systemTheme=window.matchMedia('(prefers-color-scheme: dark)');
