@@ -8,7 +8,7 @@ import MeetPuppies from "./MeetPuppies.jsx";
 import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
-import {loadWebPreferences,pointerThemeFor,isMobilePointerEnvironment,effectivePointerSizeKey,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
+import {loadWebPreferences,pointerThemeFor,effectivePointerSize,effectivePointerSizeKey,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
 import {beginPuppyDiscord,verifyPuppySession,puppyAuthMessage} from "./native/web/puppyOAuth.js";
 import {DISCORD_ICON_URL} from "./discordIcon.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
@@ -470,6 +470,21 @@ function DiscordCallbackPage(){
  // Process the browser PKCE callback using the verified website account gate.
  return <WebAccountGate><WebLoading stage="callback"/></WebAccountGate>;
 }
+// Shared cursor fallback states for normal/hover/click/text/grab across all routes.
+const puppyCursorVariants=[
+ ['--puppy-default','default','auto'],
+ ['--puppy-hover','hover','pointer'],
+ ['--puppy-click','click','pointer'],
+ ['--puppy-text-select','text_select','text'],
+ ['--puppy-link','link','pointer'],
+ ['--puppy-grab','grab','grab'],
+ ['--puppy-grabbing','grabbing','grabbing'],
+ ['--puppy-not-allowed','not_allowed','not-allowed'],
+ ['--puppy-working','working','progress'],
+ ['--puppy-precision','precision','crosshair'],
+ ['--puppy-alternate','alternate','auto'],
+ ['--puppy-secondary','secondary','auto']
+];
 export default function App(){
  useEffect(()=>installInspectionDeterrent(),[]);
  useEffect(()=>{
@@ -494,9 +509,17 @@ export default function App(){
    const prefs={...loadWebPreferences(),...(event?.detail??{})};
    const dark=prefs.themeMode==='dark'||(prefs.themeMode!=='light'&&systemTheme.matches);
    root.dataset.puppyCursor=prefs.puppyPointerEnabled!==false?'enabled':'disabled';
-   root.dataset.puppyCursorTheme=pointerThemeFor(prefs,systemTheme.matches);
-   root.dataset.puppyCursorSize=effectivePointerSizeKey(prefs,isMobilePointerEnvironment(window));
-   root.dataset.puppyPointerHalo=prefs.puppyPointerClickHighlight&&prefs.puppyPointerEnabled!==false&&!prefs.reducedMotion?'enabled':'disabled';
+   const cursorTheme=pointerThemeFor(prefs,systemTheme.matches);
+   const cursorSize=effectivePointerSize(prefs);
+   root.dataset.puppyCursorTheme=cursorTheme;
+   root.dataset.puppyCursorSize=effectivePointerSizeKey(prefs);
+   // Cursor URL dimensions cannot be changed with CSS width/height.
+   // Each slider step has a real PNG generated from the original Puppy pack.
+   for(const [property,state,fallback] of puppyCursorVariants){
+    const hotspot=state==='precision'?Math.floor(cursorSize/2):Math.floor(cursorSize/4);
+    root.style.setProperty(property,`url('/assets/pointers/themes/puppy_pointer_${cursorTheme}_${state}_${cursorSize}.png') ${hotspot} ${hotspot}, url('/assets/pointers/puppy_pointer_${cursorTheme}_${state}.png') 16 16, ${fallback}`);
+   }
+   root.dataset.puppyPointerHalo=prefs.puppyPointerClickHighlight&&!prefs.reducedMotion?'enabled':'disabled';
    root.dataset.puppyTheme=dark?'dark':'light';
    root.dataset.puppyContrast=prefs.highContrast?'high':'normal';
    root.dataset.puppyReducedMotion=prefs.reducedMotion?'true':'false';
@@ -549,6 +572,7 @@ export default function App(){
    delete root.dataset.puppyReducedMotion;
    root.style.removeProperty('--site-accent');
    root.style.removeProperty('--site-scale');
+   for(const [property] of puppyCursorVariants)root.style.removeProperty(property);
   };
  },[]);
  // Keep historical /register bookmarks, but make /account the one auth endpoint.
