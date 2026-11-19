@@ -48,6 +48,16 @@ test('in-game details open a full-size asset viewer without mutating the collect
  await expect(viewer).toBeVisible();
  await expect(viewer.getByRole('heading',{name:'Aurora'})).toBeVisible();
  await expect(viewer.getByRole('img',{name:/full-size transparent puppy artwork/})).toBeVisible();
+ await expect.poll(()=>viewer.locator('img.puppy-artwork').evaluate(img=>img.naturalWidth)).toBeGreaterThan(0);
+ const source=await viewer.locator('img.puppy-artwork').evaluate(img=>({
+  path:new URL(img.currentSrc).pathname,
+  width:img.getBoundingClientRect().width,
+  natural:img.naturalWidth,
+  filter:getComputedStyle(img).filter
+ }));
+ expect(source.path).toBe('/assets/transparent/v1/v1_aurora.png');
+ expect(source.width).toBeLessThanOrEqual(source.natural+1);
+ expect(source.filter).toBe('none');
  await expect(viewer.getByRole('button',{name:'Hide transparency grid'})).toHaveAttribute('aria-pressed','true');
  await viewer.getByRole('button',{name:'Hide transparency grid'}).click();
  await expect(viewer.getByRole('button',{name:'Show transparency grid'})).toHaveAttribute('aria-pressed','false');
