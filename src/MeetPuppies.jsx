@@ -117,7 +117,7 @@ function PublicPuppyDetails({puppy,onDismiss}){
     <div className="meet-detail-identity" data-rarity={puppy.rarity||'common'}>
      <div className="meet-detail-artwork">
       <PuppyArtwork key={assetId+"-"+artVersion} id={puppy.id}
-       name={puppy.name+" puppy"} uri={transparentImage(puppy)} size={164}
+       name={puppy.name+" puppy"} uri={transparentImage(puppy)} size={164} fullResolution
        onUnavailable={()=>setArtFailed(true)}/>
      </div>
      <div className="meet-detail-name">
