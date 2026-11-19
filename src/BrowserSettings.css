@@ -78,57 +78,99 @@
 }
 
 
-/* ChromeOS display/text scale, browser zoom and hybrid touch/trackpad devices:
- * layout follows actual content width, not pointer capability or physical pixels.
- * Never leave named grid areas on a one-column layout. */
+/* ChromeOS compact desktop density: use the actual CSS content width
+ * (after OS display scaling / browser zoom), never physical screen size or
+ * pointer type. Avoid transform: scale()/zoom on the page: it misaligns
+ * scrolling, keyboard targets and custom mouse cursors. */
 .browser-settings-page{
  box-sizing:border-box;
  width:min(1260px,100%);
  max-width:100%;
+ padding:clamp(12px,1.8vw,22px) clamp(12px,1.5vw,18px) 36px;
  container:browser-settings/inline-size;
 }
+.browser-settings-intro{gap:10px;margin-bottom:16px}
+.browser-settings-intro h1{font-size:clamp(1.5rem,2.4vw,2rem);margin:4px 0 7px}
+.browser-settings-intro p{line-height:1.45}
 .browser-settings-grid{
  display:grid;
  grid-template-columns:minmax(0,1fr);
  grid-template-areas:none;
  align-items:start;
- gap:clamp(12px,1.5vw,18px);
+ gap:12px;
  min-width:0;
 }
 .browser-settings-grid>.browser-settings-panel{
  grid-area:auto;
- width:100%;
- min-width:0;
- max-width:100%;
  box-sizing:border-box;
+ width:100%;
+ max-width:100%;
+ min-width:0;
+ padding:clamp(12px,1.5vw,18px);
+ border-radius:16px;
+ gap:10px;
 }
+.browser-settings-panel h2{font-size:1.0625rem;line-height:1.3}
+.browser-settings-panel p{line-height:1.45}
 .browser-settings-panel :where(fieldset,.browser-settings-option,.browser-pointer-controls,.browser-pointer-preview,.browser-pointer-preview-grid){
  min-width:0;
  max-width:100%;
 }
-.browser-settings-panel :where(h2,p,small,strong,span,legend){
- overflow-wrap:anywhere;
+.browser-settings-panel :where(h2,p,small,strong,span,legend){overflow-wrap:anywhere}
+.browser-settings-choices>div{gap:6px}
+.browser-settings-choices legend{margin-bottom:6px}
+.browser-settings-choices label{
+ min-height:38px;
+ padding:7px 9px;
+ gap:6px;
+ border-radius:10px;
 }
-.browser-pointer-controls{min-width:0}
+.browser-settings-option{
+ min-height:44px;
+ padding:8px 0;
+ gap:10px;
+}
+.browser-settings-option span{gap:4px}
+.browser-settings-option input{width:21px;height:21px}
+.browser-settings-action{min-height:40px;padding:8px 13px}
+.browser-settings-links{gap:6px;margin-top:2px}
+.browser-pointer-controls{min-width:0;gap:10px}
+.browser-pointer-preview{padding:10px;gap:8px;border-radius:12px}
+.browser-pointer-preview-grid{gap:6px}
+.browser-pointer-preview-tile{min-height:104px;gap:6px;padding:7px 4px}
+.browser-pointer-preview-tile img{flex-shrink:0;max-height:80px;height:auto}
 .browser-pointer-preview[data-cursor-theme='dark'] .browser-pointer-preview-tile{
  background:#e9f4fa;color:#152432;border-color:#b6d1df;
 }
 .browser-pointer-preview[data-cursor-theme='light'] .browser-pointer-preview-tile{
  background:#14283a;color:#f6faff;border-color:#3b6981;
 }
-.browser-pointer-preview-tile img{flex-shrink:0;max-height:96px}
 
-/* A larger root font increases the threshold, which respects ChromeOS text
- * sizing and accessibility without requiring JavaScript viewport guesses. */
-@container browser-settings (min-width:74rem){
+/* Two readable desktop columns at ~1188 CSS px on ChromeOS. A rem-based
+ * breakpoint accommodates larger default text and increased browser zoom. */
+@container browser-settings (min-width:64rem){
  .browser-settings-grid{
   grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);
+  grid-template-areas:
+   "appearance pointer"
+   "performance pointer"
+   "notifications storage";
  }
+ .browser-settings-panel[aria-labelledby="browser-appearance"]{grid-area:appearance}
+ .browser-settings-panel[aria-labelledby="browser-pointer-heading"]{grid-area:pointer}
+ .browser-settings-panel[aria-labelledby="browser-performance"]{grid-area:performance}
+ .browser-settings-panel[aria-labelledby="browser-notifications"]{grid-area:notifications}
+ .browser-settings-panel[aria-labelledby="browser-storage"]{grid-area:storage}
 }
+
+/* Preserve a readable single column at narrower viewport/zoom values. */
 @media (max-width:1100px){
  .browser-settings-page{width:min(780px,100%);padding:clamp(14px,3vw,25px) 14px 36px}
- .browser-settings-grid{gap:14px}
- .browser-settings-panel{padding:clamp(15px,2.6vw,23px)}
- .browser-settings-choices label{min-height:42px}
- .browser-pointer-preview-grid{gap:8px}
+ .browser-settings-grid{gap:12px}
+}
+@media (max-width:790px){
+ .browser-settings-grid>.browser-settings-panel{padding:16px;gap:10px}
+ .browser-settings-option{min-height:48px}
+ .browser-settings-choices label{min-height:41px}
+ .browser-settings-action{min-height:44px}
 }
