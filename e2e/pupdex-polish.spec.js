@@ -46,6 +46,16 @@ test('asset viewer opens from public details, previews transparency, and closes 
  await expect(viewer.getByRole('heading',{name:'Aurora'})).toBeVisible();
  await expect(viewer.getByText('v1_aurora')).toBeVisible();
  await expect(viewer.getByRole('img',{name:/full-size transparent puppy artwork/})).toBeVisible();
+ await expect.poll(()=>viewer.locator('img.puppy-artwork').evaluate(img=>img.naturalWidth)).toBeGreaterThan(0);
+ const render=await viewer.locator('img.puppy-artwork').evaluate(img=>({
+  source:new URL(img.currentSrc).pathname,
+  natural:img.naturalWidth,
+  rendered:img.getBoundingClientRect().width,
+  filter:getComputedStyle(img).filter
+ }));
+ expect(render.source).toBe('/assets/transparent/v1/v1_aurora.png');
+ expect(render.rendered).toBeLessThanOrEqual(render.natural+1);
+ expect(render.filter).toBe('none');
  const toggle=viewer.getByRole('button',{name:'Hide transparency grid'});
  await expect(toggle).toHaveAttribute('aria-pressed','true');
  await toggle.click();
