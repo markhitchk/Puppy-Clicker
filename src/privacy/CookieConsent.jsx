@@ -84,7 +84,9 @@ export default function CookieConsent(){
   if(enabled){saveWebPreferences(priorPrefs);writeLanguage(priorLanguage);}
   setError("");setOpen(false);
  };
- if(globalThis.location?.pathname==="/auth/discord/callback")return null;
+ // Never obscure Puppy Clicker's compact, full-screen gameplay controls.
+ // Consent choices remain available from Browser Settings and the Privacy Center.
+ if(globalThis.location?.pathname==="/auth/discord/callback"||globalThis.location?.pathname==="/play")return null;
  return <>
   {!choice&&!open?<aside className="puppy-cookie-banner" aria-label={tr.bannerTitle}>
    <div><strong>🍪 {tr.bannerTitle}</strong><p>{tr.banner}</p></div>
