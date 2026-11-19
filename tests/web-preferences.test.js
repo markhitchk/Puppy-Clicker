@@ -68,6 +68,20 @@ test('browser cursor defaults to system-like size and enabled click feedback',as
  assert.equal(JSON.parse(stored).cloudSave,undefined);
 });
 
+test('legacy profiles that saved the old off-by-default halo migrate once',async()=>{
+ const {loadWebPreferences,updateWebPreference,saveWebPreferences}=await import('../src/native/web/preferences.js');
+ let stored=JSON.stringify({themeMode:'light',puppyPointerEnabled:true,puppyPointerClickHighlight:false,uiScale:'large'});
+ const storage={getItem:()=>stored,setItem:(_key,value)=>{stored=value;}};
+ const migrated=loadWebPreferences(storage);
+ assert.equal(migrated.themeMode,'light');
+ assert.equal(migrated.uiScale,'large');
+ assert.equal(migrated.puppyPointerClickHighlight,true);
+ assert.equal(migrated.puppyPointerSizeMode,'system');
+ const toggled=updateWebPreference(migrated,'puppyPointerClickHighlight',false);
+ assert.equal(saveWebPreferences(toggled,storage),true);
+ assert.equal(loadWebPreferences(storage).puppyPointerClickHighlight,false);
+});
+
 test('system-size mode ignores interface size and hybrid pointer environment',async()=>{
  const {isMobilePointerEnvironment,effectivePointerSize,effectivePointerSizeKey}=await import('../src/native/web/preferences.js');
  const compact={uiScale:'compact',puppyPointerSizeMode:'system',puppyPointerCustomSize:96};
