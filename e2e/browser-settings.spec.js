@@ -191,8 +191,16 @@ test('ChromeOS viewport and text scaling keep browser settings in normal flow',a
   });
   expect(result.overlaps,`Panels overlap at ${size.width}×${size.height}`).toEqual([]);
   expect(result.overflow,`Horizontal overflow at ${size.width}×${size.height}`).toBeLessThanOrEqual(2);
-  if(size.width===1188)expect(result.columns).toBe(1);
+  if(size.width===1188||size.width===1366||size.width===1920)expect(result.columns).toBe(2);
+  if(size.width===1000||size.width===390)expect(result.columns).toBe(1);
  }
+ await page.setViewportSize({width:1188,height:668});
+ const density=await page.locator('.browser-settings-grid>.browser-settings-panel').first().evaluate(el=>{
+  const styles=getComputedStyle(el);
+  return {padding:parseFloat(styles.paddingTop),radius:parseFloat(styles.borderTopLeftRadius)};
+ });
+ expect(density.padding).toBeLessThanOrEqual(19);
+ expect(density.radius).toBeLessThanOrEqual(18);
  await page.setViewportSize({width:1440,height:900});
  await page.evaluate(()=>{document.documentElement.style.fontSize='20px';});
  const columns=await page.locator('.browser-settings-grid').evaluate(grid=>getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length);
