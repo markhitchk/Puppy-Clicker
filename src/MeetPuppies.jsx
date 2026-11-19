@@ -43,8 +43,8 @@ const groupLabel=p=>p.group==="v1"?"V1 Puppies":p.group==="v2"?"V2 Puppies":p.gr
 const transparentImage=p=>(p.image||'').replace(/^\/assets\/(v1|v2)\//,"/assets/transparent/$1/");
 
 function PuppyCard({p,onSelect}){
- // The original opaque V1/V2 image is not used on public roster cards.
- return <article className="meet-puppy-card">
+ // The full card is one accessible link; badge pills are non-interactive.
+ return <article className="meet-puppy-card" data-rarity={p.rarity||'common'}>
   <a className="meet-puppy-link" href={puppyDetailsHref(p)} onClick={event=>onSelect?.(event,p)}
    aria-label={"View "+p.name+" puppy details"}>
    <div className="meet-puppy-art">
@@ -55,10 +55,12 @@ function PuppyCard({p,onSelect}){
    <div className="meet-puppy-body">
     <h3>{p.emoji} {p.name}</h3>
     <p>{p.description}</p>
-    <span>{rarityLabels[p.rarity]}</span>
-    <span>{unlockText(p)}</span>
-    {p.collectionStatus&&<span>{p.collectionStatus}</span>}
-    <span className="meet-puppy-view">View puppy details →</span>
+    <div className="meet-puppy-badges" aria-label="Puppy classification">
+     <span className="meet-puppy-badge meet-puppy-badge-rarity">{rarityLabels[p.rarity]}</span>
+     <span className="meet-puppy-badge">{unlockText(p)}</span>
+     {p.collectionStatus&&<span className="meet-puppy-badge meet-puppy-badge-status">{p.collectionStatus}</span>}
+    </div>
+    <span className="meet-puppy-view">View puppy details <span aria-hidden="true">↗</span></span>
    </div>
   </a>
  </article>;
@@ -66,8 +68,13 @@ function PuppyCard({p,onSelect}){
 
 function PublicPuppyDetails({puppy,onDismiss}){
  const dialogRef=useRef(null);
+ const assetDialogRef=useRef(null);
  const [artVersion,setArtVersion]=useState(0);
+ const [artFailed,setArtFailed]=useState(false);
+ const [assetOpen,setAssetOpen]=useState(false);
+ const [checkerboard,setCheckerboard]=useState(true);
  const [copyStatus,setCopyStatus]=useState("");
+ const [assetStatus,setAssetStatus]=useState("");
  const assetId=puppyAssetId(puppy);
  const href=puppyDetailsHref(puppy);
  useEffect(()=>{
@@ -75,57 +82,108 @@ function PublicPuppyDetails({puppy,onDismiss}){
   if(dialog&&!dialog.open)dialog.showModal();
   return ()=>{if(dialog?.open)dialog.close();};
  },[]);
- const copyLink=async()=>{
-  const url=new URL(href,window.location.origin).href;
+ useEffect(()=>{
+  if(!assetOpen)return;
+  const dialog=assetDialogRef.current;
+  if(dialog&&!dialog.open)dialog.showModal();
+  return ()=>{if(dialog?.open)dialog.close();};
+ },[assetOpen]);
+ const retryArtwork=()=>{
+  setArtFailed(false);
+  setArtVersion(version=>version+1);
+  setAssetStatus("Artwork reloading.");
+ };
+ const copyText=async(value,success,onStatus)=>{
   try{
    if(!navigator.clipboard?.writeText)throw Error("Clipboard unavailable");
-   await navigator.clipboard.writeText(url);
-   setCopyStatus("Puppy link copied!");
+   await navigator.clipboard.writeText(value);
+   onStatus(success);
   }catch{
-   setCopyStatus("Copy is unavailable. You can share the URL from your browser address bar.");
+   onStatus("Clipboard unavailable. You can copy this information from the page.");
   }
  };
+ const closeAssetViewer=()=>{setAssetOpen(false);setAssetStatus("");};
+ const dismiss=()=>{if(assetOpen)closeAssetViewer();else onDismiss();};
  return <dialog ref={dialogRef} className="meet-puppy-dialog"
   aria-labelledby="meet-puppy-dialog-title" aria-describedby="meet-puppy-dialog-info"
-  onCancel={event=>{event.preventDefault();onDismiss();}}
-  onClick={event=>{if(event.target===dialogRef.current)onDismiss();}}>
+  onCancel={event=>{event.preventDefault();dismiss();}}
+  onClick={event=>{if(event.target===dialogRef.current)dismiss();}}>
   <div className="meet-puppy-dialog-inner">
    <header className="meet-detail-heading">
     <h2 id="meet-puppy-dialog-title">Puppy Details</h2>
-    <button type="button" className="meet-detail-close" onClick={onDismiss} aria-label="Close puppy details">×</button>
+    <button type="button" className="meet-detail-close" onClick={dismiss} aria-label="Close puppy details">×</button>
    </header>
    <div className="meet-detail-main">
-   <div className="meet-detail-identity">
-    <div className="meet-detail-artwork">
-     <PuppyArtwork key={assetId+"-"+artVersion} id={puppy.id}
-      name={puppy.name+" puppy"} uri={transparentImage(puppy)} size={164}/>
+    <div className="meet-detail-identity" data-rarity={puppy.rarity||'common'}>
+     <div className="meet-detail-artwork">
+      <PuppyArtwork key={assetId+"-"+artVersion} id={puppy.id}
+       name={puppy.name+" puppy"} uri={transparentImage(puppy)} size={164}
+       onUnavailable={()=>setArtFailed(true)}/>
+     </div>
+     <div className="meet-detail-name">
+      <h3>{puppy.name}</h3>
+      <p className="meet-detail-asset-id">{assetId}</p>
+      <div className="meet-detail-pills">
+       <span>{groupLabel(puppy)}</span>
+       <span className="meet-detail-rarity">{rarityLabels[puppy.rarity]}</span>
+       <span>{unlockText(puppy)}</span>
+       <span>{transferText(puppy)}</span>
+       {puppy.collectionStatus&&<span>{puppy.collectionStatus}</span>}
+      </div>
+     </div>
     </div>
-    <div className="meet-detail-name">
-     <h3>{puppy.name}</h3>
-     <p className="meet-detail-asset-id">{assetId}</p>
-     <div className="meet-detail-pills">
-      <span>{groupLabel(puppy)}</span>
-      <span>{rarityLabels[puppy.rarity]}</span><span>{unlockText(puppy)}</span><span>{transferText(puppy)}</span>{puppy.collectionStatus&&<span>{puppy.collectionStatus}</span>}
+    <div className="meet-detail-aside">
+     <section className="meet-detail-about" aria-labelledby="meet-detail-about-heading">
+      <h3 id="meet-detail-about-heading">About</h3>
+      <p id="meet-puppy-dialog-info">{puppy.description||"No additional puppy details are available yet."}</p>
+     </section>
+     <div className="meet-detail-actions" aria-label="Puppy tools">
+      <button type="button" className="meet-detail-secondary"
+       onClick={()=>void copyText(new URL(href,window.location.origin).href,"Puppy link copied!",setCopyStatus)}>Copy Link</button>
+      <button type="button" className="meet-detail-secondary" onClick={()=>{setCopyStatus("");setAssetOpen(true);}}>View Asset</button>
+     </div>
+     {artFailed&&<button type="button" className="meet-detail-retry" onClick={retryArtwork}>↻ Retry Art</button>}
+     {copyStatus?<p className="meet-detail-copy-status" role="status">{copyStatus}</p>:null}
+     <p className="meet-detail-disclaimer">Public roster preview. Ownership and unlock status are checked in your Pup Account when playing.</p>
+     <div className="meet-detail-main-actions">
+      <a className="meet-detail-primary" href="/play">Use Puppy in Game</a>
+      <button type="button" className="meet-detail-done" onClick={onDismiss}>Done</button>
      </div>
     </div>
    </div>
-   <div className="meet-detail-aside">
-   <section className="meet-detail-about" aria-labelledby="meet-detail-about-heading">
-    <h3 id="meet-detail-about-heading">About</h3>
-    <p id="meet-puppy-dialog-info">{puppy.description||"No additional puppy details are available yet."}</p>
-   </section>
-   <div className="meet-detail-actions">
-    <button type="button" className="meet-detail-secondary" onClick={()=>void copyLink()}>↗ Copy link</button>
-    <button type="button" className="meet-detail-secondary"
-     onClick={()=>{setArtVersion(v=>v+1);setCopyStatus("Artwork reloaded.");}}>↻ Retry Art</button>
-   </div>
-   {copyStatus?<p className="meet-detail-copy-status" role="status">{copyStatus}</p>:null}
-   <p className="meet-detail-disclaimer">Public roster preview. Ownership and unlock status are checked in your Pup Account when playing.</p>
-   <a className="meet-detail-primary" href="/play">Use Puppy in Game</a>
-   <button type="button" className="meet-detail-primary" onClick={onDismiss}>Done</button>
-   </div>
-   </div>
   </div>
+  {assetOpen&&<dialog ref={assetDialogRef} className="meet-asset-dialog"
+   aria-labelledby="meet-asset-title"
+   onCancel={event=>{event.preventDefault();event.stopPropagation();closeAssetViewer();}}
+   onClick={event=>{event.stopPropagation();if(event.target===assetDialogRef.current)closeAssetViewer();}}>
+   <div className="meet-asset-inner">
+    <header className="meet-asset-header">
+     <div><p className="meet-asset-eyebrow">Puppy artwork</p><h2 id="meet-asset-title">{puppy.name}</h2></div>
+     <button type="button" className="meet-asset-close" aria-label="Close asset viewer" onClick={closeAssetViewer}>×</button>
+    </header>
+    <div className={"meet-asset-stage"+(checkerboard?" meet-asset-checker":"")} data-rarity={puppy.rarity||'common'}>
+     <PuppyArtwork key={assetId+"-full-"+artVersion} id={puppy.id}
+      name={puppy.name+" full-size transparent puppy artwork"}
+      uri={transparentImage(puppy)} size={480}
+      onUnavailable={()=>setArtFailed(true)}/>
+    </div>
+    <div className="meet-asset-info">
+     <span className="meet-puppy-badge meet-puppy-badge-rarity" data-rarity={puppy.rarity||'common'}>{rarityLabels[puppy.rarity]}</span>
+     <span className="meet-asset-id">{assetId}</span>
+     <span>{groupLabel(puppy)}</span>
+    </div>
+    <div className="meet-asset-actions">
+     <button type="button" className="meet-detail-secondary"
+      aria-pressed={checkerboard} onClick={()=>setCheckerboard(value=>!value)}>
+      {checkerboard?"Hide transparency grid":"Show transparency grid"}</button>
+     <button type="button" className="meet-detail-secondary"
+      onClick={()=>void copyText(assetId,"Asset ID copied!",setAssetStatus)}>Copy Asset ID</button>
+     {artFailed&&<button type="button" className="meet-detail-retry" onClick={retryArtwork}>↻ Retry Art</button>}
+     <button type="button" className="meet-detail-done" onClick={closeAssetViewer}>Close Viewer</button>
+    </div>
+    {assetStatus&&<p className="meet-detail-copy-status" role="status">{assetStatus}</p>}
+   </div>
+  </dialog>}
  </dialog>;
 }
 
@@ -206,10 +264,14 @@ export default function MeetPuppies({preview=false}){
     {categories.map(([id,label])=><button key={id} type="button" className={category===id?"active":""}
      aria-pressed={category===id} onClick={()=>setCategory(id)}>{label}</button>)}
    </div>
-   <label>Rarity <select aria-label="Rarity" value={tier} onChange={e=>setTier(e.target.value)}><option value="all">All rarities</option>{rarityOrder.map(k=><option key={k} value={k}>{rarityLabels[k]}</option>)}</select></label>
-   <label>Sort <select value={order} onChange={e=>setOrder(e.target.value)}><option value="roster">Roster order</option><option value="rarity">Rarity</option></select></label>
-   {owned&&<p className="meet-count">{collectionStats(catalogState.rows,owned)}</p>}
-   <p className="meet-count">{puppies.length} of {publicPuppies.length} puppies</p>
+   <div className="meet-puppy-sort-controls">
+    <label>Rarity <select aria-label="Rarity" value={tier} onChange={e=>setTier(e.target.value)}><option value="all">All rarities</option>{rarityOrder.map(k=><option key={k} value={k}>{rarityLabels[k]}</option>)}</select></label>
+    <label>Sort <select aria-label="Sort puppies" value={order} onChange={e=>setOrder(e.target.value)}><option value="roster">Roster order</option><option value="rarity">Rarity</option></select></label>
+   </div>
+   <div className="meet-puppy-counts">
+    {owned&&<p className="meet-count">{collectionStats(catalogState.rows,owned)}</p>}
+    <p className="meet-count">{puppies.length} of {publicPuppies.length} puppies</p>
+   </div>
   </div>:null}
   <div className="meet-puppy-grid">
    {puppies.map(p=><PuppyCard key={p.id} p={p} onSelect={selectPuppy}/>)}

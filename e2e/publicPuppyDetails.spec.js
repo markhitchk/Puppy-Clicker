@@ -44,7 +44,9 @@ test('public puppy modal retains the same dark visual hierarchy as the game on A
  await expect(dialog.getByRole('heading',{name:'Crash Test Pup V2'})).toBeVisible();
  await expect(dialog.getByText('v2_test_crash_dummy')).toBeVisible();
  await expect(dialog.getByText('Puppy Gacha')).toBeVisible();
- await expect(dialog.getByRole('button',{name:'Retry Art'})).toBeVisible();
+ await expect(dialog.getByRole('button',{name:'View Asset'})).toBeVisible();
+ await expect(dialog.getByRole('button',{name:'Copy Link'})).toBeVisible();
+ await expect(dialog.getByRole('button',{name:'Retry Art'})).toHaveCount(0);
  await expect(dialog.getByRole('button',{name:'Done'})).toBeVisible();
  const styles=await dialog.evaluate(node=>{
   const computed=getComputedStyle(node);
@@ -82,8 +84,9 @@ test('public puppy modal retains the same dark visual hierarchy as the game on A
  expect(styles.closeRight).toBeGreaterThan(styles.titleRight);
  expect(styles.identityGrid).toBe('grid');
  expect(styles.actionGrid).toBe('grid');
- expect(styles.primaryBackgrounds).toEqual(['rgb(0, 220, 237)','rgb(0, 220, 237)']);
+ expect(styles.primaryBackgrounds).toEqual(['rgb(0, 220, 237)']);
  expect(styles.primaryWidths.every(width=>width>280)).toBe(true);
+ await expect(dialog.getByRole('button',{name:'Done'})).toBeVisible();
 });
 
 test('public puppy dialog can dismiss by tapping outside on mobile',async ({page})=>{

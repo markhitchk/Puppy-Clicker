@@ -25,7 +25,21 @@ const save=r=>localStorage.setItem(key,JSON.stringify(r));
 export const client={
  async rpc(name){
   if(name!=='pup_rarity_public')throw Error('Unexpected public RPC');
-  return {data:roster.map(p=>({puppy_id:p.id,rarity:['dev_pup','v2_dev_pup','v2_harleytg'].includes(p.id)?'unobtainable':'common',published:true,acquisition:'standard'}))};
+  // Mirror published rarity/acquisition groups rather than making every
+  // non-developer puppy Common. Visual rarity/filter tests depend on this.
+  const groups={
+   uncommon:['cloud','snowball','v2_honey','v2_chestnut','test_v1_crash_dummy'],
+   rare:['midnight','v2_frost','v2_onyx','v2_domino','v2_flurry','v2_discord_pup','test_v2_crash_dummy'],
+   epic:['aurora','neon_buddy','golden_night','halloween','santa','birthday','v2_rory'],
+   legendary:['galaxy','v2_prism','secret_snoot','classic_forever'],
+   unobtainable:['dev_pup','v2_dev_pup','v2_harleytg']
+  };
+  const tier=id=>Object.keys(groups).find(r=>groups[r].includes(id))||'common';
+  const acquisition=id=>groups.unobtainable.includes(id)?'developer':
+   ['halloween','santa','birthday'].includes(id)?'event':
+   ['v2_rory','secret_snoot','classic_forever'].includes(id)?'code':
+   id==='v2_discord_pup'?'community':'standard';
+  return {data:roster.map(p=>({puppy_id:p.id,rarity:tier(p.id),published:true,acquisition:acquisition(p.id)}))};
  },
  auth:{
   onAuthStateChange(listener){listeners.add(listener);queueMicrotask(()=>listener('INITIAL_SESSION',signedOut?null:{user}));return {data:{subscription:{unsubscribe(){listeners.delete(listener)}}}}},
