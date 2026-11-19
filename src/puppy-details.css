@@ -267,7 +267,15 @@ html[data-puppy-reduced-motion="true"] .meet-puppy-card{transition:none!importan
  background-position:center,0 0,0 13px,13px -13px,-13px 0;
  background-color:#172330;
 }
-.meet-asset-stage img.puppy-artwork{max-width:100%;width:min(100%,480px)!important;height:auto!important;max-height:min(50dvh,480px);object-fit:contain;filter:drop-shadow(0 14px 15px #000a)}
+/* Keep art at its native CSS pixel size or smaller: never stretch a 256px
+   source to 480px. Shadows/filters belong to the stage, not the artwork
+   layer, which must stay unblurred on Chromium and high-density Android. */
+.meet-asset-stage img.puppy-artwork{
+ width:auto!important;height:auto!important;
+ max-width:min(100%,480px);max-height:min(50dvh,480px);
+ object-fit:contain;image-rendering:auto;
+ filter:none!important;transform:none!important;
+}
 .meet-asset-stage .puppy-art-unavailable{font-size:70px}
 .meet-asset-info{display:flex;flex-wrap:wrap;gap:9px;align-items:center;color:#d8e8f4;font-size:13px}
 .meet-asset-id{font:700 13px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere;color:#b7d6e5}
