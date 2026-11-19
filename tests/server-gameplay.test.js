@@ -164,3 +164,36 @@ test('daily goal can be claimed only once and returns a specific error when repe
  await assert.rejects(play(db,{type:'claimDailyGoal',goalId:'wellness'}),{message:'GOAL_ALREADY_CLAIMED'});
  assert.equal(db.writes(),1);
 });
+
+test('free Common test puppies can be claimed without a Treat, ticket or XP debit',async()=>{
+ const db=crossplayDb(seed());
+ const before=structuredClone(values(db));
+ const firstId='test_v1_crash_dummy';
+ const first=await crossPlay(db.admin,db.account,{
+  action:'gameplay',expectedRevision:1,
+  operationId:'b1285e00-bb3b-466f-a676-22cb48bbf003',
+  intent:{type:'claimFreeTest',id:firstId,payment:'TREATS',amount:9999}
+ });
+ assert.equal(first.saved,true);
+ assert.ok(values(db).unlocked_puppies.includes(firstId));
+ assert.equal(values(db).treats,before.treats);
+ assert.equal(values(db).upgrade_ticket_common,before.upgrade_ticket_common);
+ assert.equal(values(db).player_xp_v1,before.player_xp_v1);
+ assert.equal(db.writes(),1);
+ const duplicate=await crossPlay(db.admin,db.account,{
+  action:'gameplay',expectedRevision:1,
+  operationId:'b1285e00-bb3b-466f-a676-22cb48bbf003',
+  intent:{type:'claimFreeTest',id:firstId,payment:'TREATS',amount:9999}
+ });
+ assert.equal(duplicate.duplicate,true);
+ assert.equal(db.writes(),1);
+ await assert.rejects(play(db,{type:'claimFreeTest',id:firstId}),{message:'FREE_TEST_PUPPY_ALREADY_OWNED'});
+ await assert.rejects(play(db,{type:'claimFreeTest',id:'v2_harleytg'}),{message:'FREE_TEST_PUPPY_INVALID'});
+ assert.equal(db.writes(),1);
+ const second=await play(db,{type:'claimFreeTest',id:'test_v2_crash_dummy'});
+ assert.equal(second.saved,true);
+ assert.ok(values(db).unlocked_puppies.includes('test_v2_crash_dummy'));
+ assert.equal(values(db).treats,before.treats);
+ assert.equal(values(db).upgrade_ticket_common,before.upgrade_ticket_common);
+ assert.equal(db.writes(),2);
+});
