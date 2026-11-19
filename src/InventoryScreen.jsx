@@ -113,11 +113,14 @@ function OwnedPuppyCard({puppy,game,onInspect}){
  return <article className="meet-puppy-card pup-inventory-puppy" data-rarity={puppy.rarity||'unknown'}
   data-pup-inventory-id={puppy.id}>
   <div className="meet-puppy-link pup-inventory-card-content">
-   <div className="meet-puppy-art">
-    <PuppyArtwork id={puppy.id} name={name+' in your inventory'}
-     uri={artworkUri(puppy)} size={215} lazy/>
-    <span className="meet-puppy-group">{puppyGroup(puppy)}</span>
-   </div>
+   <button type="button" className="pup-inventory-art-button"
+    aria-label={'Inspect '+name} onClick={()=>onInspect(puppy.id)}>
+    <div className="meet-puppy-art">
+     <PuppyArtwork id={puppy.id} name={name+' in your inventory'}
+      uri={artworkUri(puppy)} size={215} lazy/>
+     <span className="meet-puppy-group">{puppyGroup(puppy)}</span>
+    </div>
+   </button>
    <div className="meet-puppy-body">
     <h3>{name}</h3>
     <p className="pup-inventory-puppy-description">{puppy.description||'Owned puppy'}</p>
