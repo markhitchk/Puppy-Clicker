@@ -6,8 +6,12 @@ export default React.memo(function PuppyArtwork({id,name,uri,size,lazy=false,ful
  const [failed,setFailed]=useState(false),[unavailable,setUnavailable]=useState(false);
  // Cards use responsive thumbnails. Asset viewers always request the full
  // resolution export, even when the browser reports a low device pixel ratio.
- const source=failed?(bundled?.fallback||uri):fullResolution
-  ?(bundled?.full||bundled?.fallback||uri):(bundled?.small||uri);
+ // Inspectors use the actual lossless source PNG, not a lossy WebP that
+ // may have been upscaled from a small original. Card thumbnails remain
+ // responsive and bandwidth-efficient.
+ const source=fullResolution
+  ?(bundled?.fallback||uri)
+  :failed?(bundled?.fallback||uri):(bundled?.small||uri);
  const srcSet=!failed&&!fullResolution&&bundled
   ?[['small',256],['large',640],['full',1536]]
    .filter(([key])=>bundled[key])
