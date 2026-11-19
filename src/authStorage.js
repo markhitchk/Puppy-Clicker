@@ -8,7 +8,7 @@ const KEY_STORE="keys";
 const KEY_ID="supabase-auth";
 const PREFIX="puppy-auth-aesgcm-v1:";
 const encoder=new TextEncoder();
-const memoryOnly=new Map();
+
 
 function localStorageOrNull(){
  try{return globalThis.localStorage||null;}catch{return null;}
@@ -65,6 +65,7 @@ export function createEncryptedAuthStorage({
  keyProvider=()=>getBrowserVaultKey(cryptoApi)
 }={}){
  let cachedKey=null;
+ const memoryOnly=new Map();
  const getKey=()=>{
   if(!cachedKey)cachedKey=Promise.resolve().then(keyProvider).catch(error=>{cachedKey=null;throw error;});
   return cachedKey;
