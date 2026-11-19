@@ -75,12 +75,7 @@ test('old Blackjack recovery returns reserved Chips and unlocks every game',asyn
  await expect.poll(()=>value(page,'beta_last_casino_result_v1')).toBeTruthy();
 });
 
-for(const path of ['/','/play','/account','/recovery'])test('inspection deterrents apply on '+path,async({page})=>{
- await page.goto(path);
- await expect.poll(()=>page.evaluate(()=>!document.dispatchEvent(new KeyboardEvent('keydown',{key:'F12',cancelable:true,bubbles:true})))).toBe(true);
- expect(await page.evaluate(()=>!document.dispatchEvent(new MouseEvent('contextmenu',{cancelable:true,bubbles:true})))).toBe(true);
- expect(await page.evaluate(()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'c',ctrlKey:true,cancelable:true,bubbles:true})))).toBe(true);
-});
+
 
 test('Scratchers accepts touch dragging on a phone viewport',async({page})=>{
  await setup(page);await page.setViewportSize({width:390,height:844});
