@@ -39,7 +39,14 @@ export function pointerThemeFor(preferences,systemDark=false){
  if(preferences.puppyPointerTheme==='dark'||preferences.puppyPointerTheme==='light')return preferences.puppyPointerTheme;
  return preferences.themeMode==='dark'||(preferences.themeMode!=='light'&&systemDark)?'dark':'light';
 }
-function sanitize(input){return Object.fromEntries(fields.map(key=>[key,validValue(key,input?.[key])??WEB_PREFERENCE_DEFAULTS[key]]));}
+function sanitize(input){
+ // Existing v1 profiles stored the former false default even when the user
+ // never touched the click-highlight switch. Upgrade those profiles once to
+ // the new on-by-default behavior; later explicit off choices remain saved.
+ const legacy=Boolean(input)&&!Object.hasOwn(input,'puppyPointerSizeMode');
+ const normalized=legacy?{...input,puppyPointerClickHighlight:true}:input;
+ return Object.fromEntries(fields.map(key=>[key,validValue(key,normalized?.[key])??WEB_PREFERENCE_DEFAULTS[key]]));
+}
 export function loadWebPreferences(storage){
  try{const raw=(storage??globalThis.localStorage).getItem(WEB_PREFERENCES_KEY);return sanitize(raw?JSON.parse(raw):null);}catch{return {...WEB_PREFERENCE_DEFAULTS};}
 }
