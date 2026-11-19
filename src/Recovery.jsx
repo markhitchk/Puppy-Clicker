@@ -1,6 +1,6 @@
+import "./styles/recovery.css";
 import React,{useState} from "react";
 import {useWebAccount} from "./native/web/AccountGate.jsx";
-import "./recovery.css";
 
 export default function RecoveryPage(){
  const {client,pupAccount,signOut}=useWebAccount();

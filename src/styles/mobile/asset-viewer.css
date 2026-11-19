@@ -1,0 +1,31 @@
+.meet-asset-dialog {
+ --viewer-inline-gap: max(10px, env(safe-area-inset-left), env(safe-area-inset-right));
+ --viewer-block-gap: max(10px, env(safe-area-inset-top), env(safe-area-inset-bottom));
+ width: min(760px, calc(100% - 2 * var(--viewer-inline-gap)));
+ max-width: none;
+ max-height: calc(100dvh - 2 * var(--viewer-block-gap));
+ border-radius: 24px;
+}
+.meet-asset-inner{padding:clamp(10px,3vw,16px);gap:10px}
+.meet-asset-layout{display:flex;flex-direction:column;gap:10px}
+.meet-asset-panel{gap:10px}
+.meet-asset-stage{height:clamp(165px,38dvh,340px);border-radius:16px}
+.meet-asset-header h2{font-size:clamp(20px,5.5vw,27px)}
+.meet-asset-actions .meet-detail-secondary,
+ .meet-asset-actions .meet-detail-done,
+ .meet-asset-actions .meet-detail-retry{font-size:12px;min-height:44px;padding:10px 7px}
+.meet-asset-info{font-size:12px}
+@media(max-width:350px){
+ .meet-asset-actions{grid-template-columns:1fr}
+ .meet-asset-actions>*{grid-column:1 / -1}}
+@media(max-height:510px) and (max-width:899px){
+ .meet-asset-dialog{--viewer-block-gap:max(4px,env(safe-area-inset-top),env(safe-area-inset-bottom))}
+ .meet-asset-inner{padding:9px;gap:8px}
+ .meet-asset-layout,.meet-asset-panel{gap:7px}
+ .meet-asset-stage{height:clamp(100px,31dvh,150px)}
+ .meet-asset-eyebrow{font-size:10px}
+ .meet-asset-header h2{font-size:18px}
+ .meet-asset-info{font-size:11px}
+ .meet-asset-actions .meet-detail-secondary,
+ .meet-asset-actions .meet-detail-done,
+ .meet-asset-actions .meet-detail-retry{min-height:44px;padding:6px 8px}}

@@ -1,0 +1,4 @@
+.home-play-demo__layout{grid-template-columns:minmax(0,1fr) minmax(285px,.85fr)}
+.home-play-demo__scene{min-height:465px;padding-inline:15px}
+.home-play-demo__upgrade{flex-wrap:wrap}
+.home-play-demo__roster{flex-wrap:wrap}

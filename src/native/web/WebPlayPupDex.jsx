@@ -1,4 +1,5 @@
-import React,{useEffect,useRef,useState} from 'react';
+import PuppyAssetViewer from './PuppyAssetViewer.jsx';
+import React,{useEffect,useState} from 'react';
 import PuppyArtwork from './PuppyArtwork.jsx';
 import {rarityLabels,unlockText} from '../../puppyRarity.js';
 import {PUPPY_IMAGES} from '../src/assets/puppies.js';
@@ -63,65 +64,8 @@ export function WebPlayPupDexCard({puppy,assetId,name,owned,current,favorite,
 // The same full-resolution lightbox interaction as the public PupDex, but
 // launched from the authenticated roster's existing puppy-detail modal.
 export function WebPlayPuppyAssetViewer({puppy,assetId,name,onClose}){
- const dialogRef=useRef(null);
- const [checkerboard,setCheckerboard]=useState(true);
- const [artVersion,setArtVersion]=useState(0);
- const [failed,setFailed]=useState(false);
- const [status,setStatus]=useState('');
- useEffect(()=>{
-  const dialog=dialogRef.current;
-  if(dialog&&!dialog.open)dialog.showModal();
-  return ()=>{if(dialog?.open)dialog.close();};
- },[]);
  if(!puppy)return null;
- const copyId=async()=>{
-  try{
-   if(!navigator.clipboard?.writeText)throw Error('Clipboard unavailable');
-   await navigator.clipboard.writeText(assetId);
-   setStatus('Asset ID copied!');
-  }catch{
-   setStatus('Clipboard unavailable. You can select the asset ID above.');
-  }
- };
- return <dialog ref={dialogRef} className="meet-asset-dialog play-pupdex-asset-dialog"
-  aria-labelledby="play-pupdex-asset-title"
-  onCancel={event=>{event.preventDefault();onClose();}}
-  onClick={event=>{if(event.target===dialogRef.current)onClose();}}>
-  <div className="meet-asset-inner">
-   <header className="meet-asset-header">
-    <div><p className="meet-asset-eyebrow">Puppy artwork</p>
-     <h2 id="play-pupdex-asset-title">{name}</h2></div>
-    <button className="meet-asset-close" type="button"
-     aria-label="Close asset viewer" onClick={onClose}>×</button>
-   </header>
-   <div className="meet-asset-layout">
-   <div className={'meet-asset-stage'+(checkerboard?' meet-asset-checker':'')}
-    data-rarity={tierFor(puppy)}>
-    <PuppyArtwork key={puppy.id+'-viewer-'+artVersion} id={puppy.id}
-     name={name+' full-size transparent puppy artwork'}
-     uri={transparentArt(puppy)} size={480} fullResolution
-     onUnavailable={()=>setFailed(true)}/>
-   </div>
-   <aside className="meet-asset-panel" aria-label="Artwork information and controls">
-   <div className="meet-asset-info">
-    <span className="meet-puppy-badge meet-puppy-badge-rarity"
-     data-rarity={tierFor(puppy)}>{rarityLabels[puppy.rarity]||'Legacy owned'}</span>
-    <span className="meet-asset-id">{assetId}</span>
-    <span>{groupFor(puppy)}</span>
-   </div>
-   <div className="meet-asset-actions">
-    <button type="button" className="meet-detail-secondary" aria-pressed={checkerboard}
-     onClick={()=>setCheckerboard(value=>!value)}>
-     {checkerboard?'Hide transparency grid':'Show transparency grid'}</button>
-    <button type="button" className="meet-detail-secondary" onClick={()=>void copyId()}>Copy Asset ID</button>
-    {failed&&<button type="button" className="meet-detail-retry"
-     onClick={()=>{setFailed(false);setArtVersion(v=>v+1);setStatus('Artwork reloading.');}}>
-     ↻ Retry Art</button>}
-    <button type="button" className="meet-detail-done" onClick={onClose}>Close Viewer</button>
-   </div>
-   {status&&<p className="meet-detail-copy-status" role="status">{status}</p>}
-   </aside>
-   </div>
-  </div>
- </dialog>;
+ return <PuppyAssetViewer puppy={puppy} name={name} assetId={assetId}
+  uri={transparentArt(puppy)} collection={groupFor(puppy)} onClose={onClose}
+  className="play-pupdex-asset-dialog"/>;
 }

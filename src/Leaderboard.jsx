@@ -1,7 +1,6 @@
 import React,{useCallback,useEffect,useState} from "react";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
 import {useLanguage} from "./LanguagePicker.jsx";
-import "./Leaderboard.css";
 const METRICS=Object.freeze({treats:["🍪","lifetimeTreats"],xp:["⭐","playerXp"],puppies:["🐶","puppiesOwned"]});
 function LeaderboardBody(){
  const {client}=useWebAccount();

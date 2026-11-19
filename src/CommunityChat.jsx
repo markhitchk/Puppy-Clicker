@@ -4,7 +4,6 @@ import {createChatClient} from "./communityChatClient.js";
 import {useLanguage} from "./LanguagePicker.jsx";
 import {activeMentionQuery,splitChatText} from "./chatMentions.js";
 import UserAvatar from "./UserAvatar.jsx";
-import "./CommunityChat.css";
 function CommunityChatBody(){
  const {client}=useWebAccount(),request=useMemo(()=>createChatClient(client),[client]);
  const {t:tr}=useLanguage();

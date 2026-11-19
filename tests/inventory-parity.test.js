@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
 const source=readFileSync(new URL('../src/InventoryScreen.jsx',import.meta.url),'utf8');
-const css=readFileSync(new URL('../src/InventoryScreen.css',import.meta.url),'utf8');
+const css=readFileSync(new URL('../src/styles/shared/inventory.css',import.meta.url),'utf8');
 
 test('account and play inventory share one redesigned component and read-only source of truth',()=>{
  assert.match(source,/export default function InventoryScreen/);
@@ -28,8 +28,9 @@ test('owned puppy cards use catalog rarity, foil, separated badges and full artw
  assert.match(css,/rarity-rgb/);
  assert.match(css,/prefers-reduced-motion/);
 });
+const palette=readFileSync(new URL('../src/styles/shared/rarity.css',import.meta.url),'utf8');
 test('inventory ticket and upgrade rarity use catalog palette but balances are neutral',()=>{
- for(const tier of ['common','uncommon','rare','epic','legendary'])assert.ok(css.includes('data-rarity="'+tier+'"'));
+ for(const tier of ['common','uncommon','rare','epic','legendary'])assert.ok(palette.includes('data-rarity="'+tier+'"'));
  assert.match(source,/data-rarity=\{rarity\.toLowerCase\(\)\}/);
  assert.match(source,/data-rarity=\{upgrade\.rarity\?\.toLowerCase\(\)\|\|'neutral'\}/);
  assert.match(source,/data-rarity="neutral" key=\{key\}/);

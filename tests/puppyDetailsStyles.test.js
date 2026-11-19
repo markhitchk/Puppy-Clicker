@@ -4,12 +4,12 @@ import {readFileSync} from 'node:fs';
 
 const read=path=>readFileSync(new URL(path,import.meta.url),'utf8');
 const component=read('../src/MeetPuppies.jsx');
-const css=read('../src/puppy-details.css');
-const globalCss=read('../src/styles.css');
+const css=read('../src/styles/shared/puppy-dialog.css')+read('../src/styles/mobile/puppy-dialog.css');
+const globalCss=read('../src/styles/index.css');
 
 test('public puppy dialog imports its CSS directly, independently of site-wide stylesheet',()=>{
- assert.match(component,/import\s+["']\.\/puppy-details\.css["']/);
- assert.ok(!globalCss.includes('@import "./puppy-details.css"'));
+ assert.match(component,/import\s+["']\.\/styles\/puppy-details\.css["']/);
+ assert.ok(!globalCss.includes('@import "./styles/puppy-details.css"'));
 });
 
 test('public modal has dark surface, rounded close control, two-column portrait and full-width actions',()=>{

@@ -6,7 +6,6 @@ import {
  loadWebPreferences,saveWebPreferences,updateWebPreference
 } from './native/web/preferences.js';
 import {GRAPHICS_BACKENDS} from './graphics/graphicsCapabilities.js';
-import './BrowserSettings.css';
 
 const qualityOptions=[['automatic','Automatic'],['quality','Quality'],['battery_saver','Battery saver']];
 const themeOptions=[['system','Follow device'],['dark','Dark'],['light','Light']];

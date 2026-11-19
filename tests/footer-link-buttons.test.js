@@ -5,7 +5,7 @@ const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
 test('homepage footer only contains the three static official logos and copyright',()=>{
  const home=read('src/App.jsx');
- const css=read('src/styles.css');
+ const css=read('src/styles/shared/layout.css');
  const start=home.indexOf('<footer className="site-footer"');
  const end=home.indexOf('</footer>',start);
  assert.ok(start>=0&&end>start);
@@ -31,7 +31,7 @@ test('legal and privacy routes retain proper hrefs with button-style navigation'
  const legal=read('src/LegalReader.jsx');
  const privacy=read('src/WebPrivacy.jsx');
  const rights=read('src/privacy/PrivacyCenter.jsx');
- const styles=read('src/styles.css');
+ const styles=read('src/styles/shared/layout.css');
  assert.ok(legal.includes('legal-document-actions'));
  assert.ok(legal.includes('className="pup-link-button legal-inline-button"'));
  assert.ok(legal.includes('window.print()'));

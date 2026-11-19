@@ -1,0 +1,46 @@
+.site-header{height:66px;min-height:66px;padding:0 14px;gap:10px}
+.site-header .site-brand{font-size:clamp(15px,1.5vw,19px);gap:9px}
+.site-header .site-brand img{width:40px;height:40px}
+.site-header .site-nav{
+  display:none;position:absolute;top:calc(100% + 1px);left:10px;right:10px;
+  z-index:80;max-height:calc(100dvh - 86px);overflow-y:auto;overflow-x:hidden;
+  width:auto;margin:0;padding:12px;
+  flex-direction:column;align-items:stretch;gap:5px;
+  border:1px solid #3b7187;border-radius:0 0 20px 20px;
+  background:#101d2a;box-shadow:0 20px 45px #0009;
+ }
+.site-header .site-nav.is-open{display:flex}
+.site-header .site-nav>a{
+  display:flex;justify-content:flex-start;width:100%;min-height:46px;
+  padding:12px 14px;font-size:15px;white-space:normal;
+ }
+.site-header .site-nav>a[href="/puppies"]{display:flex}
+.site-header .site-nav .puppy-language-picker{
+  display:flex;justify-content:space-between;gap:12px;width:100%;
+  padding:10px 12px;margin-top:4px;border-top:1px solid #35566b;
+ }
+.site-header .site-nav .puppy-language-picker>span{display:inline}
+.site-header .site-nav .puppy-language-picker select{
+  min-height:44px;max-width:175px;font-size:14px;padding:8px 12px;
+ }
+.site-header .site-header-tools{margin-left:auto;gap:7px}
+.site-header .site-nav-toggle{display:inline-flex}
+.site-header-tools .site-account-trigger{padding:4px;min-width:44px;min-height:44px;justify-content:center}
+.site-header-tools .site-account-trigger-avatar{width:36px;height:36px}
+.site-header-tools .site-account-trigger-identity,.site-header-tools .site-account-chevron{display:none}
+.site-header-tools .site-account-dropdown{right:0;top:calc(100% + 10px)}
+.site-nav-scrim{
+  position:fixed;
+  inset:66px 0 0;
+  z-index:1;
+  background:rgba(1,8,14,.55);
+  touch-action:none;
+ }
+.site-header .site-nav.is-open{z-index:5}
+.site-header .site-header-tools{z-index:6}
+.site-header .site-nav-more{display:none}
+.site-header .site-nav-mobile-extras{display:contents}
+.site-header .site-nav .site-nav-mobile-extras>a{
+    display:flex;justify-content:flex-start;width:100%;min-height:46px;
+    padding:12px 14px;font-size:15px;white-space:normal;
+  }

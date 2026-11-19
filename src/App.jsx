@@ -34,8 +34,8 @@ import {avatarForAccount} from "./pupWebApi.js";
 import {suggestUsername,suggestDisplayName,generateStrongPassword} from "./nameSuggestions.js";
 import SiteAccountMenu,{ProfileAvatar,PUP_ACCOUNT_CHANGED} from "./SiteAccountMenu.jsx";
 import ConfirmSignOut from "./ConfirmSignOut.jsx";
-import "./styles.css";
-import "./website-appearance.css";
+
+import "./styles/index.css";
 
 const logo="/assets/logos/puppy_clicker.png";
 function Header({page}){

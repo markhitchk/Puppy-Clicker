@@ -1,0 +1,26 @@
+/* Layouts also used by the adjacent tablet or narrow laptop sizes. */
+@import "../shared/compact-account.css";
+@import "../shared/compact-demo.css";
+@import "../shared/compact-game.css";
+@import "../shared/compact-home.css";
+@import "../shared/stacked-home-actions.css";
+@import "../shared/compact-account-trigger.css";
+@import "../shared/navigation-drawer.css";
+@import "../shared/tablet-roster.css" (min-width: 760px);
+@import "../shared/compact-settings.css";
+
+@import "./modals.css";
+@import "./navigation.css";
+@import "./account.css";
+@import "./inventory.css";
+@import "./settings.css";
+@import "./app-banner.css";
+@import "./demo.css";
+@import "./admin.css";
+@import "./pupeye.css";
+@import "./privacy.css";
+@import "./legal.css";
+@import "./leaderboard.css";
+@import "./chat.css";
+@import "./roster.css";
+@import "./layout.css";

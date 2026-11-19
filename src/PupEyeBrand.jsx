@@ -1,5 +1,4 @@
 import React,{useState} from "react";
-import "./PupEyeBrand.css";
 
 // The committed /assets/logos/PupEye.png is byte-for-byte identical to
 // pup-clinker/main/assets/logos/PupEye.png (Git blob 8e136af).

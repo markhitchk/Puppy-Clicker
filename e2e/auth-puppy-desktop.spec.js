@@ -4,6 +4,10 @@ const discordIcon="https://www.svgrepo.com/show/353655/discord-icon.svg";
 
 test.describe("desktop website Pup Account pages",()=>{
  test.use({viewport:{width:1440,height:900}});
+ test.beforeEach(async({page})=>{
+  await page.route(discordIcon,route=>route.fulfill({contentType:'image/svg+xml',
+   body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"/>'}));
+ });
 
  test("shows sign-in as a full page instead of a narrow modal",async({page})=>{
   await page.goto("/account?signedout");

@@ -1,6 +1,5 @@
 import React,{useCallback,useEffect,useState} from "react";
 import {useWebAccount} from "./native/web/AccountGate.jsx";
-import "./AdminPortal.css";
 import UserAvatar from "./UserAvatar.jsx";
 import RarityAdmin from "./RarityAdmin.jsx";
 import AdminPuppyGifts from "./AdminPuppyGifts.jsx";

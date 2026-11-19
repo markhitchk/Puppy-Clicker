@@ -2,7 +2,6 @@ import React,{useEffect,useState} from "react";
 import {pupWebApi} from "./pupWebApi.js";
 import {normalizeAvatarUrl} from "./avatarUrl.js";
 import {PUP_ACCOUNT_CHANGED,ProfileAvatar} from "./SiteAccountMenu.jsx";
-import "./pup-customization.css";
 
 export default function ProfileAvatarEditor({account,onChanged}){
  const existing=account?.avatarUrl||"";

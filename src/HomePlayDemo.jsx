@@ -4,7 +4,6 @@ import {
  createHomePlayDemo,reduceHomePlayDemo,HOME_DEMO_PUPPIES,
  HOME_DEMO_UPGRADE,HOME_DEMO_GOAL,
 } from "./homePlayDemoState.js";
-import "./HomePlayDemo.css";
 
 // A self-contained playable preview of /play. Do not mount NativeApp or the
 // authenticated game here: the demo must never read/write a real player's save.

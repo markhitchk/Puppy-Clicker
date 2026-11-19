@@ -1,0 +1,29 @@
+:is(.meet-puppy-card, .meet-detail-identity, .meet-asset-stage, .meet-puppy-badge-rarity, .pup-inventory-item, [data-pup-hero="true"], [data-pup-detail-hero="true"])[data-rarity="common"] {
+  --rarity-rgb: 193 207 225;
+  --rarity-ink: #ecf5ff;
+}
+
+:is(.meet-puppy-card, .meet-detail-identity, .meet-asset-stage, .meet-puppy-badge-rarity, .pup-inventory-item, [data-pup-hero="true"], [data-pup-detail-hero="true"])[data-rarity="uncommon"] {
+  --rarity-rgb: 101 224 153;
+  --rarity-ink: #c5ffdd;
+}
+
+:is(.meet-puppy-card, .meet-detail-identity, .meet-asset-stage, .meet-puppy-badge-rarity, .pup-inventory-item, [data-pup-hero="true"], [data-pup-detail-hero="true"])[data-rarity="rare"] {
+  --rarity-rgb: 97 175 255;
+  --rarity-ink: #c6e4ff;
+}
+
+:is(.meet-puppy-card, .meet-detail-identity, .meet-asset-stage, .meet-puppy-badge-rarity, .pup-inventory-item, [data-pup-hero="true"], [data-pup-detail-hero="true"])[data-rarity="epic"] {
+  --rarity-rgb: 206 123 255;
+  --rarity-ink: #f1d7ff;
+}
+
+:is(.meet-puppy-card, .meet-detail-identity, .meet-asset-stage, .meet-puppy-badge-rarity, .pup-inventory-item, [data-pup-hero="true"], [data-pup-detail-hero="true"])[data-rarity="legendary"] {
+  --rarity-rgb: 255 200 82;
+  --rarity-ink: #fff0ba;
+}
+
+:is(.meet-puppy-card, .meet-detail-identity, .meet-asset-stage, .meet-puppy-badge-rarity, .pup-inventory-item, [data-pup-hero="true"], [data-pup-detail-hero="true"])[data-rarity="unobtainable"] {
+  --rarity-rgb: 255 105 133;
+  --rarity-ink: #ffdae3;
+}

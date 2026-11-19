@@ -23,6 +23,6 @@ export default React.memo(function PuppyArtwork({id,name,uri,size,lazy=false,ful
   width={size} height={size}
   loading={fullResolution?'eager':lazy?'lazy':'eager'} decoding="async"
   fetchPriority={fullResolution?'high':undefined}
-  onError={()=>{if(!failed&&bundled)setFailed(true);else {setUnavailable(true);onUnavailable?.();}}}
+  onError={()=>{if(!fullResolution&&!failed&&bundled&&source!==(bundled.fallback||uri))setFailed(true);else {setUnavailable(true);onUnavailable?.();}}}
   style={{width:size,height:size,objectFit:'contain',display:'block'}}/>;
 });

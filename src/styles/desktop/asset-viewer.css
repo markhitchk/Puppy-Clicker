@@ -1,0 +1,22 @@
+.meet-asset-dialog{
+  width:min(1120px,calc(100vw - 64px));max-width:1120px;
+  max-height:calc(100dvh - 48px);border-radius:26px;
+ }
+.meet-asset-inner{padding:clamp(20px,2.5vw,28px);gap:20px}
+.meet-asset-header{padding-bottom:14px;border-bottom:1px solid #355668}
+.meet-asset-header h2{font-size:clamp(28px,2.8vw,38px)}
+.meet-asset-layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,0.85fr);
+  align-items:stretch;gap:22px;min-height:0}
+.meet-asset-stage{height:min(66dvh,620px);min-height:290px;border-radius:22px}
+.meet-asset-panel{
+  justify-content:space-between;gap:18px;
+  padding:20px;border:1px solid #31566a;border-radius:20px;background:#112531;
+ }
+.meet-asset-info{align-content:start;align-items:flex-start;gap:12px}
+.meet-asset-info .meet-puppy-badge{font-size:13px;padding:8px 12px}
+.meet-asset-id{display:block;flex-basis:100%;font-size:14px}
+.meet-asset-actions{grid-template-columns:1fr;gap:10px}
+.meet-asset-actions>*{grid-column:1 / -1}
+.meet-asset-actions .meet-detail-secondary,
+ .meet-asset-actions .meet-detail-retry,
+ .meet-asset-actions .meet-detail-done{min-height:48px}

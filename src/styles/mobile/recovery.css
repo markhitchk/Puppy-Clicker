@@ -1,0 +1,7 @@
+@media(max-width:760px){
+ .recovery-content{padding:32px 16px 65px}
+ .recovery-grid{grid-template-columns:1fr;gap:15px}
+ .recovery-main{padding:20px}
+ .recovery-intro h1{font-size:36px}
+ .recovery-route>.recovery-manual{margin:16px auto 55px;width:calc(100% - 30px)}
+ .recovery-manual-tabs button{flex:1}}

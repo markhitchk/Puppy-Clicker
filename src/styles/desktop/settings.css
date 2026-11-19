@@ -1,0 +1,14 @@
+@container browser-settings (min-width:64rem){
+ .browser-settings-grid{
+  grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);
+  grid-template-areas:
+   "appearance pointer"
+   "performance pointer"
+   "notifications storage";
+ }
+ .browser-settings-panel[aria-labelledby="browser-appearance"]{grid-area:appearance}
+ .browser-settings-panel[aria-labelledby="browser-pointer-heading"]{grid-area:pointer}
+ .browser-settings-panel[aria-labelledby="browser-performance"]{grid-area:performance}
+ .browser-settings-panel[aria-labelledby="browser-notifications"]{grid-area:notifications}
+ .browser-settings-panel[aria-labelledby="browser-storage"]{grid-area:storage}
+}

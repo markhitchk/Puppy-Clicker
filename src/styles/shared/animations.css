@@ -1,0 +1,10 @@
+@keyframes pupdex-foil-sweep{0%,10%{transform:translateX(-160%) skewX(-12deg)}35%,100%{transform:translateX(170%) skewX(-12deg)}}
+@media(prefers-reduced-motion: no-preference){
+ @keyframes puppy-android-in {from {opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}}
+@keyframes paw-float{50%{transform:translateY(-12px) rotate(10deg);opacity:.3}}
+@keyframes puppy-pointer-halo-out{
+ 0%{opacity:.9;transform:translate(-50%,-50%) scale(.45)}
+ 100%{opacity:0;transform:translate(-50%,-50%) scale(1.55)}
+}
+@keyframes pup-loading-slide{from{transform:translateX(-55%)}to{transform:translateX(210%)}}
+@keyframes pup-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}

@@ -61,7 +61,7 @@ test('website settings save browser preferences across cloud actions and reload'
 
 test('website settings display real cloud state and browser notification support',async({page})=>{
  await page.goto('/play');
- await page.getByRole('button',{name:'Open settings',exact:true}).click();
+ await page.getByTestId('desktop-navigation').getByRole('button',{name:'Settings',exact:true}).click();
  await page.getByRole('button',{name:'Pup Account & cloud save',exact:true}).click();
  await expect(page.getByText('Cloud progress is connected.',{exact:true})).toBeVisible();
  await expect(page.getByRole('link',{name:'Manage Pup Account'})).toHaveAttribute('href','/account');
@@ -74,7 +74,7 @@ test('reload stays disabled until every queued gameplay action finishes',async({
  await page.goto('/play?slowgameplay=1');
  const tap=page.getByRole('button',{name:'Tap Buddy to earn Treats'});
  await tap.click();await tap.click();await tap.click();
- await page.getByRole('button',{name:'Open settings',exact:true}).click();
+ await page.getByTestId('desktop-navigation').getByRole('button',{name:'Settings',exact:true}).click();
  await page.getByRole('button',{name:'About this website',exact:true}).click();
  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('puppy_test_authoritative_kotlin_save_v1')||'null')?.saveData?.stores?.puppy_clicker_save?.values?.treats)).toBe(2);
  await expect(page.getByRole('button',{name:'Reload website',exact:true})).toBeDisabled();

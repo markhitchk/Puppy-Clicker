@@ -1,7 +1,6 @@
 import React,{useCallback,useEffect,useMemo,useState} from "react";
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
 import {createChatClient} from "./communityChatClient.js";
-import "./CommunityChat.css";
 function StaffChat(){
  const {client}=useWebAccount(),request=useMemo(()=>createChatClient(client),[client]);
  const [queue,setQueue]=useState([]),[reports,setReports]=useState([]),[busy,setBusy]=useState(null);

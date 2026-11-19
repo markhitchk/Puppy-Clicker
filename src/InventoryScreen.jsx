@@ -1,3 +1,4 @@
+import "./styles/puppy-details.css";
 import React,{useEffect,useRef,useState} from 'react';
 import {ROSTER,UPGRADES,RARITIES} from './native/src/engine/game.js';
 import {LEGACY_V6_PUPPIES} from './native/src/engine/rosterV6.js';
@@ -9,8 +10,6 @@ import {rarityLabels,rarityOrder,unlockText,transferText} from './puppyRarity.js
 import {puppyDetailsHref,puppyAssetId} from './puppyLinks.js';
 import {useWebAccount} from './native/web/AccountGate.jsx';
 import {projectKotlinCloudSave} from './native/src/production/kotlinCloudPreview.js';
-import './puppy-details.css';
-import './InventoryScreen.css';
 
 const numeric=value=>Number.isFinite(Number(value))?Math.max(0,Math.trunc(Number(value))):0;
 const number=value=>numeric(value).toLocaleString('en-US');

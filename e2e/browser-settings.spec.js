@@ -14,7 +14,7 @@ test('guest can open browser settings without logging in and preferences survive
  await expect(page.getByRole('switch',{name:'Reduced motion'})).not.toBeChecked();
 });
 test('guest demo includes browser-settings link and does not redirect to sign-in',async({page})=>{
- await page.goto('/play?=demo');
+ await page.goto('/play?=demo&signedout=1');
  await page.getByRole('link',{name:/Browser settings/i}).last().click();
  await expect(page).toHaveURL(/\/settings$/);
  await expect(page.getByRole('heading',{name:'Browser Settings'})).toBeVisible();

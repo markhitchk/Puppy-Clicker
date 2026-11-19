@@ -1,6 +1,5 @@
 import React,{useEffect,useId,useRef} from "react";
 import {createPortal} from "react-dom";
-import "./ConfirmSignOut.css";
 
 export default function ConfirmSignOut({open,busy=false,error="",onCancel,onConfirm}){
  const ref=useRef(null),cancelRef=useRef(null);

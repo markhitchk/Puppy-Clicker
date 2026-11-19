@@ -2,7 +2,7 @@ import roster from '../../src/data/roster.js';
 // E2E-only Supabase shim. Production imports the real authenticated Supabase client.
 // Emulates the live Kotlin-format Pup Account row, not the legacy web save RPC.
 const user={id:"e2e-puppy-clicker-user",email:"tester@example.invalid",user_metadata:{full_name:"Test Player"}};
-const pup={id:"e2e-pup-account-id",username:"TestPlayer",displayName:"Test Player",discordUserId:"1547290000000000001"};
+const pup={id:"6c7998ba-e1cd-4dbb-98f6-001022334455",username:"TestPlayer",displayName:"Test Player",discordUserId:"1547290000000000001"};
 const key="puppy_test_authoritative_kotlin_save_v1";
 let signedOut=new URLSearchParams(window.location.search).has("signedout");
 const listeners=new Set();
@@ -97,7 +97,7 @@ export const client={
     save(result.record);return {data:result.receipt,error:null};
    }
    r.revision++;r.updatedAt=new Date().toISOString();save(r);
-   return{data:{saved:true,cloud:cloud(r)},error:null};
+   return{data:{saved:true,operationId:body.operationId,cloud:cloud(r)},error:null};
   }
   return{data:null,error:new Error("PUP_ACTION_INVALID")};
  }}

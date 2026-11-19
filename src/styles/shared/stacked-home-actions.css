@@ -1,0 +1,2 @@
+.split-cta{grid-template-columns:minmax(0,1fr);gap:18px}
+.split-cta>div:first-child{min-width:0}

@@ -1,6 +1,5 @@
 import React,{useCallback,useEffect,useState} from "react";
 import {pupWebApi} from "./pupWebApi.js";
-import "./admin-puppy-gifts.css";
 const human=id=>(id||"").replace(/^v[0-9]_/, "").replaceAll("_"," ");
 const friendlyError=code=>({
  PUPPY_ALREADY_OWNED:"That player already owns this puppy.",

@@ -1,6 +1,5 @@
 import React,{useEffect,useState} from "react";
 import {normalizeAvatarUrl} from "./avatarUrl.js";
-import "./UserAvatar.css";
 export default function UserAvatar({src,name="",className=""}){
  const valid=normalizeAvatarUrl(src);
  const [failed,setFailed]=useState(false);

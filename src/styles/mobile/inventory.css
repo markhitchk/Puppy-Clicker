@@ -1,0 +1,35 @@
+.pup-inventory-puppies{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:680px){
+ .pup-inventory-account-wrap{padding:16px 10px 40px}
+ .pup-inventory-play{padding:0}
+ .pup-inventory-stats{gap:6px;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pup-inventory-stats>div{padding:11px}
+ .pup-inventory-panel{padding:11px;border-radius:17px}
+ .pup-inventory-puppy{padding:9px 5px}
+ .pup-inventory-search{width:100%}
+ .pup-inventory-search input{width:100%}
+ .pup-inventory-actions{width:100%}
+ .pup-inventory-button{flex:1;justify-content:center}
+ .pup-inventory-heading{gap:12px}
+ .pup-inventory-status{margin:15px 0;padding:22px}}
+@media(max-width:880px){
+ .pup-inventory-filter-controls{width:100%}}
+@media(max-width:680px){
+ .pup-inventory-puppies{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .pup-inventory .meet-puppy-art{height:154px;padding:7px}
+ .pup-inventory .meet-puppy-body{padding:11px;gap:8px}
+ .pup-inventory .meet-puppy-body h3{font-size:15px}
+ .pup-inventory .meet-puppy-body .pup-inventory-puppy-description{font-size:11px}
+ .pup-inventory .meet-puppy-badge{font-size:9px;padding:5px 6px}
+ .pup-inventory .meet-puppy-group{
+  top:7px;right:7px;bottom:auto;left:auto;
+  max-width:calc(100% - 14px);font-size:9px;padding:5px 7px;
+ }
+ .pup-inventory-filter-controls{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .pup-inventory-filter-controls .pup-inventory-search{grid-column:1/-1}
+ .pup-inventory-tabs button{padding:9px 12px}
+ .pup-inventory-detail-dialog .meet-detail-identity{min-width:0}}
+@media(max-width:350px){
+ .pup-inventory .meet-puppy-body{padding:9px;gap:7px}
+ .pup-inventory .meet-puppy-art{height:130px}
+ .pup-inventory .pup-inventory-view{padding:8px;min-height:44px;font-size:10px}}

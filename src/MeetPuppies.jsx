@@ -1,6 +1,7 @@
+import PuppyAssetViewer from './native/web/PuppyAssetViewer.jsx';
+import "./styles/puppy-details.css";
 import React,{useEffect,useMemo,useRef,useState} from "react";
 // Import alongside the dialog so styling cannot be omitted by a partial stylesheet deploy.
-import "./puppy-details.css";
 import {usePuppyRarity} from './usePuppyRarity.js';
 import {client} from './supabase.js';
 import {pupWebApi} from './pupWebApi.js';
@@ -68,13 +69,10 @@ function PuppyCard({p,onSelect}){
 
 function PublicPuppyDetails({puppy,onDismiss}){
  const dialogRef=useRef(null);
- const assetDialogRef=useRef(null);
  const [artVersion,setArtVersion]=useState(0);
  const [artFailed,setArtFailed]=useState(false);
  const [assetOpen,setAssetOpen]=useState(false);
- const [checkerboard,setCheckerboard]=useState(true);
  const [copyStatus,setCopyStatus]=useState("");
- const [assetStatus,setAssetStatus]=useState("");
  const assetId=puppyAssetId(puppy);
  const href=puppyDetailsHref(puppy);
  useEffect(()=>{
@@ -82,16 +80,9 @@ function PublicPuppyDetails({puppy,onDismiss}){
   if(dialog&&!dialog.open)dialog.showModal();
   return ()=>{if(dialog?.open)dialog.close();};
  },[]);
- useEffect(()=>{
-  if(!assetOpen)return;
-  const dialog=assetDialogRef.current;
-  if(dialog&&!dialog.open)dialog.showModal();
-  return ()=>{if(dialog?.open)dialog.close();};
- },[assetOpen]);
  const retryArtwork=()=>{
   setArtFailed(false);
   setArtVersion(version=>version+1);
-  setAssetStatus("Artwork reloading.");
  };
  const copyText=async(value,success,onStatus)=>{
   try{
@@ -102,7 +93,7 @@ function PublicPuppyDetails({puppy,onDismiss}){
    onStatus("Clipboard unavailable. You can copy this information from the page.");
   }
  };
- const closeAssetViewer=()=>{setAssetOpen(false);setAssetStatus("");};
+ const closeAssetViewer=()=>setAssetOpen(false);
  const dismiss=()=>{if(assetOpen)closeAssetViewer();else onDismiss();};
  return <dialog ref={dialogRef} className="meet-puppy-dialog"
   aria-labelledby="meet-puppy-dialog-title" aria-describedby="meet-puppy-dialog-info"
@@ -152,42 +143,8 @@ function PublicPuppyDetails({puppy,onDismiss}){
     </div>
    </div>
   </div>
-  {assetOpen&&<dialog ref={assetDialogRef} className="meet-asset-dialog"
-   aria-labelledby="meet-asset-title"
-   onCancel={event=>{event.preventDefault();event.stopPropagation();closeAssetViewer();}}
-   onClick={event=>{event.stopPropagation();if(event.target===assetDialogRef.current)closeAssetViewer();}}>
-   <div className="meet-asset-inner">
-    <header className="meet-asset-header">
-     <div><p className="meet-asset-eyebrow">Puppy artwork</p><h2 id="meet-asset-title">{puppy.name}</h2></div>
-     <button type="button" className="meet-asset-close" aria-label="Close asset viewer" onClick={closeAssetViewer}>×</button>
-    </header>
-    <div className="meet-asset-layout">
-    <div className={"meet-asset-stage"+(checkerboard?" meet-asset-checker":"")} data-rarity={puppy.rarity||'common'}>
-     <PuppyArtwork key={assetId+"-full-"+artVersion} id={puppy.id}
-      name={puppy.name+" full-size transparent puppy artwork"}
-      uri={transparentImage(puppy)} size={480} fullResolution
-      onUnavailable={()=>setArtFailed(true)}/>
-    </div>
-    <aside className="meet-asset-panel" aria-label="Artwork information and controls">
-    <div className="meet-asset-info">
-     <span className="meet-puppy-badge meet-puppy-badge-rarity" data-rarity={puppy.rarity||'common'}>{rarityLabels[puppy.rarity]}</span>
-     <span className="meet-asset-id">{assetId}</span>
-     <span>{groupLabel(puppy)}</span>
-    </div>
-    <div className="meet-asset-actions">
-     <button type="button" className="meet-detail-secondary"
-      aria-pressed={checkerboard} onClick={()=>setCheckerboard(value=>!value)}>
-      {checkerboard?"Hide transparency grid":"Show transparency grid"}</button>
-     <button type="button" className="meet-detail-secondary"
-      onClick={()=>void copyText(assetId,"Asset ID copied!",setAssetStatus)}>Copy Asset ID</button>
-     {artFailed&&<button type="button" className="meet-detail-retry" onClick={retryArtwork}>↻ Retry Art</button>}
-     <button type="button" className="meet-detail-done" onClick={closeAssetViewer}>Close Viewer</button>
-    </div>
-    {assetStatus&&<p className="meet-detail-copy-status" role="status">{assetStatus}</p>}
-    </aside>
-    </div>
-   </div>
-  </dialog>}
+  {assetOpen&&<PuppyAssetViewer puppy={puppy} assetId={assetId} name={puppy.name}
+   collection={groupLabel(puppy)} uri={transparentImage(puppy)} onClose={closeAssetViewer}/>}
  </dialog>;
 }
 

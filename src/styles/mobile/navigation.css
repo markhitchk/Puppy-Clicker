@@ -1,0 +1,97 @@
+@media(max-width:760px){
+ .site-nav{margin-left:auto}
+ .site-account-trigger{padding:4px;min-width:44px;min-height:44px;justify-content:center}
+ .site-account-trigger-avatar{height:36px;width:36px}
+ .site-account-trigger-identity,.site-account-chevron{display:none}
+ .site-account-dropdown{right:0;top:calc(100% + 9px)}
+ .profile-avatar-large{width:62px;height:62px;font-size:31px}
+ .profile-head{padding:12px}}
+@media(max-width:440px){
+ .site-nav a{padding:9px 6px}
+ .site-brand small{display:none}
+ .site-header{gap:4px}
+ .site-account-trigger{min-width:40px;min-height:40px}
+ .site-account-trigger-avatar{width:34px;height:34px}
+ .site-account-dropdown{right:0;width:min(335px,calc(100vw - 12px))}}
+@media(max-width:380px){
+ .site-nav>a[href="/puppies"]{display:none}}
+.site-frame-game .site-header{height:52px}
+.site-frame-game .site-brand img{width:30px;height:30px}
+.site-frame-game .site-brand small{display:none}
+.site-frame-game .site-brand{font-size:14px}
+.site-frame-game .site-nav a{padding:8px 10px}
+html .site-frame-game .site-header{height:40px;padding-inline:10px}
+.site-frame-game .site-nav a{font-size:11px;padding:6px 8px}
+@media(max-width:350px){
+ .site-frame-game .site-header .site-brand>span{display:none}}
+@media(max-height:500px){
+ html .site-frame-game .site-header{height:32px}}
+@media(max-width:760px){
+ .site-header{height:62px;padding:0 10px;gap:7px}
+ .site-brand{gap:5px;font-size:14px}
+ .site-brand img{width:33px;height:33px}
+ .site-brand small{font-size:9px}
+ .site-nav{gap:1px}
+ .site-nav a{font-size:12px;padding:10px 9px}}
+@media(max-width:385px){
+ .site-brand small{display:none}
+ .site-nav a{font-size:11px;padding:9px 7px}}
+@media(max-width:700px){
+ .site-nav .puppy-language-picker span{display:none}
+ .site-nav .puppy-language-picker select{max-width:98px;font-size:12px;padding:6px}
+ .site-nav{flex-wrap:wrap}}
+@media(max-width:440px){
+ .site-header{gap:6px;padding:0 10px;height:62px;min-height:62px}
+ .site-header .site-brand{font-size:15px;gap:6px}
+ .site-header .site-brand img{width:35px;height:35px}
+ .site-header .site-brand small{display:none}
+ .site-header .site-header-tools{gap:5px}
+ .site-header .site-nav-toggle{min-width:42px;min-height:42px;padding:7px 10px}
+ .site-header-tools .site-account-trigger{min-width:42px;min-height:42px}
+ .site-header-tools .site-account-trigger-avatar{width:34px;height:34px}}
+@media(max-width:360px){
+ .site-nav-toggle-text{display:none}}
+@media(max-width:760px){
+ .site-header .site-nav.is-open{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-content:start;
+  align-items:stretch;
+  column-gap:7px;
+  row-gap:7px;
+  padding:12px;
+  max-height:min(68dvh,460px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  border-radius:0 0 17px 17px;
+ }
+ .site-header .site-nav>a{
+  min-width:0;
+  min-height:44px;
+  padding:9px 10px;
+  font-size:13px;
+  line-height:1.35;
+  border:1px solid transparent;
+  border-radius:11px;
+  overflow-wrap:anywhere;
+ }
+ .site-header .site-nav>a[aria-current=page]{border-color:#2e88a5}
+ .site-header .site-nav .puppy-language-picker{
+  grid-column:1 / -1;
+  min-width:0;
+  margin-top:3px;
+  padding:10px 3px 2px;
+  gap:8px;
+ }
+ .site-header .site-nav .puppy-language-picker select{max-width:145px;min-height:44px}}
+@media(max-width:340px){
+ .site-header .site-nav.is-open{grid-template-columns:minmax(0,1fr);max-height:75dvh}
+ .site-header .site-nav .puppy-language-picker{grid-column:auto}}
+@media(max-width:440px){
+ .site-nav-scrim{top:62px}}
+@media(max-width:760px){
+ .site-header .site-nav .site-nav-mobile-extras>a{
+    min-width:0;min-height:44px;padding:9px 10px;font-size:13px;line-height:1.35;
+    border:1px solid transparent;border-radius:11px;overflow-wrap:anywhere;
+  }
+ .site-header .site-nav .site-nav-mobile-extras>a[aria-current="page"]{border-color:var(--site-accent)}}

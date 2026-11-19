@@ -1,6 +1,5 @@
 import React,{useState} from "react";
 import ConfirmSignOut from "./ConfirmSignOut.jsx";
-import "./PupAccountBanned.css";
 
 const formatDate=value=>{
  if(!value)return null;

@@ -10,7 +10,7 @@ async function seeded(page,extra={}){
  },{saveKey,extra});
 }
 const balance=async(page,key)=>page.evaluate(({saveKey,key})=>JSON.parse(localStorage.getItem(saveKey)).saveData.stores.puppy_clicker_save.values[key],{saveKey,key});
-async function rewards(page){await page.getByRole('button',{name:'🎁 Rewards & daily goals'}).click()}
+async function rewards(page){await page.getByRole('button',{name:'🎁 Rewards & daily goals'}).click();await page.getByRole('button',{name:/Adventures & games/}).click()}
 async function casino(page){await rewards(page);await page.getByRole('button',{name:'Open',exact:true}).nth(1).click();await page.getByRole('button',{name:/Continue/}).click()}
 
 test('OAuth callback completes once in Strict Mode and opens authenticated Play',async({page})=>{
@@ -92,11 +92,26 @@ test('gacha shows insufficient-funds errors returned by the authoritative server
 test('revision conflict reloads progress without replaying a gacha debit',async({page})=>{
  await seeded(page);await page.goto('/play');await rewards(page);
  await page.getByRole('button',{name:'Open',exact:true}).first().click();
- let writes=0;
- await page.route('**/__e2e/gameplay',async route=>{writes++;await route.fulfill({status:409,json:{error:'CLOUD_SAVE_CONFLICT'}})});
+ // A concurrent device advances the revision between read and write. The
+ // outbox must refresh and reuse the same operation ID, settling only once.
+ const attempted=[];
+ await page.route('**/__e2e/gameplay',async route=>{
+  const {body}=route.request().postDataJSON();
+  attempted.push(body.operationId);
+  if(attempted.length===1){
+   await page.evaluate(key=>{
+    const record=JSON.parse(localStorage.getItem(key));
+    record.revision++;
+    localStorage.setItem(key,JSON.stringify(record));
+   },saveKey);
+   await route.fulfill({status:409,json:{error:'CLOUD_SAVE_CONFLICT'}});
+  }else await route.continue();
+ });
  await page.getByRole('button',{name:/Pull with Treats/}).click();
- await expect(page.getByRole('alert')).toContainText('another device');
- expect(writes).toBe(1);expect(await balance(page,'treats')).toBe(10000);
+ await expect.poll(()=>balance(page,'beta_gacha_pulls_v1')).toBe(1);
+ expect(attempted).toHaveLength(2);
+ expect(attempted[1]).toBe(attempted[0]);
+ expect(await balance(page,'treats')).toBe(7500);
 });
 
 test('different care actions stay queued while the first response is delayed',async({page})=>{
