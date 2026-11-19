@@ -89,3 +89,22 @@ test('Puppy Details keeps utility actions together and primary action distinct',
  expect(sizes.toolsAligned).toBe(true);
  expect(sizes.toolsSameHeight).toBe(true);
 });
+
+test('every View Asset preserves native resolution for small original artwork',async({page})=>{
+ await page.setViewportSize({width:360,height:780});
+ await page.goto('/puppies?pup=v2_test_crash_dummy');
+ const details=page.locator('dialog.meet-puppy-dialog');
+ await expect(details).toBeVisible();
+ await details.getByRole('button',{name:'View Asset'}).click();
+ const art=page.locator('dialog.meet-asset-dialog img.puppy-artwork');
+ await expect(art).toBeVisible();
+ await expect.poll(()=>art.evaluate(img=>img.naturalWidth)).toBe(256);
+ const result=await art.evaluate(img=>({
+  src:new URL(img.currentSrc).pathname,
+  displayed:img.getBoundingClientRect().width,
+  filter:getComputedStyle(img).filter
+ }));
+ expect(result.src).toBe('/assets/test/v2_test_crash_dummy.png');
+ expect(result.displayed).toBeLessThanOrEqual(257);
+ expect(result.filter).toBe('none');
+});
