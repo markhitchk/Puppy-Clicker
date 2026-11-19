@@ -14,7 +14,7 @@
  .site-account-trigger-avatar{width:34px;height:34px}
  .site-account-dropdown{right:0;width:min(335px,calc(100vw - 12px))}}
 @media(max-width:380px){
- .site-nav>a[href="/puppies"]{display:none}}
+ .site-nav>a[href="/pupdex"]{display:none}}
 .site-frame-game .site-header{height:52px}
 .site-frame-game .site-brand img{width:30px;height:30px}
 .site-frame-game .site-brand small{display:none}
