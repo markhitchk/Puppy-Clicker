@@ -36,7 +36,7 @@ test.describe("desktop website Pup Account pages",()=>{
 test.describe("public puppy detail links",()=>{
  test("fills the desktop viewport and keeps deep links functional",async({page})=>{
   await page.setViewportSize({width:1440,height:900});
-  await page.goto("/puppies?pup=v1_golden");
+  await page.goto("/pupdex?pup=v1_golden");
   const dialog=page.getByRole("dialog",{name:"Puppy Details"});
   await expect(dialog).toBeVisible();
   const bounds=await dialog.boundingBox();
@@ -44,12 +44,12 @@ test.describe("public puppy detail links",()=>{
   expect(bounds?.height).toBeGreaterThanOrEqual(890);
   await expect(dialog.getByText("v1_golden")).toBeVisible();
   await dialog.getByRole("button",{name:"Close puppy details"}).click();
-  await expect(page).toHaveURL(/\/puppies\/?$/);
+  await expect(page).toHaveURL(/\/pupdex\/?$/);
  });
 
  test("retains compact details on a mobile viewport",async({page})=>{
   await page.setViewportSize({width:390,height:844});
-  await page.goto("/puppies?pup=v1_golden");
+  await page.goto("/pupdex?pup=v1_golden");
   const dialog=page.getByRole("dialog",{name:"Puppy Details"});
   await expect(dialog).toBeVisible();
   const bounds=await dialog.boundingBox();
