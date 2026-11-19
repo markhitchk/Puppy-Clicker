@@ -1,7 +1,6 @@
 import {test,expect} from '@playwright/test';
 
 const cases=[
- {path:'/',name:'homepage',selector:'.site-footer-links a',count:6},
  {path:'/privacy',name:'website privacy',selector:'.website-privacy-actions a',count:5},
  {path:'/legal/privacy',name:'privacy policy',selector:'.legal-document-actions .pup-link-button',count:3},
  {path:'/legal/terms',name:'terms',selector:'.legal-document-actions .pup-link-button',count:3},
@@ -27,21 +26,45 @@ for(const width of [360,390,768]){
   });
  }
 }
-test('home footer has a compact grid with six functional navigation buttons',async({page})=>{
- await page.setViewportSize({width:390,height:850});
- await page.goto('/');
- const footer=page.locator('.site-footer');
- await expect(footer).toContainText('Puppy Clicker');
- await expect(footer).toContainText("Harley's Studios");
- const links=footer.locator('.site-footer-links a');
- await expect(links).toHaveCount(6);
- await expect(footer.locator('.site-footer-links')).toHaveCSS('display','grid');
- for(const destination of ['/account','/recovery','/privacy','/legal/privacy','/legal/terms','/pupeye']){
-  await expect(links.locator('[href="'+destination+'"]')).toHaveCount(1);
- }
- // One compact footer replaces the old dotted navigation sentence.
- await expect(footer).not.toContainText('Made for puppy fans');
-});
+for(const width of [320,360,390,768,1440]){
+ test('traditional logo footer uses plain text links and fits '+width+'px',async({page})=>{
+  await page.setViewportSize({width,height:850});
+  await page.goto('/');
+  const footer=page.locator('.site-footer');
+  await expect(footer).toBeVisible();
+  const marks=footer.locator('.site-footer-brandmark');
+  await expect(marks).toHaveCount(3);
+  const logos=[
+   ['harleys_studios.png',"Harley's Studios logo"],
+   ['puppy_clicker.png','Puppy Clicker game logo'],
+   ['PupEye.png','PupEye anti-cheat logo']
+  ];
+  for(let i=0;i<logos.length;i++){
+   const img=marks.nth(i).locator('img');
+   await expect(img).toHaveAttribute('src','/assets/logos/'+logos[i][0]);
+   await expect(img).toHaveAttribute('alt',logos[i][1]);
+   await expect.poll(()=>img.evaluate(node=>node.complete&&node.naturalWidth>0)).toBe(true);
+   const rect=await img.boundingBox();
+   expect(rect.x).toBeGreaterThanOrEqual(-1);
+   expect(rect.x+rect.width).toBeLessThanOrEqual(width+1);
+  }
+  await expect(footer.getByRole('button')).toHaveCount(0);
+  const links=footer.locator('.site-footer-links a');
+  await expect(links).toHaveCount(6);
+  for(const destination of ['/legal/privacy','/legal/terms','/privacy','/account/privacy','/pupeye','mailto:harleytg.hq@gmail.com']){
+   await expect(links.locator('[href="'+destination+'"]')).toHaveCount(1);
+  }
+  const styles=await links.first().evaluate(node=>{
+   const c=getComputedStyle(node);
+   return {border:c.borderTopWidth,background:c.backgroundColor,minHeight:c.minHeight};
+  });
+  expect(styles.border).toBe('0px');
+  expect(styles.background).toBe('rgba(0, 0, 0, 0)');
+  expect(styles.minHeight).toBe('0px');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ });
+}
+
 test('policy has button-style Privacy Center and keeps real print control',async({page})=>{
  await page.goto('/legal/privacy');
  await expect(page.getByRole('link',{name:'Privacy Center'}).last()).toHaveAttribute('href','/account/privacy');
