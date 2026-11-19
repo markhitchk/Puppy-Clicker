@@ -161,12 +161,14 @@ function PublicPuppyDetails({puppy,onDismiss}){
      <div><p className="meet-asset-eyebrow">Puppy artwork</p><h2 id="meet-asset-title">{puppy.name}</h2></div>
      <button type="button" className="meet-asset-close" aria-label="Close asset viewer" onClick={closeAssetViewer}>×</button>
     </header>
+    <div className="meet-asset-layout">
     <div className={"meet-asset-stage"+(checkerboard?" meet-asset-checker":"")} data-rarity={puppy.rarity||'common'}>
      <PuppyArtwork key={assetId+"-full-"+artVersion} id={puppy.id}
       name={puppy.name+" full-size transparent puppy artwork"}
       uri={transparentImage(puppy)} size={480} fullResolution
       onUnavailable={()=>setArtFailed(true)}/>
     </div>
+    <aside className="meet-asset-panel" aria-label="Artwork information and controls">
     <div className="meet-asset-info">
      <span className="meet-puppy-badge meet-puppy-badge-rarity" data-rarity={puppy.rarity||'common'}>{rarityLabels[puppy.rarity]}</span>
      <span className="meet-asset-id">{assetId}</span>
@@ -182,6 +184,8 @@ function PublicPuppyDetails({puppy,onDismiss}){
      <button type="button" className="meet-detail-done" onClick={closeAssetViewer}>Close Viewer</button>
     </div>
     {assetStatus&&<p className="meet-detail-copy-status" role="status">{assetStatus}</p>}
+    </aside>
+    </div>
    </div>
   </dialog>}
  </dialog>;
