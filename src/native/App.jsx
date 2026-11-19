@@ -545,6 +545,7 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
     onInspect={id=>{setInspected(id);setDetailsId(id);}}
     onUse={id=>onUse?onUse(id):act({type:'switch',id,now:Date.now()})}
     onToggleFavorite={id=>act({type:'favorite',id})}
+    onClaimFree={id=>act({type:'claimFreeTest',id})}
     onRetry={retry}/>;
    return <View key={p.id} style={[styles.restoredRosterTile,inspected===p.id&&{borderColor:C.accent}]}>
     <Pressable accessibilityRole="button" accessibilityLabel={'Inspect '+puppyName(p)} onPress={()=>{setInspected(p.id);setDetailsId(p.id);}} style={{width:'100%',alignItems:'center',gap:6}}>
