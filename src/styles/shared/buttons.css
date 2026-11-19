@@ -35,3 +35,36 @@ html .cta-secondary,html .small-action{background:var(--bg-secondary);border-col
 .pup-link-button:focus-visible{outline:3px solid var(--site-accent,#00d4f2);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){
  .pup-link-button{transition:none}}
+
+/* Textual links keep native anchor semantics but present as real button-shaped actions.
+   Do not restyle brandmarks, whole-card hit areas, existing action buttons or the footer. */
+.site-frame a[href]:not(:where(
+ .site-brand,.desktop-brand,.meet-puppy-link,
+ .site-header a,.desktop-navigation a,.site-account a,.site-footer a,
+ .cta,.cyber-button,.pup-link-button,.meet-detail-primary,.meet-detail-secondary,
+ [role="tab"],[role="menuitem"],a:has(img),a:has(svg)
+)){
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:40px;max-width:100%;min-width:0;
+ padding:8px 13px;box-sizing:border-box;
+ border:1px solid var(--site-border,#386278);
+ border-radius:12px;
+ background:var(--bg-elevated,#1c3445);color:var(--site-text,#e9f8ff);
+ text-align:center;text-decoration:none;font-weight:750;line-height:1.3;
+ overflow-wrap:anywhere;cursor:pointer;
+ transition:background-color .16s ease,border-color .16s ease;
+}
+.site-frame a[href]:not(:where(
+ .site-brand,.desktop-brand,.meet-puppy-link,
+ .site-header a,.desktop-navigation a,.site-account a,.site-footer a,
+ .cta,.cyber-button,.pup-link-button,.meet-detail-primary,.meet-detail-secondary,
+ [role="tab"],[role="menuitem"],a:has(img),a:has(svg)
+)):hover{
+ border-color:var(--site-accent,#00cde8);
+ background:var(--bg-secondary,#234357);
+ text-decoration:none;
+}
+.site-frame a[href]:focus-visible{outline:3px solid var(--site-accent,#00d5ef);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){
+ .site-frame a[href]{transition:none!important}
+}

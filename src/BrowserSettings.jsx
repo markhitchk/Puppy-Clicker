@@ -42,6 +42,8 @@ export default function BrowserSettings(){
  const [prefs,setPrefs]=useState(()=>loadWebPreferences());
  const [systemDark,setSystemDark]=useState(()=>window.matchMedia('(prefers-color-scheme: dark)').matches);
  const [message,setMessage]=useState('');
+ const [searchTerm,setSearchTerm]=useState('');
+ const [undoPrefs,setUndoPrefs]=useState(null);
  const [confirmReset,setConfirmReset]=useState(false);
  const [permission,setPermission]=useState(()=>typeof Notification==='undefined'?'unsupported':Notification.permission);
  const [fullscreen,setFullscreen]=useState(()=>Boolean(document.fullscreenElement));
@@ -79,6 +81,7 @@ export default function BrowserSettings(){
   const updated=updateWebPreference(prefs,name,value);
   if(updated===prefs)return;
   if(!saveWebPreferences(updated)){setMessage('This browser could not save preferences. Check its storage permissions.');return;}
+  setUndoPrefs(prefs);
   setPrefs(updated);
   setMessage('Saved on this browser. Your Pup Account progress is unchanged.');
  };
@@ -88,16 +91,55 @@ export default function BrowserSettings(){
    setMessage(result==='granted'?'Browser notifications enabled.':result==='denied'?'Notifications were blocked. Change site permissions in your browser.':'Notification permission was not granted.');
   }catch{setMessage('Notifications are not available in this browser.');}
  };
+ const undoLastChange=()=>{
+  if(!undoPrefs)return;
+  if(!saveWebPreferences(undoPrefs)){
+   setMessage('Unable to restore preferences. Check browser storage permissions.');return;
+  }
+  setPrefs(loadWebPreferences());
+  setUndoPrefs(null);
+  setMessage('Previous browser preferences restored.');
+ };
+ const search=searchTerm.trim().toLocaleLowerCase();
+ const matches=terms=>!search||terms.toLocaleLowerCase().includes(search);
+ const categories=[
+  ['browser-appearance','🎨 Appearance'],
+  ['puppy-pointer-settings','🖱️ Pointer'],
+  ['browser-performance','🎮 Graphics'],
+  ['browser-notifications','🔔 Notifications'],
+  ['browser-storage','💾 Storage']
+ ];
+ const categoryKeywords=[
+  'appearance accessibility theme dark light device accent color cyan purple interface size compact large contrast reduced motion',
+  'puppy pointer mouse cursor trackpad system theme light dark size custom highlight clicks preview',
+  'graphics performance webgpu webgl canvas backend renderer effects quality battery saver automatic animation tap button compact numbers',
+  'notifications display permissions reminders daily rewards events fullscreen',
+  'storage privacy browser preferences reset data progress account clear sync usage quota'
+ ];
+ const anyMatch=categoryKeywords.some(matches);
  const size=bytes=>{
   if(bytes<1024*1024/10)return 'less than 0.1 MB';
   return (Math.round(bytes/1024/1024*10)/10).toLocaleString()+' MB';
  };
  return <div className="browser-settings-page">
   <header className="browser-settings-intro"><div><p className="eyebrow">🐾 PUPPY CLICKER · WEB</p><h1>Browser Settings</h1>
-   <p>These settings work for guests and Pup Account players. Preferences stay on this browser; gameplay balances and cloud saves are separate.</p></div>
+   <p>Customize this browser without changing your Pup Account, balances, or cloud saves.</p></div>
    <LanguagePicker/></header>
+  <div className="browser-settings-toolbar" role="search" aria-label="Find browser settings">
+   <label htmlFor="browser-settings-search">Find a setting
+    <input id="browser-settings-search" type="search" value={searchTerm}
+     onChange={event=>setSearchTerm(event.target.value)}
+     placeholder="Theme, cursor, notifications…" autoComplete="off"/>
+   </label>
+   {searchTerm?<button type="button" className="browser-settings-action secondary" onClick={()=>setSearchTerm('')}>Clear search</button>:null}
+   {undoPrefs?<button type="button" className="browser-settings-action secondary" onClick={undoLastChange}>↶ Undo last change</button>:null}
+  </div>
+  {!search?<nav className="browser-settings-shortcuts" aria-label="Jump to settings">
+   {categories.map(([id,label])=><a className="pup-link-button" key={id} href={'#'+id}>{label}</a>)}
+  </nav>:null}
+  {search&&!anyMatch?<p className="browser-settings-no-results" role="status">No settings match “{searchTerm}”. Try another term or clear your search.</p>:null}
   <div className="browser-settings-grid">
-   <section className="browser-settings-panel" aria-labelledby="browser-appearance"><h2 id="browser-appearance">🎨 Appearance & accessibility</h2>
+   <section className="browser-settings-panel" aria-labelledby="browser-appearance" hidden={!matches(categoryKeywords[0])}><h2 id="browser-appearance">🎨 Appearance & accessibility</h2>
     <BrowserChoices label="Theme" value={prefs.themeMode} choices={themeOptions} onChange={value=>change('themeMode',value)}/>
     <fieldset className="browser-settings-choices"><legend>Accent color</legend><div className="browser-settings-colors">
      {ACCENT_PRESETS.map(([name,color])=><label key={color} title={name}>
@@ -108,11 +150,11 @@ export default function BrowserSettings(){
     <BrowserOption label="High contrast" checked={prefs.highContrast} onChange={value=>change('highContrast',value)}/>
     <BrowserOption label="Reduced motion" detail="Disable animated GPU effects and reduce other game movement." checked={prefs.reducedMotion} onChange={value=>change('reducedMotion',value)}/>
    </section>
-   <section className="browser-settings-panel browser-pointer-panel" id="puppy-pointer-settings" aria-labelledby="browser-pointer-heading">
+   <section className="browser-settings-panel browser-pointer-panel" id="puppy-pointer-settings" aria-labelledby="browser-pointer-heading" hidden={!matches(categoryKeywords[1])}>
     <h2 id="browser-pointer-heading">🖱️ Puppy mouse pointer</h2>
     <p className="browser-settings-detail">Customize the actual mouse or trackpad cursor. Changes apply across Puppy Clicker immediately and remain on this browser.</p>
     <BrowserChoices label="Mouse pointer" value={prefs.puppyPointerEnabled?'puppy':'system'} choices={[["system","System pointer"],["puppy","Original Puppy pointer"]]} onChange={value=>change('puppyPointerEnabled',value==='puppy')}/>
-    <p className="browser-settings-detail">System pointer uses your operating system's native cursor. Original Puppy pointer uses the site's custom artwork; touch input is unchanged.</p>
+    <details className="browser-settings-help"><summary>How pointers work</summary><p>System pointer uses your operating system's cursor. Original Puppy pointer uses the site artwork; touch input is unchanged.</p></details>
     {prefs.puppyPointerEnabled?<div className="browser-pointer-controls">
      <BrowserChoices label="Pointer theme" value={prefs.puppyPointerTheme} choices={pointerThemeOptions} onChange={value=>change('puppyPointerTheme',value)}/>
      <BrowserChoices label="Pointer size" value={prefs.puppyPointerSizeMode} choices={[['system','Match system size'],['custom','Custom size']]} onChange={value=>change('puppyPointerSizeMode',value)}/>
@@ -135,14 +177,14 @@ export default function BrowserSettings(){
      </div>
      <button className="browser-settings-action secondary" type="button" onClick={()=>{
       const next={...prefs,puppyPointerTheme:WEB_PREFERENCE_DEFAULTS.puppyPointerTheme,puppyPointerClickHighlight:WEB_PREFERENCE_DEFAULTS.puppyPointerClickHighlight,puppyPointerSizeMode:WEB_PREFERENCE_DEFAULTS.puppyPointerSizeMode,puppyPointerCustomSize:WEB_PREFERENCE_DEFAULTS.puppyPointerCustomSize};
-      if(saveWebPreferences(next)){setPrefs(next);setMessage('Puppy pointer defaults restored.');}
+      if(saveWebPreferences(next)){setUndoPrefs(prefs);setPrefs(next);setMessage('Puppy pointer defaults restored.');}
       else setMessage('Could not save pointer defaults. Check browser storage permissions.');
      }}>Reset pointer customization</button>
     </div>:<p className="browser-settings-detail" role="status">System pointer active. Custom Puppy theme, size and preview controls are hidden until you select Original Puppy pointer.</p>}
     <BrowserOption label="Highlight mouse clicks" detail="Show a brief accent-color ring at each mouse click (on by default). Disabled with Reduced motion." checked={prefs.puppyPointerClickHighlight} onChange={value=>change('puppyPointerClickHighlight',value)}/>
    </section>
-   <section className="browser-settings-panel" aria-labelledby="browser-performance"><h2 id="browser-performance">🎮 Graphics & performance</h2>
-    <p><strong>Graphics mode: Automatic</strong> — WebGPU → WebGL 2 → WebGL 1 → Canvas 2D → CSS. Your browser chooses the underlying Vulkan, Metal or Direct3D backend.</p>
+   <section className="browser-settings-panel" aria-labelledby="browser-performance" hidden={!matches(categoryKeywords[2])}><h2 id="browser-performance">🎮 Graphics & performance</h2>
+    <p className="browser-settings-detail"><strong>Automatic graphics:</strong> WebGPU → WebGL 2 → WebGL 1 → Canvas 2D → CSS. The browser chooses Vulkan, Metal, or Direct3D when supported.</p>
     <p className="browser-settings-detail">Supported on this browser: {supports.join(' · ')}</p>
     <p className="browser-settings-detail" role="status">Play screen renderer: {renderer}</p>
     <BrowserChoices label="Effects quality" value={prefs.performancePreset} choices={qualityOptions} onChange={value=>change('performancePreset',value)}/>
@@ -151,7 +193,7 @@ export default function BrowserSettings(){
     <BrowserOption label="Button animations" checked={prefs.buttonAnimations} onChange={value=>change('buttonAnimations',value)}/>
     <BrowserOption label="Compact numbers" checked={prefs.compactNumbers} onChange={value=>change('compactNumbers',value)}/>
    </section>
-   <section className="browser-settings-panel" aria-labelledby="browser-notifications"><h2 id="browser-notifications">🔔 Notifications & display</h2>
+   <section className="browser-settings-panel" aria-labelledby="browser-notifications" hidden={!matches(categoryKeywords[3])}><h2 id="browser-notifications">🔔 Notifications & display</h2>
     <p>Browser notification permission: <strong>{permission==='granted'?'Allowed':permission==='denied'?'Blocked':permission==='unsupported'?'Unavailable':'Not requested'}</strong></p>
     {permission==='default'?<button type="button" className="browser-settings-action" onClick={askNotifications}>Request notification permission</button>:null}
     {permission==='denied'?<p className="browser-settings-detail">Use your browser's website permissions to unblock notifications.</p>:null}
@@ -162,19 +204,19 @@ export default function BrowserSettings(){
      catch{setMessage('Fullscreen is unavailable in this browser.');}
     }}>{fullscreen?'Exit fullscreen':'Enter fullscreen'}</button>:<p className="browser-settings-detail">Fullscreen is controlled by your browser.</p>}
    </section>
-   <section className="browser-settings-panel" aria-labelledby="browser-storage"><h2 id="browser-storage">💾 Browser storage & privacy</h2>
+   <section className="browser-settings-panel" aria-labelledby="browser-storage" hidden={!matches(categoryKeywords[4])}><h2 id="browser-storage">💾 Browser storage & privacy</h2>
     <p>Local preferences are separate from your Pup Account cloud save. Pending gameplay actions may be stored in IndexedDB until Supabase confirms them.</p>
     {storage?<p className="browser-settings-detail">Estimated site storage used: {size(storage.usage)}. Browser-reported origin quota: {size(storage.quota)} (this is a limit, not free device space).</p>:null}
     <p className="browser-settings-detail">Never clear website data while gameplay is still syncing. This page does not delete your queued actions.</p>
     {!confirmReset?<button className="browser-settings-action" type="button" onClick={()=>setConfirmReset(true)}>Reset browser preferences</button>:<div className="browser-settings-reset">
      <p>Reset appearance and performance preferences? Game progress is not changed.</p>
      <button className="browser-settings-action" onClick={()=>{
-      if(saveWebPreferences(WEB_PREFERENCE_DEFAULTS)){setPrefs(loadWebPreferences());setMessage('Browser preferences reset.');}
+      if(saveWebPreferences(WEB_PREFERENCE_DEFAULTS)){setUndoPrefs(prefs);setPrefs(loadWebPreferences());setMessage('Browser preferences reset.');}
       else setMessage('Unable to reset preferences: site storage is unavailable.');
       setConfirmReset(false);
      }}>Confirm reset</button><button className="browser-settings-action secondary" onClick={()=>setConfirmReset(false)}>Cancel</button>
     </div>}
-    <div className="browser-settings-links"><a href="/play">🐾 Play</a><a href="/play?=demo">🎮 Guest demo</a><a href="/account">👤 Pup Account</a><a href="/legal/privacy">Privacy policy</a></div>
+    <nav className="browser-settings-links" aria-label="Related pages"><a className="pup-link-button" href="/play">🐾 Play</a><a className="pup-link-button" href="/play?=demo">🎮 Guest demo</a><a className="pup-link-button" href="/account">👤 Pup Account</a><a className="pup-link-button" href="/legal/privacy">Privacy policy</a></nav>
    </section>
   </div>
   {message?<p className="browser-settings-feedback" role="status">{message}</p>:null}
