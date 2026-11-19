@@ -1,4 +1,3 @@
-import {canPersistCustomization} from "./privacy/cookiePreferences.js";
 // Shared, dependency-free language catalogue for React Native and React Native Web.
 export const LANGUAGE_KEY="puppy-clicker:language:v1";
 export const LANGUAGE_CHANGED="puppy-clicker:language-changed";
@@ -83,21 +82,16 @@ export function normalizeLanguage(value){
  const code=String(value||"").trim().toLowerCase().split(/[-_]/)[0];
  return SUPPORTED_LANGUAGES.includes(code)?code:"en";
 }
-let sessionLanguage=null;
-export function resetVolatileLanguage(){sessionLanguage=null;}
 export function readLanguage(storage,deviceLanguage){
- if(storage===undefined&&!canPersistCustomization())
-  return sessionLanguage||normalizeLanguage(deviceLanguage??globalThis.navigator?.language);
  try{
   const saved=(storage??globalThis.localStorage)?.getItem(LANGUAGE_KEY);
   if(saved&&SUPPORTED_LANGUAGES.includes(saved))return saved;
  }catch{}
- return sessionLanguage||normalizeLanguage(deviceLanguage??globalThis.navigator?.language);
+ return normalizeLanguage(deviceLanguage??globalThis.navigator?.language);
 }
 export function writeLanguage(next,storage){
  const code=normalizeLanguage(next);
- if(storage===undefined&&!canPersistCustomization())sessionLanguage=code;
- else try{(storage??globalThis.localStorage)?.setItem(LANGUAGE_KEY,code);sessionLanguage=null;}catch{sessionLanguage=code;}
+ try{(storage??globalThis.localStorage)?.setItem(LANGUAGE_KEY,code);}catch{}
  if(typeof window!=="undefined"){
   document.documentElement.lang=code;
   window.dispatchEvent(new CustomEvent(LANGUAGE_CHANGED,{detail:{language:code}}));
