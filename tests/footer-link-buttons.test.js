@@ -3,16 +3,30 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
-test('site footer contains grouped navigation buttons, not dotted text links',()=>{
+test('homepage has a traditional footer with all three original brand logos',()=>{
  const home=read('src/App.jsx');
+ const css=read('src/styles.css');
  assert.match(home,/className="site-footer"/);
- assert.match(home,/className="site-footer-brand"/);
+ assert.match(home,/className="site-footer-brands"/);
+ assert.match(home,/className="site-footer-bottom"/);
  assert.match(home,/className="site-footer-links"/);
- assert.match(home,/className="home-account-recovery pup-link-button"/);
- for(const url of ['/account','/recovery','/privacy','/legal/privacy','/legal/terms','/pupeye']){
+ for(const [asset,alt] of [
+  ['harleys_studios.png',"Harley's Studios logo"],
+  ['puppy_clicker.png','Puppy Clicker game logo'],
+  ['PupEye.png','PupEye anti-cheat logo']
+ ]){
+  assert.ok(home.includes('/assets/logos/'+asset),'Missing '+asset);
+  assert.ok(home.includes('alt="'+alt+'"'),'Missing accessible logo label '+alt);
+ }
+ for(const url of ['/legal/privacy','/legal/terms','/privacy','/account/privacy','/pupeye']){
   assert.ok(home.includes('<a href="'+url+'">')||home.includes('<a href="'+url+'" className='),url);
  }
- assert.doesNotMatch(home,/Made for puppy fans/);
+ assert.ok(home.includes('href="mailto:harleytg.hq@gmail.com"'));
+ assert.doesNotMatch(home,/className="site-footer-links"[^]*?className="pup-link-button"/);
+ assert.match(css,/\.site-footer-links a\{[^}]*border:0;/);
+ assert.match(css,/\.site-footer-links a\{[^}]*background:transparent;/);
+ assert.match(css,/\.site-footer-brandmark img\{/);
+ assert.match(home,/className="home-account-recovery pup-link-button"/);
 });
 test('legal and privacy routes retain proper hrefs with button-style navigation',()=>{
  const legal=read('src/LegalReader.jsx');
