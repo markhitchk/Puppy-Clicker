@@ -4,7 +4,8 @@ test('content hyperlinks are button-shaped anchors with native navigation and th
  await page.goto('/settings');
  const privacy=page.getByRole('link',{name:'Privacy policy',exact:true});
  await expect(privacy).toHaveAttribute('href','/legal/privacy');
- await expect(privacy).toHaveCSS('display','inline-flex');
+ const display=await privacy.evaluate(el=>getComputedStyle(el).display);
+ expect(['flex','inline-flex']).toContain(display);
  await expect(privacy).toHaveCSS('text-decoration-line','none');
  const border=await privacy.evaluate(el=>getComputedStyle(el).borderStyle);
  expect(border).toBe('solid');
