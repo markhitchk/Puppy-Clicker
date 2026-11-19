@@ -45,7 +45,7 @@ export function getPuppySharePreview(search){
    " puppy in Puppy Clicker."+(puppy.redeemOnly?" Special unlock.":""),
   image:SITE_URL+imagePath,
   imageAlt:puppy.name+" puppy artwork from Puppy Clicker",
-  url:SITE_URL+"/puppies?pup="+encodeURIComponent(puppyAssetId(puppy)),
+  url:SITE_URL+"/pupdex?pup="+encodeURIComponent(puppyAssetId(puppy)),
   name:puppy.name,
   id:puppy.id
  };
