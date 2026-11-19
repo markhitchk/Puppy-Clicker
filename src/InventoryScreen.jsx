@@ -70,7 +70,7 @@ function InventoryPuppyDetails({puppy,name,onClose,onViewAsset}){
     <div className="meet-detail-identity" data-rarity={puppy.rarity||'unknown'}>
      <div className="meet-detail-artwork">
       <PuppyArtwork id={puppy.id} name={name+' puppy artwork'}
-       uri={artworkUri(puppy)} size={164}/>
+       uri={artworkUri(puppy)} size={164} fullResolution/>
      </div>
      <div className="meet-detail-name">
       <h3>{name}</h3><p className="meet-detail-asset-id">{assetId}</p>
