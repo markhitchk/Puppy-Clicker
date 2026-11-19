@@ -178,15 +178,31 @@ function Home(){
    <div className="account-preview"><span>🐾</span><strong>Pup Account</strong><p>Verified login · Linked progress · Account settings</p></div>
   </section>
   <footer className="site-footer" aria-label="Website footer">
-   <div className="site-footer-brand"><strong>🐾 Puppy Clicker</strong><span>© {new Date().getFullYear()} Harley's Studios</span></div>
-   <nav className="site-footer-links" aria-label="Help and policies">
-    <a href="/account">Pup Account</a>
-    <a href="/recovery">Recovery</a>
-    <a href="/privacy">Website privacy</a>
-    <a href="/legal/privacy">Privacy policy</a>
-    <a href="/legal/terms">Terms</a>
-    <a href="/pupeye">PupEye</a>
-   </nav>
+   <div className="site-footer-brands" aria-label="Website brands">
+    <div className="site-footer-brandmark">
+     <img src="/assets/logos/harleys_studios.png" alt="Harley's Studios logo" loading="lazy" decoding="async"/>
+     <span>Harley's Studios</span>
+    </div>
+    <div className="site-footer-brandmark">
+     <img src="/assets/logos/puppy_clicker.png" alt="Puppy Clicker game logo" loading="lazy" decoding="async"/>
+     <span>Puppy Clicker</span>
+    </div>
+    <div className="site-footer-brandmark">
+     <img src="/assets/logos/PupEye.png" alt="PupEye anti-cheat logo" loading="lazy" decoding="async"/>
+     <span>PupEye</span>
+    </div>
+   </div>
+   <div className="site-footer-bottom">
+    <p>© {new Date().getFullYear()} Harley's Studios. All rights reserved.</p>
+    <nav className="site-footer-links" aria-label="Legal and support">
+     <a href="/legal/privacy">Privacy Policy</a>
+     <a href="/legal/terms">Terms of Use</a>
+     <a href="/privacy">Website Privacy</a>
+     <a href="/account/privacy">Privacy Center</a>
+     <a href="/pupeye">PupEye</a>
+     <a href="mailto:harleytg.hq@gmail.com">Contact</a>
+    </nav>
+   </div>
   </footer>
  </div>;
 }

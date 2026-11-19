@@ -578,10 +578,8 @@ html .pup-graphics-layer[data-graphics-backend="css"]{
 @media(max-width:600px){.pup-fairplay-banner{gap:6px;padding:7px}.pup-fairplay-banner p{font-size:10px}.pup-fairplay-banner button{max-width:90px;padding:6px 8px;white-space:normal}}
 
 
-/* Shared button appearance for navigation links.
-   Keep real <a href> semantics for back navigation, copy link and new-tab. */
-.pup-link-button,
-.site-footer-links a{
+/* Button styling is for page actions only; never apply it to the footer. */
+.pup-link-button{
  display:inline-flex;align-items:center;justify-content:center;gap:8px;
  min-width:0;min-height:44px;padding:10px 16px;
  border:1px solid var(--site-accent,#4ccce5);
@@ -596,12 +594,10 @@ html .pup-graphics-layer[data-graphics-backend="css"]{
 .pup-link-button.is-primary{
  background:var(--site-accent,#00d4f2);color:#071a21;border-color:var(--site-accent,#00d4f2);
 }
-.pup-link-button:hover,
-.site-footer-links a:hover{background:#1a4455;border-color:#81eeff;color:#fff;text-decoration:none}
+.pup-link-button:hover{background:#1a4455;border-color:#81eeff;color:#fff;text-decoration:none}
 .pup-link-button.is-primary:hover{background:#8ceeff;color:#071a21}
-.pup-link-button:focus-visible,
-.site-footer-links a:focus-visible{outline:3px solid var(--site-accent,#00d4f2);outline-offset:3px}
-@media(prefers-reduced-motion:reduce){.pup-link-button,.site-footer-links a{transition:none}}
+.pup-link-button:focus-visible{outline:3px solid var(--site-accent,#00d4f2);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.pup-link-button{transition:none}}
 
 /* Home recovery is a visible, full-size action rather than an unstyled link. */
 html .split-cta .home-account-recovery.pup-link-button{
@@ -615,27 +611,72 @@ html .split-cta .home-account-recovery.pup-link-button{
 html .split-cta .home-account-recovery.pup-link-button:hover{border-color:#76e7ff;background:#194154;text-decoration:none}
 @media(max-width:760px){html .split-cta .home-account-recovery.pup-link-button{width:100%}}
 
-/* Rebuilt footer: short branding + legible button grid. No dot separators. */
+/* Traditional, non-interactive brand footer; plain-text legal/support links. */
 .site-footer{
+ display:block;max-width:1180px;margin:26px auto 0;
+ padding:26px clamp(12px,3vw,24px) 24px;
+ border-top:1px solid var(--site-border,#315466);
+ background:transparent;color:var(--site-muted,#aecbd8);
+ font-size:13px;line-height:1.5;
+}
+.site-footer-brands{
+ display:flex;align-items:flex-start;justify-content:center;
+ flex-wrap:wrap;gap:clamp(22px,5vw,64px);
+ padding:0 0 24px;
+}
+.site-footer-brandmark{
+ display:flex;align-items:center;flex-direction:column;gap:8px;
+ width:clamp(102px,16vw,158px);min-width:0;text-align:center;
+}
+.site-footer-brandmark img{
+ display:block;width:min(100%,106px);height:72px;
+ object-fit:contain;flex-shrink:0;
+ background:transparent;border:0;
+}
+.site-footer-brandmark span{
+ font-size:12px;line-height:1.35;font-weight:700;color:var(--site-text,#e3f6fc);
+}
+.site-footer-bottom{
  display:flex;align-items:center;justify-content:space-between;
- gap:16px 22px;flex-wrap:wrap;
- max-width:1180px;margin:22px auto 0;
- padding:20px clamp(14px,3vw,24px) 26px;
- border-top:1px solid #2b4b5b;color:#9bb6c7;
- font-size:12px;line-height:1.4;
+ flex-wrap:wrap;gap:12px 22px;
+ padding-top:18px;border-top:1px solid var(--site-border,#315466);
 }
-.site-footer-brand{display:flex;flex-direction:column;gap:4px;min-width:0}
-.site-footer-brand strong{font-size:14px;color:#e0f5fc;font-weight:800}
-.site-footer-brand span{color:#a9c4d1}
-.site-footer-links{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;min-width:0}
-.site-footer-links a{min-height:40px;padding:8px 12px;font-size:12px;border-color:#356278}
+.site-footer-bottom p{
+ margin:0;color:var(--site-muted,#a9c4d1);font-size:12px;
+}
+.site-footer-links{
+ display:flex;align-items:center;justify-content:flex-end;
+ flex-wrap:wrap;gap:8px 18px;min-width:0;
+}
+.site-footer-links a{
+ display:inline;min-height:0;min-width:0;margin:0;padding:0;
+ border:0;border-radius:0;box-shadow:none;background:transparent;
+ color:var(--site-muted,#b4d2e1);
+ font:inherit;font-size:12px;font-weight:500;line-height:1.5;
+ text-decoration:none;white-space:nowrap;
+}
+.site-footer-links a:hover{
+ background:transparent;color:var(--site-accent,#00e5ff);
+ text-decoration:underline;text-underline-offset:3px;
+}
+.site-footer-links a:focus-visible{
+ outline:2px solid var(--site-accent,#00e5ff);outline-offset:4px;
+ border-radius:2px;
+}
 @media(max-width:760px){
- .site-footer{align-items:stretch;margin-top:12px;padding:20px 8px 24px;gap:18px}
- .site-footer-brand{align-items:center;text-align:center;width:100%}
- .site-footer-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;width:100%}
- .site-footer-links a{min-height:44px;width:100%}
+ .site-footer{margin-top:14px;padding:22px 12px 24px}
+ .site-footer-brands{flex-wrap:nowrap;gap:10px;padding-bottom:18px}
+ .site-footer-brandmark{flex:1 1 0;width:auto;min-width:0}
+ .site-footer-brandmark img{width:min(100%,78px);height:58px}
+ .site-footer-brandmark span{font-size:11px;overflow-wrap:anywhere}
+ .site-footer-bottom{flex-direction:column;align-items:center;gap:12px;text-align:center}
+ .site-footer-links{justify-content:center;gap:8px 14px;width:100%}
+ .site-footer-links a{font-size:11px}
 }
-@media(max-width:360px){.site-footer-links{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:350px){
+ .site-footer-brandmark img{width:min(100%,66px);height:50px}
+ .site-footer-links{gap:8px 11px}
+}
 
 /* Website activity notice actions, sized for touch without horizontal overflow. */
 .website-privacy-actions{
