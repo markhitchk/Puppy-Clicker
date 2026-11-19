@@ -43,6 +43,7 @@ for(const width of [320,360,390,768,1440]){
    const img=marks.nth(i).locator('img');
    await expect(img).toHaveAttribute('src','/assets/logos/'+logos[i][0]);
    await expect(img).toHaveAttribute('alt',logos[i][1]);
+   await img.scrollIntoViewIfNeeded();
    await expect.poll(()=>img.evaluate(node=>node.complete&&node.naturalWidth>0)).toBe(true);
    const rect=await img.boundingBox();
    expect(rect.x).toBeGreaterThanOrEqual(-1);
