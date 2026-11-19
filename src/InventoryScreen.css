@@ -249,3 +249,29 @@ html .pup-inventory .pup-inventory-puppy{
  html .pup-inventory-puppy{transition:none!important;transform:none!important}
  html .pup-inventory-card-content::after{animation:none!important}
 }
+
+
+/* Subtle foil reflection for inventory's rarity-tagged items (never wallet). */
+.pup-inventory-item[data-rarity]:not([data-rarity="neutral"]){
+ position:relative;isolation:isolate;overflow:hidden;
+}
+.pup-inventory-item[data-rarity]:not([data-rarity="neutral"])::after{
+ content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+ background:linear-gradient(111deg,transparent 26%,rgb(var(--rarity-rgb) / .06) 36%,
+  #ffffff30 47%,rgb(var(--rarity-rgb) / .13) 55%,transparent 68%);
+ transform:translateX(-160%) skewX(-12deg);
+}
+.pup-inventory-item[data-rarity]:not([data-rarity="neutral"])>*{position:relative;z-index:1}
+.pup-inventory-item[data-rarity]:not([data-rarity="neutral"]):hover{
+ border-color:rgb(var(--rarity-rgb) / .85);
+ box-shadow:inset 0 1px #ffffff23,0 10px 24px #0005,0 0 18px rgb(var(--rarity-rgb) / .19);
+}
+@media(prefers-reduced-motion:no-preference){
+ .pup-inventory-item[data-rarity]:not([data-rarity="neutral"]):hover::after{
+  animation:pupdex-foil-sweep 1.5s ease-out 1;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .pup-inventory-item[data-rarity]::after{animation:none!important}
+}
+html[data-puppy-reduced-motion="true"] .pup-inventory-item[data-rarity]::after{animation:none!important}
