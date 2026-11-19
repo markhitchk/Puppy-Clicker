@@ -249,3 +249,28 @@ html .split-cta .home-account-recovery.pup-link-button{
  font-size:14px;line-height:1.4;text-align:center;
 }
 html .split-cta .home-account-recovery.pup-link-button:hover{border-color:#76e7ff;background:#194154;text-decoration:none}
+
+/* Password visibility: a native input remains autofill-compatible across modes. */
+.pup-password-field{position:relative;display:block;width:100%;min-width:0;max-width:100%}
+.pup-password-field>input{
+ box-sizing:border-box;display:block;width:100%;min-width:0;max-width:100%;
+ min-height:46px;padding-inline-end:105px!important;
+}
+.pup-password-field>.pup-password-visibility{
+ position:absolute;inset-inline-end:5px;top:50%;transform:translateY(-50%);
+ display:inline-flex;align-items:center;justify-content:center;gap:4px;
+ min-height:38px;min-width:88px;padding:6px 8px;border:1px solid #4b7c92;
+ border-radius:10px;background:#1e3f50;color:#ecfaff;
+ font:inherit;font-size:12px;font-weight:800;cursor:pointer;
+}
+.pup-password-field>.pup-password-visibility:hover{background:#28576d;border-color:#78daec}
+.pup-password-field>.pup-password-visibility:focus-visible{outline:3px solid #8ce9ff;outline-offset:2px}
+.pup-password-field>.pup-password-visibility:disabled{opacity:.6;cursor:not-allowed}
+@media(max-width:760px){.pup-password-field>.pup-password-visibility{min-height:40px}}
+html[data-puppy-theme="light"] .pup-password-field>.pup-password-visibility{background:#e8f5fb;color:#173645;border-color:#6b9ab0}
+
+/* Legal-consent hyperlinks are actions, not unstyled underlined text. */
+.account-auth-consent a.pup-link-button{
+ display:inline-flex;min-height:36px;padding:5px 10px;margin-block:3px;
+ border-radius:10px;text-decoration:none;vertical-align:middle;
+}
