@@ -137,8 +137,8 @@
 .browser-pointer-controls{min-width:0;gap:10px}
 .browser-pointer-preview{padding:10px;gap:8px;border-radius:12px}
 .browser-pointer-preview-grid{gap:6px}
-.browser-pointer-preview-tile{min-height:104px;gap:6px;padding:7px 4px}
-.browser-pointer-preview-tile img{flex-shrink:0;max-height:80px;height:auto}
+.browser-pointer-preview-tile{min-height:118px;gap:6px;padding:7px 4px}
+.browser-pointer-preview-tile img{flex-shrink:0;max-height:96px;height:auto}
 .browser-pointer-preview[data-cursor-theme='dark'] .browser-pointer-preview-tile{
  background:#e9f4fa;color:#152432;border-color:#b6d1df;
 }
