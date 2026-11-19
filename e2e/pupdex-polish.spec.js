@@ -108,3 +108,25 @@ test('every View Asset preserves native resolution for small original artwork',a
  expect(result.displayed).toBeLessThanOrEqual(257);
  expect(result.filter).toBe('none');
 });
+
+for(const width of [960,1366,1920]){
+ test('desktop collection filters form a compact 3-by-2 grid at '+width+'px',async({page})=>{
+  await page.setViewportSize({width,height:800});
+  await page.goto('/puppies');
+  const controls=page.locator('.meet-puppy-controls');
+  const filters=controls.getByRole('group',{name:'Puppy collection'});
+  const buttons=filters.getByRole('button');
+  await expect(buttons).toHaveCount(6);
+  const boxes=await buttons.evaluateAll(nodes=>nodes.map(node=>node.getBoundingClientRect().toJSON()));
+  expect(boxes[0].y).toBe(boxes[2].y);
+  expect(boxes[3].x).toBe(boxes[0].x);
+  expect(boxes[3].y).toBeGreaterThan(boxes[0].y);
+  expect(boxes[5].y).toBe(boxes[3].y);
+  expect((await controls.boundingBox()).height).toBeLessThan(180);
+  await filters.getByRole('button',{name:'Test puppies'}).click();
+  await expect(filters.getByRole('button',{name:'Test puppies'})).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('.meet-puppy-grid article')).toHaveCount(2);
+  await controls.getByRole('searchbox').fill('V2');
+  await expect(page.locator('.meet-puppy-grid article')).toHaveCount(1);
+ });
+}

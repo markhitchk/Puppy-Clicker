@@ -3,7 +3,7 @@ import {test,expect} from '@playwright/test';
 // All entry points share one markup hierarchy and two viewport-specific views.
 // Verify DOM layout, sharp source assets, and controls rather than screenshot
 // pixels so the tests remain stable across browsers and render engines.
-for(const [name,width,height,expected] of [
+const viewports=[
  ['small phone',320,640,'mobile'],
  ['Android phone',360,780,'mobile'],
  ['modern phone',390,844,'mobile'],
@@ -13,7 +13,9 @@ for(const [name,width,height,expected] of [
  ['desktop breakpoint',960,800,'desktop'],
  ['laptop',1366,768,'desktop'],
  ['desktop',1920,1080,'desktop']
-]){
+];
+
+for(const [name,width,height,expected] of viewports){
  test('PupDex View Asset uses '+name+' layout',async({page})=>{
   await page.setViewportSize({width,height});
   await page.goto('/puppies?pup=v1_aurora');
@@ -60,6 +62,36 @@ for(const [name,width,height,expected] of [
   await viewer.getByRole('button',{name:'Close Viewer'}).click();
   await expect(viewer).toHaveCount(0);
   await expect(details).toBeVisible();
+ });
+}
+
+for(const [device,width,height,layout] of viewports){
+ test(device+' account, inventory and game navigation fit the viewport',async({page})=>{
+  await page.setViewportSize({width,height});
+  await page.goto('/account?signedout');
+  const auth=page.getByTestId('pup-auth-form');
+  await auth.getByRole('tab',{name:'Create Account'}).click();
+  await expect(auth.getByRole('button',{name:'Register with Discord'})).toBeVisible();
+  await expect(auth.getByRole('checkbox')).toHaveCount(2);
+  await auth.getByRole('tab',{name:'Sign In'}).click();
+  await auth.getByRole('link',{name:/Recover account/}).click();
+  await expect(page).toHaveURL(/\/recovery$/);
+  await page.goto('/account/inventory');
+  const inventory=page.getByTestId('pup-inventory');
+  await inventory.getByRole('combobox',{name:'Filter inventory by rarity'}).selectOption('legendary');
+  await inventory.getByRole('button',{name:'Reset filters'}).click();
+  await inventory.getByRole('button',{name:'View Buddy puppy details'}).click();
+  await expect(page.locator('dialog.pup-inventory-detail-dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('dialog.pup-inventory-detail-dialog')).toHaveCount(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+  await page.goto('/play');
+  const roster=layout==='desktop'
+   ?page.getByTestId('desktop-navigation').getByRole('button',{name:'Roster',exact:true})
+   :page.getByRole('tab',{name:'🐶 Roster'});
+  await roster.click();
+  await expect(page.getByTestId('puppy-roster-grid')).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  });
 }
 
