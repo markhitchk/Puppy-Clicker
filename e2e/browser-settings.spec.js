@@ -164,3 +164,61 @@ test('Android browser uses Default pointer size in Compact interface mode',async
   await expect(page.getByRole('radio',{name:'Compact',exact:true})).toBeChecked();
  }finally{await context.close();}
 });
+
+
+test('ChromeOS viewport and text scaling keep browser settings in normal flow',async({page})=>{
+ const sizes=[
+  {width:390,height:844},
+  {width:1000,height:700},
+  {width:1188,height:668},
+  {width:1366,height:768},
+  {width:1920,height:1080}
+ ];
+ await page.goto('/settings');
+ for(const size of sizes){
+  await page.setViewportSize(size);
+  const result=await page.locator('.browser-settings-grid').evaluate(grid=>{
+   const panels=[...grid.querySelectorAll(':scope > .browser-settings-panel')];
+   const boxes=panels.map(element=>element.getBoundingClientRect());
+   const overlaps=[];
+   for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
+    const x=Math.min(boxes[i].right,boxes[j].right)-Math.max(boxes[i].left,boxes[j].left);
+    const y=Math.min(boxes[i].bottom,boxes[j].bottom)-Math.max(boxes[i].top,boxes[j].top);
+    if(x>1&&y>1)overlaps.push([i,j]);
+   }
+   return {columns:getComputedStyle(grid).gridTemplateColumns.trim().split(/\\s+/).length,
+    overlaps,overflow:grid.scrollWidth-grid.clientWidth};
+  });
+  expect(result.overlaps,`Panels overlap at ${size.width}×${size.height}`).toEqual([]);
+  expect(result.overflow,`Horizontal overflow at ${size.width}×${size.height}`).toBeLessThanOrEqual(2);
+  if(size.width===1188)expect(result.columns).toBe(1);
+ }
+ await page.setViewportSize({width:1440,height:900});
+ await page.evaluate(()=>{document.documentElement.style.fontSize='20px';});
+ const columns=await page.locator('.browser-settings-grid').evaluate(grid=>getComputedStyle(grid).gridTemplateColumns.trim().split(/\\s+/).length);
+ expect(columns).toBe(1);
+ await page.getByRole('radio',{name:'Original Puppy pointer'}).check();
+ await expect(page.locator('.browser-pointer-preview-tile')).toHaveCount(3);
+});
+
+test('hybrid ChromeOS touchscreen and trackpad layout does not place panels on top of each other',async({browser})=>{
+ const context=await browser.newContext({
+  viewport:{width:1366,height:768},deviceScaleFactor:1.25,hasTouch:true,
+  userAgent:'Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36'
+ });
+ try{
+  const page=await context.newPage();
+  await page.goto('/settings');
+  const panels=page.locator('.browser-settings-grid > .browser-settings-panel');
+  await expect(panels).toHaveCount(5);
+  const boxes=await panels.evaluateAll(elements=>elements.map(element=>{
+   const r=element.getBoundingClientRect();
+   return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};
+  }));
+  for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
+   const horizontal=Math.min(boxes[i].right,boxes[j].right)-Math.max(boxes[i].left,boxes[j].left);
+   const vertical=Math.min(boxes[i].bottom,boxes[j].bottom)-Math.max(boxes[i].top,boxes[j].top);
+   expect(horizontal<=1||vertical<=1,`Panels ${i} and ${j} overlap on hybrid ChromeOS`).toBe(true);
+  }
+ }finally{await context.close();}
+});
