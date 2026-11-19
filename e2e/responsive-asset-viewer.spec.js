@@ -8,6 +8,8 @@ for(const [name,width,height,expected] of [
  ['Android phone',360,780,'mobile'],
  ['mobile landscape',832,384,'mobile'],
  ['tablet',800,900,'mobile'],
+ ['wide tablet',959,800,'mobile'],
+ ['desktop breakpoint',960,800,'desktop'],
  ['desktop',1366,768,'desktop']
 ]){
  test('PupDex View Asset uses '+name+' layout',async({page})=>{
