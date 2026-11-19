@@ -611,7 +611,7 @@ html .split-cta .home-account-recovery.pup-link-button{
 html .split-cta .home-account-recovery.pup-link-button:hover{border-color:#76e7ff;background:#194154;text-decoration:none}
 @media(max-width:760px){html .split-cta .home-account-recovery.pup-link-button{width:100%}}
 
-/* Traditional, non-interactive brand footer; plain-text legal/support links. */
+/* Traditional footer: no navigation links, buttons, or interactive logos. */
 .site-footer{
  display:block;max-width:1180px;margin:26px auto 0;
  padding:26px clamp(12px,3vw,24px) 24px;
@@ -637,31 +637,12 @@ html .split-cta .home-account-recovery.pup-link-button:hover{border-color:#76e7f
  font-size:12px;line-height:1.35;font-weight:700;color:var(--site-text,#e3f6fc);
 }
 .site-footer-bottom{
- display:flex;align-items:center;justify-content:space-between;
- flex-wrap:wrap;gap:12px 22px;
+ display:flex;align-items:center;justify-content:center;
  padding-top:18px;border-top:1px solid var(--site-border,#315466);
+ text-align:center;
 }
 .site-footer-bottom p{
  margin:0;color:var(--site-muted,#a9c4d1);font-size:12px;
-}
-.site-footer-links{
- display:flex;align-items:center;justify-content:flex-end;
- flex-wrap:wrap;gap:8px 18px;min-width:0;
-}
-.site-footer-links a{
- display:inline;min-height:0;min-width:0;margin:0;padding:0;
- border:0;border-radius:0;box-shadow:none;background:transparent;
- color:var(--site-muted,#b4d2e1);
- font:inherit;font-size:12px;font-weight:500;line-height:1.5;
- text-decoration:none;white-space:nowrap;
-}
-.site-footer-links a:hover{
- background:transparent;color:var(--site-accent,#00e5ff);
- text-decoration:underline;text-underline-offset:3px;
-}
-.site-footer-links a:focus-visible{
- outline:2px solid var(--site-accent,#00e5ff);outline-offset:4px;
- border-radius:2px;
 }
 @media(max-width:760px){
  .site-footer{margin-top:14px;padding:22px 12px 24px}
@@ -670,12 +651,9 @@ html .split-cta .home-account-recovery.pup-link-button:hover{border-color:#76e7f
  .site-footer-brandmark img{width:min(100%,78px);height:58px}
  .site-footer-brandmark span{font-size:11px;overflow-wrap:anywhere}
  .site-footer-bottom{flex-direction:column;align-items:center;gap:12px;text-align:center}
- .site-footer-links{justify-content:center;gap:8px 14px;width:100%}
- .site-footer-links a{font-size:11px}
 }
 @media(max-width:350px){
  .site-footer-brandmark img{width:min(100%,66px);height:50px}
- .site-footer-links{gap:8px 11px}
 }
 
 /* Website activity notice actions, sized for touch without horizontal overflow. */
