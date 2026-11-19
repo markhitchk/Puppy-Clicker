@@ -1,0 +1,134 @@
+/* Website-only /play roster: reuse the same rarity foil palette as /puppies.
+   Native Android keeps its existing React Native card styling. */
+html [data-testid="puppy-roster-grid"]{
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ align-items:stretch;gap:12px!important;
+ width:100%;min-width:0;
+}
+html .play-pupdex-card{
+ width:100%;min-width:0;display:flex;align-self:stretch;
+}
+html .play-pupdex-card .play-pupdex-card-content{
+ display:flex;flex-direction:column;width:100%;height:100%;
+}
+html .play-pupdex-card .play-pupdex-art-button{
+ display:block;width:100%;border:0;border-radius:0;padding:0;
+ color:inherit;background:transparent;cursor:pointer;overflow:hidden;
+}
+html .play-pupdex-card .meet-puppy-art{height:clamp(145px,18vw,225px);width:100%;padding:10px}
+html .play-pupdex-card .meet-puppy-art .puppy-artwork{
+ width:100%!important;height:100%!important;max-width:200px;
+ max-height:205px;object-fit:contain
+}
+html .play-pupdex-card .meet-puppy-body{padding:14px;gap:10px}
+html .play-pupdex-card .meet-puppy-body h3{
+ font-size:clamp(15px,1.7vw,19px);font-weight:900;line-height:1.25;
+ min-height:0;margin:0;overflow-wrap:anywhere
+}
+html .play-pupdex-card .play-pupdex-asset-id{
+ flex:0 0 auto;min-height:0;margin:0;color:#a9c8d9;
+ font-size:11px;line-height:1.4;overflow-wrap:anywhere
+}
+html .play-pupdex-card .meet-puppy-badges{align-content:start;align-items:start;flex:1;gap:6px}
+html .play-pupdex-card .meet-puppy-badge{
+ font-size:10px;max-width:100%;overflow-wrap:anywhere;
+ white-space:normal;line-height:1.3
+}
+html .play-pupdex-card .play-pupdex-locked{
+ color:#f5e2e9;background:#4b2332;border-color:#a85a73
+}
+html .play-pupdex-card .play-pupdex-actions{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ align-content:end;align-items:stretch;gap:8px;width:100%;margin-top:auto;
+}
+html .play-pupdex-card .play-pupdex-actions button{
+ box-sizing:border-box;min-width:0;min-height:41px;padding:9px 8px;
+ border-radius:12px;text-align:center;font:800 12px/1.25 Inter,system-ui,sans-serif;
+ cursor:pointer;white-space:normal;overflow-wrap:anywhere;
+}
+html .play-pupdex-card .play-pupdex-actions .play-pupdex-details{
+ grid-column:1/-1;display:flex;justify-content:center;
+ gap:7px;color:var(--rarity-ink,#e8faff);
+ background:rgb(var(--rarity-rgb) / .17);
+ border:1px solid rgb(var(--rarity-rgb) / .48);
+}
+html .play-pupdex-card .play-pupdex-use{
+ background:#00dced;color:#062a35;border:1px solid #00e5ff;
+}
+html .play-pupdex-card .play-pupdex-favorite{
+ color:#e4efff;border:1px solid #506f86;background:#203346;
+}
+html .play-pupdex-card .play-pupdex-favorite:disabled{
+ opacity:.55;cursor:not-allowed;grid-column:1/-1;
+}
+html .play-pupdex-card .play-pupdex-favorite[aria-pressed="true"]{
+ color:#ffd6e5;border-color:#ff84b4;background:#512b40;
+}
+html .play-pupdex-card .play-pupdex-actions .play-pupdex-retry{
+ grid-column:1/-1;border:1px solid #52788d;background:transparent;color:#a2e8ff;
+}
+html .play-pupdex-card .play-pupdex-actions button:hover:not(:disabled){
+ filter:brightness(1.14);
+}
+html .play-pupdex-card :is(button):focus-visible,
+html .play-pupdex-rarity-control select:focus-visible{
+ outline:3px solid #a9edff;outline-offset:2px;
+}
+html .play-pupdex-rarity-control{
+ display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:#c9e7f6;
+ font-size:13px;font-weight:800;line-height:1.4;
+}
+html .play-pupdex-rarity-control select{
+ min-height:42px;max-width:100%;
+ border:1px solid #487b8f;border-radius:12px;padding:8px 12px;
+ background:#142c3c;color:#f2fbff;font:inherit;color-scheme:dark;
+}
+/* React Native Web exposes dataSet as data-pup-hero and data-pup-detail-hero. */
+html [data-pup-hero="true"][data-rarity="common"],html [data-pup-detail-hero="true"][data-rarity="common"]{--rarity-rgb:193 207 225}
+html [data-pup-hero="true"][data-rarity="uncommon"],html [data-pup-detail-hero="true"][data-rarity="uncommon"]{--rarity-rgb:101 224 153}
+html [data-pup-hero="true"][data-rarity="rare"],html [data-pup-detail-hero="true"][data-rarity="rare"]{--rarity-rgb:97 175 255}
+html [data-pup-hero="true"][data-rarity="epic"],html [data-pup-detail-hero="true"][data-rarity="epic"]{--rarity-rgb:206 123 255}
+html [data-pup-hero="true"][data-rarity="legendary"],html [data-pup-detail-hero="true"][data-rarity="legendary"]{--rarity-rgb:255 200 82}
+html [data-pup-hero="true"][data-rarity="unobtainable"],html [data-pup-detail-hero="true"][data-rarity="unobtainable"]{--rarity-rgb:255 105 133}
+html [data-pup-hero="true"][data-rarity]{
+ border:1px solid rgb(var(--rarity-rgb) / .60)!important;
+ background:radial-gradient(ellipse at 22% 45%,rgb(var(--rarity-rgb) / .20),transparent 72%),#172532!important;
+ box-shadow:0 0 22px rgb(var(--rarity-rgb) / .17)!important;
+}
+html [data-pup-detail-hero="true"][data-rarity]{
+ border:1px solid rgb(var(--rarity-rgb) / .60)!important;
+ background:radial-gradient(circle at 22% 50%,rgb(var(--rarity-rgb) / .22),transparent 72%),#172532!important;
+ box-shadow:inset 0 1px 0 #ffffff12,0 0 20px rgb(var(--rarity-rgb) / .16)!important;
+}
+
+html .play-pupdex-asset-dialog{z-index:2000}
+@media(min-width:760px){
+ html [data-testid="puppy-roster-grid"]{
+  grid-template-columns:repeat(3,minmax(0,1fr));gap:14px!important;
+ }
+}
+@media(min-width:1450px){
+ html [data-testid="puppy-roster-grid"]{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+ }
+}
+@media(max-width:440px){
+ html [data-testid="puppy-roster-grid"]{gap:9px!important}
+ html .play-pupdex-card .meet-puppy-art{height:154px;padding:7px}
+ html .play-pupdex-card .meet-puppy-body{padding:11px;gap:8px}
+ html .play-pupdex-card .meet-puppy-body h3{font-size:15px}
+ html .play-pupdex-card .play-pupdex-actions{gap:6px}
+ html .play-pupdex-card .play-pupdex-actions button{min-height:42px;font-size:11px;padding:8px 5px}
+ html .play-pupdex-card .meet-puppy-badge{font-size:9px;padding:5px 6px}
+}
+@media(max-width:350px){
+ html .play-pupdex-card .play-pupdex-actions{grid-template-columns:1fr}
+ html .play-pupdex-card .play-pupdex-actions button{grid-column:1/-1}
+}
+@media(prefers-reduced-motion:reduce){
+ html .play-pupdex-card .meet-puppy-link::after{animation:none!important}
+}
+html[data-puppy-reduced-motion="true"] .play-pupdex-card .meet-puppy-link::after{
+ animation:none!important;
+}
