@@ -238,7 +238,7 @@ export default function MeetPuppies({preview=false}){
    {puppies.map(p=><PuppyCard key={p.id} p={p} onSelect={selectPuppy}/>)}
   </div>
   {!puppies.length?<p role="status" className="meet-empty">{catalogState.loading?"Loading PupDex…":catalogState.error?"The PupDex is currently unavailable.":"No puppies match your filters."}</p>:null}
-  {preview?<div className="meet-more"><a href="/puppies" className="cta cta-secondary">See the full puppy roster →</a></div>:
+  {preview?<div className="meet-more"><a href="/pupdex" className="cta cta-secondary">See the full puppy roster →</a></div>:
    <div className="meet-more"><p>Want to collect these puppies? Your unlocks are managed securely in the game.</p><a href="/play" className="cta cta-primary">🐾 Play Puppy Clicker</a></div>}
   {selectedPuppy?<PublicPuppyDetails key={selectedPuppy.id} puppy={selectedPuppy} onDismiss={dismissPuppy}/>:null}
  </section>;

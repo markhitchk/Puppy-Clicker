@@ -76,7 +76,7 @@ test("only the explicit /play?=demo query opens the public demo",()=>{
  for(const [path,search] of [
   ["/play",""],["/play","?demo"],["/play","?demo=true"],
   ["/play","?=Demo"],["/play","?=demo&=demo"],
-  ["/account","?=demo"],["/puppies","?=demo"],["/play/","?=demo"],
+  ["/account","?=demo"],["/pupdex","?=demo"],["/puppies","?=demo"],["/play/","?=demo"],
   ["/play","?=demo%20"]
  ])assert.equal(isPlayDemoRoute(path,search),false,path+" "+search);
 });

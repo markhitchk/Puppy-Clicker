@@ -56,3 +56,15 @@
  .site-header .site-nav-more-list>a{display:flex;align-items:center;justify-content:flex-start;
     width:100%;padding:10px 11px;min-height:40px;font-size:13px;border-radius:10px;white-space:nowrap}
  .site-header .site-nav-mobile-extras{display:none}}
+
+/* Support and utility links are visually identifiable as actionable buttons. */
+.desktop-support-nav>a{border-color:#315d72;background:#143041}
+.desktop-support-nav>a:hover{border-color:#70d5ec;background:#21485d}
+.desktop-site-links>a{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:36px;padding:6px 12px;border:1px solid #3a6579;
+ border-radius:10px;background:#143041;color:#c8edfa;
+ font-size:12px;font-weight:800;text-decoration:none;
+}
+.desktop-site-links>a:hover{border-color:#70d5ec;background:#21485d}
+.desktop-navigation a:focus-visible{outline:3px solid #87e7fc;outline-offset:2px}

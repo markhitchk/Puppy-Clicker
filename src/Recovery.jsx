@@ -1,3 +1,4 @@
+import PasswordField from "./PasswordField.jsx";
 import "./styles/recovery.css";
 import React,{useState} from "react";
 import {useWebAccount} from "./native/web/AccountGate.jsx";
@@ -71,10 +72,10 @@ export default function RecoveryPage(){
     <h2>🔑 Reset your password</h2>
     <form className="profile-form" onSubmit={reset}>
      <label htmlFor="recoveryNewPassword">New password</label>
-     <input id="recoveryNewPassword" type="password" required minLength={8} maxLength={128}
+     <PasswordField id="recoveryNewPassword" visibilityLabel="recovery password" required minLength={8} maxLength={128}
       value={password} onChange={e=>setPassword(e.target.value)} autoComplete="new-password"/>
      <label htmlFor="recoveryConfirmPassword">Confirm new password</label>
-     <input id="recoveryConfirmPassword" type="password" required minLength={8} maxLength={128}
+     <PasswordField id="recoveryConfirmPassword" visibilityLabel="recovery confirmation password" required minLength={8} maxLength={128}
       value={confirmation} onChange={e=>setConfirmation(e.target.value)} autoComplete="new-password"/>
      <p className="recovery-helper">Use a new, unique password with at least 8 characters. Do not share it with Support.</p>
      <button className="cta cta-primary stretch" disabled={busy} type="submit">{busy?"Updating password…":"Save new password"}</button>

@@ -93,12 +93,12 @@ export default function DiscordSignupForm({signup,onAuthenticated,onSignIn}){
    <label className="account-auth-consent">
     <input type="checkbox" required checked={terms} disabled={busy||registered}
      onChange={e=>setTerms(e.target.checked)}/>
-    <span>I agree to the <a href={TERMS} target="_blank" rel="noopener noreferrer">Terms of Use</a>.</span>
+    <span>I agree to the <a className="pup-link-button" href={TERMS} target="_blank" rel="noopener noreferrer">Terms of Use</a>.</span>
    </label>
    <label className="account-auth-consent">
     <input type="checkbox" required checked={privacy} disabled={busy||registered}
      onChange={e=>setPrivacy(e.target.checked)}/>
-    <span>I acknowledge the <a href={PRIVACY} target="_blank" rel="noopener noreferrer">Privacy Policy</a>, including processing my Discord account information.</span>
+    <span>I acknowledge the <a className="pup-link-button" href={PRIVACY} target="_blank" rel="noopener noreferrer">Privacy Policy</a>, including processing my Discord account information.</span>
    </label>
    <button className="cta cta-primary stretch" type="submit"
     disabled={busy||registered||!client}>{busy?"Creating Pup Account…":registered?"Account created":"Create Pup Account with Discord"}</button>

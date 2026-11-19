@@ -290,7 +290,7 @@ export default function InventoryScreen({game,origin='account',onBack,updatedAt,
   <footer className="pup-inventory-footer">
    <span>🔒 Read-only inventory · Your protected cloud save remains the source of truth.</span>
    {safeDate?<span>Last server save: {safeDate}</span>:null}
-   <span><a href="/play">Open game</a> · <a href="/account">Pup Account</a></span>
+   <span className="pup-inventory-shortcuts"><a className="pup-link-button" href="/play">Open game</a><a className="pup-link-button" href="/account">Pup Account</a></span>
   </footer>
   {inspectedPuppy&&<InventoryPuppyDetails key={inspectedPuppy.id} puppy={inspectedPuppy}
    name={puppyDisplay(inspectedPuppy,game)}

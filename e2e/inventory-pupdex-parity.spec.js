@@ -46,7 +46,7 @@ test('account inventory puppy details and full artwork viewer match PupDex witho
  await expect(details).toBeVisible();
  await expect(details.getByText('Owned',{exact:true})).toBeVisible();
  await expect(details.getByRole('button',{name:'Copy Link'})).toBeVisible();
- await expect(details.getByRole('link',{name:'Open in PupDex'})).toHaveAttribute('href','/puppies?pup=v1_classic');
+ await expect(details.getByRole('link',{name:'Open in PupDex'})).toHaveAttribute('href','/pupdex?pup=v1_classic');
  await details.getByRole('button',{name:'View Asset'}).click();
  const viewer=page.locator('dialog.play-pupdex-asset-dialog');
  await expect(viewer).toBeVisible();

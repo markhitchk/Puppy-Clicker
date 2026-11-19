@@ -14,7 +14,7 @@
   display:flex;justify-content:flex-start;width:100%;min-height:46px;
   padding:12px 14px;font-size:15px;white-space:normal;
  }
-.site-header .site-nav>a[href="/puppies"]{display:flex}
+.site-header .site-nav>a[href="/pupdex"]{display:flex}
 .site-header .site-nav .puppy-language-picker{
   display:flex;justify-content:space-between;gap:12px;width:100%;
   padding:10px 12px;margin-top:4px;border-top:1px solid #35566b;

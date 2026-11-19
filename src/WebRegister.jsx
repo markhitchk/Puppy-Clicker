@@ -6,6 +6,7 @@ import {DISCORD_ICON_URL} from "./discordIcon.js";
 import {client} from "./supabase.js";
 import {suggestUsername,generateStrongPassword} from "./nameSuggestions.js";
 import JoinSourceFields from "./JoinSourceFields.jsx";
+import PasswordField from "./PasswordField.jsx";
 
 // Mirror the Supabase Auth password policy before submitting a new account.
 const PASSWORD_SYMBOLS=new Set(["!","@","#","$","%","^","&","*","(",")","_","+","-","=","[","]","{","}",";","'","\\",":","\"","|","<",">","?",",",".","/","`","~"]);
@@ -113,7 +114,7 @@ export default function WebRegister({onAuthenticated,onSignIn}){
    <button className="account-auth-text-button" type="button" disabled={busy||registered}
     onClick={()=>{try{setUsername(suggestUsername(username));setMessage("");}catch{setMessage("Secure name suggestions are not available in this browser.");}}}>🎲 Generate username</button>
    <label htmlFor="reg-pass">Password</label>
-   <input id="reg-pass" type="password" name="new-password" autoComplete="new-password" required minLength={8}
+   <PasswordField id="reg-pass" visibilityLabel="registration password" name="new-password" autoComplete="new-password" required minLength={8}
     maxLength={128} value={password} onChange={e=>setPassword(e.target.value)} onInput={e=>setPassword(e.currentTarget.value)} disabled={busy||registered}/>
    <p className="account-security-note">Tap the password field to use Google Password Manager, Samsung Pass, Bitwarden, 1Password, or your browser's suggested strong password. You can also generate one here.</p>
    <button className="account-auth-text-button" type="button" disabled={busy||registered}
@@ -125,7 +126,7 @@ export default function WebRegister({onAuthenticated,onSignIn}){
     </span>)}
    </div>
    <label htmlFor="reg-confirm">Confirm password</label>
-   <input id="reg-confirm" type="password" name="confirm-password" autoComplete="new-password" required minLength={8}
+   <PasswordField id="reg-confirm" visibilityLabel="registration confirmation password" name="confirm-password" autoComplete="new-password" required minLength={8}
     maxLength={128} value={confirm} onChange={e=>setConfirm(e.target.value)} onInput={e=>setConfirm(e.currentTarget.value)} disabled={busy||registered}/>
    <label htmlFor="reg-email">Support contact email (optional)</label>
    <input id="reg-email" type="email" name="email" autoComplete="email" maxLength={254}
@@ -135,11 +136,11 @@ export default function WebRegister({onAuthenticated,onSignIn}){
     details={joinDetails} onDetailsChange={setJoinDetails} disabled={busy||registered}/>
    <label className="account-auth-consent">
     <input type="checkbox" required checked={terms} onChange={e=>setTerms(e.target.checked)} disabled={busy||registered}/>
-    <span>I agree to the <a href="/legal/terms" target="_blank" rel="noopener noreferrer">Terms of Use</a>.</span>
+    <span>I agree to the <a className="pup-link-button" href="/legal/terms" target="_blank" rel="noopener noreferrer">Terms of Use</a>.</span>
    </label>
    <label className="account-auth-consent">
     <input type="checkbox" required checked={privacy} onChange={e=>setPrivacy(e.target.checked)} disabled={busy||registered}/>
-    <span>I acknowledge the <a href="/legal/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>, including website connection and account security records.</span>
+    <span>I acknowledge the <a className="pup-link-button" href="/legal/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>, including website connection and account security records.</span>
    </label>
    <button className="cta cta-primary stretch" type="submit" disabled={busy||registered||!client}>
     {busy?"Creating account…":registered?"Account created":"Create Pup Account"}

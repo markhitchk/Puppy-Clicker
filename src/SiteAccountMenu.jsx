@@ -110,7 +110,7 @@ export default function SiteAccountMenu({active=false,placement="down",compact=f
    setSigningOut(false);
   }
  };
- if(!account)return <a href="/account" className="site-account-signed-out"
+ if(!account)return <a href="/account" className="site-account-signed-out pup-link-button"
    aria-current={active?"page":undefined}>Account</a>;
  const name=displayName(account);
  const username=account.username?"@"+account.username:"Pup Member";
@@ -135,14 +135,14 @@ export default function SiteAccountMenu({active=false,placement="down",compact=f
    </div>
    {account.friendCode?<div className="site-account-friend-code"><span>Friend Code</span><strong>{account.friendCode}</strong></div>:null}
    <nav className="site-account-dropdown-links" aria-label="Account actions">
-    <a href="/account" aria-current={active?"page":undefined}><span aria-hidden="true">👤</span>View full profile</a>
-    <a href="/account#profile-settings"><span aria-hidden="true">📷</span>Edit name &amp; avatar</a>
-    <a href="/account#puppy-requests"><span aria-hidden="true">🎁</span>Request a puppy</a>
-    <a href="/account#account-security"><span aria-hidden="true">🔒</span>Login &amp; security</a>
-    <a href="/account/privacy"><span aria-hidden="true">🔒</span>Privacy & Data</a>
-    <a href="/pupeye/status"><span aria-hidden="true">👁️</span>My PupEye status</a>
-    <a href="/account#account-management"><span aria-hidden="true">⚙️</span>Account settings</a>
-    {staff?<a href="/account/admin"><span aria-hidden="true">🛡️</span>Administration</a>:null}
+    <a className="pup-link-button" href="/account" aria-current={active?"page":undefined}><span aria-hidden="true">👤</span>View full profile</a>
+    <a className="pup-link-button" href="/account#profile-settings"><span aria-hidden="true">📷</span>Edit name &amp; avatar</a>
+    <a className="pup-link-button" href="/account#puppy-requests"><span aria-hidden="true">🎁</span>Request a puppy</a>
+    <a className="pup-link-button" href="/account#account-security"><span aria-hidden="true">🔒</span>Login &amp; security</a>
+    <a className="pup-link-button" href="/account/privacy"><span aria-hidden="true">🔒</span>Privacy & Data</a>
+    <a className="pup-link-button" href="/pupeye/status"><span aria-hidden="true">👁️</span>My PupEye status</a>
+    <a className="pup-link-button" href="/account#account-management"><span aria-hidden="true">⚙️</span>Account settings</a>
+    {staff?<a className="pup-link-button" href="/account/admin"><span aria-hidden="true">🛡️</span>Administration</a>:null}
    </nav>
    <div className="site-account-dropdown-footer">
     <button type="button" onClick={()=>{setSignOutError("");setConfirmSignOut(true);}} disabled={signingOut}>

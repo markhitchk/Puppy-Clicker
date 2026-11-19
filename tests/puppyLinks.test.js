@@ -8,8 +8,8 @@ const frost=roster.find(p=>p.id==='v2_frost');
 
 test('public share links use the canonical asset ID, not only the game ID',()=>{
  assert.equal(puppyAssetId(midnight),'v1_midnight');
- assert.equal(puppyDetailsHref(midnight),'/puppies?pup=v1_midnight');
- assert.equal(puppyDetailsHref(frost),'/puppies?pup=v2_frost');
+ assert.equal(puppyDetailsHref(midnight),'/pupdex?pup=v1_midnight');
+ assert.equal(puppyDetailsHref(frost),'/pupdex?pup=v2_frost');
 });
 
 test('all supported detail URLs resolve both asset IDs and game IDs',()=>{

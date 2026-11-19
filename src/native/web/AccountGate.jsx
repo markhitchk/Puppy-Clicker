@@ -4,6 +4,7 @@ import WebLoading from "../../WebLoading.jsx";
 import PupAccountBanned from "../../PupAccountBanned.jsx";
 import {client} from "../../supabase.js";
 import WebRegister from "../../WebRegister.jsx";
+import PasswordField from "../../PasswordField.jsx";
 import {DISCORD_ICON_URL} from "../../discordIcon.js";
 import {beginPuppyDiscord,completePuppyDiscordCallback,hasPuppyDiscordCallback,
  clearPendingDiscord,getPendingDiscord,verifyPuppySession,signInPupUsername,puppyAuthMessage} from "./puppyOAuth.js";
@@ -114,8 +115,8 @@ export default function WebAccountGate({children}){
  if(callbackFailed)return <View style={{padding:28,backgroundColor:'#19313e',gap:16}}>
   <Text accessibilityRole="header" style={{...text,fontSize:24}}>{callbackLinkFailed?"Discord linking could not complete":"Pup Account sign-in could not complete"}</Text>
   <Text accessibilityRole="alert" style={text}>{error}</Text>
-  <a href={callbackLinkFailed?"/account":"/play"} style={{color:'#8ce9ff'}}>{callbackLinkFailed?"Return to your Pup Account":"Return to sign-in"}</a>
-  <a href="/recovery" style={{color:'#8ce9ff'}}>Account recovery</a>
+  <a className="pup-link-button" href={callbackLinkFailed?"/account":"/play"}>{callbackLinkFailed?"Return to your Pup Account":"Return to sign-in"}</a>
+  <a className="pup-link-button" href="/recovery">Account recovery</a>
  </View>;
  if(loading)return <WebLoading stage={hasPuppyDiscordCallback()?"callback":"account"}/>;
  // Banned users may inspect their own standing at /pupeye/status. Other
@@ -125,7 +126,7 @@ export default function WebAccountGate({children}){
    onSignOut={()=>client.auth.signOut()}/>;
  if(!user||!pupAccount)return <div className="pup-auth-page" data-testid="pup-auth-page">
   <aside className="pup-auth-intro" aria-label="Welcome to Pup Account">
-   <a className="pup-auth-home" href="/">← Back to Puppy Clicker Home</a>
+   <a className="pup-auth-home pup-link-button" href="/">← Back to Puppy Clicker Home</a>
    <div className="pup-auth-intro-body">
     <img className="pup-auth-intro-logo" src="/assets/logos/puppy_clicker.png" alt="" />
     <p className="pup-auth-eyebrow">PUPPY CLICKER · PUP ACCOUNT</p>
@@ -165,7 +166,7 @@ export default function WebAccountGate({children}){
       placeholder="Pup Account username" value={login} onChange={event=>setLogin(event.target.value)} onInput={event=>setLogin(event.currentTarget.value)}
       disabled={busy||!client}/>
      <label htmlFor="pup-login-password">Password</label>
-     <input id="pup-login-password" type="password" name="password" autoComplete="current-password"
+     <PasswordField id="pup-login-password" visibilityLabel="login password" name="password" autoComplete="current-password"
       required placeholder="Password" value={password} onChange={event=>setPassword(event.target.value)} onInput={event=>setPassword(event.currentTarget.value)}
       disabled={busy||!client}/>
      <button className="pup-signin-submit" type="submit" disabled={busy||!client}>
@@ -185,7 +186,7 @@ export default function WebAccountGate({children}){
     {recovery?<Text style={{...text,fontSize:12,color:"#bbccdc",lineHeight:20}}>
      No access to Discord or your password? Use the Android app's Settings → Support or another official Puppy Clicker support channel. Support requires independent proof of ownership.
     </Text>:null}
-    <a href={recovery?"/account":"/recovery"} style={{color:"#8ce9ff",fontSize:14,fontWeight:800,textAlign:"center",padding:7}}>
+    <a className="pup-link-button" href={recovery?"/account":"/recovery"}>
      {recovery?"← Back to Pup Account sign-in":"Forgot your username or password? Recover account"}
     </a>
     <Text style={{...text,fontSize:11,color:"#adc1ce"}}>Pup Account verification protects your identity and cloud progress on web and Android.</Text>

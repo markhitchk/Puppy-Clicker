@@ -33,7 +33,7 @@ export default function HomePlayDemo({standalone=false}){
   <div className="home-play-demo__window">
    <div className="home-play-demo__toolbar">
     <div className="home-play-demo__toolbar-title"><span aria-hidden="true">🐾</span><strong>Puppy Clicker</strong><span className="home-play-demo__toolbar-tag">Play preview</span></div>
-    <a href="/play" className="home-play-demo__open">Open full game <span aria-hidden="true">↗</span></a>
+    <a href="/play" className="home-play-demo__open pup-link-button">Open full game <span aria-hidden="true">↗</span></a>
    </div>
    <div className="home-play-demo__layout">
     <div className="home-play-demo__scene">

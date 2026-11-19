@@ -18,7 +18,7 @@ test("Aurora social link uses actual roster name, description and artwork",()=>{
  assert.match(puppy.title,/Aurora.*Puppy Clicker/);
  assert.match(puppy.description,/Aurora-purple and teal fur glow/);
  assert.match(puppy.description,/V1 puppy/);
- assert.equal(puppy.url,"https://puppy-clicker.vercel.app/puppies?pup=v1_aurora");
+ assert.equal(puppy.url,"https://puppy-clicker.vercel.app/pupdex?pup=v1_aurora");
  assert.equal(puppy.image,"https://puppy-clicker.vercel.app/assets/share/v1_aurora-v4.png");
 });
 
@@ -88,21 +88,21 @@ test("static HTML gets Open Graph, Twitter, canonical and SEO metadata for a pup
  assert.match(result,/<title>🌌 Aurora \| Puppy Clicker<\/title>/);
  assert.match(result,/<meta property="og:title" content="🌌 Aurora \| Puppy Clicker"/);
  assert.match(result,/<meta property="og:description" content="Aurora-purple and teal fur glow/);
- assert.match(result,/<meta property="og:url" content="https:\/\/puppy-clicker\.vercel\.app\/puppies\?pup=v1_aurora"/);
+ assert.match(result,/<meta property="og:url" content="https:\/\/puppy-clicker\.vercel\.app\/pupdex\?pup=v1_aurora"/);
  assert.match(result,/<meta property="og:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/share\/v1_aurora-v4\.png"/);
  assert.match(result,/<meta property="og:image:type" content="image\/png"/);
  assert.match(result,/<meta property="og:image:width" content="1200"/);
  assert.match(result,/<meta property="og:image:height" content="630"/);
  assert.match(result,/<meta name="twitter:card" content="summary_large_image"/);
  assert.match(result,/<meta name="twitter:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/share\/v1_aurora-v4\.png"/);
- assert.match(result,/<link rel="canonical" href="https:\/\/puppy-clicker\.vercel\.app\/puppies\?pup=v1_aurora"/);
+ assert.match(result,/<link rel="canonical" href="https:\/\/puppy-clicker\.vercel\.app\/pupdex\?pup=v1_aurora"/);
  assert.match(result,/script type="module" src="\/src\/main\.jsx"/);
  assert.equal((result.match(/<meta property="og:title"/g)||[]).length,1);
  assert.equal(applyPuppySharePreview(html,null),html);
 });
 
 test("middleware serves preview metadata in HTML to all user agents",async()=>{
- assert.deepEqual(config.matcher,["/puppies"]);
+ assert.deepEqual(config.matcher,["/pupdex","/puppies"]);
  const before=globalThis.fetch;
  let fetched=null;
  globalThis.fetch=async input=>{
@@ -111,7 +111,7 @@ test("middleware serves preview metadata in HTML to all user agents",async()=>{
   return new Response(html,{headers:{"content-type":"text/html"}});
  };
  try{
-  const response=await middleware(new Request("https://puppy-clicker.vercel.app/puppies?pup=v1_aurora",{
+  const response=await middleware(new Request("https://puppy-clicker.vercel.app/pupdex?pup=v1_aurora",{
    headers:{"user-agent":"Discordbot/2.0"}
   }));
   assert.equal(response.status,200);
@@ -120,11 +120,17 @@ test("middleware serves preview metadata in HTML to all user agents",async()=>{
   const body=await response.text();
   assert.match(body,/og:title" content="🌌 Aurora \| Puppy Clicker"/);
   assert.match(body,/og:image" content="https:\/\/puppy-clicker\.vercel\.app\/assets\/share\/v1_aurora-v4\.png"/);
-  const generic=await middleware(new Request("https://puppy-clicker.vercel.app/puppies"));
+  const generic=await middleware(new Request("https://puppy-clicker.vercel.app/pupdex"));
   assert.equal(await generic.text(),html);
-  const head=await middleware(new Request("https://puppy-clicker.vercel.app/puppies?pup=v1_aurora",{method:"HEAD"}));
+  const head=await middleware(new Request("https://puppy-clicker.vercel.app/pupdex?pup=v1_aurora",{method:"HEAD"}));
   assert.equal(await head.text(),"");
  }finally{
   globalThis.fetch=before;
  }
+});
+
+test("legacy /puppies puppy detail links redirect permanently to PupDex preserving query",async()=>{
+ const response=await middleware(new Request("https://puppy-clicker.vercel.app/puppies?pup=v1_midnight&utm_source=old"));
+ assert.equal(response.status,308);
+ assert.equal(response.headers.get("location"),"https://puppy-clicker.vercel.app/pupdex?pup=v1_midnight&utm_source=old");
 });

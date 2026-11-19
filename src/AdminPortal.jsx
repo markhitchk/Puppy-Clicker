@@ -198,7 +198,7 @@ export default function AdminPortal(){
  if(!staff)return <section className="pup-admin-container pup-admin-locked">
   <h1>🔒 Administration restricted</h1>
   <p role="alert">{error}</p>
-  <a className="pup-admin-link" href="/account">Return to your Pup Account</a>
+  <a className="pup-admin-link pup-link-button" href="/account">Return to your Pup Account</a>
  </section>;
  // The ban editor has its own staff-only page, not a login dialog.
  if(banTarget!==null){
@@ -206,7 +206,7 @@ export default function AdminPortal(){
   const restricted=target&&(target.id===staff.playerUuid||target.role==="DEVELOPER"||
    staff.role==="ADMIN"&&target.role==="ADMIN");
   return <div className="pup-admin-container pup-admin-ban-page">
-   <a className="pup-admin-link" href="/account/admin/users">← Registered Pup Accounts</a>
+   <a className="pup-admin-link pup-link-button" href="/account/admin/users">← Registered Pup Accounts</a>
    <section className="pup-admin-panel pup-admin-ban-editor">
     <p className="pup-admin-kicker">PUPPY CLICKER · STAFF ACCOUNT ACTION</p>
     {tabLoading&&!target?<p role="status">Loading registered Pup Account…</p>:
@@ -227,7 +227,7 @@ export default function AdminPortal(){
        {error?<p className="pup-admin-error" role="alert">{error}</p>:null}
        {message?<p className="pup-admin-success" role="status">{message}</p>:null}
        <div className="pup-admin-ban-actions">
-        <a href="/account/admin/users" className="pup-admin-link">Cancel</a>
+        <a href="/account/admin/users" className="pup-admin-link pup-link-button">Cancel</a>
         <button type="submit" className="pup-admin-danger-button"
          disabled={restricted||busy||reason.trim().length<3}>{busy?"Saving…":"Confirm ban"}</button>
        </div>
@@ -247,7 +247,7 @@ export default function AdminPortal(){
    </div>
    <div className="pup-admin-identity"><span>{staff.role==="DEVELOPER"?"Developer":"Administrator"}</span>
     <strong>{staff.username||pupAccount.username}</strong>
-    <a href="/account">← Account</a>
+    <a className="pup-link-button" href="/account">← Account</a>
    </div>
   </header>
   <div className="pup-admin-stats">
@@ -261,8 +261,8 @@ export default function AdminPortal(){
    {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["pupeye-web",<PupEyeBrand compact label="PupEye Anticheat"/>],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"],["rarity","Puppy rarities"]].map(([tab,label])=>
     <button key={tab} type="button" className={section===tab?"is-selected":""}
      aria-current={section===tab?"page":undefined} onClick={()=>navigate(tab)}>{label}</button>)}
-   <a className="pup-admin-link" href="/account/admin/chat">💬 Chat moderation</a>
-   <a className="pup-admin-link" href="/account/admin/privacy">🔒 Privacy requests</a>
+   <a className="pup-admin-link pup-link-button" href="/account/admin/chat">💬 Chat moderation</a>
+   <a className="pup-admin-link pup-link-button" href="/account/admin/privacy">🔒 Privacy requests</a>
    <button type="button" className="pup-admin-refresh" onClick={()=>void refresh(section)} disabled={busy||tabLoading||section==="gifts"}>↻ Refresh</button>
   </nav>
   {error?<p className="pup-admin-error" role="alert">{error}</p>:null}

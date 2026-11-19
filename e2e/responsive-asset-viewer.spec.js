@@ -18,7 +18,7 @@ const viewports=[
 for(const [name,width,height,expected] of viewports){
  test('PupDex View Asset uses '+name+' layout',async({page})=>{
   await page.setViewportSize({width,height});
-  await page.goto('/puppies?pup=v1_aurora');
+  await page.goto('/pupdex?pup=v1_aurora');
   const details=page.locator('dialog.meet-puppy-dialog');
   await expect(details).toBeVisible();
   await details.getByRole('button',{name:'View Asset'}).click();
@@ -129,7 +129,7 @@ test('inventory View Asset uses identical mobile sheet',async({page})=>{
 
 test('an open viewer switches layouts at 960px and restores keyboard focus',async({page})=>{
  await page.setViewportSize({width:959,height:800});
- await page.goto('/puppies?pup=v2_test_crash_dummy');
+ await page.goto('/pupdex?pup=v2_test_crash_dummy');
  const opener=page.getByRole('button',{name:'View Asset'});
  await opener.click();
  const viewer=page.locator('dialog.meet-asset-dialog');
@@ -148,10 +148,10 @@ test('an open viewer switches layouts at 960px and restores keyboard focus',asyn
 test('every catalog entry opens its own lossless source and preserves native dimensions',async({page})=>{
  const {default:roster}=await import('../src/data/roster.js');
  await page.setViewportSize({width:1366,height:768});
- await page.goto('/puppies');
+ await page.goto('/pupdex');
  for(const puppy of roster){
   const filename=puppy.image.split('/').pop().replace(/\.png$/,'');
-  const card=page.locator('.meet-puppy-link[href="/puppies?pup='+filename+'"]');
+  const card=page.locator('.meet-puppy-link[href="/pupdex?pup='+filename+'"]');
   await card.click();
   const details=page.locator('dialog.meet-puppy-dialog');
   await details.getByRole('button',{name:'View Asset'}).click();
