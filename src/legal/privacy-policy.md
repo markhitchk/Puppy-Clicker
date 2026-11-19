@@ -72,6 +72,3 @@ We use account authorization checks, restricted server access, transport securit
 
 We may update this policy to reflect changes in the website, Android services or applicable laws. Material changes will be communicated as appropriate. For privacy questions or rights requests contact **harleytg.hq@gmail.com** or visit the [Privacy Center](/account/privacy).
 
----
-
-Puppy Clicker · Harley's Studios
