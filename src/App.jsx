@@ -34,6 +34,7 @@ import {avatarForAccount} from "./pupWebApi.js";
 import {suggestUsername,suggestDisplayName,generateStrongPassword} from "./nameSuggestions.js";
 import SiteAccountMenu,{ProfileAvatar,PUP_ACCOUNT_CHANGED} from "./SiteAccountMenu.jsx";
 import PasswordField from "./PasswordField.jsx";
+import PasskeyManager from "./PasskeyManager.jsx";
 import ConfirmSignOut from "./ConfirmSignOut.jsx";
 
 import "./styles/index.css";
@@ -456,6 +457,7 @@ function AccountDashboard(){
      {credentialMessage?<p className="portal-message" role="status">{credentialMessage}</p>:null}
      <p className="account-security-note">Use a unique password. Sign-in details are sent to Supabase Auth over HTTPS and are not stored in the website's source code or local preferences.</p>
     </section>
+    <PasskeyManager client={client}/>
     <PupGiftRequests/>
     <section className="portal-card account-management-card" aria-labelledby="account-management">
      <h3 id="account-management">Account management</h3>

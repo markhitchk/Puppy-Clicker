@@ -5,6 +5,7 @@ import PupAccountBanned from "../../PupAccountBanned.jsx";
 import {client} from "../../supabase.js";
 import WebRegister from "../../WebRegister.jsx";
 import PasswordField from "../../PasswordField.jsx";
+import {passkeyAvailability,passkeyErrorMessage,signInWithPupPasskey} from "../../passkeys.js";
 import {DISCORD_ICON_URL} from "../../discordIcon.js";
 import {beginPuppyDiscord,completePuppyDiscordCallback,hasPuppyDiscordCallback,
  clearPendingDiscord,getPendingDiscord,verifyPuppySession,signInPupUsername,puppyAuthMessage} from "./puppyOAuth.js";
@@ -112,6 +113,17 @@ export default function WebAccountGate({children}){
   }catch(e){setError(puppyAuthMessage(e));}
   finally{setBusy(false);setPassword("");}
  };
+ const passkey=passkeyAvailability({client});
+ const loginPasskey=async()=>{
+  if(busy||!passkey.available)return;
+  setBusy(true);setError("");
+  try{
+   clearPendingDiscord();
+   const {user:passkeyUser,account}=await signInWithPupPasskey(client,verifyPuppySession);
+   setUser(passkeyUser);setPupAccount(account);setPassword("");
+  }catch(error){setError(passkeyErrorMessage(error));}
+  finally{setBusy(false);}
+ };
  if(callbackFailed)return <View style={{padding:28,backgroundColor:'#19313e',gap:16}}>
   <Text accessibilityRole="header" style={{...text,fontSize:24}}>{callbackLinkFailed?"Discord linking could not complete":"Pup Account sign-in could not complete"}</Text>
   <Text accessibilityRole="alert" style={text}>{error}</Text>
@@ -173,6 +185,16 @@ export default function WebAccountGate({children}){
       {busy?"Verifying…":"Sign in to Pup Account"}
      </button>
     </form>
+    </section>
+    <section className="android-auth-provider" aria-labelledby="pup-passkey-signin-title">
+     <div className="android-auth-provider-heading">
+      <div aria-hidden="true" style={{fontSize:28}}>🔑</div>
+      <div><strong id="pup-passkey-signin-title">Passkey</strong><small>Sign in with a device lock or security key</small></div>
+     </div>
+     <p>Use a passkey already registered to your Pup Account. You can set one up after signing in.</p>
+     <button className="pup-passkey-signin" type="button" disabled={busy||!passkey.available}
+      onClick={()=>void loginPasskey()}>{busy?"Verifying…":"🔑 Sign in with passkey"}</button>
+     {!passkey.available?<p className="pup-passkey-signin-note" role="status">{passkey.reason}</p>:null}
     </section>
     <section className="android-auth-provider">
      <div className="android-auth-provider-heading"><img src={DISCORD_ICON_URL} alt="" onError={event=>{event.currentTarget.onerror=null;event.currentTarget.src="/assets/logos/discord.png";}} /><div><strong>Discord</strong><small>Alternative login or optional linked account</small></div></div>
