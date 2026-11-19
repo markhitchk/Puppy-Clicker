@@ -92,6 +92,6 @@
 /* The notice must not steal puppy taps or game controls underneath it. Its
    actual consent buttons remain interactive; on other pages the full notice
    remains scrollable as normal. */
-.site-frame-game .puppy-cookie-banner{pointer-events:none}
-.site-frame-game .puppy-cookie-banner .puppy-cookie-actions,
-.site-frame-game .puppy-cookie-banner .puppy-cookie-btn{pointer-events:auto}
+.puppy-cookie-banner{pointer-events:none}
+.puppy-cookie-banner .puppy-cookie-actions,
+.puppy-cookie-banner .puppy-cookie-btn{pointer-events:auto}
