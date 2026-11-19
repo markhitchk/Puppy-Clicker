@@ -33,6 +33,7 @@ import PupGiftRequests from "./PupGiftRequests.jsx";
 import {avatarForAccount} from "./pupWebApi.js";
 import {suggestUsername,suggestDisplayName,generateStrongPassword} from "./nameSuggestions.js";
 import SiteAccountMenu,{ProfileAvatar,PUP_ACCOUNT_CHANGED} from "./SiteAccountMenu.jsx";
+import PasswordField from "./PasswordField.jsx";
 import ConfirmSignOut from "./ConfirmSignOut.jsx";
 
 import "./styles/index.css";
@@ -438,14 +439,14 @@ function AccountDashboard(){
       <button className="account-auth-text-button" type="button" disabled={credentialBusy}
        onClick={()=>{try{setCredentialUsername(suggestUsername(credentialUsername));setCredentialMessage('');}catch{setCredentialMessage('Secure username suggestions are unavailable in this browser.');}}}>🎲 Generate username</button>
       <label htmlFor="pupCredentialPassword">{profile.passwordLoginEnabled?"New password":"Password"}</label>
-      <input id="pupCredentialPassword" type="password" name="new-password" minLength={8} maxLength={128}
+      <PasswordField id="pupCredentialPassword" visibilityLabel="account password" name="new-password" minLength={8} maxLength={128}
        required value={credentialPassword} onChange={e=>setCredentialPassword(e.target.value)} onInput={e=>setCredentialPassword(e.currentTarget.value)}
        autoComplete="new-password"/>
       <p className="account-security-note">Use your browser or password manager's suggested strong password, or generate one below. Save it in your password manager before submitting.</p>
       <button type="button" className="account-auth-text-button" disabled={credentialBusy}
        onClick={()=>{try{const strong=generateStrongPassword();setCredentialPassword(strong);setCredentialConfirmation(strong);setCredentialMessage('Strong password generated. Save it to your password manager before updating.');}catch{setCredentialMessage('Secure password generation is unavailable in this browser.');}}}>🔐 Generate strong password</button>
       <label htmlFor="pupCredentialConfirm">Confirm password</label>
-      <input id="pupCredentialConfirm" type="password" name="confirm-password" minLength={8} maxLength={128}
+      <PasswordField id="pupCredentialConfirm" visibilityLabel="account confirmation password" name="confirm-password" minLength={8} maxLength={128}
        required value={credentialConfirmation} onChange={e=>setCredentialConfirmation(e.target.value)} onInput={e=>setCredentialConfirmation(e.currentTarget.value)}
        autoComplete="new-password"/>
       <button className="cta cta-primary stretch" type="submit" disabled={credentialBusy}>
