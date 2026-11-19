@@ -5,12 +5,12 @@ test("homepage introduces puppies from the real roster",async({page})=>{
  await expect(page.getByRole("heading",{name:"Meet the puppies"})).toBeVisible();
  await expect(page.getByRole("heading",{name:/Buddy/}).first()).toBeVisible();
  await page.getByRole("link",{name:/See the full puppy roster/}).click();
- await expect(page).toHaveURL(/\/puppies$/);
+ await expect(page).toHaveURL(/\/pupdex$/);
  await expect(page.getByRole("heading",{name:"PupDex"})).toBeVisible();
 });
 
 test("public full roster supports filtering and searching without signing in",async({page})=>{
- await page.goto("/puppies");
+ await page.goto("/pupdex");
  await expect(page.getByText(/of \d+ puppies/)).toBeVisible();
  await page.getByRole("button",{name:"V2 puppies"}).click();
  await expect(page.getByRole("heading",{name:/Frost/})).toBeVisible();
@@ -58,12 +58,12 @@ test("legacy register bookmarks show the registration tab within /account",async
 
 
 test("puppy roster and home showcase use transparent optimized portraits",async({page})=>{
- for(const route of ["/","/puppies"]){
+ for(const route of ["/","/pupdex"]){
   await page.goto(route);
   const cards=page.locator(".meet-puppy-card");
   const art=cards.locator("img.puppy-artwork");
   const count=await cards.count();
-  expect(count).toBeGreaterThan(route==="/puppies"?20:5);
+  expect(count).toBeGreaterThan(route==="/pupdex"?20:5);
   await expect(art).toHaveCount(count);
   const sources=await art.evaluateAll(nodes=>nodes.map(node=>({
    src:node.getAttribute("src"),set:node.getAttribute("srcset")
@@ -80,7 +80,7 @@ test("puppy roster and home showcase use transparent optimized portraits",async(
 
 
 test("Meet the Puppies includes both missing test puppies and their transparent artwork",async({page})=>{
- await page.goto("/puppies");
+ await page.goto("/pupdex");
  await expect(page.getByText("32 of 32 puppies")).toBeVisible();
  await page.getByRole("button",{name:"Test puppies"}).click();
  const cards=page.locator(".meet-puppy-card");
