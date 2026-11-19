@@ -9,10 +9,10 @@ test('paw cursor assets are available and used site-wide with a mouse',async({pa
   expect(response.ok(),name+' missing').toBe(true);
  }
  const pointer=page.locator('.site-nav a[href="/play"]');
- expect(await page.locator('body').evaluate(node=>getComputedStyle(node).cursor)).toContain('puppy_pointer_dark_default_64.png');
- expect(await pointer.evaluate(node=>getComputedStyle(node).cursor)).toContain('puppy_pointer_dark_link_64.png');
+ expect(await page.locator('body').evaluate(node=>getComputedStyle(node).cursor)).toContain('puppy_pointer_dark_default_32.png');
+ expect(await pointer.evaluate(node=>getComputedStyle(node).cursor)).toContain('puppy_pointer_dark_link_32.png');
  await pointer.hover();
- expect(await pointer.evaluate(node=>getComputedStyle(node).cursor)).toContain('puppy_pointer_dark_hover_64.png');
+ expect(await pointer.evaluate(node=>getComputedStyle(node).cursor)).toContain('puppy_pointer_dark_hover_32.png');
 });
 
 test('Puppy mouse pointer toggle applies instantly to the entire site and persists',async({page})=>{
@@ -27,7 +27,7 @@ test('Puppy mouse pointer toggle applies instantly to the entire site and persis
  await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor','disabled');
  await page.goto('/');
  await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor','disabled');
- expect(await page.locator('body').evaluate(node=>getComputedStyle(node).cursor)).not.toContain('puppy_pointer_dark_default_64.png');
+ expect(await page.locator('body').evaluate(node=>getComputedStyle(node).cursor)).not.toContain('puppy_pointer_dark_default_32.png');
 
  await page.goto('/play');
  await page.getByRole('button',{name:'Open settings',exact:true}).click();
