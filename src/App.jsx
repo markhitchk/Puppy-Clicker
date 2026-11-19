@@ -643,5 +643,6 @@ export default function App(){
   {page==="play"?<AdaptiveGraphics/>:null}
   <NetworkCheckReporter/>
   <AndroidAppBanner/>
+  <CookieConsent/>
  </div>;
 }
