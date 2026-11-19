@@ -186,7 +186,7 @@ test('ChromeOS viewport and text scaling keep browser settings in normal flow',a
     const y=Math.min(boxes[i].bottom,boxes[j].bottom)-Math.max(boxes[i].top,boxes[j].top);
     if(x>1&&y>1)overlaps.push([i,j]);
    }
-   return {columns:getComputedStyle(grid).gridTemplateColumns.trim().split(/\\s+/).length,
+   return {columns:getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length,
     overlaps,overflow:grid.scrollWidth-grid.clientWidth};
   });
   expect(result.overlaps,`Panels overlap at ${size.width}×${size.height}`).toEqual([]);
@@ -195,7 +195,7 @@ test('ChromeOS viewport and text scaling keep browser settings in normal flow',a
  }
  await page.setViewportSize({width:1440,height:900});
  await page.evaluate(()=>{document.documentElement.style.fontSize='20px';});
- const columns=await page.locator('.browser-settings-grid').evaluate(grid=>getComputedStyle(grid).gridTemplateColumns.trim().split(/\\s+/).length);
+ const columns=await page.locator('.browser-settings-grid').evaluate(grid=>getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length);
  expect(columns).toBe(1);
  await page.getByRole('radio',{name:'Original Puppy pointer'}).check();
  await expect(page.locator('.browser-pointer-preview-tile')).toHaveCount(3);
