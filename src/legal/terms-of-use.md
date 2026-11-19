@@ -27,6 +27,3 @@ Features and availability may change. Puppy Clicker branding and original artwor
 
 For account or privacy questions, contact harleytg.hq@gmail.com.
 
----
-
-Puppy Clicker · Harley's Studios

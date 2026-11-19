@@ -6,7 +6,7 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('account and homepage actions have named, independent flex/grid containers',()=>{
  const jsx=read('src/App.jsx');
  assert.match(jsx,/className="home-account-actions"/);
- assert.match(jsx,/className="home-account-recovery"/);
+ assert.match(jsx,/className="home-account-recovery pup-link-button"/);
  assert.match(jsx,/className="account-management-actions"/);
  assert.match(jsx,/className="portal-card account-management-card"/);
  const css=read('src/styles.css');
