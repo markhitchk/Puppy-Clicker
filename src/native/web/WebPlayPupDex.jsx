@@ -94,6 +94,7 @@ export function WebPlayPuppyAssetViewer({puppy,assetId,name,onClose}){
     <button className="meet-asset-close" type="button"
      aria-label="Close asset viewer" onClick={onClose}>×</button>
    </header>
+   <div className="meet-asset-layout">
    <div className={'meet-asset-stage'+(checkerboard?' meet-asset-checker':'')}
     data-rarity={tierFor(puppy)}>
     <PuppyArtwork key={puppy.id+'-viewer-'+artVersion} id={puppy.id}
@@ -101,6 +102,7 @@ export function WebPlayPuppyAssetViewer({puppy,assetId,name,onClose}){
      uri={transparentArt(puppy)} size={480} fullResolution
      onUnavailable={()=>setFailed(true)}/>
    </div>
+   <aside className="meet-asset-panel" aria-label="Artwork information and controls">
    <div className="meet-asset-info">
     <span className="meet-puppy-badge meet-puppy-badge-rarity"
      data-rarity={tierFor(puppy)}>{rarityLabels[puppy.rarity]||'Legacy owned'}</span>
@@ -118,6 +120,8 @@ export function WebPlayPuppyAssetViewer({puppy,assetId,name,onClose}){
     <button type="button" className="meet-detail-done" onClick={onClose}>Close Viewer</button>
    </div>
    {status&&<p className="meet-detail-copy-status" role="status">{status}</p>}
+   </aside>
+   </div>
   </div>
  </dialog>;
 }
