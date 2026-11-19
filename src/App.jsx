@@ -173,11 +173,21 @@ function Home(){
      <a href="/account" className="cta cta-secondary">Open Account Management</a>
      <a href="/account?mode=register" className="cta cta-primary">Create Pup Account</a>
     </div>
-    <a href="/recovery" className="home-account-recovery">Forgot your login? Recover your Pup Account</a>
+    <a href="/recovery" className="home-account-recovery pup-link-button">Forgot your login? Recover your Pup Account</a>
    </div>
    <div className="account-preview"><span>🐾</span><strong>Pup Account</strong><p>Verified login · Linked progress · Account settings</p></div>
   </section>
-  <footer className="site-footer"><span>© {new Date().getFullYear()} Harley's Studios · Puppy Clicker</span><span><a href="/recovery">Recover Pup Account</a> · <a href="/privacy">Website privacy</a> · <a href="/legal/privacy">Policies</a> · <a href="/pupeye">PupEye Anticheat</a> · Made for puppy fans 🐶</span></footer>
+  <footer className="site-footer" aria-label="Website footer">
+   <div className="site-footer-brand"><strong>🐾 Puppy Clicker</strong><span>© {new Date().getFullYear()} Harley's Studios</span></div>
+   <nav className="site-footer-links" aria-label="Help and policies">
+    <a href="/account">Pup Account</a>
+    <a href="/recovery">Recovery</a>
+    <a href="/privacy">Website privacy</a>
+    <a href="/legal/privacy">Privacy policy</a>
+    <a href="/legal/terms">Terms</a>
+    <a href="/pupeye">PupEye</a>
+   </nav>
+  </footer>
  </div>;
 }
 const accountRole=role=>({DEVELOPER:"Developer",ADMIN:"Administrator",PUP_MEMBER:"Pup Member"})[role]||"Player";
