@@ -15,6 +15,10 @@ The website now imports **actual mobile source files** for balanced XP and Kotli
 - Bundled original assets: 32 manifest puppies and 68 images verified against source SHA-256.
 - Standalone Android preview configuration with embedded JS; no Metro connection is required for a release preview APK.
 
+## Browser developer tools compatibility
+
+**Permanent website policy:** Browser Developer Tools, the JavaScript Console, Network, Sources, Elements, F12 / Ctrl+Shift+I and right-click → Inspect must remain accessible in supported browsers on **every route**. The website must not disable DevTools or browser shortcuts, and PupEye security is enforced server-side rather than through inspection blockers. See [Browser Developer Tools compatibility](docs/browser-devtools-compatibility.md).
+
 ## Web
 
 Node 22+:
