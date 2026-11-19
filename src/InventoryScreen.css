@@ -113,6 +113,23 @@ html .pup-inventory .pup-inventory-puppy{
  height:100%;width:100%;display:flex;flex-direction:column;
  min-width:0;cursor:default;
 }
+/* Match /play: the entire puppy artwork is a clean rectangular preview
+   and is keyboard/touch actionable, never an oversized pill or circle. */
+.pup-inventory .pup-inventory-art-button{
+ display:block;width:100%;min-width:0;margin:0;padding:0;
+ background:transparent;color:inherit;border:0;border-radius:0;
+ line-height:normal;text-align:inherit;cursor:pointer;
+}
+.pup-inventory .pup-inventory-art-button:focus-visible{
+ outline:3px solid #a9edff;outline-offset:-3px;position:relative;z-index:2;
+}
+.pup-inventory .pup-inventory-art-button .meet-puppy-art{
+ border-radius:0;clip-path:none;mask-image:none;
+}
+.pup-inventory .pup-inventory-art-button img.puppy-artwork{
+ border:0;border-radius:0;clip-path:none;mask-image:none;
+ background:transparent;opacity:1;
+}
 .pup-inventory .meet-puppy-art{
  height:clamp(145px,18vw,225px);min-height:0;width:100%;
  display:flex;justify-content:center;align-items:center;padding:10px;
