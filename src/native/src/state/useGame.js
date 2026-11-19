@@ -19,7 +19,7 @@ const LIVE_ACTIONS=new Set([
  "daily","claimDailyGoal","parkStart","parkClaim","prestige",
  "slotsStart","slotsReveal","rouletteStart","rouletteReveal",
  "plinkoStart","plinkoReveal","scratchStart","scratchReveal",
- "wheelStart","wheelReveal","gacha","switch","rename","favorite",
+ "wheelStart","wheelReveal","gacha","claimFreeTest","switch","rename","favorite",
  "afkStart","afkSettle","afkClaim","afkOpen","afkMarkAllRead","afkClearRead",
  "blackjackStart","blackjackHit","blackjackStand","blackjackDouble","blackjackSplit"
 ]);
@@ -41,6 +41,7 @@ const normalizeIntent=action=>Object.fromEntries(
 );
 const exclusiveIntentKey=intent=>{
  if(intent?.type==='claimDailyGoal')return 'claimDailyGoal:'+String(intent.goalId||'');
+ if(intent?.type==='claimFreeTest')return 'claimFreeTest:'+String(intent.id||'');
  if(['daily','parkStart','parkClaim','prestige'].includes(intent?.type))return intent.type;
  if(intent?.type==='gacha'||intent?.type==='casinoRecoverLegacy'||
     /^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent?.type||''))return intent.type;
@@ -263,6 +264,7 @@ export function useGame(){
       "UPGRADE_NOT_AFFORDABLE","UPGRADE_MAXED","UPGRADE_NEEDS_TICKETS",
       "TICKET_NOT_AFFORDABLE","ACCESSORY_NOT_AFFORDABLE","ACCESSORY_NOT_OWNED",
       "EXCHANGE_NOT_AFFORDABLE","GACHA_NO_PUPPIES","PUPPY_LOCKED",
+      "FREE_TEST_PUPPY_INVALID","FREE_TEST_PUPPY_UNAVAILABLE","FREE_TEST_PUPPY_ALREADY_OWNED",
       "PUP_NEEDS_REST","CARE_ACTION_UNAVAILABLE","PUPEYE_COOLDOWN",
       "PUPEYE_FAIRPLAY_HOLD",
       "PRESTIGE_NOT_UNLOCKED","SKILL_UNAVAILABLE","FINISH_CASINO_FIRST",

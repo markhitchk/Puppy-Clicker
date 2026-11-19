@@ -43,7 +43,7 @@ test('public puppy modal retains the same dark visual hierarchy as the game on A
  await expect(dialog).toBeVisible();
  await expect(dialog.getByRole('heading',{name:'Crash Test Pup V2'})).toBeVisible();
  await expect(dialog.getByText('v2_test_crash_dummy')).toBeVisible();
- await expect(dialog.getByText('Puppy Gacha')).toBeVisible();
+ await expect(dialog.getByText('Free test puppy')).toBeVisible();
  await expect(dialog.getByRole('button',{name:'View Asset'})).toBeVisible();
  await expect(dialog.getByRole('button',{name:'Copy Link'})).toBeVisible();
  await expect(dialog.getByRole('button',{name:'Retry Art'})).toHaveCount(0);

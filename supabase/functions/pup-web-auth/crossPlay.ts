@@ -16,7 +16,7 @@ const allowed=new Set([
  "daily","claimDailyGoal","parkStart","parkClaim","prestige",
  "slotsStart","slotsReveal","rouletteStart","rouletteReveal",
  "plinkoStart","plinkoReveal","scratchStart","scratchReveal",
- "wheelStart","wheelReveal","gacha","switch","rename","favorite",
+ "wheelStart","wheelReveal","gacha","claimFreeTest","switch","rename","favorite",
  "afkStart","afkSettle","afkClaim","afkOpen","afkMarkAllRead","afkClearRead",
  "blackjackStart","blackjackHit","blackjackStand","blackjackDouble","blackjackSplit"
 ]);
@@ -141,7 +141,7 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
  if(/^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent.type)&&
     current.save_data?.stores?.puppy_clicker_save?.values?.casino_active_round_v1)
   reject(409,"PUP_CASINO_ANDROID_ROUND_PENDING");
- const puppyReward = /^(gacha$|slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent.type);
+ const puppyReward = intent.type==="claimFreeTest" || /^(gacha$|slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent.type);
  let catalog = [];
  let catalogVersion = null;
  if (puppyReward) {
@@ -177,6 +177,7 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
    "UPGRADE_MAXED","UPGRADE_NEEDS_TICKETS","TICKET_NOT_AFFORDABLE",
    "ACCESSORY_NOT_AFFORDABLE","ACCESSORY_NOT_OWNED",
    "EXCHANGE_NOT_AFFORDABLE","GACHA_NO_PUPPIES","PUPPY_LOCKED",
+   "FREE_TEST_PUPPY_INVALID","FREE_TEST_PUPPY_UNAVAILABLE","FREE_TEST_PUPPY_ALREADY_OWNED",
    "PUP_NEEDS_REST","CARE_ACTION_UNAVAILABLE","PUPEYE_COOLDOWN",
    "PRESTIGE_NOT_UNLOCKED","SKILL_UNAVAILABLE","FINISH_CASINO_FIRST",
    "PUPPY_NAME_REQUIRED","AFK_REWARD_NOT_FOUND",

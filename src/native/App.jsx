@@ -505,6 +505,7 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
    favorite={Boolean(details&&g.favoritePuppies.includes(details.id))}
    onToggleFavorite={()=>{if(detailsOwned)act({type:'favorite',id:details.id});}}
    onViewAsset={Platform.OS==='web'?()=>{if(details)setViewAssetId(details.id);}:undefined}
+   onClaimFree={Platform.OS==='web'&&details&&['test_v1_crash_dummy','test_v2_crash_dummy'].includes(details.id)?()=>act({type:'claimFreeTest',id:details.id}):undefined}
    onRetryArtwork={()=>{if(details)retry(details.id);}}
    onUse={id=>onUse?onUse(id):act({type:'switch',id,now:Date.now()})}
    onRename={name=>act({type:'rename',name})}/>
@@ -545,6 +546,7 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
     onInspect={id=>{setInspected(id);setDetailsId(id);}}
     onUse={id=>onUse?onUse(id):act({type:'switch',id,now:Date.now()})}
     onToggleFavorite={id=>act({type:'favorite',id})}
+    onClaimFree={id=>act({type:'claimFreeTest',id})}
     onRetry={retry}/>;
    return <View key={p.id} style={[styles.restoredRosterTile,inspected===p.id&&{borderColor:C.accent}]}>
     <Pressable accessibilityRole="button" accessibilityLabel={'Inspect '+puppyName(p)} onPress={()=>{setInspected(p.id);setDetailsId(p.id);}} style={{width:'100%',alignItems:'center',gap:6}}>

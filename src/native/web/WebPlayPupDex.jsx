@@ -13,10 +13,11 @@ const tierFor=puppy=>puppy.rarity||'common';
 const groupFor=puppy=>puppy.groupTitle||'Puppies';
 
 export function WebPlayPupDexCard({puppy,assetId,name,owned,current,favorite,
- onInspect,onUse,onToggleFavorite,artVersion=0,onRetry}){
+ onInspect,onUse,onClaimFree,onToggleFavorite,artVersion=0,onRetry}){
  const [artFailed,setArtFailed]=useState(false);
  useEffect(()=>setArtFailed(false),[puppy.id,artVersion]);
  const rarity=tierFor(puppy);
+ const freeTest=['test_v1_crash_dummy','test_v2_crash_dummy'].includes(puppy.id)&&puppy.rarity==='common';
  return <article className="meet-puppy-card play-pupdex-card" data-rarity={rarity}
   data-pup-card={puppy.id} aria-label={name+' roster card'}>
   <div className="meet-puppy-link play-pupdex-card-content">
@@ -43,6 +44,8 @@ export function WebPlayPupDexCard({puppy,assetId,name,owned,current,favorite,
     <div className="play-pupdex-actions">
      <button type="button" className="meet-puppy-view play-pupdex-details"
       onClick={()=>onInspect(puppy.id)}>View Details <span aria-hidden="true">↗</span></button>
+     {freeTest&&!owned&&<button type="button" className="play-pupdex-use"
+      onClick={()=>onClaimFree(puppy.id)} aria-label={'Claim '+name+' for free'}>Claim Free</button>}
      {owned&&!current&&<button type="button" className="play-pupdex-use"
       onClick={()=>onUse(puppy.id)} aria-label={'Use '+name}>Use Puppy</button>}
      <button type="button" className="play-pupdex-favorite" disabled={!owned}
