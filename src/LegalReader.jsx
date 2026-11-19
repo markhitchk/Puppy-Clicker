@@ -50,16 +50,16 @@ export default function LegalReader({type="privacy"}){
   <div className="legal-hero"><p className="eyebrow">🐾 PUPPY CLICKER · LEGAL</p><h1>{tr("legalTitle")}</h1>
    <p>{tr("legalIntro")}</p>
    <nav aria-label="Legal documents" className="legal-tabs">
-    <a href="/legal/privacy" aria-current={kind==="privacy"?"page":undefined}>🔒 {tr("privacy")}</a>
-    <a href="/legal/terms" aria-current={kind==="terms"?"page":undefined}>📜 {tr("terms")}</a>
-    <a href="/privacy">{tr("websitePrivacy")}</a>
+    <a className="pup-link-button" href="/legal/privacy" aria-current={kind==="privacy"?"page":undefined}>🔒 {tr("privacy")}</a>
+    <a className="pup-link-button" href="/legal/terms" aria-current={kind==="terms"?"page":undefined}>📜 {tr("terms")}</a>
+    <a className="pup-link-button" href="/privacy">{tr("websitePrivacy")}</a>
    </nav>
   </div>
   <div className="legal-layout">
     <aside className="legal-contents" aria-label="Document contents">
      <button className="legal-contents-toggle" aria-expanded={contentsOpen} onClick={()=>setContentsOpen(v=>!v)}>{tr("contents")} <span aria-hidden="true">{contentsOpen?"−":"+"}</span></button>
      <nav className={contentsOpen?"is-open":""} aria-label="On this page">
-      {parsed.headings.filter(h=>h.level>1).map(h=><a key={h.id} href={"#"+h.id} onClick={()=>setContentsOpen(false)}>{h.title}</a>)}
+      {parsed.headings.filter(h=>h.level>1).map(h=><a key={h.id} className="pup-link-button" href={"#"+h.id} onClick={()=>setContentsOpen(false)}>{h.title}</a>)}
      </nav>
     </aside>
     <article className="legal-article" aria-label={doc.title}>
