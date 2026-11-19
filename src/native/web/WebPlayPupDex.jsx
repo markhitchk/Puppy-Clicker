@@ -98,7 +98,7 @@ export function WebPlayPuppyAssetViewer({puppy,assetId,name,onClose}){
     data-rarity={tierFor(puppy)}>
     <PuppyArtwork key={puppy.id+'-viewer-'+artVersion} id={puppy.id}
      name={name+' full-size transparent puppy artwork'}
-     uri={transparentArt(puppy)} size={480}
+     uri={transparentArt(puppy)} size={480} fullResolution
      onUnavailable={()=>setFailed(true)}/>
    </div>
    <div className="meet-asset-info">
