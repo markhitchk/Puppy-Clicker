@@ -25,52 +25,57 @@ test('invalid or blocked browser storage falls back safely',async()=>{
 });
 
 
-test('browser cursor mode and theme follow shared interface size',async()=>{
- const {loadWebPreferences,saveWebPreferences,updateWebPreference,POINTER_SIZES,pointerThemeFor}=await import('../src/native/web/preferences.js');
+test('browser cursor defaults to system-like size and enabled click feedback',async()=>{
+ const {loadWebPreferences,saveWebPreferences,updateWebPreference,SYSTEM_LIKE_POINTER_SIZE,POINTER_SIZE_STEPS,pointerThemeFor,effectivePointerSize,effectivePointerSizeKey}=await import('../src/native/web/preferences.js');
  let stored=null;
  const storage={getItem:()=>stored,setItem:(_key,value)=>{stored=value;}};
  const defaults=loadWebPreferences(storage);
- assert.equal(defaults.uiScale,'default');
- assert.deepEqual(POINTER_SIZES,{compact:48,default:64,large:96});
  assert.equal(defaults.puppyPointerEnabled,true);
- assert.equal(defaults.puppyPointerTheme,'auto');
+ assert.equal(defaults.puppyPointerClickHighlight,true);
+ assert.equal(defaults.puppyPointerSizeMode,'system');
+ assert.equal(defaults.puppyPointerCustomSize,48);
+ assert.equal(SYSTEM_LIKE_POINTER_SIZE,32);
+ assert.deepEqual(POINTER_SIZE_STEPS,[24,32,40,48,56,64,72,80,88,96]);
+ assert.equal(effectivePointerSize(defaults),32);
+ assert.equal(effectivePointerSizeKey(defaults),'system');
  assert.equal(pointerThemeFor(defaults,false),'dark');
  assert.equal(pointerThemeFor({...defaults,themeMode:'system'},false),'light');
  assert.equal(pointerThemeFor({...defaults,themeMode:'system'},true),'dark');
- let prefs=updateWebPreference(defaults,'uiScale','compact');
- prefs=updateWebPreference(prefs,'puppyPointerEnabled',false);
+
+ let prefs=updateWebPreference(defaults,'puppyPointerSizeMode','custom');
+ prefs=updateWebPreference(prefs,'puppyPointerCustomSize',80);
  prefs=updateWebPreference(prefs,'puppyPointerTheme','light');
- prefs=updateWebPreference(prefs,'puppyPointerClickHighlight',true);
+ prefs=updateWebPreference(prefs,'puppyPointerClickHighlight',false);
+ assert.equal(effectivePointerSize(prefs),80);
+ assert.equal(effectivePointerSizeKey(prefs),'custom-80');
  assert.equal(saveWebPreferences(prefs,storage),true);
  const loaded=loadWebPreferences(storage);
- assert.equal(loaded.uiScale,'compact');
- assert.equal(loaded.puppyPointerEnabled,false);
- assert.equal(loaded.puppyPointerTheme,'light');
- assert.equal(loaded.puppyPointerClickHighlight,true);
+ assert.equal(loaded.puppyPointerCustomSize,80);
+ assert.equal(loaded.puppyPointerSizeMode,'custom');
+ assert.equal(loaded.puppyPointerClickHighlight,false);
  assert.equal(pointerThemeFor(loaded,true),'light');
- assert.equal(loaded.puppyPointerStyle,undefined);
- assert.equal(loaded.puppyPointerSize,undefined);
- assert.deepEqual(updateWebPreference(loaded,'puppyPointerStyle','paw'),loaded);
- assert.deepEqual(updateWebPreference(loaded,'puppyPointerSize','extra_large'),loaded);
- assert.deepEqual(updateWebPreference(loaded,'puppyPointerTheme','pink'),loaded);
+ assert.deepEqual(updateWebPreference(loaded,'puppyPointerSizeMode','none'),loaded);
+ assert.deepEqual(updateWebPreference(loaded,'puppyPointerCustomSize',33),loaded);
+ assert.deepEqual(updateWebPreference(loaded,'puppyPointerCustomSize',-8),loaded);
  assert.deepEqual(updateWebPreference(loaded,'puppyPointerClickHighlight','true'),loaded);
- const legacy={getItem:()=>JSON.stringify({...loaded,puppyPointerStyle:'paw',puppyPointerSize:'extra_large'})};
- const migrated=loadWebPreferences(legacy);
- assert.equal(migrated.puppyPointerStyle,undefined);
- assert.equal(migrated.puppyPointerSize,undefined);
+ assert.deepEqual(updateWebPreference(loaded,'puppyPointerSize','extra_large'),loaded);
+
+ const malformed={getItem:()=>JSON.stringify({...loaded,puppyPointerCustomSize:900,puppyPointerSizeMode:'unknown'})};
+ const normalized=loadWebPreferences(malformed);
+ assert.equal(normalized.puppyPointerSizeMode,'system');
+ assert.equal(normalized.puppyPointerCustomSize,48);
+ assert.equal(effectivePointerSize(normalized),32);
  assert.equal(JSON.parse(stored).cloudSave,undefined);
 });
 
-
-test('mobile uses Default 64px pointer even when interface is Compact',async()=>{
- const {isMobilePointerEnvironment,effectivePointerSizeKey,effectivePointerSize,POINTER_SIZES}=await import('../src/native/web/preferences.js');
- const compact={uiScale:'compact'};
- assert.equal(effectivePointerSize(compact,false),48);
- assert.equal(effectivePointerSize(compact,true),64);
- assert.equal(effectivePointerSizeKey(compact,true),'default');
- assert.equal(effectivePointerSize({uiScale:'default'},true),64);
- assert.equal(effectivePointerSize({uiScale:'large'},true),96);
- assert.equal(POINTER_SIZES.compact,48);
+test('system-size mode ignores interface size and hybrid pointer environment',async()=>{
+ const {isMobilePointerEnvironment,effectivePointerSize,effectivePointerSizeKey}=await import('../src/native/web/preferences.js');
+ const compact={uiScale:'compact',puppyPointerSizeMode:'system',puppyPointerCustomSize:96};
+ assert.equal(effectivePointerSize(compact),32);
+ assert.equal(effectivePointerSize({...compact,uiScale:'large'}),32);
+ assert.equal(effectivePointerSizeKey(compact),'system');
+ assert.equal(effectivePointerSize({...compact,puppyPointerSizeMode:'custom'}),96);
+ assert.equal(effectivePointerSizeKey({...compact,puppyPointerSizeMode:'custom'}),'custom-96');
  assert.equal(isMobilePointerEnvironment({navigator:{userAgent:'Mozilla/5.0 (Linux; Android 17; SM-A176U1) AppleWebKit'}}),true);
  assert.equal(isMobilePointerEnvironment({navigator:{userAgent:'Desktop'},matchMedia:()=>({matches:true})}),true);
  assert.equal(isMobilePointerEnvironment({navigator:{userAgent:'Desktop'},matchMedia:()=>({matches:false})}),false);
