@@ -136,11 +136,11 @@ export default function WebRegister({onAuthenticated,onSignIn}){
     details={joinDetails} onDetailsChange={setJoinDetails} disabled={busy||registered}/>
    <label className="account-auth-consent">
     <input type="checkbox" required checked={terms} onChange={e=>setTerms(e.target.checked)} disabled={busy||registered}/>
-    <span>I agree to the <a href="/legal/terms" target="_blank" rel="noopener noreferrer">Terms of Use</a>.</span>
+    <span>I agree to the <a className="pup-link-button" href="/legal/terms" target="_blank" rel="noopener noreferrer">Terms of Use</a>.</span>
    </label>
    <label className="account-auth-consent">
     <input type="checkbox" required checked={privacy} onChange={e=>setPrivacy(e.target.checked)} disabled={busy||registered}/>
-    <span>I acknowledge the <a href="/legal/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>, including website connection and account security records.</span>
+    <span>I acknowledge the <a className="pup-link-button" href="/legal/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>, including website connection and account security records.</span>
    </label>
    <button className="cta cta-primary stretch" type="submit" disabled={busy||registered||!client}>
     {busy?"Creating account…":registered?"Account created":"Create Pup Account"}
