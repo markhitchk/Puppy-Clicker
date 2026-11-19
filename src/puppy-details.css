@@ -238,23 +238,29 @@ html[data-puppy-reduced-motion="true"] .meet-puppy-card{transition:none!importan
 .meet-detail-disclaimer{margin:0}
 .meet-puppy-dialog :is(.meet-detail-done,.meet-detail-retry):focus-visible{outline:3px solid #fff;outline-offset:3px}
 
-/* Separate, high-resolution transparent art lightbox opened from Puppy Details. */
+/* Responsive asset viewer: one source of truth with intentionally different
+   mobile and desktop layouts. Scope all rules to the viewer so other dialogs,
+   gameplay, inventory cards and site navigation stay unchanged. */
 .meet-asset-dialog{
  position:fixed;inset:0;margin:auto;box-sizing:border-box;
- width:min(760px,calc(100vw - 24px));max-width:760px;
- max-height:calc(100dvh - 24px);overflow:auto;
- padding:0;border:1px solid #3a6074;border-radius:26px;
+ width:min(760px,calc(100vw - 20px));max-width:760px;
+ max-height:calc(100dvh - 20px);overflow:auto;
+ padding:0;border:1px solid #3a6074;border-radius:24px;
  background:#122935;color:#f5fbff;box-shadow:0 27px 95px #000d;
  overscroll-behavior:contain;scrollbar-width:thin;
 }
 .meet-asset-dialog::backdrop{background:#02050de8;backdrop-filter:blur(6px)}
-.meet-asset-inner{display:flex;flex-direction:column;gap:14px;padding:20px;min-width:0}
-.meet-asset-header{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.meet-asset-header h2{font-size:clamp(22px,4vw,31px);line-height:1.15;margin:3px 0 0;overflow-wrap:anywhere}
+.meet-asset-inner{display:flex;flex-direction:column;gap:12px;padding:16px;min-width:0}
+.meet-asset-header{display:flex;justify-content:space-between;align-items:center;gap:12px;min-width:0}
+.meet-asset-header>div{min-width:0}
+.meet-asset-header h2{font-size:clamp(20px,3.5vw,31px);line-height:1.15;margin:3px 0 0;overflow-wrap:anywhere}
 .meet-asset-eyebrow{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#8ee7ff;margin:0}
 .meet-asset-close{flex:0 0 44px;width:44px;height:44px;display:grid;place-items:center;border:1px solid #42687a;border-radius:12px;background:#173746;color:#fff;font-size:31px;cursor:pointer}
-.meet-asset-stage{position:relative;display:flex;align-items:center;justify-content:center;min-height:240px;max-height:min(53dvh,500px);
- overflow:hidden;border-radius:20px;border:1px solid rgb(var(--rarity-rgb) / .45);
+.meet-asset-layout{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0}
+.meet-asset-panel{display:flex;flex-direction:column;gap:12px;min-width:0}
+.meet-asset-stage{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;
+ height:clamp(185px,39dvh,360px);overflow:hidden;
+ border-radius:18px;border:1px solid rgb(var(--rarity-rgb) / .45);
  background:radial-gradient(ellipse at 50% 50%,rgb(var(--rarity-rgb) / .23),transparent 70%),#0a1320;
 }
 .meet-asset-stage.meet-asset-checker{
@@ -267,31 +273,79 @@ html[data-puppy-reduced-motion="true"] .meet-puppy-card{transition:none!importan
  background-position:center,0 0,0 13px,13px -13px,-13px 0;
  background-color:#172330;
 }
-/* Keep art at its native CSS pixel size or smaller: never stretch a 256px
-   source to 480px. Shadows/filters belong to the stage, not the artwork
-   layer, which must stay unblurred on Chromium and high-density Android. */
+/* Source image has intrinsic dimensions; the viewer must never upscale a
+   small original or reintroduce the shadow/transform-induced softening. */
 .meet-asset-stage img.puppy-artwork{
- width:auto!important;height:auto!important;
- max-width:min(100%,480px);max-height:min(50dvh,480px);
+ display:block;width:auto!important;height:auto!important;
+ max-width:100%;max-height:100%;
  object-fit:contain;image-rendering:auto;
  filter:none!important;transform:none!important;
 }
 .meet-asset-stage .puppy-art-unavailable{font-size:70px}
-.meet-asset-info{display:flex;flex-wrap:wrap;gap:9px;align-items:center;color:#d8e8f4;font-size:13px}
+.meet-asset-info{display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:#d8e8f4;font-size:13px;min-width:0}
 .meet-asset-id{font:700 13px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere;color:#b7d6e5}
-.meet-asset-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.meet-asset-actions>*{min-width:0;width:100%;border-radius:14px}
-.meet-asset-actions .meet-detail-retry,.meet-asset-actions .meet-detail-done{min-height:50px}
+.meet-asset-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.meet-asset-actions>*{min-width:0;width:100%;border-radius:12px}
+.meet-asset-actions .meet-detail-retry,
+.meet-asset-actions .meet-detail-done{min-height:46px}
+.meet-asset-actions .meet-detail-done{grid-column:1 / -1}
+.meet-asset-panel .meet-detail-copy-status{margin:0}
 .meet-asset-dialog button:focus-visible{outline:3px solid #fff;outline-offset:2px}
-@media(max-width:520px){
- .meet-detail-main-actions{gap:9px}
- .meet-detail-actions{gap:8px}
- .meet-detail-actions .meet-detail-secondary,.meet-detail-main-actions .meet-detail-primary,
- .meet-detail-main-actions .meet-detail-done{min-height:46px;padding:10px;font-size:13px}
- .meet-asset-inner{padding:14px;gap:12px}
- .meet-asset-stage{min-height:220px}
- .meet-asset-actions{gap:8px}
- .meet-asset-actions .meet-detail-secondary,.meet-asset-actions .meet-detail-done{font-size:12px;min-height:44px;padding:9px}
+
+/* Compact mobile artwork sheet. Fits in portrait on Android/iOS without
+   scaling the image beyond its source; scrolls within the dialog if needed. */
+@media(max-width:899px){
+ .meet-asset-inner{padding:clamp(10px,3vw,16px);gap:10px}
+ .meet-asset-layout{gap:10px}
+ .meet-asset-panel{gap:10px}
+ .meet-asset-stage{height:clamp(165px,38dvh,340px);border-radius:16px}
+ .meet-asset-header h2{font-size:clamp(20px,5.5vw,27px)}
+ .meet-asset-actions .meet-detail-secondary,
+ .meet-asset-actions .meet-detail-done,
+ .meet-asset-actions .meet-detail-retry{font-size:12px;min-height:44px;padding:10px 7px}
+ .meet-asset-info{font-size:12px}
 }
-@media(max-width:350px){.meet-asset-actions{grid-template-columns:1fr}}
+@media(max-width:350px){
+ .meet-asset-actions{grid-template-columns:1fr}
+ .meet-asset-actions>*{grid-column:1 / -1}
+}
+@media(max-height:510px) and (max-width:899px){
+ .meet-asset-dialog{max-height:calc(100dvh - 8px)}
+ .meet-asset-inner{padding:9px;gap:8px}
+ .meet-asset-layout,.meet-asset-panel{gap:7px}
+ .meet-asset-stage{height:clamp(100px,31dvh,150px)}
+ .meet-asset-eyebrow{font-size:10px}
+ .meet-asset-header h2{font-size:18px}
+ .meet-asset-info{font-size:11px}
+ .meet-asset-actions .meet-detail-secondary,
+ .meet-asset-actions .meet-detail-done,
+ .meet-asset-actions .meet-detail-retry{min-height:38px;padding:6px 8px}
+}
+
+/* Desktop artwork inspection workspace. Large preview to the left; rarity,
+   asset ID, and controls grouped in a separate right-side tools panel. */
+@media(min-width:900px){
+ .meet-asset-dialog{
+  width:min(1120px,calc(100vw - 64px));max-width:1120px;
+  max-height:calc(100dvh - 48px);border-radius:26px;
+ }
+ .meet-asset-inner{padding:clamp(20px,2.5vw,28px);gap:20px}
+ .meet-asset-header{padding-bottom:14px;border-bottom:1px solid #355668}
+ .meet-asset-header h2{font-size:clamp(28px,2.8vw,38px)}
+ .meet-asset-layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,0.85fr);
+  align-items:stretch;gap:22px;min-height:0}
+ .meet-asset-stage{height:min(66dvh,620px);min-height:290px;border-radius:22px}
+ .meet-asset-panel{
+  justify-content:space-between;gap:18px;
+  padding:20px;border:1px solid #31566a;border-radius:20px;background:#112531;
+ }
+ .meet-asset-info{align-content:start;align-items:flex-start;gap:12px}
+ .meet-asset-info .meet-puppy-badge{font-size:13px;padding:8px 12px}
+ .meet-asset-id{display:block;flex-basis:100%;font-size:14px}
+ .meet-asset-actions{grid-template-columns:1fr;gap:10px}
+ .meet-asset-actions>*{grid-column:1 / -1}
+ .meet-asset-actions .meet-detail-secondary,
+ .meet-asset-actions .meet-detail-retry,
+ .meet-asset-actions .meet-detail-done{min-height:48px}
+}
 @media(prefers-reduced-motion:reduce){.meet-asset-dialog::backdrop{backdrop-filter:none}}
