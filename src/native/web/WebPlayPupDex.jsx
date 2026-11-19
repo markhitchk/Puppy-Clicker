@@ -4,7 +4,7 @@ import PuppyArtwork from './PuppyArtwork.jsx';
 import {rarityLabels,unlockText} from '../../puppyRarity.js';
 import {PUPPY_IMAGES} from '../src/assets/puppies.js';
 
-// Shared artwork and rarity styles with /puppies, while keeping all gameplay
+// Shared artwork and rarity styles with /pupdex, while keeping all gameplay
 // mutations inside the existing verified /play actions.
 function transparentArt(puppy){
  const image=PUPPY_IMAGES[puppy.id]?.uri||puppy.image||'';
