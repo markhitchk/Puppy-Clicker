@@ -1,7 +1,7 @@
 import React,{useState} from 'react';
 import manifest from './portraitManifest.json';
 
-export default React.memo(function PuppyArtwork({id,name,uri,size,lazy=false}){
+export default React.memo(function PuppyArtwork({id,name,uri,size,lazy=false,onUnavailable}){
  const bundled=manifest[id];
  const [failed,setFailed]=useState(false),[unavailable,setUnavailable]=useState(false);
  const source=failed?(bundled?.fallback||uri):(bundled?.small||uri);
@@ -10,6 +10,6 @@ export default React.memo(function PuppyArtwork({id,name,uri,size,lazy=false}){
   srcSet={!failed&&bundled?`${bundled.small} 256w, ${bundled.large} 640w`:undefined}
   sizes={Math.round(size)+'px'} width={size} height={size}
   loading={lazy?'lazy':'eager'} decoding="async"
-  onError={()=>{if(!failed&&bundled)setFailed(true);else setUnavailable(true);}}
+  onError={()=>{if(!failed&&bundled)setFailed(true);else {setUnavailable(true);onUnavailable?.();}}}
   style={{width:size,height:size,objectFit:'contain',display:'block'}}/>;
 });
