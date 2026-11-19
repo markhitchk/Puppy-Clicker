@@ -15,7 +15,7 @@ function Inline({value}){
   if(match.index>cursor)parts.push(source.slice(cursor,match.index));
   if(match[1]!==undefined){
    const href=safeLegalHref(match[2]);
-   parts.push(href?<a key={match.index} href={href} rel={href.startsWith("https://")?"noopener noreferrer":undefined} target={href.startsWith("https://")?"_blank":undefined}>{match[1]}</a>:match[1]);
+   parts.push(href?<a key={match.index} className="legal-inline-button" href={href} rel={href.startsWith("https://")?"noopener noreferrer":undefined} target={href.startsWith("https://")?"_blank":undefined}>{match[1]}</a>:match[1]);
   }else if(match[3]!==undefined)parts.push(<strong key={match.index}>{match[3]}</strong>);
   else if(match[4]!==undefined)parts.push(<code key={match.index}>{match[4]}</code>);
   else parts.push(<em key={match.index}>{match[5]}</em>);
@@ -66,7 +66,14 @@ export default function LegalReader({type="privacy"}){
     <article className="legal-article" aria-label={doc.title}>
      <p className="legal-language">{tr("documentLanguage")}</p>
      {parsed.blocks.map((block,i)=><RenderBlock key={block.id||i} block={block}/>)}
-     <footer><a href={kind==="terms"?"/legal/privacy":"/legal/terms"}>{kind==="terms"?tr("privacy"):tr("terms")}</a><span> · </span><button type="button" onClick={()=>window.print()}>{tr("print")}</button></footer>
+     <footer className="legal-document-footer">
+      <span className="legal-document-brand">🐾 Puppy Clicker · Harley's Studios</span>
+      <nav aria-label="Document actions" className="legal-document-actions">
+       <a className="pup-link-button" href={kind==="terms"?"/legal/privacy":"/legal/terms"}>{kind==="terms"?tr("privacy"):tr("terms")}</a>
+       <a className="pup-link-button" href="/account/privacy">Privacy Center</a>
+       <button className="pup-link-button is-primary" type="button" onClick={()=>window.print()}>{tr("print")}</button>
+      </nav>
+     </footer>
     </article>
    </div>
  </div>;
