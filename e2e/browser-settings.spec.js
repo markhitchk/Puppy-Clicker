@@ -158,7 +158,7 @@ test('pointer artwork previews use a compact three-tile asset gallery on desktop
   await expect(tiles.nth(2)).toContainText('Click');
   await expect(gallery.locator('.browser-pointer-preview-art')).toHaveCount(3);
   const layout=await gallery.evaluate(node=>({
-   columns:getComputedStyle(node).gridTemplateColumns.trim().split(/\\s+/).length,
+   columns:getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length,
    overflow:node.scrollWidth-node.clientWidth,
    tileWidths:[...node.querySelectorAll('.browser-pointer-preview-tile')].map(tile=>tile.getBoundingClientRect().width)
   }));
