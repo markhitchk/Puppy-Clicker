@@ -25,9 +25,14 @@ Pup Account sign-in sessions are stored in your browser so you can stay signed i
 
 This browser-side encryption protects against some forms of passive localStorage exposure; **it does not prevent malicious scripts running on our website from accessing an active session**, and it is not equivalent to an HttpOnly server-managed authentication cookie. Passwords and authentication tokens are not intentionally put into our website activity logs. Other browser storage holds interface preferences and pending gameplay synchronization actions.
 
-We do not currently use our own optional advertising or analytics cookies. Hosting, authentication, and other external providers may use their own security cookies or other technologies as necessary to deliver their services. If we introduce optional tracking, we will document its purposes and obtain any legally required prior consent, with a way to decline and withdraw it.
+We do not currently use our own optional advertising or analytics cookies, and the website's consent controls do not enable any such trackers. Hosting, authentication, and other external providers may use their own security cookies or similar technologies to deliver their services. **We cannot encrypt or control third-party cookies from browser JavaScript.** If optional analytics or advertising tracking is introduced in the future, it must be documented and gated behind any legally required prior consent before activation.
 
-Your browser settings can clear locally stored sessions and preferences. Clearing local data does not erase information stored against your Pup Account on our servers.
+The website displays a cookie/storage notice and saves your decision locally in `puppy-clicker:cookie-choice:v1`. The categories are:
+- **Essential (always on):** authentication, PupEye/security, local game action sync queue and the consent decision. The website cannot safely disable these while providing account gameplay.
+- **Browser customization (optional):** remembers website appearance, graphics, pointer and language choices between visits. Choosing Necessary only stops new persistence of these settings and removes their existing saved values; customization can still work temporarily in the current tab. Existing users' settings remain until they make their first choice.
+- **Analytics and advertising:** not active; they cannot be enabled through the current settings.
+
+Manage these choices at any time through **Browser Settings → Browser storage & privacy** or the **Privacy Center**. The same settings offer an explicit, category-by-category local-data clearing control for saved customizations, notification display state, Android app reminder choices, the consent decision and this browser's Pup Account session. Signing out may pause pending gameplay syncing until you sign in again. **These controls never wipe cloud saves, database accounts or pending IndexedDB gameplay actions.** They also do not erase server-side activity or provider-controlled cookies; use a privacy-rights request or your browser's site-data controls as appropriate.
 
 ## 4. Discord and other providers
 
