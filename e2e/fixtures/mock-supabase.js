@@ -28,8 +28,8 @@ export const client={
   // Mirror published rarity/acquisition groups rather than making every
   // non-developer puppy Common. Visual rarity/filter tests depend on this.
   const groups={
-   uncommon:['cloud','snowball','v2_honey','v2_chestnut','test_v1_crash_dummy'],
-   rare:['midnight','v2_frost','v2_onyx','v2_domino','v2_flurry','v2_discord_pup','test_v2_crash_dummy'],
+   uncommon:['cloud','snowball','v2_honey','v2_chestnut'],
+   rare:['midnight','v2_frost','v2_onyx','v2_domino','v2_flurry','v2_discord_pup'],
    epic:['aurora','neon_buddy','golden_night','halloween','santa','birthday','v2_rory'],
    legendary:['galaxy','v2_prism','secret_snoot','classic_forever'],
    unobtainable:['dev_pup','v2_dev_pup','v2_harleytg']
@@ -78,7 +78,12 @@ export const client={
    if(body.expectedRevision!==r.revision)return failure('CLOUD_SAVE_CONFLICT');
    const v=r.saveData.stores.puppy_clicker_save.values;
    const intent=body.intent||{};
-   if(intent.type==="tap"){
+   if(intent.type==='claimFreeTest'){
+    const id=intent.id;
+    if(!['test_v1_crash_dummy','test_v2_crash_dummy'].includes(id))return failure('FREE_TEST_PUPPY_INVALID');
+    if(v.unlocked_puppies.includes(id))return failure('FREE_TEST_PUPPY_ALREADY_OWNED');
+    v.unlocked_puppies.push(id);
+   }else if(intent.type==="tap"){
     if(v.energy<=10)return{data:null,error:new Error("PUP_NEEDS_REST")};
     v.treats+=2;v.lifetime_treats+=2;v.total_taps+=1;v.legitimate_taps_v7+=1;v.player_xp_v1+=1;
    }else if(intent.type==='rename'&&typeof intent.name==='string'&&intent.name.trim().length<=18){
