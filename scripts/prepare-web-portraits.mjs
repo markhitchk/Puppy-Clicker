@@ -14,12 +14,23 @@ for(const [id,{uri}] of Object.entries(PUPPY_IMAGES)){
  try{bytes=await readFile(new URL('public'+fallback,root));}catch(error){if(error.code==='ENOENT')continue;throw error;}
  if(!bytes.length)continue;
  const hash=createHash('sha256').update(bytes).digest('hex').slice(0,12);
- const urls={fallback};
- for(const [name,width] of [['small',256],['large',640]]){
+ const original=await sharp(bytes).metadata();
+ const urls={fallback,originalWidth:original.width,originalHeight:original.height};
+ // Every advertised srcSet width must match the generated image's real width.
+ // Previously low-resolution originals were left at 256px and incorrectly
+ // advertised as 640w, causing blurry artwork on high-density displays.
+ for(const [name,width] of [['small',256],['large',640],['full',1536]]){
   const filename=`${id}-${hash}-${width}.webp`;
-  const portrait=await sharp(bytes).resize(width,width,{fit:'inside',withoutEnlargement:true}).webp({quality:85,effort:4}).toBuffer();
+  let pipeline=sharp(bytes).resize(width,width,{fit:'inside',kernel:'lanczos3'});
+  if(width>Math.max(original.width,original.height))pipeline=pipeline.sharpen({sigma:0.8});
+  const portrait=await pipeline.webp({
+   quality:name==='small'?85:name==='large'?93:96,
+   alphaQuality:100,effort:4
+  }).toBuffer();
+  const rendered=await sharp(portrait).metadata();
   await writeFile(new URL(filename,output),portrait);
   urls[name]='/assets/portraits/'+filename;
+  urls[name+'Width']=rendered.width;
   if(name==='small')after+=portrait.length;
  }
  before+=bytes.length;manifest[id]=urls;
