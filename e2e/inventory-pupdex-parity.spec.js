@@ -95,3 +95,50 @@ for(const width of [360,1366])test('play inventory uses the same collectible com
  await inventory.getByRole('button',{name:'← Back to game'}).click();
  await expect(inventory).toHaveCount(0);
 });
+
+
+for(const width of [320,360,390,1366]){
+ test('inventory art keeps a small category pill, never a dark oval at '+width+'px',async({page})=>{
+  await page.setViewportSize({width,height:800});
+  await page.goto('/account/inventory');
+  const puppy=page.getByTestId('pup-inventory').locator('[data-pup-inventory-id="classic"]');
+  const art=puppy.locator('.meet-puppy-art');
+  const badge=art.locator('.meet-puppy-group');
+  await expect(art).toBeVisible();
+  await expect(badge).toBeVisible();
+  const geometry=await art.evaluate(node=>{
+   const artBox=node.getBoundingClientRect();
+   const badge=node.querySelector('.meet-puppy-group');
+   const pillBox=badge.getBoundingClientRect();
+   const img=node.querySelector('img.puppy-artwork');
+   const imageStyle=getComputedStyle(img);
+   const pillStyle=getComputedStyle(badge);
+   return {
+    artWidth:artBox.width,artHeight:artBox.height,
+    badgeHeight:pillBox.height,badgeWidth:pillBox.width,
+    coverage:(pillBox.width*pillBox.height)/(artBox.width*artBox.height),
+    insetTop:pillBox.top-artBox.top,
+    insetRight:artBox.right-pillBox.right,
+    badgeBottom:pillStyle.bottom,badgeLeft:pillStyle.left,
+    imageRadius:imageStyle.borderRadius,
+    imageOpacity:imageStyle.opacity,
+    pictureLoaded:img.complete&&img.naturalWidth>0
+   };
+  });
+  expect(geometry.artHeight).toBeGreaterThanOrEqual(130);
+  expect(geometry.badgeHeight).toBeLessThan(38);
+  expect(geometry.coverage).toBeLessThan(0.17);
+  expect(geometry.insetTop).toBeGreaterThanOrEqual(0);
+  expect(geometry.insetTop).toBeLessThanOrEqual(16);
+  expect(geometry.insetRight).toBeGreaterThanOrEqual(0);
+  expect(geometry.insetRight).toBeLessThanOrEqual(17);
+  expect(geometry.badgeBottom).toBe('auto');
+  expect(geometry.badgeLeft).toBe('auto');
+  expect(geometry.imageRadius).toBe('0px');
+  expect(geometry.imageOpacity).toBe('1');
+  expect(geometry.pictureLoaded).toBe(true);
+  await puppy.getByRole('button',{name:'Inspect Buddy'}).click();
+  await expect(page.locator('dialog.pup-inventory-detail-dialog')).toBeVisible();
+  await page.locator('dialog.pup-inventory-detail-dialog').getByRole('button',{name:'Done'}).click();
+ });
+}
