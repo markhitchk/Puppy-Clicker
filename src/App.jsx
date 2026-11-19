@@ -387,10 +387,13 @@ function AccountDashboard(){
      {profile.contactEmail?detail("Support contact email",profile.contactEmail,"Visible only to your signed-in account."):null}
     </dl>
      <p className="pup-admin-note">For account security, the website records recent signed-in visits, IP address (when available), browser information and page path for authorized staff review. These are website sessions, not Android installations.</p>
-    <div className="account-actions"><a className="cta cta-secondary" href="/pupeye/status">👁️ Check my PupEye status</a><a className="cta cta-secondary" href="/pupeye">About PupEye</a></div>
-    {["MODERATOR","MOD","ADMIN","DEVELOPER"].includes(profile.guildRole)&&<a className="cta cta-secondary" href="/account/admin/rarity">Puppy rarities</a>}
-    {["ADMIN","DEVELOPER"].includes(profile.guildRole)?<div className="account-actions"><a className="cta cta-secondary" href="/account/admin">🛡️ Open Admin Panel</a></div>:null}
-    {profile.friendCode?<div className="account-actions"><button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button></div>:null}
+    <nav className="account-shortcut-grid" aria-label="Pup Account shortcuts">
+     <a className="cta cta-secondary" href="/pupeye/status">👁️ Check my PupEye status</a>
+     <a className="cta cta-secondary" href="/pupeye">About PupEye</a>
+     {["MODERATOR","MOD","ADMIN","DEVELOPER"].includes(profile.guildRole)&&<a className="cta cta-secondary" href="/account/admin/rarity">Puppy rarities</a>}
+     {["ADMIN","DEVELOPER"].includes(profile.guildRole)&&<a className="cta cta-secondary" href="/account/admin">🛡️ Open Admin Panel</a>}
+     {profile.friendCode&&<button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button>}
+    </nav>
     <div className="portal-divider"></div>
     <h3 id="profile-settings">✏️ Profile settings</h3>
      <ProfileAvatarEditor account={profile} onChanged={avatarUrl=>setProfile(old=>({...old,avatarUrl}))}/>

@@ -106,3 +106,95 @@
 .pup-admin-gift-row small{display:block;margin-top:5px;color:#a7bfd0}
 .pup-admin-gift-row p{font-size:13px;overflow-wrap:anywhere}
 .pup-admin-gift-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+
+/* Staff activity stays readable even with long user-agent strings. */
+.pup-admin-table-wrap{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.pup-admin-table :is(th,td){overflow-wrap:anywhere}
+.pup-admin-agent-details{min-width:130px;max-width:280px}
+.pup-admin-agent-details>summary{cursor:pointer;list-style:revert;color:#a7f1ff;font-weight:750}
+.pup-admin-agent-details>summary:focus-visible{outline:2px solid #85edff;outline-offset:3px}
+.pup-admin-agent-details .pup-admin-user-agent{
+ display:block;
+ box-sizing:border-box;
+ min-width:0;
+ max-width:100%;
+ max-height:128px;
+ overflow:auto;
+ padding:8px 0;
+ font-size:11px;
+ line-height:1.45;
+ white-space:pre-wrap;
+ overflow-wrap:anywhere;
+}
+.pup-rarity-admin{max-width:1160px;margin-inline:auto}
+.pup-rarity-form{margin:12px 0 20px}
+.pup-rarity-form-grid{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ align-items:end;
+ gap:14px;
+}
+.pup-rarity-field{
+ display:flex;
+ flex-direction:column;
+ gap:7px;
+ min-width:0;
+ color:#d8f2ff;
+ font-size:13px;
+ font-weight:800;
+}
+.pup-rarity-field :is(select,textarea){
+ box-sizing:border-box;
+ width:100%;
+ min-width:0;
+ min-height:42px;
+ padding:10px 12px;
+ border:1px solid #427d96;
+ border-radius:11px;
+ background:#102d3e;
+ color:#effcff;
+ font:inherit;
+ font-weight:600;
+}
+.pup-rarity-field textarea{resize:vertical;min-height:70px;line-height:1.45}
+.pup-rarity-field span{font-size:11px;color:#b2cbd7;font-weight:600}
+.pup-rarity-field :is(select,textarea):focus-visible{outline:3px solid #76eaff;outline-offset:2px}
+.pup-rarity-current{
+ align-self:stretch;
+ margin:0;
+ padding:8px 12px;
+ border:1px solid #3d6179;
+ border-radius:11px;
+ background:#182c3a;
+ color:#bdd1df;
+ font-size:12px;
+ line-height:1.45;
+}
+.pup-rarity-current strong{display:block;color:#f0e4ff;font-size:13px;overflow-wrap:anywhere}
+.pup-rarity-published{display:flex;align-items:center;gap:10px;min-height:44px;color:#dbf7ff;font-weight:800}
+.pup-rarity-published input{width:20px;height:20px;accent-color:#00cce9}
+.pup-rarity-reason{grid-column:1/-1}
+.pup-rarity-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
+.pup-rarity-actions button{
+ min-width:140px;min-height:42px;
+ padding:10px 16px;
+ border-radius:11px;
+ border:1px solid #3e8ba1;
+ background:#16556b;
+ color:#effcff;
+ font-weight:850;
+ cursor:pointer;
+}
+.pup-rarity-actions button[type="submit"]{background:#00cfe9;border-color:#00cfe9;color:#061e27}
+.pup-rarity-actions button:disabled{opacity:.56;cursor:not-allowed}
+.pup-rarity-actions button:focus-visible{outline:3px solid #fff2b0;outline-offset:2px}
+.pup-rarity-notice{padding:10px 12px;border:1px solid #467c91;border-radius:10px;background:#123b4a}
+.pup-rarity-history{border-top:1px solid #3c6377;padding-top:16px}
+.pup-rarity-history h3{margin:0 0 10px;font-size:16px}
+.pup-rarity-history ul{margin:0;padding-left:20px;display:grid;gap:8px}
+.pup-rarity-history li{overflow-wrap:anywhere;font-size:13px;line-height:1.45}
+@media(max-width:680px){
+ .pup-rarity-form-grid{grid-template-columns:1fr}
+ .pup-rarity-reason{grid-column:auto}
+ .pup-rarity-actions button{flex:1 1 140px}
+}
