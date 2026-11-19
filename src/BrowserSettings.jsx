@@ -205,7 +205,8 @@ export default function BrowserSettings(){
     }}>{fullscreen?'Exit fullscreen':'Enter fullscreen'}</button>:<p className="browser-settings-detail">Fullscreen is controlled by your browser.</p>}
    </section>
    <section className="browser-settings-panel" aria-labelledby="browser-storage" hidden={!matches(categoryKeywords[4])}><h2 id="browser-storage">💾 Browser storage & privacy</h2>
-    <p>Local preferences are separate from your Pup Account cloud save. Pending gameplay actions may be stored in IndexedDB until Supabase confirms them.</p>
+    <p>Local preferences are separate from your Pup Account cloud save. Saved login sessions use AES-GCM encryption in supported browsers, with a non-exportable key in IndexedDB. This reduces exposure from local-storage copies but does not prevent malicious website scripts from accessing active sessions.</p>
+     <p className="browser-settings-detail">If encrypted storage is blocked, login sessions are memory-only and may expire when you close or reload this tab. Pending gameplay actions may also be stored in IndexedDB until Supabase confirms them.</p>
     {storage?<p className="browser-settings-detail">Estimated site storage used: {size(storage.usage)}. Browser-reported origin quota: {size(storage.quota)} (this is a limit, not free device space).</p>:null}
     <p className="browser-settings-detail">Never clear website data while gameplay is still syncing. This page does not delete your queued actions.</p>
     {!confirmReset?<button className="browser-settings-action" type="button" onClick={()=>setConfirmReset(true)}>Reset browser preferences</button>:<div className="browser-settings-reset">

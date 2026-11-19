@@ -21,7 +21,11 @@ We process information to provide account access, maintain game progress and exc
 
 ## 3. Website storage and cookies
 
-We use browser storage for sign-in sessions and interface preferences. These are needed to provide account and website functionality. We do not currently describe advertising or analytics cookies as active features of the Privacy Center. If we introduce optional tracking, we will document the purposes and obtain any legally required prior consent, with an option to decline and withdraw it.
+Pup Account sign-in sessions are stored in your browser so you can stay signed in. On supported browsers, Puppy Clicker encrypts saved Supabase authentication sessions using AES-GCM before writing them to localStorage. The non-exportable cryptographic key is kept in the website's origin-scoped IndexedDB storage. Existing saved sessions are upgraded automatically. If browser encryption or persistent storage is unavailable, new sessions are retained in memory only and may require signing in again after reloading.
+
+This browser-side encryption protects against some forms of passive localStorage exposure; **it does not prevent malicious scripts running on our website from accessing an active session**, and it is not equivalent to an HttpOnly server-managed authentication cookie. Passwords and authentication tokens are not intentionally put into our website activity logs. Other browser storage holds interface preferences and pending gameplay synchronization actions.
+
+We do not currently use our own optional advertising or analytics cookies. Hosting, authentication, and other external providers may use their own security cookies or other technologies as necessary to deliver their services. If we introduce optional tracking, we will document its purposes and obtain any legally required prior consent, with a way to decline and withdraw it.
 
 Your browser settings can clear locally stored sessions and preferences. Clearing local data does not erase information stored against your Pup Account on our servers.
 
