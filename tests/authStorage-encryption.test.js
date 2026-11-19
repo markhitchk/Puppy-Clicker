@@ -46,7 +46,9 @@ test("randomized IVs and authenticated storage key prevent substitution",async()
  assert.notEqual(first,second);
  box.setItem("sb-another-auth-token",first);
  assert.equal(await vault.getItem("sb-another-auth-token"),null);
- assert.equal(box.getItem("sb-another-auth-token"),null);
+ // The invalid ciphertext is retained if a browser's key store is temporarily
+ // unavailable; it is never returned as plaintext.
+ assert.equal(box.getItem("sb-another-auth-token"),first);
  assert.equal(await vault.getItem("sb-test-auth-token"),'{"refresh_token":"SENSITIVE"}');
 });
 
@@ -55,7 +57,7 @@ test("encrypted ciphertext cannot be read with a different vault key",async()=>{
  await v1.setItem("auth-token","KEEP_SECRET");
  const v2=adapter(box,async()=>await key());
  assert.equal(await v2.getItem("auth-token"),null);
- assert.equal(box.getItem("auth-token"),null);
+ assert.ok(box.getItem("auth-token").startsWith(AUTH_STORAGE_PREFIX));
 });
 
 test("blocked encryption never writes plaintext to persistent storage",async()=>{
