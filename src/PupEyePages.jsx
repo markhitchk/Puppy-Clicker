@@ -28,8 +28,8 @@ const QUESTIONS=[
 ];
 function PageCrumbs({current}){
  return <nav className="pupeye-crumbs" aria-label="Breadcrumb">
-  <a href="/">Puppy Clicker</a><span aria-hidden="true">/</span>
-  {current==="PupEye"?<span aria-current="page">PupEye</span>:<><a href="/pupeye">PupEye</a><span aria-hidden="true">/</span><span aria-current="page">Account status</span></>}
+  <a className="pup-link-button" href="/">Puppy Clicker</a><span aria-hidden="true">/</span>
+  {current==="PupEye"?<span aria-current="page">PupEye</span>:<><a className="pup-link-button" href="/pupeye">PupEye</a><span aria-hidden="true">/</span><span aria-current="page">Account status</span></>}
  </nav>;
 }
 function StatusCard({label,title,detail,tone="neutral",children}){
@@ -88,7 +88,7 @@ export function PupEyeOverview(){
    <div><h2>Check on your Pup Account</h2><p>Find out whether your account is verified, if web gameplay is available and whether PupEye has an active warning or temporary tap hold.</p></div>
    <a className="pupeye-button pupeye-button--primary" href="/pupeye/status">View my status</a>
   </section>
-  <footer className="pupeye-footer"><a href="/legal/privacy">Privacy Policy</a><a href="/account/privacy">Privacy Center</a><a href="/recovery">Account recovery</a></footer>
+  <footer className="pupeye-footer"><a className="pup-link-button" href="/legal/privacy">Privacy Policy</a><a className="pup-link-button" href="/account/privacy">Privacy Center</a><a className="pup-link-button" href="/recovery">Account recovery</a></footer>
  </div>;
 }
 
