@@ -95,3 +95,44 @@ html .site-frame-game .site-header{height:40px;padding-inline:10px}
     border:1px solid transparent;border-radius:11px;overflow-wrap:anywhere;
   }
  .site-header .site-nav .site-nav-mobile-extras>a[aria-current="page"]{border-color:var(--site-accent)}}
+
+/* Phone and narrow tablet navigation — compact, thumb-friendly action grids. */
+.site-header .site-nav.is-open{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:7px;padding:10px;max-height:min(430px,calc(100dvh - 82px));
+}
+.site-header .site-nav.is-open>a,
+.site-header .site-nav.is-open .site-nav-mobile-extras>a{
+ display:flex;align-items:center;justify-content:flex-start;gap:7px;
+ width:100%;min-width:0;min-height:44px;box-sizing:border-box;
+ padding:8px 10px;line-height:1.25;font-size:13px;
+ border:1px solid #406477;border-radius:10px;background:#1b3243;
+ color:#eef8ff;white-space:normal;text-decoration:none;
+}
+.site-header .site-nav.is-open :is(a):hover{background:#244759;border-color:#72d4e9}
+.site-header .site-nav.is-open a[aria-current="page"]{background:#164657;border-color:#68d5e9;color:#d1f8ff}
+.site-header .site-nav.is-open .puppy-language-picker{
+ grid-column:1/-1;margin-top:1px;padding:8px 3px 1px;gap:8px;
+}
+.site-header .site-nav.is-open .puppy-language-picker select{min-height:40px;max-width:140px;font-size:13px;padding:7px 10px}
+.site-header .site-header-tools .site-account-dropdown{
+ width:min(356px,calc(100vw - 20px));max-height:min(440px,calc(100dvh - 88px));
+ box-sizing:border-box;right:0;top:calc(100% + 9px);border-radius:14px;padding:9px;
+}
+.site-header .site-account-dropdown .site-account-preview{padding:5px 4px 9px;gap:9px}
+.site-header .site-account-dropdown .site-account-preview-avatar{width:42px;height:42px;font-size:21px}
+.site-header .site-account-dropdown .site-account-preview-info{gap:2px}
+.site-header .site-account-dropdown .site-account-preview-info>strong{font-size:15px}
+.site-header .site-account-dropdown .site-account-preview-info>span{font-size:11px}
+.site-header .site-account-dropdown .site-account-preview-info>small{font-size:10px;line-height:1.35}
+.site-header .site-account-dropdown .site-account-friend-code{padding:8px 4px;font-size:11px;gap:6px}
+.site-header .site-account-dropdown .site-account-dropdown-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:8px 0}
+.site-header .site-account-dropdown .site-account-dropdown-links>a.pup-link-button{font-size:12px;min-height:44px;padding:7px 8px;gap:6px;align-items:center}
+.site-header .site-account-dropdown .site-account-dropdown-links>a.pup-link-button>span{width:17px;flex-basis:17px;font-size:15px}
+.site-header .site-account-dropdown .site-account-dropdown-footer{padding-top:7px}
+html[data-puppy-theme="light"] .site-header .site-nav.is-open>a,
+html[data-puppy-theme="light"] .site-header .site-nav.is-open .site-nav-mobile-extras>a{background:#edf5fa;border-color:#a6c1cf;color:#234457}
+html[data-puppy-theme="light"] .site-header .site-nav.is-open a[aria-current="page"]{background:#d7f1fa;color:#204658;border-color:#4b9db6}
+@media(max-width:340px){
+ .site-header .site-nav.is-open,.site-header .site-account-dropdown .site-account-dropdown-links{grid-template-columns:minmax(0,1fr)}
+}

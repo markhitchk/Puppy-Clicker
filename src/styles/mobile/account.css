@@ -50,3 +50,10 @@
  .account-content .portal-card{padding:16px}
  .account-content .portal-stack{gap:12px}
 }
+
+/* Short credential form spacing without reducing touch targets. */
+.account-content .account-credentials{gap:9px}
+.account-content .account-credentials input{min-height:44px;border-radius:12px}
+.account-content .account-credentials .account-security-note{font-size:12px;line-height:1.45;margin:4px 0}
+.account-content .account-credentials .cta.stretch{border-radius:12px;min-height:44px;padding:10px 12px;margin-top:6px}
+.account-content .pup-password-field>.pup-password-visibility{min-height:36px;min-width:64px;padding:6px 9px;border-radius:9px}
