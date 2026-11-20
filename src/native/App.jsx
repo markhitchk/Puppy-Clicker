@@ -3,7 +3,7 @@ import {usePuppyRarity} from '../usePuppyRarity.js';
 import DesktopNavigation,{DesktopHelp} from './web/DesktopNavigation.jsx';
 import {useLanguage} from "../LanguagePicker.jsx";
 import PuppyArtwork from './web/PuppyArtwork.jsx';
-import {WebPlayPupDexCard,WebPlayPuppyAssetViewer} from './web/WebPlayPupDex.jsx';
+import {WebPlayPupDexCard,WebRosterPuppyDetails} from './web/WebPlayPupDex.jsx';
 import {GameProgressHeader,PuppyPlatform,CasinoIntroDialog,RenamePuppyDialog} from './web/WebsiteDesign.jsx';
 import {suggestPuppyName} from '../nameSuggestions.js';
 import WebAccountGate from "./web/AccountGate.jsx";
@@ -419,7 +419,6 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
  const [sort,setSort]=useState('unlocked');
  const [inspected,setInspected]=useState(g.puppyStyle);
  const [detailsId,setDetailsId]=useState(null);
- const [viewAssetId,setViewAssetId]=useState(null);
  const [view,setView]=useState('browser');
  const [renameOpen,setRenameOpen]=useState(false);
  const [editing,setEditing]=useState(g.puppyName);
@@ -434,7 +433,6 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
 
  const selected=available.find(p=>p.id===g.puppyStyle)||available[0];
  const details=available.find(p=>p.id===detailsId);
- const viewerPuppy=available.find(p=>p.id===viewAssetId);
  const detailsOwned=details?g.unlockedPuppies.includes(details.id):false;
  const detailsCurrent=details?.id===g.puppyStyle;
  const selectedOwned=g.unlockedPuppies.includes(selected?.id);
@@ -499,20 +497,21 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
   <Txt muted style={styles.small}>Puppy collection; protected Puppy Code and Discord entitlements require verified account services.</Txt>
  </View>;
  return <View style={styles.restoredRoster}>
-  <PuppyDetailsDialog visible={Boolean(details)} puppy={details} onClose={()=>setDetailsId(null)}
+  {Platform.OS==='web'?details&&<WebRosterPuppyDetails puppy={details} assetId={nativeId(details)}
+   name={displayName(details)} originalName={puppyName(details)} owned={detailsOwned} current={detailsCurrent}
+   favorite={g.favoritePuppies.includes(details.id)} onClose={()=>setDetailsId(null)}
+   onFavorite={()=>{if(detailsOwned)act({type:'favorite',id:details.id});}}
+   onClaim={()=>act({type:'claimFreeTest',id:details.id})}
+   onUse={id=>onUse?onUse(id):act({type:'switch',id,now:Date.now()})}
+   onRename={name=>act({type:'rename',name})}/>:<PuppyDetailsDialog visible={Boolean(details)} puppy={details} onClose={()=>setDetailsId(null)}
    portrait={details?<Portrait key={details.id+':details:'+(retries[details.id]||0)} puppy={details} size={112} unlocked={detailsOwned} accessory={detailsCurrent?g.accessory:'None'}/>:null}
    originalName={details?puppyName(details):''} displayName={details?displayName(details):''}
    assetId={details?nativeId(details):''} unlocked={detailsOwned} current={detailsCurrent}
    favorite={Boolean(details&&g.favoritePuppies.includes(details.id))}
    onToggleFavorite={()=>{if(detailsOwned)act({type:'favorite',id:details.id});}}
-   onViewAsset={Platform.OS==='web'?()=>{if(details)setViewAssetId(details.id);}:undefined}
-   onClaimFree={Platform.OS==='web'&&details&&['test_v1_crash_dummy','test_v2_crash_dummy'].includes(details.id)?()=>act({type:'claimFreeTest',id:details.id}):undefined}
    onRetryArtwork={()=>{if(details)retry(details.id);}}
    onUse={id=>onUse?onUse(id):act({type:'switch',id,now:Date.now()})}
-   onRename={name=>act({type:'rename',name})}/>
-  {Platform.OS==='web'&&viewerPuppy?<WebPlayPuppyAssetViewer
-   key={viewerPuppy.id} puppy={viewerPuppy} assetId={nativeId(viewerPuppy)}
-   name={displayName(viewerPuppy)} onClose={()=>setViewAssetId(null)}/>:null}
+   onRename={name=>act({type:'rename',name})}/>}
   <View style={styles.restoredRosterHeader}><View style={{flex:1,minWidth:0}}><Txt style={styles.pageTitle}>Puppy Roster</Txt><Txt muted numberOfLines={1} style={styles.pageSubtitle}>Browse every streamed puppy in the live roster.</Txt></View><Pressable accessibilityRole="button" accessibilityLabel="Open Puppy Exchange" onPress={onOpenExchange} style={styles.rosterOutline}><Txt style={styles.rosterActionText}>🎁 Exchange</Txt></Pressable></View>
   <View style={styles.restoredRosterFilters}>{[['all','All'],['unlocked','Unlocked'],['locked','Locked']].map(([id,label])=><Pressable key={id} accessibilityRole="tab" accessibilityState={{selected:status===id}} onPress={()=>setStatus(id)} style={[styles.rosterStatus,status===id&&styles.rosterStatusSelected]}><Txt style={[styles.rosterControlText,status===id&&styles.rosterSelectedText]}>{label}</Txt></Pressable>)}</View>
   <label className="play-pupdex-rarity-control">Rarity <select aria-label="Rarity" value={tier} onChange={e=>setTier(e.target.value)}><option value="all">All rarities</option>{rarityOrder.map(k=><option key={k} value={k}>{rarityLabels[k]}</option>)}</select></label>
