@@ -56,8 +56,6 @@ html[data-puppy-reduced-motion="true"] .xmas26-snow-layer{animation:none!importa
    independent of the page height, scrolling, or in-game stacking contexts. */
 body>.xmas26-snow-overlay{position:fixed;inset:0;overflow:hidden;z-index:2147482000;pointer-events:none!important;contain:layout paint;isolation:isolate}
 body>.xmas26-snow-overlay *{pointer-events:none!important}
-.xmas26-snow-overlay.sitewide{display:none}
-html[data-puppy-seasonal="winter"] body>.xmas26-snow-overlay.sitewide{display:block}
 .xmas26-snow-overlay .xmas26-snow-layer{position:absolute;inset:0;overflow:hidden;animation:xmas26-snow-layer-sway 12s ease-in-out infinite alternate}
 .xmas26-snow-overlay .xmas26-snow-layer-b{animation-duration:17s;animation-direction:alternate-reverse}
 .xmas26-flake{position:absolute;top:-12px;border-radius:50%;background:#fff;opacity:var(--flake-opacity);box-shadow:0 0 5px #b8eaffb0;animation:xmas26-flake-fall var(--flake-duration) var(--flake-delay) linear infinite;will-change:transform}
