@@ -1,3 +1,4 @@
+import PuppyCollectionCard from './PuppyCollectionCard.jsx';
 import "./styles/puppy-details.css";
 import React,{useEffect,useRef,useState} from 'react';
 import {ROSTER,UPGRADES,RARITIES} from './native/src/engine/game.js';
@@ -109,34 +110,12 @@ function OwnedPuppyCard({puppy,game,onInspect}){
  const name=puppyDisplay(puppy,game);
  const current=game.puppyStyle===puppy.id;
  const favorite=Array.isArray(game.favoritePuppies)&&game.favoritePuppies.includes(puppy.id);
- return <article className="meet-puppy-card pup-inventory-puppy" data-rarity={puppy.rarity||'unknown'}
-  data-pup-inventory-id={puppy.id}>
-  <div className="meet-puppy-link pup-inventory-card-content">
-   <button type="button" className="pup-inventory-art-button"
-    aria-label={'Inspect '+name} onClick={()=>onInspect(puppy.id)}>
-    <div className="meet-puppy-art">
-     <PuppyArtwork id={puppy.id} name={name+' in your inventory'}
-      uri={artworkUri(puppy)} size={215} lazy/>
-     <span className="meet-puppy-group">{puppyGroup(puppy)}</span>
-    </div>
-   </button>
-   <div className="meet-puppy-body">
-    <h3>{name}</h3>
-    <p className="pup-inventory-puppy-description">{puppy.description||'Owned puppy'}</p>
-    <div className="meet-puppy-badges" aria-label="Rarity and collection status">
-     <span className="meet-puppy-badge meet-puppy-badge-rarity">{safeRarity(puppy)}</span>
-     <span className="meet-puppy-badge">{unlockText(puppy.rarity?puppy:null)}</span>
-     <span className="meet-puppy-badge meet-puppy-badge-status">Owned</span>
-     {current&&<span className="meet-puppy-badge pup-inventory-current-badge">Current</span>}
-     {favorite&&<span className="meet-puppy-badge pup-inventory-favorite-badge">♥ Favorite</span>}
-    </div>
-    <button type="button" className="meet-puppy-view pup-inventory-view"
-     onClick={()=>onInspect(puppy.id)} aria-label={'View '+name+' puppy details'}>
-     View Puppy Details <span aria-hidden="true">↗</span>
-    </button>
-   </div>
-  </div>
- </article>;
+ return <PuppyCollectionCard puppy={puppy} name={name} image={artworkUri(puppy)} group={puppyGroup(puppy)}
+  rarity={puppy.rarity||'unknown'} unlock={unlockText(puppy.rarity?puppy:null)}
+  statuses={[{text:'Owned',className:'meet-puppy-badge-status'},...(current?[{text:'Current',className:'pup-inventory-current-badge'}]:[])]}
+  favorite={favorite} cardClass="pup-inventory-puppy" contentClass="pup-inventory-card-content"
+  buttonClass="pup-inventory-view" data={{'data-pup-inventory-id':puppy.id,'data-current':String(current)}}
+  label={'View '+name+' puppy details'} onSelect={()=>onInspect(puppy.id)}/>;
 }
 
 export default function InventoryScreen({game,origin='account',onBack,updatedAt,onRefresh,refreshing=false}){
