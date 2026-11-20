@@ -21,7 +21,8 @@ for(const width of [320,360,1366]){
   await expect(epic.locator('.pup-rarity-dot')).toHaveAttribute('aria-hidden','true');
   await expect(epic).toHaveAttribute('data-current','false');
   await expect(epic.locator('.meet-puppy-badge')).toHaveCount(3);
-  await expect(epic.getByRole('button',{name:'View Details'})).toBeVisible();
+  await expect(epic.getByRole('button',{name:'Inspect Aurora'})).toBeVisible();
+  await expect(epic.getByRole('button')).toHaveCount(1);
   await expect(epic.getByRole('button',{name:/Use Aurora/})).toHaveCount(0);
   await expect(grid.getByRole('button',{name:'Inspect Sunny'})).toBeVisible();
   const dimensions=await grid.evaluate(node=>{
@@ -32,7 +33,7 @@ for(const width of [320,360,1366]){
     border:css.borderTopColor,
     bg:css.backgroundImage,
     horizontalOverflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,
-    usableButton:card.querySelector('.play-pupdex-details').getBoundingClientRect().height
+    usableButton:card.querySelector('.collection-card-select').getBoundingClientRect().height
    };
   });
   expect(dimensions.grid).toBe('grid');
@@ -44,7 +45,7 @@ for(const width of [320,360,1366]){
 
 test('in-game details open a full-size asset viewer without mutating the collection',async({page})=>{
  const grid=await openRoster(page,360);
- await grid.locator('[data-pup-card="aurora"]').getByRole('button',{name:'View Details'}).click();
+ await grid.locator('[data-pup-card="aurora"]').getByRole('button',{name:'Inspect Aurora'}).click();
  await expect(page.getByRole('dialog').getByText('v1_aurora',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'View Asset'}).click();
  const viewer=page.locator('dialog.play-pupdex-asset-dialog');
