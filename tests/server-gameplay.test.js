@@ -22,7 +22,10 @@ test('legacy Android casino blocks new wagers with recovery code and hides its d
  const db=crossplayDb(save);
  const snapshot=publicCloudSnapshot(db.row());
  assert.doesNotMatch(snapshot.saveJson,/PRIVATE_ANDROID_SHOE/);
- assert.deepEqual(JSON.parse(snapshot.saveJson).webCompanion,{nativeCasinoPending:true});
+ const companion=JSON.parse(snapshot.saveJson).webCompanion;
+ assert.equal(companion.nativeCasinoPending,true);
+ assert.ok(Number.isSafeInteger(companion.adventServerTime));
+ assert.deepEqual(Object.keys(companion).sort(),['adventServerTime','nativeCasinoPending']);
  await assert.rejects(play(db,{type:'slotsStart',wager:100}),{message:'PUP_CASINO_ANDROID_ROUND_PENDING'});
  assert.equal(db.writes(),0);
  assert.ok(values(db).casino_active_round_v1.includes('PRIVATE_ANDROID_SHOE'));
