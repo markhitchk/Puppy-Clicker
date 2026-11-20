@@ -1,0 +1,30 @@
+/* Christmas hub is local to this route and respects the regular site shell. */
+.xmas26-page{width:min(1120px,100%);margin:0 auto;padding:clamp(12px,3vw,30px);box-sizing:border-box;display:grid;gap:16px;color:#e9f9ff}
+.xmas26-page *{box-sizing:border-box}
+.xmas26-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(100px,.42fr);align-items:center;gap:12px;padding:clamp(14px,4vw,40px);border:1px solid #6295af;border-radius:22px;background:radial-gradient(ellipse at 85% 25%,#9acdeb55,transparent 48%),linear-gradient(135deg,#173b4b,#24304a 75%);overflow:hidden}
+.xmas26-hero .puppy-artwork{width:100%!important;height:auto!important;max-height:230px;object-fit:contain}
+.xmas26-hero-copy{min-width:0;display:grid;gap:10px}
+.xmas26-kicker{font-size:11px;letter-spacing:.12em;font-weight:900;color:#a5e9fa}
+.xmas26-page h1{font-size:clamp(26px,5vw,52px);line-height:1.05;letter-spacing:-.025em;margin:0;color:#f4fbff}
+.xmas26-page h2{font-size:clamp(18px,2vw,25px);line-height:1.15;margin:0;color:#f4fbff}
+.xmas26-page h3{margin:0;color:#f4fbff;font-size:16px}
+.xmas26-page p{margin:0;font-size:14px;line-height:1.5;color:#d0e5ef}
+.xmas26-actions{display:flex;flex-wrap:wrap;gap:8px}
+.xmas26-page :is(.xmas26-primary,.xmas26-secondary){min-height:44px;border-radius:10px;font:800 13px/1.2 system-ui;padding:8px 13px;cursor:pointer}
+.xmas26-primary{background:#91e8f4;border:1px solid #b1f3ff;color:#112d3b}
+.xmas26-secondary{background:#1b364b;border:1px solid #6087a1;color:#e8f9ff}
+.xmas26-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.xmas26-stats div,.xmas26-panel,.xmas26-collection{border:1px solid #476982;background:#152c3c;border-radius:14px;padding:14px;min-width:0}
+.xmas26-stats div{display:grid;gap:2px}
+.xmas26-stats strong{font-size:clamp(19px,3vw,28px);color:#b2edff}
+.xmas26-stats span{font-size:11px;color:#c6dce8}
+.xmas26-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:12px;align-items:start}
+.xmas26-calendar,.xmas26-side,.xmas26-panel,.xmas26-collection{display:grid;gap:10px;min-width:0}
+.xmas26-calendar{scroll-margin-top:90px}
+.xmas26-pups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.xmas26-pup{display:grid;gap:8px;border:1px solid #5e7d99;border-radius:14px;background:radial-gradient(ellipse at 45% 15%,#4c729755,transparent 55%),#1b3046;padding:10px;min-width:0}
+.xmas26-pup .puppy-artwork{width:100%!important;height:140px!important;max-width:100%;object-fit:contain}
+.xmas26-pup p{font-size:12px}
+.xmas26-page button:focus-visible{outline:3px solid #e6faff;outline-offset:2px}
+@media(max-width:760px){.xmas26-layout{grid-template-columns:minmax(0,1fr)}.xmas26-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.xmas26-pups{grid-template-columns:repeat(2,minmax(0,1fr))}.xmas26-hero{padding:14px}.xmas26-hero-copy{gap:8px}.xmas26-hero .puppy-artwork{max-height:140px}}
+@media(max-width:380px){.xmas26-page{padding:8px}.xmas26-hero{grid-template-columns:minmax(0,1fr) 84px;gap:6px}.xmas26-pup{padding:8px}}
