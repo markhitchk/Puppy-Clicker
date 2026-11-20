@@ -31,6 +31,7 @@ export default function WebAdventCalendar({game,act,clock,readOnly}){
    <span className="pup-advent-kicker">❄ WINTER EVENT · 2026</span>
    <h2>Santa Paws Advent Calendar</h2>
    <p>25 festive gifts. A special Christmas Day jackpot!</p>
+   <button type="button" className="pup-advent-theme" aria-pressed={game.seasonalTheme==='winter'} onClick={()=>act({type:"setPreference",name:"seasonalTheme",value:game.seasonalTheme==='winter'?'default':'winter'})}>{game.seasonalTheme==='winter'?'Disable winter theme':'❄ Enable winter theme'}</button>
    <span className="pup-advent-clock">{phase==='upcoming'?'Opens in '+countdown(ADVENT_START-now):phase==='active'?'Next reset in '+countdown(next-now):'Event ended'}</span>
   </header>
   <div className="pup-advent-summary">
