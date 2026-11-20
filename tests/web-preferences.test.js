@@ -112,3 +112,14 @@ test('Android normal cursor keeps the native Puppy canvas at every display densi
  assert.equal(pointerSizeLimit({navigator:{userAgentData:{platform:'Android'}},devicePixelRatio:3}),64);
  assert.equal(systemLikePointerSize({navigator:{userAgent:'Desktop'},devicePixelRatio:3}),32);
 });
+
+test('Android match system size delegates to the native cursor without changing custom settings',async()=>{
+ const {usesNativePointer}=await import('../src/native/web/preferences.js');
+ const android={navigator:{userAgent:'Android'},devicePixelRatio:2.8125};
+ const desktop={navigator:{userAgent:'CrOS'},devicePixelRatio:3};
+ const prefs={puppyPointerEnabled:true,puppyPointerSizeMode:'system'};
+ assert.equal(usesNativePointer(prefs,android),true);
+ assert.equal(usesNativePointer({...prefs,puppyPointerSizeMode:'custom'},android),false);
+ assert.equal(usesNativePointer(prefs,desktop),false);
+ assert.equal(usesNativePointer({...prefs,puppyPointerEnabled:false},desktop),true);
+});

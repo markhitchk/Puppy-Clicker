@@ -215,8 +215,9 @@ test('Android Compact interface leaves matching system-like Puppy cursor size un
   await page.getByRole('radio',{name:'Compact',exact:true}).check();
   await expect(page.getByRole('radio',{name:'Compact',exact:true})).toBeChecked();
   await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor-size','system');
-  await expect(page.locator('#puppy-pointer-settings')).toContainText('Current Puppy pointer: 64 px');
-  await expect(page.locator('.browser-pointer-preview img').first()).toHaveAttribute('src','/assets/pointers/themes/puppy_pointer_dark_default_64.png');
+  await expect(page.locator('#puppy-pointer-settings')).toContainText('Current pointer: Android system pointer');
+  await expect(page.getByTestId('android-native-pointer-preview')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor','disabled');
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-puppy-cursor-size','system');
   await expect(page.getByRole('radio',{name:'Compact',exact:true})).toBeChecked();
@@ -311,7 +312,10 @@ test('Android high-density cursor slider, gallery and rendered cursor agree',asy
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('puppy-clicker:web-preferences:v1')).puppyPointerCustomSize)).toBe(96);
   await page.getByRole('radio',{name:'Match system size'}).check();
   await expect(root).toHaveAttribute('data-puppy-cursor-size','system');
-  await expect(page.locator('.browser-pointer-preview img').first()).toHaveAttribute('src','/assets/pointers/themes/puppy_pointer_dark_default_64.png');
+  await expect(root).toHaveAttribute('data-puppy-cursor','disabled');
+  await expect(page.getByTestId('android-native-pointer-preview')).toBeVisible();
+  await page.evaluate(()=>document.body.dispatchEvent(new PointerEvent('pointermove',{pointerType:'mouse',bubbles:true})));
+  expect(await page.locator('body').evaluate(node=>getComputedStyle(node).cursor)).not.toContain('puppy_pointer_');
   await page.getByRole('radio',{name:'Custom size'}).check();
   await slider.focus();await page.keyboard.press('Home');
   await expect(slider).toHaveValue('24');

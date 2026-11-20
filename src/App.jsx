@@ -9,7 +9,7 @@ import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
 import RarityAdmin from './RarityAdmin.jsx';
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
-import {loadWebPreferences,pointerThemeFor,effectivePointerSize,effectivePointerSizeKey,pointerSizeLimit,isAndroidPointerEnvironment,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
+import {loadWebPreferences,pointerThemeFor,effectivePointerSize,effectivePointerSizeKey,pointerSizeLimit,isAndroidPointerEnvironment,usesNativePointer,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
 import {beginPuppyDiscord,verifyPuppySession,puppyAuthMessage} from "./native/web/puppyOAuth.js";
 import {DISCORD_ICON_URL} from "./discordIcon.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
@@ -555,7 +555,7 @@ export default function App(){
   const syncSiteAppearance=event=>{
    const prefs={...loadWebPreferences(),...(event?.detail??{})};
    const dark=prefs.themeMode==='dark'||(prefs.themeMode!=='light'&&systemTheme.matches);
-   root.dataset.puppyCursor=prefs.puppyPointerEnabled!==false?'enabled':'disabled';
+   root.dataset.puppyCursor=usesNativePointer(prefs)?'disabled':'enabled';
    const cursorTheme=pointerThemeFor(prefs,systemTheme.matches);
    const cursorSize=effectivePointerSize(prefs);
    root.dataset.puppyCursorTheme=cursorTheme;

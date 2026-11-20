@@ -26,6 +26,10 @@ export function isAndroidPointerEnvironment(environment=globalThis){
  const nav=environment?.navigator;
  return /Android/i.test(nav?.userAgentData?.platform??'')||/Android/i.test(nav?.userAgent??'');
 }
+// Android exposes its real system pointer only through native CSS cursor keywords.
+export function usesNativePointer(preferences,environment=globalThis){
+ return preferences?.puppyPointerEnabled===false||(isAndroidPointerEnvironment(environment)&&preferences?.puppyPointerSizeMode!=='custom');
+}
 export function pointerSizeLimit(environment=globalThis){
  return isAndroidPointerEnvironment(environment)?64:96;
 }

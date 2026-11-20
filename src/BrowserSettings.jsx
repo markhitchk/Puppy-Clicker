@@ -3,7 +3,7 @@ import LanguagePicker from './LanguagePicker.jsx';
 import {CookiePrivacySettings} from './privacy/CookieConsent.jsx';
 import {ACCENT_PRESETS} from './native/src/engine/settings.js';
 import {
- WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,pointerThemeFor,effectivePointerSize,pointerSizeLimit,systemLikePointerSize,
+ WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,pointerThemeFor,effectivePointerSize,pointerSizeLimit,systemLikePointerSize,usesNativePointer,
  loadWebPreferences,saveWebPreferences,updateWebPreference
 } from './native/web/preferences.js';
 import {GRAPHICS_BACKENDS} from './graphics/graphicsCapabilities.js';
@@ -42,6 +42,7 @@ function graphicsSupport(){
 export default function BrowserSettings(){
  const [prefs,setPrefs]=useState(()=>loadWebPreferences());
  const [pointerLimit,setPointerLimit]=useState(()=>pointerSizeLimit());
+ const nativePointer=usesNativePointer(prefs);
  useEffect(()=>{const update=()=>setPointerLimit(pointerSizeLimit());window.addEventListener('resize',update);return()=>window.removeEventListener('resize',update);},[]);
  const [systemDark,setSystemDark]=useState(()=>window.matchMedia('(prefers-color-scheme: dark)').matches);
  const [message,setMessage]=useState('');
@@ -157,7 +158,7 @@ export default function BrowserSettings(){
     <h2 id="browser-pointer-heading">🖱️ Puppy mouse pointer</h2>
     <p className="browser-settings-detail">Customize the actual mouse or trackpad cursor. Changes apply across Puppy Clicker immediately and remain on this browser.</p>
     <BrowserChoices label="Mouse pointer" value={prefs.puppyPointerEnabled?'puppy':'system'} choices={[["system","System pointer"],["puppy","Original Puppy pointer"]]} onChange={value=>change('puppyPointerEnabled',value==='puppy')}/>
-    <details className="browser-settings-help"><summary>How pointers work</summary><p>System pointer uses your operating system's cursor. Original Puppy pointer uses the site artwork; touch input is unchanged.</p></details>
+    <details className="browser-settings-help"><summary>How pointers work</summary><p>System pointer uses your operating system's cursor. On Android, Match system size also uses the real system pointer, including your device's size and color. Choose Custom size to use Puppy artwork. Touch input is unchanged.</p></details>
     {prefs.puppyPointerEnabled?<div className="browser-pointer-controls">
      <BrowserChoices label="Pointer theme" value={prefs.puppyPointerTheme} choices={pointerThemeOptions} onChange={value=>change('puppyPointerTheme',value)}/>
      <BrowserChoices label="Pointer size" value={prefs.puppyPointerSizeMode} choices={[['system','Match system size'],['custom','Custom size']]} onChange={value=>change('puppyPointerSizeMode',value)}/>
@@ -165,10 +166,12 @@ export default function BrowserSettings(){
       <label htmlFor="puppy-pointer-size">Custom pointer size <output htmlFor="puppy-pointer-size">{effectivePointerSize(prefs)} px</output></label>
       <input id="puppy-pointer-size" type="range" min="24" max={pointerLimit} step="8" value={effectivePointerSize(prefs)} onChange={event=>change('puppyPointerCustomSize',Number(event.target.value))}/>
       <div className="browser-pointer-size-limits"><span>24 px · Small</span><span>{pointerLimit} px · Large</span></div>
-     </div>:<p className="browser-settings-detail" role="status">Match system size uses the standard {systemLikePointerSize()} px Puppy pointer for this platform. Select System pointer for the exact operating-system cursor.</p>}
-     <p className="browser-settings-detail">Current Puppy pointer: <strong>{effectivePointerSize(prefs)} px</strong>. Size is separate from Interface size.</p>
-     {pointerLimit<96?<p className="browser-settings-detail" role="status">Android: the normal Puppy pointer uses the original 64 px Android artwork size. Custom sizes are 24–{pointerLimit} px. Display density does not shrink the pointer.</p>:null}
-     <div className="browser-pointer-preview" data-cursor-theme={pointerThemeFor(prefs,systemDark)} aria-label="Puppy pointer theme preview">
+     </div>:<p className="browser-settings-detail" role="status">{nativePointer?'Following Android Pointer size and color settings. The website does not resize or recolor the native pointer.':`Match system size uses the standard ${systemLikePointerSize()} px Puppy pointer for this platform. Select System pointer for the exact operating-system cursor.`}</p>}
+     <p className="browser-settings-detail">Current pointer: <strong>{nativePointer?'Android system pointer':`${effectivePointerSize(prefs)} px Puppy pointer`}</strong>. Size is separate from Interface size.</p>
+     {pointerLimit<96?<p className="browser-settings-detail" role="status">Android: Match system size follows the device's native pointer. Custom Puppy artwork uses a separate 24–{pointerLimit} px range.</p>:null}
+     {nativePointer?<div className="browser-pointer-preview" data-testid="android-native-pointer-preview" style={{cursor:'auto'}}>
+      <strong>Android system pointer</strong><p>Move your connected mouse over this area to see your actual system pointer. Change its size or color in Android Settings.</p>
+     </div>:<div className="browser-pointer-preview" data-cursor-theme={pointerThemeFor(prefs,systemDark)} aria-label="Puppy pointer theme preview">
       <strong>Preview · {pointerThemeFor(prefs,systemDark)==='dark'?'Dark cursor':'Light cursor'}</strong>
       <div className="browser-pointer-preview-grid">
        {([['default','Normal'],['hover','Hover'],['click','Click']]).map(([state,title])=>
@@ -180,7 +183,7 @@ export default function BrowserSettings(){
         </div>)}
       </div>
       <small>Preview and actual cursor use the same original Puppy artwork. If the browser cannot render the selected cursor, Android uses its native system pointer instead of a smaller Puppy image. Other platforms may use a smaller themed fallback.</small>
-     </div>
+     </div>}
      <button className="browser-settings-action secondary" type="button" onClick={()=>{
       const next={...prefs,puppyPointerTheme:WEB_PREFERENCE_DEFAULTS.puppyPointerTheme,puppyPointerClickHighlight:WEB_PREFERENCE_DEFAULTS.puppyPointerClickHighlight,puppyPointerSizeMode:WEB_PREFERENCE_DEFAULTS.puppyPointerSizeMode,puppyPointerCustomSize:WEB_PREFERENCE_DEFAULTS.puppyPointerCustomSize};
       if(saveWebPreferences(next)){setUndoPrefs(prefs);setPrefs(next);setMessage('Puppy pointer defaults restored.');}
