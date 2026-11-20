@@ -27,7 +27,7 @@ for(const width of [360,390,768]){
  }
 }
 for(const width of [320,360,390,768,1440]){
- test('non-interactive branded footer fits '+width+'px',async({page})=>{
+ test('branded footer modal triggers fit '+width+'px',async({page})=>{
   await page.setViewportSize({width,height:850});
   await page.goto('/');
   const footer=page.locator('.site-footer');
@@ -49,7 +49,8 @@ for(const width of [320,360,390,768,1440]){
    expect(rect.x).toBeGreaterThanOrEqual(-1);
    expect(rect.x+rect.width).toBeLessThanOrEqual(width+1);
   }
-  await expect(footer.locator('a, button, [role="button"], [href], nav, form')).toHaveCount(0);
+  await expect(footer.locator('a, [href], nav, form')).toHaveCount(0);
+  await expect(footer.getByRole('button')).toHaveCount(3);
   await expect(footer).toContainText("All rights reserved");
   await expect(footer.locator('.site-footer-bottom')).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
@@ -73,3 +74,28 @@ test('home recovery action is a button visually but remains a navigable link',as
  await expect(recovery).toHaveAttribute('href','/recovery');
  await expect(recovery).toHaveCSS('display','flex');
 });
+
+for(const width of [360,1440]){
+ test('each footer logo opens and closes an accessible modal at '+width+'px',async({page})=>{
+  await page.setViewportSize({width,height:800});
+  await page.goto('/');
+  const banner=page.getByRole('complementary',{name:'Your privacy, your choice'});
+  if(await banner.count())await banner.getByRole('button',{name:'Necessary only'}).click();
+  const footer=page.locator('.site-footer');
+  for(const [name,alt] of [["Harley's Studios","Harley's Studios logo"],["Puppy Clicker","Puppy Clicker game logo"],["PupEye","PupEye anti-cheat logo"]]){
+   const mark=footer.getByRole('button',{name:'About '+name,exact:true});
+   await mark.click();
+   const modal=page.getByRole('dialog',{name,exact:true});
+   await expect(modal).toBeVisible();
+   await expect(modal.getByRole('img',{name:alt})).toBeVisible();
+   const box=await modal.boundingBox();
+   expect(box.x).toBeGreaterThanOrEqual(0);
+   expect(box.x+box.width).toBeLessThanOrEqual(width+1);
+   await expect(modal.getByRole('button',{name:'Close'})).toBeFocused();
+   if(name==='PupEye')await page.keyboard.press('Escape');
+   else await modal.getByRole('button',{name:'Close'}).click();
+   await expect(modal).toHaveCount(0);
+   await expect(mark).toBeFocused();
+  }
+ });
+}

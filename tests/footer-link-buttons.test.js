@@ -3,27 +3,28 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
-test('homepage footer only contains the three static official logos and copyright',()=>{
+test('footer keeps three official logos as modal triggers and copyright',()=>{
  const home=read('src/App.jsx');
  const css=read('src/styles/shared/layout.css');
- const start=home.indexOf('<footer className="site-footer"');
- const end=home.indexOf('</footer>',start);
- assert.ok(start>=0&&end>start);
- const footer=home.slice(start,end);
- assert.match(footer,/className="site-footer-brands"/);
- assert.match(footer,/className="site-footer-bottom"/);
  for(const [asset,alt] of [
   ['harleys_studios.png',"Harley's Studios logo"],
   ['puppy_clicker.png','Puppy Clicker game logo'],
   ['PupEye.png','PupEye anti-cheat logo']
  ]){
-  assert.ok(footer.includes('/assets/logos/'+asset),'Missing '+asset);
-  assert.ok(footer.includes('alt="'+alt+'"'),'Missing accessible label '+alt);
+  assert.ok(home.includes('asset:"'+asset+'"'));
+  assert.ok(home.includes('alt:"'+alt+'"'));
  }
+ const start=home.indexOf('<footer className="site-footer"');
+ const end=home.indexOf('</footer>',start);
+ assert.ok(start>=0&&end>start);
+ const footer=home.slice(start,end);
+ assert.match(footer,/className="site-footer-brands"/);
+ assert.match(footer,/className="site-footer-brandmark"/);
+ assert.match(footer,/aria-haspopup="dialog"/);
+ assert.match(footer,/<dialog\b/);
+ assert.match(footer,/className="site-footer-bottom"/);
  assert.match(footer,/All rights reserved/);
- assert.doesNotMatch(footer,/<a\b|<button\b|<nav\b|<form\b|href\s*=|onClick\s*=/i);
- assert.doesNotMatch(footer,/site-footer-links|mailto:/);
- assert.doesNotMatch(css,/\.site-footer-links/);
+ assert.doesNotMatch(footer,/<a\b|<nav\b|<form\b|href\s*=|site-footer-links|mailto:/i);
  assert.match(css,/\.site-footer-brandmark img\{/);
  assert.match(home,/className="home-account-recovery pup-link-button"/);
 });

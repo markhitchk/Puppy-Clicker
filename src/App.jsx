@@ -138,6 +138,44 @@ function DemoPage(){
  if(access!=="guest")return <WebLoading stage="account" detail="Checking your account before opening the game."/>;
  return <div className="landing"><HomePlayDemo standalone/></div>;
 }
+const FOOTER_BRANDS=[
+ {name:"Harley's Studios",asset:"harleys_studios.png",alt:"Harley's Studios logo",subtitle:"The studio",description:"Harley's Studios is the developer and publisher behind Puppy Clicker."},
+ {name:"Puppy Clicker",asset:"puppy_clicker.png",alt:"Puppy Clicker game logo",subtitle:"The game",description:"Tap, collect and care for puppies, earn Treats and build your collection."},
+ {name:"PupEye",asset:"PupEye.png",alt:"PupEye anti-cheat logo",subtitle:"Fair play & anti-cheat",description:"PupEye helps protect Puppy Clicker through verified accounts, server-side gameplay checks and fair-play review."}
+];
+function BrandFooter(){
+ const [brand,setBrand]=useState(null);
+ const dialog=useRef(null),closeButton=useRef(null),trigger=useRef(null);
+ const title=useId(),description=useId();
+ useEffect(()=>{
+  if(!brand)return;
+  const node=dialog.current;
+  if(!node)return;
+  if(!node.open)node.showModal();
+  closeButton.current?.focus();
+  return()=>{if(node.open)node.close();trigger.current?.focus({preventScroll:true});};
+ },[brand]);
+ const close=()=>setBrand(null);
+ return <footer className="site-footer" aria-label="Website footer">
+  <div className="site-footer-brands" aria-label="Website brands">
+   {FOOTER_BRANDS.map(item=><button key={item.asset} type="button" className="site-footer-brandmark"
+    aria-label={"About "+item.name} aria-haspopup="dialog" onClick={event=>{trigger.current=event.currentTarget;setBrand(item);}}>
+    <img src={"/assets/logos/"+item.asset} alt={item.alt} loading="lazy" decoding="async"/>
+    <span>{item.name}</span>
+   </button>)}
+  </div>
+  <div className="site-footer-bottom"><p>© {new Date().getFullYear()} Harley's Studios. All rights reserved.</p></div>
+  {brand?<dialog ref={dialog} className="site-footer-logo-dialog" aria-labelledby={title} aria-describedby={description}
+   onCancel={event=>{event.preventDefault();close();}}
+   onClick={event=>{if(event.target!==event.currentTarget)return;const r=event.currentTarget.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)close();}}>
+   <div className="site-footer-logo-dialog-art"><img src={"/assets/logos/"+brand.asset} alt={brand.alt}/></div>
+   <p className="site-footer-logo-subtitle">{brand.subtitle}</p>
+   <h2 id={title}>{brand.name}</h2>
+   <p id={description}>{brand.description}</p>
+   <button ref={closeButton} type="button" className="site-footer-logo-close" onClick={close}>Close</button>
+  </dialog>:null}
+ </footer>;
+}
 function Home(){
  const {t:tr}=useLanguage();
  return <div className="landing">
@@ -180,25 +218,7 @@ function Home(){
    </div>
    <div className="account-preview"><span>🐾</span><strong>Pup Account</strong><p>Verified login · Linked progress · Account settings</p></div>
   </section>
-  <footer className="site-footer" aria-label="Website footer">
-   <div className="site-footer-brands" aria-label="Website brands">
-    <div className="site-footer-brandmark">
-     <img src="/assets/logos/harleys_studios.png" alt="Harley's Studios logo" loading="lazy" decoding="async"/>
-     <span>Harley's Studios</span>
-    </div>
-    <div className="site-footer-brandmark">
-     <img src="/assets/logos/puppy_clicker.png" alt="Puppy Clicker game logo" loading="lazy" decoding="async"/>
-     <span>Puppy Clicker</span>
-    </div>
-    <div className="site-footer-brandmark">
-     <img src="/assets/logos/PupEye.png" alt="PupEye anti-cheat logo" loading="lazy" decoding="async"/>
-     <span>PupEye</span>
-    </div>
-   </div>
-   <div className="site-footer-bottom">
-    <p>© {new Date().getFullYear()} Harley's Studios. All rights reserved.</p>
-   </div>
-  </footer>
+  <BrandFooter/>
  </div>;
 }
 const accountRole=role=>({DEVELOPER:"Developer",ADMIN:"Administrator",PUP_MEMBER:"Pup Member"})[role]||"Player";

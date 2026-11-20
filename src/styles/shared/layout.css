@@ -145,3 +145,23 @@ html .pup-graphics-layer[data-graphics-backend="css"]{
 }
 .website-privacy-actions .pup-link-button{width:100%;min-width:0}
 .website-privacy-page .pup-admin-panel{max-width:960px;margin:0 auto}
+
+/* Only the three existing logo marks open branded dialogs; keep the footer minimal. */
+button.site-footer-brandmark{appearance:none;background:transparent;border:0;padding:4px;margin:0;color:inherit;font:inherit;cursor:pointer;border-radius:12px}
+button.site-footer-brandmark:hover img{filter:brightness(1.13)}
+button.site-footer-brandmark:focus-visible{outline:2px solid var(--site-accent,#00e5ff);outline-offset:3px}
+.site-footer-logo-dialog{
+ box-sizing:border-box;position:fixed;inset:0;margin:auto;width:min(430px,calc(100vw - 28px));
+ max-height:calc(100dvh - 28px);overflow:auto;padding:22px;
+ border:1px solid var(--site-border,#315466);border-radius:20px;background:var(--site-panel,#152f3e);
+ color:var(--site-text,#effbff);text-align:center;box-shadow:0 20px 70px #0008;
+}
+.site-footer-logo-dialog::backdrop{background:rgba(4,8,15,.78);backdrop-filter:blur(4px)}
+.site-footer-logo-dialog-art{display:grid;place-items:center;min-height:120px;padding:12px;border-radius:13px;background:var(--site-page,#0b1a24);border:1px solid var(--site-border,#315466)}
+.site-footer-logo-dialog-art img{display:block;width:auto;height:auto;max-width:100%;max-height:min(190px,34dvh);object-fit:contain}
+.site-footer-logo-dialog .site-footer-logo-subtitle{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--site-accent-ink,#a5f4ff);margin:16px 0 4px}
+.site-footer-logo-dialog h2{font-size:23px;line-height:1.25;margin:0 0 10px;color:var(--site-text,#effbff)}
+.site-footer-logo-dialog p{font-size:14px;line-height:1.5;color:var(--site-muted,#b5d0df);margin:0 0 16px;overflow-wrap:anywhere}
+.site-footer-logo-close{width:100%;min-height:44px;border:1px solid #70d5e9;border-radius:11px;background:#00cce5;color:#071b25;font:inherit;font-size:14px;font-weight:800;cursor:pointer}
+.site-footer-logo-close:hover{background:#76eafa}
+.site-footer-logo-close:focus-visible{outline:2px solid var(--site-accent-ink,#a5f4ff);outline-offset:3px}
