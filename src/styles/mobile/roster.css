@@ -63,3 +63,12 @@ html [data-testid="puppy-roster-grid"]{
  html .play-pupdex-card .play-pupdex-actions button{font-size:10px}
  html .play-pupdex-card .meet-puppy-badge{font-size:9px}
 }
+
+@media(max-width:600px){
+ html .play-pupdex-card[data-current="true"] .play-pupdex-actions:not(:has(.play-pupdex-use)) .play-pupdex-details{
+  grid-column:1;
+ }
+ html .play-pupdex-card .play-pupdex-current-action{
+  grid-column:2;min-height:44px;padding:5px 3px;border-radius:9px;
+ }
+}
