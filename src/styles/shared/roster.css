@@ -106,3 +106,21 @@ html[data-puppy-reduced-motion="true"] .play-pupdex-card .meet-puppy-link::after
  .cyber-button,.cyber-tap,[data-testid=puppy-roster-grid]>div{transition:none}
 }
 [data-testid=puppy-roster-grid]>div{content-visibility:auto;contain-intrinsic-size:auto 230px}
+
+/* Consistent rarity indicators and equipped status across browser font stacks. */
+html .play-pupdex-card .meet-puppy-badge-rarity{
+ display:inline-flex;align-items:center;gap:5px;
+}
+html .play-pupdex-card .pup-rarity-dot{
+ display:inline-block;flex:0 0 8px;width:8px;height:8px;border-radius:50%;
+ background:rgb(var(--rarity-rgb,190 205 220));box-shadow:none;
+}
+html .play-pupdex-card .play-pupdex-current{
+ color:#c2ffe5;background:#163c35;border-color:#59bda0;
+}
+html .play-pupdex-card .play-pupdex-current-action{
+ display:flex;align-items:center;justify-content:center;min-width:0;min-height:41px;
+ padding:6px;box-sizing:border-box;border:1px solid #59bda0;border-radius:12px;
+ color:#c2ffe5;background:#163c35;font:800 11px/1.2 Inter,system-ui,sans-serif;
+ overflow-wrap:anywhere;text-align:center;
+}
