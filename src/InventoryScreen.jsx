@@ -49,7 +49,7 @@ function OwnedPuppyCard({puppy,game,onInspect}){
  const name=puppyDisplay(puppy,game);
  const current=game.puppyStyle===puppy.id;
  const favorite=Array.isArray(game.favoritePuppies)&&game.favoritePuppies.includes(puppy.id);
- return <PuppyCollectionCard puppy={puppy} name={name} image={artworkUri(puppy)} group={puppyGroup(puppy)}
+ return <PuppyCollectionCard area="inventory" puppy={puppy} name={name} image={artworkUri(puppy)} group={puppyGroup(puppy)}
   rarity={puppy.rarity||'unknown'} unlock={unlockText(puppy.rarity?puppy:null)}
   statuses={[{text:'Owned',className:'meet-puppy-badge-status'},...(current?[{text:'Current',className:'pup-inventory-current-badge'}]:[])]}
   favorite={favorite} cardClass="pup-inventory-puppy" contentClass="pup-inventory-card-content"
