@@ -16,7 +16,10 @@ for(const width of [320,360,1366]){
   await expect(grid.locator('.play-pupdex-card').first()).toBeVisible();
   const epic=grid.locator('[data-pup-card="aurora"]');
   await expect(epic).toHaveAttribute('data-rarity','epic');
-  await expect(epic.locator('.meet-puppy-badge-rarity')).toContainText('Epic');
+  await expect(epic.locator('.meet-puppy-badge-rarity')).toHaveText('Epic');
+  await expect(epic.locator('.pup-rarity-dot')).toBeVisible();
+  await expect(epic.locator('.pup-rarity-dot')).toHaveAttribute('aria-hidden','true');
+  await expect(epic).toHaveAttribute('data-current','false');
   await expect(epic.locator('.meet-puppy-badge')).toHaveCount(3);
   await expect(epic.getByRole('button',{name:'View Details'})).toBeVisible();
   await expect(epic.getByRole('button',{name:/Use Aurora/})).toHaveCount(0);
