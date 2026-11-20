@@ -1,6 +1,7 @@
 import PuppyAssetViewer from './PuppyAssetViewer.jsx';
 import React from 'react';
 import PuppyCollectionCard from '../../PuppyCollectionCard.jsx';
+import PuppyCollectionDetails from '../../PuppyCollectionDetails.jsx';
 import {unlockText} from '../../puppyRarity.js';
 import {PUPPY_IMAGES} from '../src/assets/puppies.js';
 
@@ -28,4 +29,12 @@ export function WebPlayPuppyAssetViewer({puppy,assetId,name,onClose}){
  return <PuppyAssetViewer puppy={puppy} name={name} assetId={assetId}
   uri={transparentArt(puppy)} collection={groupFor(puppy)} onClose={onClose}
   className="play-pupdex-asset-dialog"/>;
+}
+
+export function WebRosterPuppyDetails({puppy,assetId,name,originalName,owned,current,favorite,onClose,onUse,onRename,onFavorite,onClaim}){
+ if(!puppy)return null;
+ return <PuppyCollectionDetails key={puppy.id} area="roster" puppy={puppy}
+  name={name} originalName={originalName} assetId={assetId} image={transparentArt(puppy)} group={groupFor(puppy)}
+  owned={owned} current={current} favorite={favorite} onClose={onClose}
+  onUse={onUse} onRename={onRename} onFavorite={onFavorite} onClaim={onClaim}/>;
 }
