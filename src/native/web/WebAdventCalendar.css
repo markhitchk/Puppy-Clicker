@@ -1,0 +1,24 @@
+/* Scoped to the seasonal card; does not change global themes or gameplay. */
+.pup-advent{color:#e9f9ff;border:1px solid #497b91;border-radius:18px;padding:12px;min-width:0;background:linear-gradient(145deg,#153b48,#142637 60%,#233048);display:grid;gap:12px}
+.pup-advent-hero{display:grid;gap:6px;padding:15px 12px;border-radius:13px;background:radial-gradient(ellipse at 80% 10%,#70c7dd33,transparent 65%),linear-gradient(120deg,#1c4654,#263a56);border:1px solid #60a8bd70}
+.pup-advent-kicker{font-size:10px;font-weight:800;letter-spacing:.12em;color:#a4e8ff}
+.pup-advent h2{font-size:clamp(18px,3vw,25px);line-height:1.15;margin:0;color:#f4fbff}
+.pup-advent p{margin:0;line-height:1.4}
+.pup-advent-clock{font-size:12px;font-weight:800;color:#aff0f4}
+.pup-advent-summary{display:grid;grid-template-columns:1fr auto;gap:7px;font-size:13px}
+.pup-advent-summary progress{width:100%;grid-column:1/-1;height:9px;accent-color:#78dce4}
+.pup-advent-note{font-size:12px;color:#d0e5ec}
+.pup-advent-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.pup-advent-door{min-width:0;min-height:58px;display:grid;place-content:center;justify-items:center;gap:2px;background:#1c3345;color:#d8e6ed;border:1px solid #587389;border-radius:10px;font:800 14px/1.1 system-ui;padding:6px 2px}
+.pup-advent-door[data-state=available]{background:#205361;border-color:#79dce8;color:#f4ffff}
+.pup-advent-door[data-state=claimed]{background:#24483e;border-color:#79c2a7;color:#e4ffed}
+.pup-advent-door[data-state=locked],.pup-advent-door[data-state=expired]{color:#b6c8d5}
+.pup-advent-door[aria-pressed=true]{outline:2px solid #a8eeff;outline-offset:1px}
+.pup-advent-door.finale{border:2px solid #ffc4dc;background:linear-gradient(135deg,#713c58,#37435a)}
+.pup-advent-door small{font-size:8px;max-width:100%;overflow-wrap:anywhere}
+.pup-advent-detail{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;border:1px solid #628599;border-radius:12px;padding:10px;background:#152e40}
+.pup-advent-detail p{font-size:12px;color:#d1e8f1;margin-top:4px}
+.pup-advent-claim{min-height:44px;border:1px solid #7de3ef;border-radius:10px;background:#8debf2;color:#122b3a;font:800 13px system-ui;padding:8px 12px}
+.pup-advent-claim:disabled{opacity:.58;cursor:not-allowed}
+.pup-advent :is(button):focus-visible{outline:3px solid #f5fcff;outline-offset:2px}
+@media(max-width:360px){.pup-advent{padding:8px}.pup-advent-grid{gap:4px}.pup-advent-door{min-height:48px}}
