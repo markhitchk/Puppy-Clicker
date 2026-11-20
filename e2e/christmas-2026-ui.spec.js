@@ -37,14 +37,18 @@ test('reduced-motion preference stops falling snow',async({page})=>{
  await expect(snow).toHaveCSS('animation-name','none');
 });
 
-test('falling snow stays exclusive to the Christmas route even with winter colors enabled',async({page})=>{
- await page.goto('/26xmas');
- await expect(page.locator('.xmas26-snow-overlay')).toHaveCount(1);
- for(const route of ['/','/pupdex','/play']){
+test('snowfall is visible by default on every website route without enabling winter colors',async({page})=>{
+ for(const route of ['/','/pupdex','/play','/account','/leaderboard','/settings','/26xmas']){
   await page.goto(route);
-  await page.evaluate(()=>{document.documentElement.dataset.puppySeasonal='winter';});
-  await expect(page.locator('.xmas26-snow-overlay')).toHaveCount(0);
+  const snow=page.locator('.xmas26-snow-overlay');
+  await expect(snow).toHaveCount(1);
+  await expect(snow).toBeVisible();
+  await expect(snow).toHaveCSS('pointer-events','none');
+  await expect(snow.locator('.xmas26-flake')).toHaveCount(42);
  }
- await page.goto('/26xmas');
- await expect(page.locator('.xmas26-flake')).toHaveCount(42);
+});
+test('sitewide snowfall respects reduced motion',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('/');
+ await expect(page.locator('.xmas26-flake').first()).toHaveCSS('animation-name','none');
 });
