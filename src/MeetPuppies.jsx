@@ -1,3 +1,4 @@
+import PuppyCollectionCard from './PuppyCollectionCard.jsx';
 import PuppyAssetViewer from './native/web/PuppyAssetViewer.jsx';
 import "./styles/puppy-details.css";
 import React,{useEffect,useMemo,useRef,useState} from "react";
@@ -44,27 +45,10 @@ const groupLabel=p=>p.group==="v1"?"V1 Puppies":p.group==="v2"?"V2 Puppies":p.gr
 const transparentImage=p=>(p.image||'').replace(/^\/assets\/(v1|v2)\//,"/assets/transparent/$1/");
 
 function PuppyCard({p,onSelect}){
- // The full card is one accessible link; badge pills are non-interactive.
- return <article className="meet-puppy-card" data-rarity={p.rarity||'common'}>
-  <a className="meet-puppy-link" href={puppyDetailsHref(p)} onClick={event=>onSelect?.(event,p)}
-   aria-label={"View "+p.name+" puppy details"}>
-   <div className="meet-puppy-art">
-    <PuppyArtwork id={p.id} name={p.name+" from the Puppy Clicker roster"}
-     uri={transparentImage(p)} size={215} lazy/>
-    <span className="meet-puppy-group">{groupLabel(p)}</span>
-   </div>
-   <div className="meet-puppy-body">
-    <h3>{p.emoji} {p.name}</h3>
-    <p>{p.description}</p>
-    <div className="meet-puppy-badges" aria-label="Puppy classification">
-     <span className="meet-puppy-badge meet-puppy-badge-rarity">{rarityLabels[p.rarity]}</span>
-     <span className="meet-puppy-badge">{unlockText(p)}</span>
-     {p.collectionStatus&&<span className="meet-puppy-badge meet-puppy-badge-status">{p.collectionStatus}</span>}
-    </div>
-    <span className="meet-puppy-view">View puppy details <span aria-hidden="true">↗</span></span>
-   </div>
-  </a>
- </article>;
+ return <PuppyCollectionCard puppy={p} name={p.name} image={transparentImage(p)} group={groupLabel(p)}
+  rarity={p.rarity} unlock={unlockText(p)}
+  statuses={p.collectionStatus?[{text:p.collectionStatus,className:'meet-puppy-badge-status'}]:[]}
+  href={puppyDetailsHref(p)} label={'View '+p.name+' puppy details'} onSelect={event=>onSelect?.(event,p)}/>;
 }
 
 function PublicPuppyDetails({puppy,onDismiss}){
