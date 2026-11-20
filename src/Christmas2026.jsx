@@ -31,9 +31,9 @@ const snowFlakes=Array.from({length:42},(_,i)=>({
  left:((i*37+13)%101)+'%',size:3+(i%5),duration:7+(i*3%10),
  delay:-(i*19%170)/10,drift:(i%2?1:-1)*(14+i%22),opacity:.46+(i%5)*.12
 }));
-export function WinterSnow({sitewide=false}){
+function WinterSnow(){
  if(typeof document==='undefined')return null;
- return createPortal(<div className={'xmas26-snow-overlay'+(sitewide?' sitewide':'')} aria-hidden="true" data-testid="winter-snow">
+ return createPortal(<div className="xmas26-snow-overlay" aria-hidden="true" data-testid="winter-snow">
   {[0,1].map(layer=><div key={layer} className={'xmas26-snow-layer'+(layer?' xmas26-snow-layer-b':'')}>{snowFlakes.slice(layer*21,(layer+1)*21).map((f,i)=><span key={i} className="xmas26-flake" style={{left:f.left,width:f.size,height:f.size,'--flake-duration':f.duration+'s','--flake-delay':f.delay+'s','--flake-drift':f.drift+'px','--flake-opacity':f.opacity}}/>)}</div>)}
  </div>,document.body);
 }
@@ -107,7 +107,7 @@ export default function Christmas2026(){
     </div>
     <aside className="xmas26-side">
      <section className="xmas26-panel"><span className="xmas26-kicker">DECEMBER 25</span><h2>🎁 Christmas jackpot</h2><p>10,000 Treats · 50 Bones · 50 Pup Coins</p><p>Collect the final gift on Christmas Day.</p></section>
-     <section className="xmas26-panel"><h2>❄ Winter theme</h2><p>Christmas decorations are on by default here. Enable the optional winter appearance elsewhere on Puppy Clicker.</p><button type="button" className="xmas26-secondary" aria-pressed={theme} onClick={toggleTheme}>{theme?'Winter theme enabled · turn off':'Enable winter theme'}</button></section>
+     <section className="xmas26-panel"><h2>❄ Winter theme</h2><p>Snowfall and Christmas decorations are exclusive to this event page. The optional winter theme changes colors elsewhere on Puppy Clicker.</p><button type="button" className="xmas26-secondary" aria-pressed={theme} onClick={toggleTheme}>{theme?'Winter theme enabled · turn off':'Enable winter theme'}</button></section>
      <section className="xmas26-panel"><h2>Event rules</h2><p>Doors unlock at midnight UTC. Catch up on missed days through December 25. Every gift can be collected once per Pup Account.</p></section>
     </aside>
    </div>
