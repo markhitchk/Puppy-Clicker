@@ -1,0 +1,54 @@
+@import './mobile/collection-card.css' screen and (max-width:959px);
+@import './desktop/collection-card.css' screen and (min-width:960px);
+
+html .meet-puppy-card.collection-card[data-rarity]{
+ box-sizing:border-box;min-width:0;width:100%;padding:0;gap:0;
+ display:flex;align-items:stretch;text-align:left;border-radius:16px;cursor:pointer;
+}
+html .meet-puppy-card.collection-card[data-rarity] .collection-card-content{
+ display:flex;position:relative;flex-direction:column;gap:0;width:100%;height:100%;
+ min-width:0;cursor:pointer;text-decoration:none;color:inherit;
+}
+html .meet-puppy-card.collection-card[data-rarity] .meet-puppy-art{
+ box-sizing:border-box;flex:0 0 auto;position:relative;width:100%;
+ min-height:0;border-radius:0;overflow:hidden;
+}
+html .meet-puppy-card.collection-card[data-rarity] .meet-puppy-art img.puppy-artwork{
+ max-width:100%;max-height:100%;object-fit:contain;border-radius:0;opacity:1;
+}
+html .meet-puppy-card.collection-card[data-rarity] .meet-puppy-group{
+ position:absolute;top:6px;right:6px;bottom:auto;left:auto;max-width:calc(100% - 34px);
+ margin:0;padding:3px 6px;width:max-content;height:auto;min-height:0;
+ border-radius:999px;font-size:10px;line-height:1.2;pointer-events:none;
+}
+html .collection-card .collection-card-favorite{
+ position:absolute;top:6px;left:7px;z-index:3;color:#ff9cc4;font-size:17px;line-height:1;
+}
+html .meet-puppy-card.collection-card[data-rarity] .meet-puppy-body{
+ flex:1;display:flex;flex-direction:column;justify-content:flex-start;min-height:0;
+ min-width:0;text-align:left;padding:9px;gap:6px;
+}
+html .meet-puppy-card.collection-card[data-rarity] .meet-puppy-body h3{
+ margin:0;min-height:0;font-size:15px;line-height:1.2;overflow-wrap:anywhere;
+}
+html .meet-puppy-card.collection-card[data-rarity] .meet-puppy-badges{
+ display:flex;align-items:center;align-content:flex-start;flex:0 0 auto;gap:4px;
+}
+html .meet-puppy-card.collection-card[data-rarity] .meet-puppy-badge{
+ display:inline-flex;align-items:center;gap:4px;padding:3px 6px;font-size:10px;line-height:1.2;
+}
+html .meet-puppy-card.collection-card[data-rarity] .collection-card-unlock{display:none}
+html .collection-card .pup-rarity-dot{
+ display:inline-block;flex:0 0 7px;width:7px;height:7px;border-radius:50%;
+ background:rgb(var(--rarity-rgb,190 205 220));
+}
+html .meet-puppy-card.collection-card[data-rarity] button.collection-card-select{
+ position:absolute;inset:0;z-index:5;width:100%;height:100%;min-height:44px;
+ display:block;margin:0;padding:0;border:0;border-radius:inherit;cursor:pointer;background:transparent;
+}
+html .collection-card .collection-card-select:focus-visible,
+html .collection-card a.collection-card-content:focus-visible{
+ outline:3px solid #a9edff;outline-offset:-4px;
+}
+html .meet-puppy-card.collection-card[data-rarity]:active{transform:none}
+html .collection-card[data-current="true"]{border-color:#59bda0}
