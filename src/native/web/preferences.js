@@ -46,10 +46,11 @@ export function effectivePointerSizeKey(preferences,environment=globalThis){
 }
 
 export const POINTER_THEMES=Object.freeze(['auto','dark','light']);
-const cursorDefaults=Object.freeze({puppyPointerTheme:'auto',puppyPointerClickHighlight:true,puppyPointerSizeMode:'system',puppyPointerCustomSize:48});
-const fields=['themeMode','accentHex','uiScale','performancePreset','animatedUi','buttonAnimations','reducedMotion','highContrast','animationsEnabled','compactNumbers','puppyPointerEnabled','puppyPointerTheme','puppyPointerClickHighlight','puppyPointerSizeMode','puppyPointerCustomSize','dailyRewardNotifications','gameEventNotifications'];
+const cursorDefaults=Object.freeze({puppyPointerTheme:'auto',puppyPointerClickHighlight:true,puppyPointerSizeMode:'system',puppyPointerCustomSize:48,seasonalTheme:'default'});
+const fields=['seasonalTheme','themeMode','accentHex','uiScale','performancePreset','animatedUi','buttonAnimations','reducedMotion','highContrast','animationsEnabled','compactNumbers','puppyPointerEnabled','puppyPointerTheme','puppyPointerClickHighlight','puppyPointerSizeMode','puppyPointerCustomSize','dailyRewardNotifications','gameEventNotifications'];
 export const WEB_PREFERENCE_DEFAULTS=Object.freeze({...Object.fromEntries(fields.map(key=>[key,DEFAULT_PREFERENCES[key]??cursorDefaults[key]])),themeMode:'dark',accentHex:'#00E5FF'});
 function validValue(name,value){
+ if(name==='seasonalTheme')return ['default','winter'].includes(value)?value:undefined;
  if(name==='puppyPointerTheme')return POINTER_THEMES.includes(value)?value:undefined;
  if(name==='puppyPointerClickHighlight')return typeof value==='boolean'?value:undefined;
  if(name==='puppyPointerSizeMode')return POINTER_SIZE_MODES.includes(value)?value:undefined;
