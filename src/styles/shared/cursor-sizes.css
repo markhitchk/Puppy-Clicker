@@ -8,7 +8,7 @@ html[data-puppy-cursor-theme='dark'][data-puppy-cursor-size='compact'] {
  --puppy-grabbing: url('/assets/pointers/themes/puppy_pointer_dark_grabbing_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_grabbing.png') 16 16, grabbing;
  --puppy-not-allowed: url('/assets/pointers/themes/puppy_pointer_dark_not_allowed_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_not_allowed.png') 16 16, not-allowed;
  --puppy-working: url('/assets/pointers/themes/puppy_pointer_dark_working_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_working.png') 16 16, progress;
- --puppy-precision: url('/assets/pointers/themes/puppy_pointer_dark_precision_48.png') 24 24, url('/assets/pointers/puppy_pointer_dark_precision.png') 16 16, crosshair;
+ --puppy-precision: url('/assets/pointers/themes/puppy_pointer_dark_precision_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_precision.png') 16 16, crosshair;
  --puppy-alternate: url('/assets/pointers/themes/puppy_pointer_dark_alternate_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_alternate.png') 16 16, auto;
  --puppy-secondary: url('/assets/pointers/themes/puppy_pointer_dark_secondary_48.png') 12 12, url('/assets/pointers/puppy_pointer_dark_secondary.png') 16 16, auto;
 }
@@ -22,7 +22,7 @@ html[data-puppy-cursor-theme='dark'][data-puppy-cursor-size='default'] {
  --puppy-grabbing: url('/assets/pointers/themes/puppy_pointer_dark_grabbing_64.png') 16 16, url('/assets/pointers/puppy_pointer_dark_grabbing.png') 16 16, grabbing;
  --puppy-not-allowed: url('/assets/pointers/themes/puppy_pointer_dark_not_allowed_64.png') 16 16, url('/assets/pointers/puppy_pointer_dark_not_allowed.png') 16 16, not-allowed;
  --puppy-working: url('/assets/pointers/themes/puppy_pointer_dark_working_64.png') 16 16, url('/assets/pointers/puppy_pointer_dark_working.png') 16 16, progress;
- --puppy-precision: url('/assets/pointers/themes/puppy_pointer_dark_precision_64.png') 32 32, url('/assets/pointers/puppy_pointer_dark_precision.png') 16 16, crosshair;
+ --puppy-precision: url('/assets/pointers/themes/puppy_pointer_dark_precision_64.png') 16 16, url('/assets/pointers/puppy_pointer_dark_precision.png') 16 16, crosshair;
  --puppy-alternate: url('/assets/pointers/themes/puppy_pointer_dark_alternate_64.png') 16 16, url('/assets/pointers/puppy_pointer_dark_alternate.png') 16 16, auto;
  --puppy-secondary: url('/assets/pointers/themes/puppy_pointer_dark_secondary_64.png') 16 16, url('/assets/pointers/puppy_pointer_dark_secondary.png') 16 16, auto;
 }
@@ -36,7 +36,7 @@ html[data-puppy-cursor-theme='dark'][data-puppy-cursor-size='large'] {
  --puppy-grabbing: url('/assets/pointers/themes/puppy_pointer_dark_grabbing_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_grabbing.png') 16 16, grabbing;
  --puppy-not-allowed: url('/assets/pointers/themes/puppy_pointer_dark_not_allowed_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_not_allowed.png') 16 16, not-allowed;
  --puppy-working: url('/assets/pointers/themes/puppy_pointer_dark_working_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_working.png') 16 16, progress;
- --puppy-precision: url('/assets/pointers/themes/puppy_pointer_dark_precision_96.png') 48 48, url('/assets/pointers/puppy_pointer_dark_precision.png') 16 16, crosshair;
+ --puppy-precision: url('/assets/pointers/themes/puppy_pointer_dark_precision_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_precision.png') 16 16, crosshair;
  --puppy-alternate: url('/assets/pointers/themes/puppy_pointer_dark_alternate_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_alternate.png') 16 16, auto;
  --puppy-secondary: url('/assets/pointers/themes/puppy_pointer_dark_secondary_96.png') 24 24, url('/assets/pointers/puppy_pointer_dark_secondary.png') 16 16, auto;
 }
@@ -50,7 +50,7 @@ html[data-puppy-cursor-theme='light'][data-puppy-cursor-size='compact'] {
  --puppy-grabbing: url('/assets/pointers/themes/puppy_pointer_light_grabbing_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_grabbing.png') 16 16, grabbing;
  --puppy-not-allowed: url('/assets/pointers/themes/puppy_pointer_light_not_allowed_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_not_allowed.png') 16 16, not-allowed;
  --puppy-working: url('/assets/pointers/themes/puppy_pointer_light_working_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_working.png') 16 16, progress;
- --puppy-precision: url('/assets/pointers/themes/puppy_pointer_light_precision_48.png') 24 24, url('/assets/pointers/puppy_pointer_light_precision.png') 16 16, crosshair;
+ --puppy-precision: url('/assets/pointers/themes/puppy_pointer_light_precision_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_precision.png') 16 16, crosshair;
  --puppy-alternate: url('/assets/pointers/themes/puppy_pointer_light_alternate_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_alternate.png') 16 16, auto;
  --puppy-secondary: url('/assets/pointers/themes/puppy_pointer_light_secondary_48.png') 12 12, url('/assets/pointers/puppy_pointer_light_secondary.png') 16 16, auto;
 }
@@ -64,7 +64,7 @@ html[data-puppy-cursor-theme='light'][data-puppy-cursor-size='default'] {
  --puppy-grabbing: url('/assets/pointers/themes/puppy_pointer_light_grabbing_64.png') 16 16, url('/assets/pointers/puppy_pointer_light_grabbing.png') 16 16, grabbing;
  --puppy-not-allowed: url('/assets/pointers/themes/puppy_pointer_light_not_allowed_64.png') 16 16, url('/assets/pointers/puppy_pointer_light_not_allowed.png') 16 16, not-allowed;
  --puppy-working: url('/assets/pointers/themes/puppy_pointer_light_working_64.png') 16 16, url('/assets/pointers/puppy_pointer_light_working.png') 16 16, progress;
- --puppy-precision: url('/assets/pointers/themes/puppy_pointer_light_precision_64.png') 32 32, url('/assets/pointers/puppy_pointer_light_precision.png') 16 16, crosshair;
+ --puppy-precision: url('/assets/pointers/themes/puppy_pointer_light_precision_64.png') 16 16, url('/assets/pointers/puppy_pointer_light_precision.png') 16 16, crosshair;
  --puppy-alternate: url('/assets/pointers/themes/puppy_pointer_light_alternate_64.png') 16 16, url('/assets/pointers/puppy_pointer_light_alternate.png') 16 16, auto;
  --puppy-secondary: url('/assets/pointers/themes/puppy_pointer_light_secondary_64.png') 16 16, url('/assets/pointers/puppy_pointer_light_secondary.png') 16 16, auto;
 }
@@ -78,7 +78,7 @@ html[data-puppy-cursor-theme='light'][data-puppy-cursor-size='large'] {
  --puppy-grabbing: url('/assets/pointers/themes/puppy_pointer_light_grabbing_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_grabbing.png') 16 16, grabbing;
  --puppy-not-allowed: url('/assets/pointers/themes/puppy_pointer_light_not_allowed_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_not_allowed.png') 16 16, not-allowed;
  --puppy-working: url('/assets/pointers/themes/puppy_pointer_light_working_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_working.png') 16 16, progress;
- --puppy-precision: url('/assets/pointers/themes/puppy_pointer_light_precision_96.png') 48 48, url('/assets/pointers/puppy_pointer_light_precision.png') 16 16, crosshair;
+ --puppy-precision: url('/assets/pointers/themes/puppy_pointer_light_precision_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_precision.png') 16 16, crosshair;
  --puppy-alternate: url('/assets/pointers/themes/puppy_pointer_light_alternate_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_alternate.png') 16 16, auto;
  --puppy-secondary: url('/assets/pointers/themes/puppy_pointer_light_secondary_96.png') 24 24, url('/assets/pointers/puppy_pointer_light_secondary.png') 16 16, auto;
 }

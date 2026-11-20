@@ -65,3 +65,9 @@ html[data-puppy-cursor-theme='light'] {
     --puppy-current-cursor: var(--puppy-not-allowed);
   }
 }
+
+/* Native dropdown options and disabled control descendants keep a coherent state. */
+@media(any-hover: hover) and (any-pointer: fine){
+ html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where(select option,select optgroup){cursor:default!important}
+ html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where(:disabled,[disabled],[aria-disabled='true']) *{--puppy-current-cursor:var(--puppy-not-allowed)}
+}

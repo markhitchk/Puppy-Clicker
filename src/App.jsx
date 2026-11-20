@@ -541,8 +541,8 @@ export default function App(){
    // Cursor URL dimensions cannot be changed with CSS width/height.
    // Each slider step has a real PNG generated from the original Puppy pack.
    for(const [property,state,fallback] of puppyCursorVariants){
-    const hotspot=state==='precision'?Math.floor(cursorSize/2):Math.floor(cursorSize/4);
-    root.style.setProperty(property,`url('/assets/pointers/themes/puppy_pointer_${cursorTheme}_${state}_${cursorSize}.png') ${hotspot} ${hotspot}, url('/assets/pointers/puppy_pointer_${cursorTheme}_${state}.png') 16 16, ${fallback}`);
+    const hotspot=Math.floor(cursorSize/4); // canonical Android 16/64 hotspot
+    root.style.setProperty(property,`url('/assets/pointers/themes/puppy_pointer_${cursorTheme}_${state}_${cursorSize}.png') ${hotspot} ${hotspot}, url('/assets/pointers/themes/puppy_pointer_${cursorTheme}_${state}_32.png') 8 8, ${fallback}`);
    }
    root.dataset.puppyPointerHalo=prefs.puppyPointerClickHighlight&&!prefs.reducedMotion?'enabled':'disabled';
    root.dataset.puppyTheme=dark?'dark':'light';

@@ -22,3 +22,41 @@
 .leaderboard-empty,.leaderboard-feedback{padding:22px;color:#c4dbe5}
 .leaderboard-feedback{border-radius:14px;background:#1a2637;border:1px solid #355b6c}
 .leaderboard-feedback button{margin-left:12px;background:none;color:#8fe8ff;border:0;cursor:pointer;text-decoration:underline}
+
+/* A single responsive leaderboard surface. */
+.leaderboard-page{max-width:1160px;padding:18px 16px 60px;box-sizing:border-box}
+.leaderboard-unified{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;min-width:0;padding:clamp(14px,2.5vw,25px);border:1px solid #315967;border-radius:20px;background:linear-gradient(125deg,#162535,#101a2a)}
+.leaderboard-unified> :is(.leaderboard-head,.leaderboard-optin,.leaderboard-board){margin:0;border:0;border-radius:0;background:none;padding:0;min-width:0}
+.leaderboard-unified .leaderboard-head h1{font-size:clamp(25px,4vw,36px);margin:6px 0 8px}
+.leaderboard-unified .leaderboard-head p,.leaderboard-unified .leaderboard-optin p{font-size:13px;line-height:1.5;margin:6px 0}
+.leaderboard-unified .leaderboard-optin{border-left:1px solid #315967;padding-left:18px}
+.leaderboard-unified .leaderboard-optin h2{font-size:17px;margin:0 0 8px}
+.leaderboard-privacy-detail summary{cursor:pointer;font-size:13px;color:#aeeeff;font-weight:750;min-height:36px}
+.leaderboard-privacy-detail summary:focus-visible{outline:2px solid #83e6f9;outline-offset:2px}
+.leaderboard-unified .leaderboard-optin-actions{gap:9px;margin-top:8px}
+.leaderboard-unified .leaderboard-optin-actions strong{font-size:13px;line-height:1.4}
+.leaderboard-unified .leaderboard-optin-actions .cta{border-radius:11px;min-height:44px;padding:9px 14px;font-size:13px}
+.leaderboard-unified .leaderboard-metrics{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0;padding-top:14px;border-top:1px solid #315967}
+.leaderboard-sort-label{grid-column:1/-1;font-size:12px;color:#bdd5e2;font-weight:800}
+.leaderboard-unified .leaderboard-metrics button{min-width:0;min-height:44px;padding:8px;border-radius:10px;font-size:12px;white-space:normal;overflow-wrap:anywhere}
+.leaderboard-unified> :is(.leaderboard-board,.leaderboard-feedback){grid-column:1/-1}
+.leaderboard-unified .leaderboard-board{overflow:visible}
+.leaderboard-unified .leaderboard-section-title{gap:5px;margin:0 0 12px}
+.leaderboard-unified .leaderboard-section-title h2{margin:0;font-size:19px}
+.leaderboard-stat-grid{width:100%;table-layout:fixed;border-spacing:0;text-align:left}
+.leaderboard-stat-grid th:first-child{width:10%}
+.leaderboard-stat-grid th:nth-child(2){width:30%}
+.leaderboard-stat-grid :is(th,td){overflow-wrap:anywhere;vertical-align:middle;font-size:13px}
+.leaderboard-stat-grid :is(th,td):nth-child(n+3){text-align:right}
+.leaderboard-stat-grid td.is-selected{color:#a5f4ff}
+.leaderboard-mobile-label{display:none}
+.leaderboard-self-scores{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px;font-size:12px}
+.leaderboard-self-scores span{min-width:0;overflow-wrap:anywhere}
+.leaderboard-self-scores b{display:block;margin-top:3px}
+.leaderboard-unified .leaderboard-feedback button{border:1px solid #427287;background:#1a3747;border-radius:10px;padding:8px 12px;text-decoration:none;min-height:40px}
+html[data-puppy-theme="light"] .leaderboard-page{color:var(--site-text)}
+html[data-puppy-theme="light"] .leaderboard-unified{background:#fff;border-color:var(--site-border)}
+html[data-puppy-theme="light"] .leaderboard-unified :is(.leaderboard-head,.leaderboard-optin) p,html[data-puppy-theme="light"] .leaderboard-sort-label,html[data-puppy-theme="light"] .leaderboard-section-title small,html[data-puppy-theme="light"] .leaderboard-stat-grid :is(th,small){color:var(--site-muted)}
+html[data-puppy-theme="light"] .leaderboard-privacy-detail summary,html[data-puppy-theme="light"] .leaderboard-stat-grid td.is-selected{color:#145d76}
+html[data-puppy-theme="light"] .leaderboard-unified .leaderboard-metrics button:not([aria-pressed=true]){background:#edf5fa;color:#234457;border-color:#9abacb}
+html[data-puppy-theme="light"] .leaderboard-self{background:#e2f3fa;color:#204658}

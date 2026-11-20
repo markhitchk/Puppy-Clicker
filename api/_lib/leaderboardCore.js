@@ -30,3 +30,13 @@ export function publicLeaderboard(rows,selfKey,limit=100){
   self:ranked.find(row=>row.internalKey===selfKey)?publicRow(ranked.find(row=>row.internalKey===selfKey)):null,
   total:ranked.length};
 }
+
+export function publicUnifiedLeaderboard(rows,selfKey,metric="treats",limit=100){
+ if(!LEADERBOARD_METRICS.includes(metric))throw Error("INVALID_METRIC");
+ const eligible=rows.filter(row=>Number.isSafeInteger(row.scores?.[metric]));
+ const ranked=rankEligible(eligible.map(row=>({...row,score:row.scores[metric]})));
+ const byKey=new Map(eligible.map(row=>[row.key,row]));
+ const project=({rank,username,displayName,internalKey})=>({rank,username,displayName,
+  scores:Object.fromEntries(LEADERBOARD_METRICS.map(key=>[key,byKey.get(internalKey).scores[key]??null]))});
+ return {top:ranked.slice(0,limit).map(project),self:ranked.find(row=>row.internalKey===selfKey)?project(ranked.find(row=>row.internalKey===selfKey)):null,total:ranked.length};
+}

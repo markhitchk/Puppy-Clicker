@@ -176,7 +176,7 @@ export default function BrowserSettings(){
          <span className="browser-pointer-preview-label">{title}</span>
         </div>)}
       </div>
-      <small>Preview and actual cursor use the same original Puppy artwork. Some browsers restrict custom cursors larger than 64 px; an OS cursor is used as fallback.</small>
+      <small>Preview and actual cursor use the same original Puppy artwork. Some browsers restrict larger custom cursors; the same 32 px themed Puppy pointer is the first fallback, then the system pointer.</small>
      </div>
      <button className="browser-settings-action secondary" type="button" onClick={()=>{
       const next={...prefs,puppyPointerTheme:WEB_PREFERENCE_DEFAULTS.puppyPointerTheme,puppyPointerClickHighlight:WEB_PREFERENCE_DEFAULTS.puppyPointerClickHighlight,puppyPointerSizeMode:WEB_PREFERENCE_DEFAULTS.puppyPointerSizeMode,puppyPointerCustomSize:WEB_PREFERENCE_DEFAULTS.puppyPointerCustomSize};

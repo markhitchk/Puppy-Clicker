@@ -1,5 +1,5 @@
 import {createClient} from "@supabase/supabase-js";
-import {LEADERBOARD_METRICS,scoreFromVerifiedSave,publicLeaderboard} from "./_lib/leaderboardCore.js";
+import {LEADERBOARD_METRICS,scoreFromVerifiedSave,publicLeaderboard,publicUnifiedLeaderboard} from "./_lib/leaderboardCore.js";
 import {isLeaderboardActionAllowed,leaderboardParticipation,isRankedAccountEligible} from "./_lib/leaderboardAccess.js";
 class Failure extends Error{constructor(status,code){super(code);this.status=status;}}
 const validId=id=>typeof id==="string"&&/^[\da-f]{8}-[\da-f]{4}-[1-8][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(id);
@@ -36,7 +36,7 @@ async function current(db,req){
  if(!isLeaderboardActionAllowed({reason,method:req.method}))throw new Failure(403,"ACCOUNT_INELIGIBLE");
  return {...account,leaderboardReason:reason};
 }
-async function list(db,account,metric){
+async function list(db,account,metric,unified=false){
  if(!LEADERBOARD_METRICS.includes(metric))throw new Failure(400,"INVALID_METRIC");
  const rows=need(await db.from("pup_leaderboard_participants")
   .select("account_uuid,opted_in,excluded").eq("opted_in",true).eq("excluded",false).limit(5000))||[];
@@ -61,9 +61,10 @@ async function list(db,account,metric){
  const activeBans=new Set(bans.filter(b=>!b.revoked_at&&(!b.expires_at||Date.parse(b.expires_at)>Date.now())).map(b=>b.id));
  const excludedPlayers=new Set(targets.filter(t=>activeBans.has(t.ban_uuid)).map(t=>t.player_uuid));
  const eligible=accounts.filter(a=>isRankedAccountEligible(a,pmap.get(a.player_uuid),excludedPlayers))
-  .map(a=>({key:a.id,username:a.username,displayName:a.display_name||a.username,score:scoreFromVerifiedSave(saves.get(a.id),metric)}))
-  .filter(a=>a.score!==null&&typeof a.username==="string");
- return {metric,...participation,...publicLeaderboard(eligible,account.id,100)};
+  .filter(a=>typeof a.username==="string")
+  .map(a=>({key:a.id,username:a.username,displayName:a.display_name||a.username,scores:Object.fromEntries(LEADERBOARD_METRICS.map(key=>[key,scoreFromVerifiedSave(saves.get(a.id),key)]))}));
+ return {metric,...participation,...(unified?publicUnifiedLeaderboard(eligible,account.id,metric,100):
+  publicLeaderboard(eligible.filter(a=>a.scores[metric]!==null).map(a=>({...a,score:a.scores[metric]})),account.id,100))};
 }
 async function change(db,account,join){
  const relation=db.from("pup_leaderboard_participants");
@@ -97,6 +98,6 @@ export default async function handler(req,res){
    return res.status(200).json({ok:true,...await change(db,account,type==="join")});
   }
   const metric=typeof req.query?.metric==="string"?req.query.metric:"treats";
-  return res.status(200).json({ok:true,...await list(db,account,metric)});
+  return res.status(200).json({ok:true,...await list(db,account,metric,req.query?.view==="unified")});
  }catch(error){return res.status(error.status||503).json({ok:false,error:error instanceof Failure?error.message:"LEADERBOARD_UNAVAILABLE"});}
 }

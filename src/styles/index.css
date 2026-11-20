@@ -29,3 +29,5 @@
 
 @import "./mobile/index.css" (width < 960px);
 @import "./desktop/index.css" (min-width: 960px);
+
+@import "./shared/dropdowns.css";
