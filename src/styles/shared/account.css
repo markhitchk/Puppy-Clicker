@@ -141,11 +141,11 @@ html .portal-message,html .cloud-status{background:#00e5ff0a;border-color:var(--
 .account-auth-consent{display:flex;gap:10px;align-items:flex-start;line-height:1.55;font-size:13px;cursor:pointer}
 .account-auth-consent input[type=checkbox]{width:18px;height:18px;flex:0 0 18px;margin:3px 0 0;padding:0;accent-color:#00b8f0}
 .account-auth-consent span{flex:1}
-.account-auth-consent a,.account-auth-text-button{color:#8ce9ff;text-decoration:underline;text-underline-offset:3px}
+.account-auth-consent a{color:#8ce9ff;text-decoration:underline;text-underline-offset:3px}
 .account-auth-register .account-security-note{font-size:12px;line-height:1.5;color:#a9c7d7;margin:0 0 5px}
 .account-auth-register .stretch{width:100%;margin-top:10px}
 .account-auth-register .portal-message{line-height:1.5;font-size:13px}
-.account-auth-text-button{background:transparent;border:0;font:inherit;font-weight:800;cursor:pointer;padding:8px}
+
 .account-auth-register input:focus-visible,.account-auth-text-button:focus-visible{outline:2px solid #8ce9ff;outline-offset:2px}
 .profile-main{min-width:0}
 .account-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}
@@ -328,3 +328,15 @@ html[data-puppy-theme="light"] .account-auth-text-button{background:#eaf4fa;colo
 .pup-auth-form .pup-password-field>.pup-password-visibility{min-height:40px;min-width:74px;inset-inline-end:5px;font-size:12px}
 .pup-auth-home.pup-link-button{padding:9px 14px;gap:7px;min-height:42px;text-decoration:none}
 .pup-auth-home.pup-link-button:hover{text-decoration:none}
+
+/* All generator and account helper actions share the normal secondary-button surface. */
+.site-frame button.account-auth-text-button{
+ appearance:none;display:inline-flex;justify-content:center;align-items:center;
+ align-self:stretch;width:100%;min-width:0;max-width:100%;min-height:44px;
+ box-sizing:border-box;padding:9px 12px;border:1px solid #4a8198;border-radius:11px;
+ background:#1b384a;color:#e1f8ff;font-size:13px;font-weight:800;line-height:1.3;
+ text-align:center;text-decoration:none;white-space:normal;overflow-wrap:anywhere;cursor:pointer;
+}
+.site-frame button.account-auth-text-button:hover:not(:disabled){background:#254d61;border-color:#85d8e8;color:#fff;text-decoration:none}
+html[data-puppy-theme="light"] .site-frame button.account-auth-text-button{background:#edf5fa;color:#214559;border-color:#9abacb}
+.site-frame button.account-auth-text-button:disabled{opacity:.55;cursor:not-allowed}
