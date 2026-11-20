@@ -68,3 +68,21 @@
 @media(max-width:360px){
  .browser-settings-choices>div,.browser-settings-colors{grid-template-columns:1fr!important}
 }
+
+/* Three uniform gallery tiles remain visible without horizontal scrolling. */
+@media(max-width:790px){
+ .browser-pointer-preview-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+ .browser-pointer-preview-tile{min-height:0;padding:6px;gap:6px}
+ .browser-pointer-preview-art{height:clamp(74px,22vw,108px);padding:4px}
+ .browser-pointer-preview-tile .browser-pointer-preview-label{font-size:0.6875rem}
+}
+@media(max-width:360px){
+ .browser-pointer-preview-grid{gap:4px}
+ .browser-pointer-preview-tile{padding:4px}
+ .browser-pointer-preview-art{height:72px;padding:3px}
+}
+
+@media(max-width:600px){
+ .browser-settings-page .browser-settings-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .browser-settings-page .browser-settings-shortcuts .pup-link-button{min-height:44px}
+}

@@ -79,3 +79,38 @@ test('homepage account actions use separate grouped links on desktop and mobile'
   else await expect(group).toHaveCSS('flex-direction','row');
  }
 });
+
+test('account shortcut buttons stay in one compact responsive grid',async({page})=>{
+ for(const width of [360,390,768,1188,1440]){
+  await page.setViewportSize({width,height:760});
+  await page.goto('/account');
+  const shortcuts=page.locator('.account-shortcut-grid');
+  await expect(shortcuts).toBeVisible();
+  await expect(shortcuts.getByRole('link',{name:/Check my PupEye status/})).toBeVisible();
+  await expect(shortcuts.getByRole('link',{name:/About PupEye/})).toBeVisible();
+  const result=await shortcuts.evaluate(element=>{
+   const bounds=element.getBoundingClientRect();
+   const buttons=[...element.querySelectorAll('a,button')].map(node=>node.getBoundingClientRect());
+   return {overflow:element.scrollWidth-element.clientWidth,
+    outside:buttons.some(rect=>rect.left<bounds.left-1||rect.right>bounds.right+1),
+    overlaps:buttons.some((box,i)=>buttons.some((other,j)=>i!==j&&Math.min(box.right,other.right)-Math.max(box.left,other.left)>1&&Math.min(box.bottom,other.bottom)-Math.max(box.top,other.top)>1))};
+  });
+  expect(result.overflow).toBeLessThanOrEqual(2);
+  expect(result.outside).toBe(false);
+  expect(result.overlaps).toBe(false);
+ }
+});
+
+test('account content uses two balanced stacks on desktop without losing mobile sections',async({page})=>{
+ for(const width of [390,1188,1440]){
+  await page.setViewportSize({width,height:768});
+  await page.goto('/account');
+  const first=page.locator('.account-primary-stack'),second=page.locator('.account-secondary-stack');
+  await expect(first.getByRole('heading',{name:/Cloud game progress/})).toBeVisible();
+  await expect(first.getByRole('heading',{name:/Your inventory/})).toBeVisible();
+  await expect(second.getByRole('heading',{name:/Account management/})).toBeVisible();
+  const a=await first.boundingBox(),b=await second.boundingBox();
+  if(width>=1188){expect(b.x).toBeGreaterThanOrEqual(a.x+a.width);expect(Math.abs(a.y-b.y)).toBeLessThanOrEqual(2);}
+  else expect(b.y).toBeGreaterThanOrEqual(a.y+a.height);
+ }
+});

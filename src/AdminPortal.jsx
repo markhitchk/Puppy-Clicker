@@ -293,7 +293,7 @@ export default function AdminPortal(){
        onClick={()=>confirmedRole(user)}>Save</button></div>:user.role}</td>
       <td><Connection user={user}/></td>
       <td><code className="pup-admin-network-value" data-testid="user-ip">{lastIp(user)||'Not recorded'}</code></td>
-      <td><code className="pup-admin-user-agent" data-testid="user-agent">{lastUserAgent(user)||'Not recorded'}</code></td>
+      <td><details className="pup-admin-agent-details"><summary aria-label={"Show user agent for "+user.username}>Browser details</summary><code className="pup-admin-user-agent" data-testid="user-agent">{lastUserAgent(user)||'Not recorded'}</code></details></td>
       <td><div className="pup-admin-row-actions">
        <button type="button" disabled={busy||user.id===staff.playerUuid||staff.role==='ADMIN'&&['ADMIN','DEVELOPER'].includes(user.role)}
         onClick={()=>setShowRestriction({user,type:'suspension'})}>Suspend</button>

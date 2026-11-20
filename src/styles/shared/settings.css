@@ -208,3 +208,77 @@ html[data-puppy-theme="light"] .browser-pointer-size-limits{color:var(--site-mut
 :root[data-puppy-theme="light"] .browser-settings-toolbar input[type="search"]{background:#fff;color:#122b3a;border-color:#82a7bb}
 :root[data-puppy-theme="light"] .browser-settings-toolbar input[type="search"]::placeholder{color:#4d6472}
 :root[data-puppy-theme="light"] .browser-settings-help>summary{color:var(--site-accent-ink,#125f7a)}
+
+/* Asset-viewer-inspired gallery for the Normal / Hover / Click pointer art.
+   Keep thumbnail scale faithful to the real cursor size; never upscale sprites. */
+.browser-pointer-preview-grid{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ align-items:stretch;
+ gap:8px;
+}
+.browser-pointer-preview-tile{
+ display:grid;
+ grid-template-rows:minmax(0,1fr) auto;
+ align-items:stretch;
+ justify-items:stretch;
+ min-width:0;
+ min-height:0;
+ gap:8px;
+ padding:8px;
+ overflow:hidden;
+ border-radius:14px;
+}
+.browser-pointer-preview-art{
+ box-sizing:border-box;
+ display:grid;
+ place-items:center;
+ width:100%;
+ height:clamp(88px,10vw,124px);
+ min-width:0;
+ padding:6px;
+ overflow:hidden;
+ border:1px solid #b6d1df;
+ border-radius:10px;
+ background:conic-gradient(#dceaf2 25%,#f5fbff 0 50%,#dceaf2 0 75%,#f5fbff 0) 0 0/20px 20px;
+}
+.browser-pointer-preview-art img{
+ display:block;
+ width:auto;
+ height:auto;
+ max-width:100%;
+ max-height:100%;
+ object-fit:contain;
+ flex-shrink:0;
+}
+.browser-pointer-preview-tile .browser-pointer-preview-label{
+ display:block;
+ min-width:0;
+ text-align:center;
+ font-size:0.75rem;
+ font-weight:800;
+ line-height:1.3;
+}
+.browser-pointer-preview[data-cursor-theme='light'] .browser-pointer-preview-art{
+ border-color:#34596c;
+ background:conic-gradient(#213e51 25%,#102839 0 50%,#213e51 0 75%,#102839 0) 0 0/20px 20px;
+}
+
+.browser-settings-page .browser-settings-shortcuts{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,110px),1fr));
+ gap:8px;overflow:visible;margin-bottom:12px;
+}
+.browser-settings-page .browser-settings-shortcuts .pup-link-button{
+ width:100%;min-height:42px;padding:8px 9px;white-space:normal;
+ color:var(--site-text,#edfaff);background:var(--site-panel,#152f3e);
+ border-color:var(--site-border,#315466);text-decoration:none;line-height:1.25;
+}
+.browser-settings-page .browser-settings-shortcuts .pup-link-button:hover{border-color:var(--site-accent,#00d5ef)}
+.browser-settings-page .browser-settings-links a.pup-link-button{
+ color:var(--site-text,#edfaff);background:var(--site-panel,#152f3e);
+ border-color:var(--site-border,#315466);text-decoration:none;
+}
+.browser-settings-page .puppy-language-picker{gap:6px;align-items:center;flex-wrap:wrap}
+.browser-settings-page .puppy-language-picker select{min-height:36px;padding:6px 8px;font-size:12px;max-width:126px}
+.browser-settings-page .browser-settings-intro{align-items:center}
+.browser-settings-page .browser-settings-intro>div{min-width:0}

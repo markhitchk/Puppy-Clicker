@@ -1,5 +1,15 @@
 import {test,expect} from '@playwright/test';
 
+// Existing settings regressions explicitly opt in to saved customization.
+// The separate cookie-privacy suite tests the no-consent and reject paths.
+test.beforeEach(async({page})=>{
+ await page.addInitScript(()=>{
+  localStorage.setItem('puppy-clicker:cookie-choice:v1',JSON.stringify({
+   version:1,essential:true,functional:true,analytics:false,advertising:false,savedAt:Date.now()
+  }));
+ });
+});
+
 test('guest can open browser settings without logging in and preferences survive a reload',async({page})=>{
  await page.goto('/settings');
  await expect(page.getByRole('heading',{name:'Browser Settings'})).toBeVisible();
@@ -146,6 +156,28 @@ test('system-like Puppy size and enabled mouse click highlight are defaults',asy
  await expect(root).toHaveAttribute('data-puppy-pointer-halo','enabled');
 });
 
+test('pointer artwork previews use a compact three-tile asset gallery on desktop and mobile',async({page})=>{
+ for(const viewport of [{width:360,height:780},{width:390,height:844},{width:1188,height:668},{width:1366,height:768}]){
+  await page.setViewportSize(viewport);
+  await page.goto('/settings#puppy-pointer-settings');
+  const gallery=page.locator('.browser-pointer-preview-grid');
+  const tiles=gallery.locator('.browser-pointer-preview-tile');
+  await expect(tiles).toHaveCount(3);
+  await expect(tiles.nth(0)).toContainText('Normal');
+  await expect(tiles.nth(1)).toContainText('Hover');
+  await expect(tiles.nth(2)).toContainText('Click');
+  await expect(gallery.locator('.browser-pointer-preview-art')).toHaveCount(3);
+  const layout=await gallery.evaluate(node=>({
+   columns:getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length,
+   overflow:node.scrollWidth-node.clientWidth,
+   tileWidths:[...node.querySelectorAll('.browser-pointer-preview-tile')].map(tile=>tile.getBoundingClientRect().width)
+  }));
+  expect(layout.columns).toBe(3);
+  expect(layout.overflow).toBeLessThanOrEqual(2);
+  expect(Math.max(...layout.tileWidths)-Math.min(...layout.tileWidths)).toBeLessThanOrEqual(2);
+ }
+});
+
 test('matching website pointer theme reacts to device changes when site follows system',async({page})=>{
  await page.emulateMedia({colorScheme:'light'});
  await page.goto('/settings#puppy-pointer-settings');
@@ -178,6 +210,7 @@ test('Android Compact interface leaves matching system-like Puppy cursor size un
  });
  try{
   const page=await context.newPage();
+  await page.addInitScript(()=>localStorage.setItem('puppy-clicker:cookie-choice:v1',JSON.stringify({version:1,essential:true,functional:true,analytics:false,advertising:false,savedAt:Date.now()})));
   await page.goto('/settings#puppy-pointer-settings');
   await page.getByRole('radio',{name:'Compact',exact:true}).check();
   await expect(page.getByRole('radio',{name:'Compact',exact:true})).toBeChecked();

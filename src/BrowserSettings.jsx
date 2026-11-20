@@ -1,5 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import LanguagePicker from './LanguagePicker.jsx';
+import {CookiePrivacySettings} from './privacy/CookieConsent.jsx';
 import {ACCENT_PRESETS} from './native/src/engine/settings.js';
 import {
  WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,pointerThemeFor,effectivePointerSize,
@@ -169,8 +170,10 @@ export default function BrowserSettings(){
       <div className="browser-pointer-preview-grid">
        {([['default','Normal'],['hover','Hover'],['click','Click']]).map(([state,title])=>
         <div className="browser-pointer-preview-tile" key={state}>
-         <img src={pointerPreviewSource(prefs,state,systemDark)} alt="" width={effectivePointerSize(prefs)} height={effectivePointerSize(prefs)}/>
-         <span>{title}</span>
+         <div className="browser-pointer-preview-art" aria-hidden="true">
+          <img src={pointerPreviewSource(prefs,state,systemDark)} alt="" width={effectivePointerSize(prefs)} height={effectivePointerSize(prefs)}/>
+         </div>
+         <span className="browser-pointer-preview-label">{title}</span>
         </div>)}
       </div>
       <small>Preview and actual cursor use the same original Puppy artwork. Some browsers restrict custom cursors larger than 64 px; an OS cursor is used as fallback.</small>
@@ -217,6 +220,7 @@ export default function BrowserSettings(){
       setConfirmReset(false);
      }}>Confirm reset</button><button className="browser-settings-action secondary" onClick={()=>setConfirmReset(false)}>Cancel</button>
     </div>}
+    <CookiePrivacySettings/>
     <nav className="browser-settings-links" aria-label="Related pages"><a className="pup-link-button" href="/play">🐾 Play</a><a className="pup-link-button" href="/play?=demo">🎮 Guest demo</a><a className="pup-link-button" href="/account">👤 Pup Account</a><a className="pup-link-button" href="/legal/privacy">Privacy policy</a></nav>
    </section>
   </div>

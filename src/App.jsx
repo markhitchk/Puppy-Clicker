@@ -2,6 +2,7 @@ import React,{useEffect,useId,useRef,useState} from "react";
 import NativeApp from "./native/App.jsx";
 import AdaptiveGraphics from "./AdaptiveGraphics.jsx";
 import BrowserSettings from "./BrowserSettings.jsx";
+import CookieConsent from "./privacy/CookieConsent.jsx";
 import RecoveryPage from "./RecoveryPage.jsx";
 import MeetPuppies from "./MeetPuppies.jsx";
 import WebLoading from "./WebLoading.jsx";
@@ -361,6 +362,7 @@ function AccountDashboard(){
  return <div className="account-content">
   <div className="account-heading"><p className="eyebrow">🐾 PUP ACCOUNT</p><h1>Your account</h1><p>View your verified Puppy Clicker identity, profile picture and Android-linked account details. Only your signed-in account is shown.</p></div>
   <div className="account-grid">
+   <div className="portal-stack account-primary-stack">
    <section className="portal-card profile-main" aria-label="Pup Account details">
     <div className="profile-head"><ProfileAvatar account={profile} className="profile-avatar-large"/><div><small>Signed in as</small><h2>{profile.displayName||profile.username}</h2><p>@{profile.username}</p></div><span className="verified">✓ {standing}</span></div>
     <div className="portal-divider"></div>
@@ -387,10 +389,13 @@ function AccountDashboard(){
      {profile.contactEmail?detail("Support contact email",profile.contactEmail,"Visible only to your signed-in account."):null}
     </dl>
      <p className="pup-admin-note">For account security, the website records recent signed-in visits, IP address (when available), browser information and page path for authorized staff review. These are website sessions, not Android installations.</p>
-    <div className="account-actions"><a className="cta cta-secondary" href="/pupeye/status">👁️ Check my PupEye status</a><a className="cta cta-secondary" href="/pupeye">About PupEye</a></div>
-    {["MODERATOR","MOD","ADMIN","DEVELOPER"].includes(profile.guildRole)&&<a className="cta cta-secondary" href="/account/admin/rarity">Puppy rarities</a>}
-    {["ADMIN","DEVELOPER"].includes(profile.guildRole)?<div className="account-actions"><a className="cta cta-secondary" href="/account/admin">🛡️ Open Admin Panel</a></div>:null}
-    {profile.friendCode?<div className="account-actions"><button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button></div>:null}
+    <nav className="account-shortcut-grid" aria-label="Pup Account shortcuts">
+     <a className="cta cta-secondary" href="/pupeye/status">👁️ Check my PupEye status</a>
+     <a className="cta cta-secondary" href="/pupeye">About PupEye</a>
+     {["MODERATOR","MOD","ADMIN","DEVELOPER"].includes(profile.guildRole)&&<a className="cta cta-secondary" href="/account/admin/rarity">Puppy rarities</a>}
+     {["ADMIN","DEVELOPER"].includes(profile.guildRole)&&<a className="cta cta-secondary" href="/account/admin">🛡️ Open Admin Panel</a>}
+     {profile.friendCode&&<button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button>}
+    </nav>
     <div className="portal-divider"></div>
     <h3 id="profile-settings">✏️ Profile settings</h3>
      <ProfileAvatarEditor account={profile} onChanged={avatarUrl=>setProfile(old=>({...old,avatarUrl}))}/>
@@ -401,7 +406,6 @@ function AccountDashboard(){
      <div className="profile-row"><span><small>Display name</small><strong>{profile.displayName||profile.username}</strong></span><button className="small-action" type="button" onClick={()=>setEditing(true)}>Edit name</button></div>}
     {status?<p className="portal-message" role="status">{status}</p>:null}
    </section>
-   <div className="portal-stack">
     <section className="portal-card"><h3>☁️ Cloud game progress</h3><p>Your website and Android game use the same protected Pup Account save when linked. No backend credentials or private save identifiers are displayed.</p><p className="cloud-status" role="status">{cloudLabel}</p>
      {cloud.updatedAt?<p className="cloud-updated">Last cloud update: {new Date(cloud.updatedAt).toLocaleString()}</p>:null}
      <a href="/play" className="cta cta-primary stretch">🐾 Continue playing</a>
@@ -412,6 +416,8 @@ function AccountDashboard(){
      <p>Browse your collected puppies, accessories, upgrade tickets, purchased upgrades and current wallet from your protected game save.</p>
      <a href="/account/inventory" className="cta cta-primary stretch">🎒 Open inventory</a>
     </section>
+   </div>
+   <div className="portal-stack account-secondary-stack">
     <section className="portal-card" aria-labelledby="discord-account-heading">
      <h3 id="discord-account-heading">🔗 Discord account</h3>
      {profile.discordUserId?<>
@@ -642,5 +648,6 @@ export default function App(){
   {page==="play"?<AdaptiveGraphics/>:null}
   <NetworkCheckReporter/>
   <AndroidAppBanner/>
+  <CookieConsent/>
  </div>;
 }

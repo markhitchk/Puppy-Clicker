@@ -22,22 +22,43 @@ export default function RarityAdmin(){
   finally{setBusy(false);}
  }
  const current=data?.rows.find(row=>row.puppy_id===edit?.puppy_id);
- return <section className="pup-admin-panel"><h2>Puppy rarities</h2>
- {notice&&<p role="status">{notice}</p>}
- {edit&&<form onSubmit={save} className="pup-admin-gift-form">
- <label>Puppy <select value={edit.puppy_id} onChange={e=>{setEdit(data.rows.find(p=>p.puppy_id===e.target.value));setReason('');}}>
- {data.rows.map(p=><option key={p.puppy_id}>{p.puppy_id}</option>)}</select></label>
- <p>Current assignment · {assignment(current)}</p>
- {data.canEdit&&<><label>Rarity <select value={edit.rarity} onChange={e=>setEdit({...edit,rarity:e.target.value,acquisition:e.target.value==='unobtainable'?'restricted':edit.rarity==='unobtainable'?'standard':edit.acquisition})}>
- {Object.entries(rarityLabels).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
- <label>Acquisition <select value={edit.acquisition} onChange={e=>setEdit({...edit,acquisition:e.target.value})}>
- {classes.filter(c=>['developer','retired','restricted'].includes(c)===(edit.rarity==='unobtainable')).map(c=><option key={c}>{c}</option>)}</select></label>
- <label><input type="checkbox" checked={edit.published} onChange={e=>setEdit({...edit,published:e.target.checked})}/> Published</label>
- <label>Reason <input required maxLength={300} value={reason} onChange={e=>setReason(e.target.value)}/></label>
- <button disabled={busy||!reason.trim()} type="submit">Save changes</button></>}
- <button type="button" disabled={busy} onClick={()=>refresh(edit.puppy_id).catch(()=>setNotice('Reload failed.'))}>Reload catalog</button>
- </form>}
- {data&&<><h3>Recent changes and gifts</h3>{data.history.length===0?<p>No changes recorded.</p>:
- <ul>{data.history.map(h=><li key={h.created_at+h.puppy_id}>{new Date(h.created_at).toLocaleString()} · {h.puppy_id} · {h.action==='gift'?'Gift granted':assignment(h.before_value)+' → '+assignment(h.after_value)} · {h.reason}</li>)}</ul>}</>}
+ return <section className="pup-admin-panel pup-rarity-admin">
+  <h2>Puppy rarities</h2>
+  {notice&&<p role="status" className="pup-rarity-notice">{notice}</p>}
+  {edit&&<form onSubmit={save} className="pup-rarity-form">
+   <div className="pup-rarity-form-grid">
+    <label className="pup-rarity-field">Puppy
+     <select value={edit.puppy_id} onChange={e=>{setEdit(data.rows.find(p=>p.puppy_id===e.target.value));setReason('');}}>
+      {data.rows.map(p=><option key={p.puppy_id} value={p.puppy_id}>{p.puppy_id}</option>)}
+     </select>
+    </label>
+    <p className="pup-rarity-current">Current assignment <strong>{assignment(current)}</strong></p>
+    {data.canEdit&&<>
+     <label className="pup-rarity-field">Rarity
+      <select value={edit.rarity} onChange={e=>setEdit({...edit,rarity:e.target.value,acquisition:e.target.value==='unobtainable'?'restricted':edit.rarity==='unobtainable'?'standard':edit.acquisition})}>
+       {Object.entries(rarityLabels).map(([key,label])=><option key={key} value={key}>{label}</option>)}
+      </select>
+     </label>
+     <label className="pup-rarity-field">Acquisition
+      <select value={edit.acquisition} onChange={e=>setEdit({...edit,acquisition:e.target.value})}>
+       {classes.filter(c=>['developer','retired','restricted'].includes(c)===(edit.rarity==='unobtainable')).map(c=><option key={c}>{c}</option>)}
+      </select>
+     </label>
+     <label className="pup-rarity-published"><input type="checkbox" checked={edit.published} onChange={e=>setEdit({...edit,published:e.target.checked})}/> Published</label>
+     <label className="pup-rarity-field pup-rarity-reason">Reason <span>(required)</span>
+      <textarea required rows={2} maxLength={300} value={reason} onChange={e=>setReason(e.target.value)} placeholder="Why is this assignment changing?"/>
+     </label>
+    </>}
+   </div>
+   <div className="pup-rarity-actions">
+    {data.canEdit&&<button disabled={busy||!reason.trim()} type="submit">Save changes</button>}
+    <button type="button" disabled={busy} onClick={()=>refresh(edit.puppy_id).catch(()=>setNotice('Reload failed.'))}>Reload catalog</button>
+   </div>
+  </form>}
+  {data&&<section className="pup-rarity-history" aria-label="Recent rarity changes">
+   <h3>Recent changes and gifts</h3>
+   {data.history.length===0?<p>No changes recorded.</p>:
+    <ul>{data.history.map(h=><li key={h.created_at+h.puppy_id}>{new Date(h.created_at).toLocaleString()} · {h.puppy_id} · {h.action==='gift'?'Gift granted':assignment(h.before_value)+' → '+assignment(h.after_value)} · {h.reason}</li>)}</ul>}
+  </section>}
  </section>;
 }

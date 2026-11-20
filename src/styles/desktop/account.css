@@ -19,3 +19,38 @@
 .pup-auth-form .pup-signin-form{gap:12px}
 .pup-auth-form .pup-signin-form input{min-height:50px}
 .pup-auth-form .account-auth-register{gap:18px}
+
+/* ChromeOS and desktop: remove oversized login hero whitespace, keep the full page. */
+@media(min-width:960px){
+ .pup-auth-page{grid-template-columns:minmax(320px,.84fr) minmax(0,1.16fr)}
+ .pup-auth-intro{justify-content:flex-start;gap:20px;padding:24px clamp(22px,3vw,48px)}
+ .pup-auth-intro-body{margin:clamp(12px,3vh,28px) 0 0;max-width:440px}
+ .pup-auth-home{min-height:42px;padding:10px 14px;font-size:13px;text-decoration:none}
+ .pup-auth-intro-logo{width:86px;height:86px;margin-bottom:13px}
+ .pup-auth-intro h1{font-size:clamp(29px,3.15vw,44px);margin:10px 0 15px;line-height:1.12}
+ .pup-auth-intro-body>p:not(.pup-auth-eyebrow){font-size:14px;line-height:1.55}
+ .pup-auth-benefits{gap:9px;margin-top:18px;font-size:12px}
+ .pup-auth-intro-foot{margin-top:auto}
+ .pup-auth-form{width:min(100%,720px);padding:clamp(20px,2.6vw,38px);gap:12px}
+ .pup-auth-form>div[role="tablist"]{margin:4px 0}
+ .pup-auth-form .android-auth-provider{padding:16px;border-radius:16px}
+ .pup-auth-form .android-auth-provider-heading img{width:40px;height:40px}
+}
+@media(min-width:960px) and (max-height:740px){
+ .pup-auth-intro{padding-top:16px;padding-bottom:16px}
+ .pup-auth-intro-logo{width:72px;height:72px;margin-bottom:8px}
+ .pup-auth-intro-body{margin-top:8px}
+ .pup-auth-intro h1{font-size:clamp(27px,3vw,38px)}
+ .pup-auth-benefits{margin-top:10px}
+ .pup-auth-form{padding-block:20px}
+}
+
+@media(min-width:1051px){
+ .account-content{padding:28px 22px 48px}
+ .account-content .account-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+ .account-content .account-details{gap:9px}
+ .account-content .account-detail{padding:11px}
+}
+@media(max-height:740px){
+ .pup-auth-intro{position:relative;top:auto;min-height:0;max-height:none}
+}
