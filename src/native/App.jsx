@@ -557,7 +557,7 @@ function RosterScreen({g,act,registry,onUse,onOpenExchange}){
     <Pressable accessibilityRole="button" accessibilityLabel={'Retry artwork for '+puppyName(p)} onPress={e=>{e.stopPropagation?.();retry(p.id);}} style={styles.rosterRetry}><Txt style={styles.rosterMeta}>↻</Txt></Pressable>
    </View>;
   })}</View>:<Card title="No puppies match these filters."><Button secondary onPress={reset}>Reset filters</Button></Card>}
-  <Pressable accessibilityRole="button" onPress={()=>setView('collection')} style={styles.rosterOutline}><Txt style={styles.rosterActionText}>PupDex</Txt></Pressable>
+  <Pressable accessibilityRole="button" onPress={()=>Platform.OS==='web'?window.location.assign('/pupdex'):setView('collection')} style={styles.rosterOutline}><Txt style={styles.rosterActionText}>PupDex</Txt></Pressable>
  </View>;
 }
 // Part 4: source-matched mechanical Gacha stages 0 idle / 1 turn+drop /
