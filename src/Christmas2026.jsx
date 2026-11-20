@@ -12,6 +12,25 @@ const puppies=[
  {id:'snowball',asset:'v1_snowball',name:'Snowball',description:'Snow-white fur with an icy blue look.',group:'v1'},
  {id:'v2_frost',asset:'v2_frost',name:'Frost',description:'Fluffy white puppy with bright pink ears.',group:'v2'}
 ];
+function ChristmasTree({className}){
+ return <svg className={className} viewBox="0 0 160 220" aria-hidden="true" focusable="false">
+  <ellipse cx="80" cy="207" rx="73" ry="10" fill="#c7ecff" opacity=".56"/>
+  <path d="M71 166h18v37H71z" fill="#765048"/>
+  <path d="m80 18-38 58h15L26 119h18L9 176q71 34 142 0l-35-57h18l-31-43h15z" fill="#185c50" stroke="#9fd6c9" strokeWidth="1.5"/>
+  <path d="M80 20 42 76q38 10 76 0M26 119q54 15 108 0M9 176q71 26 142 0" fill="none" stroke="#d7f5ef" strokeWidth="5" strokeLinecap="round"/>
+  <path d="M51 76q24 21 59 12M38 120q43 31 83 10M23 164q56 31 116 0" fill="none" stroke="#efc97c" strokeWidth="2.5" strokeDasharray="2 7" strokeLinecap="round"/>
+  {[[62,67,'#ef7e8b'],[98,89,'#b6eaff'],[51,109,'#ffcf7a'],[80,115,'#f19bbd'],[105,135,'#b6eaff'],[39,154,'#ef7e8b'],[75,151,'#ffcf7a'],[121,167,'#ef9cb8'],[64,174,'#b6eaff']].map(([x,y,c])=><circle key={x+':'+y} cx={x} cy={y} r="5" fill={c} stroke="#eafafa" strokeOpacity=".6"/>)}
+  <path d="m80 2 4 10 11 1-8 7 2 11-9-6-9 6 2-11-8-7 11-1z" fill="#ffe3a1" stroke="#fff5ce"/>
+  <rect x="11" y="181" width="32" height="24" rx="3" fill="#ab395b"/><path d="M24 181h6v24" stroke="#ffdc9d" strokeWidth="4"/>
+  <rect x="116" y="187" width="34" height="19" rx="3" fill="#467ea6"/><path d="M130 187h6v19" stroke="#c1f5ff" strokeWidth="4"/>
+ </svg>;
+}
+function WinterDecor(){
+ return <div className="xmas26-decor" aria-hidden="true">
+  <div className="xmas26-snow-layer"/><div className="xmas26-snow-layer xmas26-snow-layer-b"/>
+  <div className="xmas26-lights">{Array.from({length:24},(_,i)=><i key={i} style={{'--light-color':['#ff9ab0','#fce5a0','#9be8ff','#a8edc6'][i%4]}}/>)}</div>
+ </div>;
+}
 function useClock(){
  const [clock,setClock]=useState(Date.now);
  useEffect(()=>{const timer=setInterval(()=>setClock(Date.now()),1000);return()=>clearInterval(timer);},[]);
@@ -25,14 +44,14 @@ function GuestCalendar(){
   const next=updateWebPreference(preferences,action.name,action.value);
   saveWebPreferences(next);setPreferences(next);
  }
- return <><WebAdventCalendar game={{...preferences,adventClaims:[]}} act={act} clock={clock} readOnly/>
+ return <><WebAdventCalendar game={{...preferences,adventClaims:[]}} act={act} clock={clock} readOnly showTheme={false} guest/>
   <button className="xmas26-primary" type="button" onClick={()=>window.location.assign('/26xmas?collect=1')}>Sign in to collect gifts</button></>;
 }
 function AccountCalendar(){
  const clock=useClock();
  const {state,act,account,syncStatus,refreshAccount}=useGame();
  const game=state.game;
- return <><WebAdventCalendar game={game} act={act} clock={clock} readOnly={account?.gameplayWritable!==true||!Number.isFinite(game.adventClockOffset)}/>
+ return <><WebAdventCalendar game={game} act={act} clock={clock} showTheme={false} readOnly={account?.gameplayWritable!==true||!Number.isFinite(game.adventClockOffset)}/>
   {state.notice&&<p role="status">{state.notice}</p>}
   {syncStatus.errorCode&&<p role="status">Cloud sync: {syncStatus.errorCode}</p>}
   <button className="xmas26-secondary" type="button" onClick={()=>void refreshAccount()}>Refresh account rewards</button></>;
@@ -41,6 +60,7 @@ const total=ADVENT_REWARDS.reduce((a,r)=>({treats:a.treats+r.treats,bones:a.bone
 export default function Christmas2026(){
  const collect=new URLSearchParams(window.location.search).get('collect')==='1';
  const [theme,setTheme]=useState(()=>loadWebPreferences().seasonalTheme==='winter');
+ const [decor,setDecor]=useState(true);
  useEffect(()=>{
   const sync=()=>setTheme(loadWebPreferences().seasonalTheme==='winter');
   window.addEventListener('puppy-clicker:web-preferences-changed',sync);
@@ -50,7 +70,8 @@ export default function Christmas2026(){
   const next=updateWebPreference(loadWebPreferences(),'seasonalTheme',theme?'default':'winter');
   saveWebPreferences(next);setTheme(next.seasonalTheme==='winter');
  }
- return <div className="xmas26-page">
+ return <div className="xmas26-page" data-winter-decor={decor}>
+   {decor&&<WinterDecor/>}
    <header className="xmas26-hero">
     <div className="xmas26-hero-copy">
      <span className="xmas26-kicker">PUPPY CLICKER · SEASONAL EVENT</span>
@@ -58,10 +79,10 @@ export default function Christmas2026(){
      <p>December 1–25 · 25 days of treats, gifts and festive puppies.</p>
      <div className="xmas26-actions">
       <button className="xmas26-primary" type="button" onClick={()=>document.getElementById('xmas26-calendar')?.scrollIntoView({block:'start'})}>🎁 Advent Calendar</button>
-      <button className="xmas26-secondary" type="button" onClick={toggleTheme} aria-pressed={theme}>{theme?'Disable winter theme':'❄ Enable winter theme'}</button>
+      <button className="xmas26-secondary" type="button" onClick={()=>setDecor(v=>!v)} aria-pressed={decor}>{decor?'❄ Hide winter effects':'❄ Show winter effects'}</button>
      </div>
     </div>
-    <PuppyArtwork id="santa" name="Santa Paws" uri="/assets/transparent/v1/v1_santa.png" size={240}/>
+    <div className="xmas26-hero-scene">{decor&&<><ChristmasTree className="xmas26-tree tree-left"/><ChristmasTree className="xmas26-tree tree-right"/><span className="xmas26-snowbank" aria-hidden="true"/></>}<PuppyArtwork id="santa" name="Santa Paws" uri="/assets/transparent/v1/v1_santa.png" size={240}/></div>
    </header>
    <section className="xmas26-stats" aria-label="Event rewards">
     <div><strong>25</strong><span>Gift doors</span></div>
@@ -75,7 +96,7 @@ export default function Christmas2026(){
     </div>
     <aside className="xmas26-side">
      <section className="xmas26-panel"><span className="xmas26-kicker">DECEMBER 25</span><h2>🎁 Christmas jackpot</h2><p>10,000 Treats · 50 Bones · 50 Pup Coins</p><p>Collect the final gift on Christmas Day.</p></section>
-     <section className="xmas26-panel"><h2>❄ Winter theme</h2><p>Switch on the optional winter appearance for this browser.</p><button type="button" className="xmas26-secondary" aria-pressed={theme} onClick={toggleTheme}>{theme?'Winter theme enabled · turn off':'Enable winter theme'}</button></section>
+     <section className="xmas26-panel"><h2>❄ Winter theme</h2><p>Christmas decorations are on by default here. Enable the optional winter appearance elsewhere on Puppy Clicker.</p><button type="button" className="xmas26-secondary" aria-pressed={theme} onClick={toggleTheme}>{theme?'Winter theme enabled · turn off':'Enable winter theme'}</button></section>
      <section className="xmas26-panel"><h2>Event rules</h2><p>Doors unlock at midnight UTC. Catch up on missed days through December 25. Every gift can be collected once per Pup Account.</p></section>
     </aside>
    </div>
