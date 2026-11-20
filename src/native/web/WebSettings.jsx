@@ -5,6 +5,17 @@ import LanguagePicker from '../../LanguagePicker.jsx';
 import {ACCENT_PRESETS} from '../src/engine/settings.js';
 import {level} from '../src/engine/game.js';
 import {suggestDisplayName} from '../../nameSuggestions.js';
+import './PlaySettings.css';
+
+const categories=[
+ ['account','Pup Account & cloud save','👤','account cloud sync progress refresh sign out login'],
+ ['profile','Profile','🐾','profile display name nickname puppy roster collection achievements xp'],
+ ['appearance','Appearance','🎨','appearance accessibility theme dark light system color accent hex size compact contrast reduced motion'],
+ ['play','Play & performance','🎮','play performance graphics mouse pointer cursor tap animations quality battery fullscreen compact numbers'],
+ ['notifications','Notifications','🔔','notifications browser permissions reminders daily reward inbox test'],
+ ['data','Browser data','💾','browser data storage cache reset preferences roster metadata'],
+ ['about','About this website','ℹ️','about website update reload privacy policy terms legal']
+];
 
 function Toggle({title,detail,value,onChange}){
  return <label className="web-setting-row"><span><strong>{title}</strong>{detail?<small>{detail}</small>:null}</span><input type="checkbox" role="switch" aria-label={title} checked={value===true} onChange={event=>onChange(event.target.checked)}/></label>;
@@ -15,6 +26,7 @@ function Choices({label,value,items,onChange}){
 }
 export default function WebSettings({g,act,onOpen,registry,notifications,account,syncStatus,gameplayBusy=false,queuedTaps=0,cloudState,onRefreshAccount,onUpdateAccountName,onConnectAccount}){
  const [expanded,setExpanded]=useState(null),[name,setName]=useState(g.guestName),[hex,setHex]=useState(g.accentHex),[custom,setCustom]=useState(false);
+ const [searchTerm,setSearchTerm]=useState('');
  const [busy,setBusy]=useState(false),[message,setMessage]=useState(''),[reset,setReset]=useState(false),[refreshing,setRefreshing]=useState(false);
  const [fullscreen,setFullscreen]=useState(Boolean(document.fullscreenElement));
  const [confirmSignOut,setConfirmSignOut]=useState(false);
@@ -24,11 +36,27 @@ export default function WebSettings({g,act,onOpen,registry,notifications,account
  useEffect(()=>{const change=()=>setFullscreen(Boolean(document.fullscreenElement));document.addEventListener('fullscreenchange',change);return()=>document.removeEventListener('fullscreenchange',change);},[]);
  const accentGroup=useId();
  const pref=(name,value)=>act({type:'setPreference',name,value});
- const section=(id,title,description,children)=><section className="cyber-panel web-setting-section" key={id}><h2><button type="button" aria-label={title} aria-expanded={expanded===id} aria-controls={'web-settings-'+id} onClick={()=>{setExpanded(expanded===id?null:id);setMessage('');}}><span><strong>{title}</strong><small>{description}</small></span><span aria-hidden="true">{expanded===id?'−':'+'}</span></button></h2>{expanded===id?<div className="web-setting-body" id={'web-settings-'+id}>{children}{message?<p className="web-settings-message" role="status">{message}</p>:null}</div>:null}</section>;
+ const search=searchTerm.trim().toLocaleLowerCase();
+ const matches=(category,term=search)=>!term||term.split(/\s+/).every(word=>(category[1]+' '+category[3]).toLocaleLowerCase().includes(word));
+ const updateSearch=value=>{
+  const term=value.trim().toLocaleLowerCase();
+  setSearchTerm(value);setMessage('');
+  setExpanded(term?categories.find(category=>matches(category,term))?.[0]??null:null);
+ };
+ const section=(id,title,description,children)=>{
+  const category=categories.find(item=>item[0]===id);
+  return <section className="cyber-panel web-setting-section play-settings-panel" key={id} hidden={!matches(category)} data-expanded={expanded===id}>
+   <h2><button type="button" aria-label={title} aria-expanded={expanded===id} aria-controls={'web-settings-'+id} onClick={()=>{setExpanded(expanded===id?null:id);setMessage('');}}><span className="play-settings-category-icon" aria-hidden="true">{category[2]}</span><span className="play-settings-category-copy"><strong>{title}</strong><small>{description}</small></span><span className="play-settings-chevron" aria-hidden="true">{expanded===id?'−':'+'}</span></button></h2>
+   <div className="web-setting-body" id={'web-settings-'+id} hidden={expanded!==id}>{expanded===id?<>{children}{message?<p className="web-settings-message" role="status">{message}</p>:null}</>:null}</div>
+  </section>;
+ };
  const connected=cloudState==='LIVE_SYNCED'&&!['BLOCKED','RECONNECTING','SAVED_DISPLAY_ERROR'].includes(syncStatus?.state);
- return <div className="web-settings">
-  <header><h1>Website Settings</h1><p>Manage your Pup Account and customize this browser.</p><LanguagePicker/><a className="cyber-button secondary" href="/settings">⚙ Browser & graphics settings</a></header>
+ return <div className="web-settings play-settings">
+  <header className="play-settings-header"><div><span className="play-settings-kicker">PUPPY CLICKER · PLAY</span><h1>Website Settings</h1><p>Manage your Pup Account and gameplay preferences.</p></div><div className="play-settings-header-actions"><LanguagePicker/><a className="cyber-button secondary" href="/settings">⚙ Browser & graphics settings</a></div></header>
   <section className="cyber-panel web-player-summary"><PuppyArtwork id={g.puppyStyle} name={g.puppyName} size={60}/><div><strong>{g.guestName}</strong><p>Level {level(g)} · {g.xp.toLocaleString()} XP</p><span className="web-status">{connected?'Connected to Pup Account':'Check your cloud connection'}</span></div></section>
+  <div className="play-settings-toolbar"><label htmlFor="play-settings-search">Find a setting<input id="play-settings-search" type="search" placeholder="Search play settings" value={searchTerm} onChange={event=>updateSearch(event.target.value)}/></label>{searchTerm&&<button type="button" className="cyber-button secondary" onClick={()=>updateSearch('')}>Clear search</button>}</div>
+  {search&&!categories.some(category=>matches(category))&&<p role="status">No settings match your search.</p>}
+  <div className="play-settings-grid">
   {section('account','Pup Account & cloud save','Your signed-in account and live progress',<>
    <p>Signed in as <strong>{account?.username||g.guestName}</strong>.</p>
    <p role="status">{gameplayBusy?'Saving your progress…':connected?'Cloud progress is connected.':'Cloud progress needs attention. Refresh to check your connection.'}</p>
@@ -85,6 +113,7 @@ export default function WebSettings({g,act,onOpen,registry,notifications,account
    <button className="cyber-button secondary" disabled={gameplayBusy||queuedTaps>0} onClick={()=>window.location.reload()}>Reload website</button>
    <div className="web-setting-actions"><a href="/legal/privacy" className="cyber-button secondary">Privacy policy</a><a href="/legal/terms" className="cyber-button secondary">Terms of use</a></div>
   </>)}
+  </div>
   <ConfirmSignOut open={confirmSignOut} busy={busy} error={signOutError}
    onCancel={()=>{setConfirmSignOut(false);setSignOutError('');}}
    onConfirm={async()=>{
