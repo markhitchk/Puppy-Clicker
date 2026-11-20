@@ -16,7 +16,7 @@ import {normalizeSystemNotifications,mergeSystemNotifications,systemNotification
 // Never read or write puppy_web_saves, never forge a PupEye signed envelope.
 const LIVE_ACTIONS=new Set([
  "casinoRecoverLegacy","tap","care","purchase","ticket","accessory","equip","exchange","skill",
- "daily","claimDailyGoal","parkStart","parkClaim","prestige",
+ "daily","claimDailyGoal","claimAdvent","parkStart","parkClaim","prestige",
  "slotsStart","slotsReveal","rouletteStart","rouletteReveal",
  "plinkoStart","plinkoReveal","scratchStart","scratchReveal",
  "wheelStart","wheelReveal","gacha","claimFreeTest","switch","rename","favorite",
@@ -41,6 +41,7 @@ const normalizeIntent=action=>Object.fromEntries(
 );
 const exclusiveIntentKey=intent=>{
  if(intent?.type==='claimDailyGoal')return 'claimDailyGoal:'+String(intent.goalId||'');
+ if(intent?.type==='claimAdvent')return 'claimAdvent:'+String(intent.id||'');
  if(intent?.type==='claimFreeTest')return 'claimFreeTest:'+String(intent.id||'');
  if(['daily','parkStart','parkClaim','prestige'].includes(intent?.type))return intent.type;
  if(intent?.type==='gacha'||intent?.type==='casinoRecoverLegacy'||
@@ -264,6 +265,7 @@ export function useGame(){
       "PUP_ACCOUNT_BLOCKED","PUP_ACCOUNT_LEGAL_REQUIRED",
       "PUP_OWNER_DEVICE_UNAVAILABLE","GOAL_ALREADY_CLAIMED","DAILY_ALREADY_CLAIMED",
       "GOAL_NOT_COMPLETE","UNKNOWN_DAILY_GOAL","PARK_NOT_READY",
+       "ADVENT_DAY_INVALID","ADVENT_ALREADY_CLAIMED","ADVENT_CLOSED","ADVENT_DAY_LOCKED",
       "UPGRADE_NOT_AFFORDABLE","UPGRADE_MAXED","UPGRADE_NEEDS_TICKETS",
       "TICKET_NOT_AFFORDABLE","ACCESSORY_NOT_AFFORDABLE","ACCESSORY_NOT_OWNED",
       "EXCHANGE_NOT_AFFORDABLE","GACHA_NO_PUPPIES","PUPPY_LOCKED",
@@ -485,7 +487,11 @@ function gameplayMessage(code){
   CLOUD_SAVE_CONFLICT:'Your progress changed on another device. Refreshing your cloud save; check the current result before trying again.',
   PUP_OWNER_DEVICE_UNAVAILABLE:'Your Android PupEye installation could not be verified. Open the registered Android app or use Account recovery.',
   GOAL_ALREADY_CLAIMED:'You already collected this goal reward for the current UTC day. Your progress was refreshed.',
-  DAILY_ALREADY_CLAIMED:'Your daily gift is already claimed for this UTC day. Your progress was refreshed.',
+  ADVENT_ALREADY_CLAIMED:'This Advent gift has already been collected.',
+   ADVENT_DAY_INVALID:'This Advent gift does not exist.',
+   ADVENT_CLOSED:'The Advent event is not open.',
+   ADVENT_DAY_LOCKED:'This Advent door is not open yet.',
+   DAILY_ALREADY_CLAIMED:'Your daily gift is already claimed for this UTC day. Your progress was refreshed.',
   GOAL_NOT_COMPLETE:'The goal is not yet complete in your confirmed cloud progress. Refresh and check the goal counter.',
   UNKNOWN_DAILY_GOAL:'This goal is not in the current daily reward schedule. Refresh the page to load the latest goals.',
   PARK_NOT_READY:'Your Dog Park adventure is not ready yet. Check its timer.',
