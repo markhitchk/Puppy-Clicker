@@ -12,6 +12,8 @@ function transparentArt(puppy){
 }
 const tierFor=puppy=>puppy.rarity||'common';
 const groupFor=puppy=>puppy.groupTitle||'Puppies';
+// Render the rarity marker with CSS instead of platform-dependent emoji discs.
+const rarityName=rarity=>rarityLabels[rarity]?.replace(/^\S+\s+/u,'')||'Legacy owned';
 
 export function WebPlayPupDexCard({puppy,assetId,name,owned,current,favorite,
  onInspect,onUse,onClaimFree,onToggleFavorite,artVersion=0,onRetry}){
@@ -20,7 +22,8 @@ export function WebPlayPupDexCard({puppy,assetId,name,owned,current,favorite,
  const rarity=tierFor(puppy);
  const freeTest=['test_v1_crash_dummy','test_v2_crash_dummy'].includes(puppy.id)&&puppy.rarity==='common';
  return <article className="meet-puppy-card play-pupdex-card" data-rarity={rarity}
-  data-pup-card={puppy.id} aria-label={name+' roster card'}>
+  data-pup-card={puppy.id} data-owned={owned?'true':'false'} data-current={current?'true':'false'}
+  aria-label={name+' roster card'}>
   <div className="meet-puppy-link play-pupdex-card-content">
    <button type="button" className="play-pupdex-art-button"
     onClick={()=>onInspect(puppy.id)}
@@ -36,9 +39,9 @@ export function WebPlayPupDexCard({puppy,assetId,name,owned,current,favorite,
     <h3>{name}</h3>
     <p className="play-pupdex-asset-id">{assetId}</p>
     <div className="meet-puppy-badges" aria-label="Rarity and availability">
-     <span className="meet-puppy-badge meet-puppy-badge-rarity">{rarityLabels[puppy.rarity]||'Legacy owned'}</span>
+     <span className="meet-puppy-badge meet-puppy-badge-rarity"><i className="pup-rarity-dot" aria-hidden="true"/>{rarityName(puppy.rarity)}</span>
      <span className="meet-puppy-badge">{puppy.rarity?unlockText(puppy):'Owned from an earlier version'}</span>
-     <span className={'meet-puppy-badge '+(owned?'meet-puppy-badge-status':'play-pupdex-locked')}>
+     <span className={'meet-puppy-badge '+(current?'meet-puppy-badge-status play-pupdex-current':owned?'meet-puppy-badge-status':'play-pupdex-locked')}>
       {current?'Current':owned?'Unlocked':'🔒 Locked'}
      </span>
     </div>
@@ -49,6 +52,7 @@ export function WebPlayPupDexCard({puppy,assetId,name,owned,current,favorite,
       onClick={()=>onClaimFree(puppy.id)} aria-label={'Claim '+name+' for free'}>Claim Free</button>}
      {owned&&!current&&<button type="button" className="play-pupdex-use"
       onClick={()=>onUse(puppy.id)} aria-label={'Use '+name}>Use Puppy</button>}
+     {owned&&current&&<span className="play-pupdex-current-action" aria-label={name+' is your current puppy'}>✓ Equipped</span>}
      <button type="button" className="play-pupdex-favorite" disabled={!owned}
       aria-pressed={favorite} aria-label={(favorite?'Remove ':'Add ')+name+(favorite?' from favorites':' to favorites')}
       onClick={()=>onToggleFavorite(puppy.id)}>
