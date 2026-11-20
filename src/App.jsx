@@ -1,6 +1,6 @@
 import React,{useEffect,useId,useRef,useState} from "react";
 import NativeApp from "./native/App.jsx";
-import Christmas2026 from "./Christmas2026.jsx";
+import Christmas2026,{WinterSnow} from "./Christmas2026.jsx";
 import AdaptiveGraphics from "./AdaptiveGraphics.jsx";
 import BrowserSettings from "./BrowserSettings.jsx";
 import CookieConsent from "./privacy/CookieConsent.jsx";
@@ -684,6 +684,7 @@ export default function App(){
     page==="error"?<WebErrorPage code={errorRoute?Number(errorRoute[1]):404}/>:<NativeApp/>}
   </main>
   {page==="play"?<AdaptiveGraphics/>:null}
+  {page!=="xmas26"&&<WinterSnow/>}
   <NetworkCheckReporter/>
   <AndroidAppBanner/>
   <CookieConsent/>
