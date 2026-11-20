@@ -1,6 +1,6 @@
 import React,{useEffect,useId,useRef,useState} from "react";
 import NativeApp from "./native/App.jsx";
-import Christmas2026 from "./Christmas2026.jsx";
+import Christmas2026,{WinterSnow} from "./Christmas2026.jsx";
 import AdaptiveGraphics from "./AdaptiveGraphics.jsx";
 import BrowserSettings from "./BrowserSettings.jsx";
 import CookieConsent from "./privacy/CookieConsent.jsx";
@@ -581,6 +581,7 @@ export default function App(){
    }
    root.dataset.puppyPointerHalo=prefs.puppyPointerClickHighlight&&!prefs.reducedMotion?'enabled':'disabled';
    root.dataset.puppyTheme=dark?'dark':'light';
+   root.dataset.puppySeasonal=prefs.seasonalTheme==='winter'?'winter':'default';
    root.dataset.puppyContrast=prefs.highContrast?'high':'normal';
    root.dataset.puppyReducedMotion=prefs.reducedMotion?'true':'false';
    root.style.setProperty('--site-accent',prefs.accentHex||'#00E5FF');
@@ -683,6 +684,7 @@ export default function App(){
     page==="error"?<WebErrorPage code={errorRoute?Number(errorRoute[1]):404}/>:<NativeApp/>}
   </main>
   {page==="play"?<AdaptiveGraphics/>:null}
+  {page!=='xmas26'&&<WinterSnow sitewide/>}
   <NetworkCheckReporter/>
   <AndroidAppBanner/>
   <CookieConsent/>
