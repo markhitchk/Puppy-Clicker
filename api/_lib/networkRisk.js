@@ -4,7 +4,7 @@ const cache = new Map();
 const MAX_CACHE_ENTRIES = 500;
 const UNKNOWN = Object.freeze({
   status: "unknown", vpn: null, proxy: null, tor: null, hosting: null,
-  anonymous: null, riskScore: null, confidence: null, provider: "proxycheck-v3",
+  anonymous: null, riskScore: null, confidence: null, provider: "proxycheck-v3", location: null,
 });
 
 export function getClientIp(headers, trustedVercel = false) {
@@ -43,8 +43,11 @@ const numeric = (value) => Number.isFinite(value) && value >= 0 && value <= 100 
 export function parseProxycheckV3(response, ip) {
   if (!response || !["ok","warning"].includes(response.status)) return {...UNKNOWN};
   const entry = response[ip];
-  if (!entry || typeof entry !== "object" || !entry.detections) return {...UNKNOWN};
-  const d = entry.detections;
+  if (!entry || typeof entry !== "object") return {...UNKNOWN};
+  const d = entry.detections||{};
+  const safeLabel=value=>typeof value==="string"&&value.trim()?value.trim().slice(0,100):null;
+  const geo=entry.location||{};
+  const location={city:safeLabel(geo.city_name),region:safeLabel(geo.region_name),country:safeLabel(geo.country_name)};
   const vpn = tri(d.vpn);
   const proxy = tri(d.proxy);
   const tor = tri(d.tor);
@@ -59,6 +62,7 @@ export function parseProxycheckV3(response, ip) {
     riskScore: numeric(d.risk) ?? numeric(d.risk_score) ?? numeric(entry.risk),
     confidence: numeric(d.confidence),
     provider: "proxycheck-v3",
+    location:Object.values(location).some(Boolean)?location:null,
   };
 }
 
@@ -70,6 +74,7 @@ export async function detectNetworkRisk(ip, {key, fetcher = fetch, now = Date.no
   // proxycheck.io supports free keyless requests (100/day per server IP).
   // A registered FREE API key raises the quota to 1,000/day.
   if (typeof key === "string" && key.trim()) url.searchParams.set("key", key.trim());
+  url.searchParams.set("asn", "1");
   url.searchParams.set("tag", "0"); // Do not store extra provider-side query history.
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 2200);

@@ -68,3 +68,10 @@ test("keyless VPN check works on free anonymous proxycheck.io tier", async () =>
   assert.equal(result.vpn, true);
   assert.equal(result.provider, "proxycheck-v3");
 });
+
+test("only coarse location is exposed from proxycheck geography",()=>{
+ const ip="203.0.113.40";
+ const result=parseProxycheckV3({status:"ok",[ip]:{location:{city_name:"Example City",region_name:"Example Region",country_name:"Example Country",latitude:1,longitude:2,postal_code:"12345"},detections:{vpn:false}}},ip);
+ assert.deepEqual(result.location,{city:"Example City",region:"Example Region",country:"Example Country"});
+ assert.equal(parseProxycheckV3({status:"denied"},ip).location,null);
+});

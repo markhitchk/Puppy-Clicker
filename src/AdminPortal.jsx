@@ -15,7 +15,7 @@ const initialSection=()=> {
 };
 const joinSourceNames={friend:"Friend or player",discord:"Discord",youtube:"YouTube",tiktok:"TikTok",
  instagram:"Instagram",reddit:"Reddit",google:"Google search",play_store:"Google Play",other:"Other"};
-const lastIp=user=>(user.connection?user.connection.ip:user.network?.ip)||null;
+const lastIp=user=>user.connection?.ip||user.network?.ip||null;
 const lastUserAgent=user=>(user.connection?user.connection.userAgent:user.network?.userAgent)||null;
 const normalizeError=(code)=>{
  const errors={
@@ -57,6 +57,7 @@ export default function AdminPortal(){
  const [section,setSection] = useState(initialSection);
  const [staff,setStaff] = useState(null);
  const [users,setUsers] = useState([]);
+ const [ipLocations,setIpLocations]=useState({});
  const [bans,setBans] = useState([]);
  const [events,setEvents] = useState([]);
  const [webPupEyeEvents,setWebPupEyeEvents] = useState([]);
@@ -89,6 +90,15 @@ export default function AdminPortal(){
   return result;
  },[client]);
 
+ async function lookupLocation(user){
+  const ip=lastIp(user);if(!ip)return;
+  const key=user.id+"|"+ip;
+  setIpLocations(old=>({...old,[key]:{loading:true}}));
+  try{
+   const result=await request({action:"user-ip-location",targetPlayerId:user.id});
+   setIpLocations(old=>({...old,[key]:result.ip===ip?{location:result.location||null}:{error:true}}));
+  }catch{setIpLocations(old=>({...old,[key]:{error:true}}));}
+ }
  const refresh=useCallback(async(tab,silent=false)=>{
   if(!['users','bans','audit','activity','pupeye-web'].includes(tab))return;
   if(!silent){setTabLoading(true);setError("");}
@@ -236,7 +246,7 @@ export default function AdminPortal(){
   </div>;
  }
  const visibleUsers=users.filter(u=>
-   [u.username,u.displayName,u.playerId,u.friendCode,u.joinSource,u.joinDetails].some(v=>
+   [u.username,u.displayName,u.playerId,u.friendCode,u.joinSource,u.joinDetails,u.registrationMethod,u.invitedBy].some(v=>
      String(v||"").toLowerCase().includes(query.trim().toLowerCase())));
  const activeBans=bans.filter(b=>b.status==="active"&&!b.revoked_at&&
     (!b.expires_at || new Date(b.expires_at)>new Date())).length;
@@ -273,14 +283,16 @@ export default function AdminPortal(){
     <input aria-label="Search users" placeholder="Search username, player ID or friend code…"
       value={query} onChange={e=>setQuery(e.target.value)} type="search" />
    </div>
-   <p className="pup-admin-note">Registered Pup Accounts only. Manage access and review the latest website connection. Saved progress and Android installation records are preserved.</p>
+   <p className="pup-admin-note">Registered Pup Accounts only. Manage access and review the latest website connection. IP locations are approximate network estimates, not GPS or residential addresses. Saved progress and Android installation records are preserved.</p>
    <div className="pup-admin-table-wrap"><table className="pup-admin-table">
-    <thead><tr><th>Player</th><th>Joined via</th><th>Standing</th><th>Role</th><th>Latest connection</th><th>IP address</th><th>User-Agent</th><th>Actions</th></tr></thead>
+    <thead><tr><th>Player</th><th>Joined via</th><th>Standing</th><th>Role</th><th>Latest connection</th><th>IP address / location</th><th>User-Agent</th><th>Actions</th></tr></thead>
     <tbody>{visibleUsers.map(user=>
      <tr key={user.id}>
       <td><div className="pup-admin-player"><UserAvatar src={user.avatarUrl} name={user.displayName||user.username} className="pup-admin-avatar"/>
         <div><strong>{user.displayName||user.username}</strong><small>@{user.username}</small><small>{user.friendCode||"—"}</small>{user.contactEmail?<small>Support email: {user.contactEmail}</small>:null}</div></div></td>
-      <td><strong>{joinSourceNames[user.joinSource]||"Not provided"}</strong>
+      <td><strong>{user.registrationMethod==="discord"?"Discord":user.registrationMethod==="password"?"Pup Account":"Registration method unknown"}</strong>
+       {user.invitedBy&&<small>Invite link · @{user.invitedBy}</small>}
+       {user.joinSource&&<small>Discovery: {joinSourceNames[user.joinSource]||user.joinSource}</small>}
        {user.joinDetails?<small>{user.joinDetails}</small>:null}</td>
       <td><span className={'pup-admin-status '+(user.status==='active'?'':'danger')}>{user.status||'unknown'}</span>
        {user.restriction?<><small>{user.restriction.reason}</small><small>{user.restriction.expiresAt?'Until '+formatTime(user.restriction.expiresAt):'Permanent'}</small></>:null}</td>
@@ -292,7 +304,12 @@ export default function AdminPortal(){
        </select><button type="button" disabled={busy||!selectedRole[user.id]||selectedRole[user.id]===user.role}
        onClick={()=>confirmedRole(user)}>Save</button></div>:user.role}</td>
       <td><Connection user={user}/></td>
-      <td><code className="pup-admin-network-value" data-testid="user-ip">{lastIp(user)||'Not recorded'}</code></td>
+      <td><code className="pup-admin-network-value" data-testid="user-ip">{lastIp(user)||'Not recorded'}</code>{lastIp(user)&&(()=>{
+        const lookup=ipLocations[user.id+"|"+lastIp(user)];
+        const location=lookup?.location;
+        return <div><small>{location?[location.city,location.region,location.country].filter(Boolean).join(", ")+" (approx.)":lookup?.error?"Location unavailable":lookup?.loading?"Looking up…":lookup?"Location unavailable":"Approximate IP location"}</small>
+         <button type="button" disabled={lookup?.loading} onClick={()=>void lookupLocation(user)}>{lookup&&!lookup.error?"Refresh location":"Look up location"}</button></div>;
+       })()}</td>
       <td><details className="pup-admin-agent-details"><summary aria-label={"Show user agent for "+user.username}>Browser details</summary><code className="pup-admin-user-agent" data-testid="user-agent">{lastUserAgent(user)||'Not recorded'}</code></details></td>
       <td><div className="pup-admin-row-actions">
        <button type="button" disabled={busy||user.id===staff.playerUuid||staff.role==='ADMIN'&&['ADMIN','DEVELOPER'].includes(user.role)}

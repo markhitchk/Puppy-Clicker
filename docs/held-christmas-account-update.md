@@ -1,0 +1,5 @@
+# Held Christmas and account release
+
+Do not deploy until owner approves. Apply `supabase/registration-attribution.sql` to a staging DB and verify grants, then generate the normal migration with the Supabase CLI before the production rollout. Deploy the updated `pup-web-auth` Edge Function with its shared source before deploying Vercel. Existing registration method can be shown only from retained verified registration events; do not infer historical method from a linked Discord identity or a self-reported discovery answer. Older unknowns remain unknown. New web registrations record verified method and inviter. Friend invite attribution is not a reward or automatic friendship. Staff IP lookups reuse ProxyCheck, use recorded server IP, provide only coarse city/region/country, and are on-demand to avoid quota and unexpected external queries. No production DB, auth functions or Vercel deployment changed by this commit.
+
+Run npm test and targeted Playwright Christmas tests, validate signed-in and signed-out modes, clipboard fallback, OAuth invitation flow, and staff lookup authorization before release.

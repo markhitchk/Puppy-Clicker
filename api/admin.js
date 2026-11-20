@@ -1,4 +1,5 @@
 import {publicAvatarUrl} from "./_lib/publicAvatar.js";
+import {detectNetworkRisk} from "./_lib/networkRisk.js";
 import {validatePrivacyReview} from "./_lib/privacyReview.js";
 import {checkWebPupEye,WebPupEyeError} from './_lib/webPupEye.js';
 import {createClient} from "@supabase/supabase-js";
@@ -80,9 +81,17 @@ async function users(db,query) {
   // must never hide registered Pup Accounts or expose installation identities.
   let network=[];
   const accountIds=filtered.map(a=>a.id);
-  const joined=accountIds.length?await db.from("pup_registration_sources")
-    .select("account_uuid,source,details").in("account_uuid",accountIds):{data:[]};
+  let joined=accountIds.length?await db.from("pup_registration_sources")
+    .select("account_uuid,source,details,registration_method,inviter_account_uuid").in("account_uuid",accountIds):{data:[]};
+  if(joined.error&&accountIds.length)joined=await db.from("pup_registration_sources").select("account_uuid,source,details").in("account_uuid",accountIds);
   const sources=new Map((joined.error?[]:joined.data||[]).map(r=>[r.account_uuid,r]));
+  const registrationEvents=accountIds.length?await db.from("pup_web_activity_events").select("account_uuid,provider")
+    .in("account_uuid",accountIds).eq("event_code","register_success").eq("source","server").eq("outcome","success").order("created_at",{ascending:true}).limit(500):{data:[]};
+  const methods=new Map();
+  for(const event of registrationEvents.data||[])if(!methods.has(event.account_uuid)&&["password","discord"].includes(event.provider))methods.set(event.account_uuid,event.provider);
+  const inviterIds=[...new Set([...sources.values()].map(r=>r.inviter_account_uuid).filter(Boolean))];
+  const inviterRows=inviterIds.length?await db.from("pup_accounts").select("id,username").in("id",inviterIds):{data:[]};
+  const inviters=new Map((inviterRows.data||[]).map(r=>[r.id,r.username]));
   if (accountIds.length) {
     const response=await db.from("pup_web_network_checks")
       .select("account_uuid,ip_address,user_agent,checked_at,vpn,proxy,tor,hosting,detection_status")
@@ -123,7 +132,9 @@ async function users(db,query) {
         expiresAt:restriction.expires_at,managedHere:String(restriction.issued_by||"").startsWith("web_admin:")}:null,
       accountStatus:a.status,createdAt:a.created_at,updatedAt:a.updated_at,
       contactEmail:a.contact_email || null,
-      joinSource:sources.get(a.id)?.source||null,
+      registrationMethod:sources.get(a.id)?.registration_method||methods.get(a.id)||null,
+       invitedBy:sources.get(a.id)?.inviter_account_uuid?inviters.get(sources.get(a.id).inviter_account_uuid)||null:null,
+       joinSource:sources.get(a.id)?.source||null,
       joinDetails:sources.get(a.id)?.details||null,
       connection:session?{ip:session.ip_address,userAgent:session.user_agent,path:session.path,
         startedAt:session.started_at,lastSeenAt:session.last_seen_at,
@@ -169,6 +180,16 @@ export async function action(db,actor,body) {
   if (type==="users") {
     const listed=await users(db,body.search);
     return {users:listed};
+  }
+  if(type==="user-ip-location"){
+    const id=requireId(body.targetPlayerId);
+    const account=ensure(await db.from("pup_accounts").select("id").eq("player_uuid",id).maybeSingle());
+    if(!account)throw new AdminError(404,"TARGET_NOT_FOUND");
+    const active=await db.from("pup_web_sessions").select("ip_address").eq("account_uuid",account.id).order("last_seen_at",{ascending:false}).limit(1).maybeSingle();
+    const network=active.data?.ip_address?null:await db.from("pup_web_network_checks").select("ip_address").eq("account_uuid",account.id).order("checked_at",{ascending:false}).limit(1).maybeSingle();
+    const ip=active.data?.ip_address||network?.data?.ip_address||null;
+    const result=await detectNetworkRisk(ip,{key:process.env.PROXYCHECK_API_KEY});
+    return {ip,location:result.location||null};
   }
   if (type==="audit") {
     const rows=ensure(await db.from("pup_admin_actions")
