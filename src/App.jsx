@@ -37,6 +37,7 @@ import {suggestUsername,suggestDisplayName,generateStrongPassword} from "./nameS
 import SiteAccountMenu,{ProfileAvatar,PUP_ACCOUNT_CHANGED} from "./SiteAccountMenu.jsx";
 import PasswordField from "./PasswordField.jsx";
 import ConfirmSignOut from "./ConfirmSignOut.jsx";
+import {friendInviteUrl} from "./friendInvite.js";
 
 import "./styles/index.css";
 
@@ -359,15 +360,13 @@ function AccountDashboard(){
    setCredentialPassword("");setCredentialConfirmation("");setCredentialBusy(false);
   }
  };
- const shareFriendCode=async()=>{
-  const code=profile.friendCode;
-  if(!code)return;
+ const inviteUrl=friendInviteUrl(profile.friendCode);
+ const shareFriendCode=async(value=inviteUrl,label="Invite link")=>{
+  if(!value)return;
   try{
-   if(navigator.share){await navigator.share({text:code});return;}
-   if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(code);
-    setStatus("Friend Code copied.");return;}
-   setStatus("Select and copy the Friend Code shown above.");
-  }catch(e){if(e?.name!=="AbortError")setStatus("Could not share. Select and copy the Friend Code shown above.");}
+   if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);setStatus(label+" copied.");return;}
+  }catch{}
+  setStatus("Select and copy the "+label.toLowerCase()+" shown in Account details.");
  };
  const detail=(label,value,description)=> <div className="account-detail" key={label}>
   <dt>{label==="PupEye Anticheat"?<PupEyeBrand compact label={label}/>:label}</dt><dd>{value||"Not available"}</dd>{description?<small>{description}</small>:null}
@@ -416,8 +415,16 @@ function AccountDashboard(){
      <a className="cta cta-secondary" href="/pupeye">About PupEye</a>
      {["MODERATOR","MOD","ADMIN","DEVELOPER"].includes(profile.guildRole)&&<a className="cta cta-secondary" href="/account/admin/rarity">Puppy rarities</a>}
      {["ADMIN","DEVELOPER"].includes(profile.guildRole)&&<a className="cta cta-secondary" href="/account/admin">🛡️ Open Admin Panel</a>}
-     {profile.friendCode&&<button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>🔗 Share Friend Code</button>}
-    </nav>
+     </nav>
+    {inviteUrl&&<section className="profile-form" aria-label="Share Friend Code">
+     <label htmlFor="pup-friend-invite">🔗 Share Friend Code · Invite link</label>
+     <input id="pup-friend-invite" type="url" readOnly value={inviteUrl} onFocus={e=>e.currentTarget.select()} aria-label="Friend invite link"/>
+     <div className="account-shortcut-grid">
+      <button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>Copy invite link</button>
+      <button type="button" className="cta cta-secondary" onClick={()=>void shareFriendCode(profile.friendCode,"Friend Code")}>Copy Friend Code</button>
+     </div>
+     <small>New players can register with this link. It does not automatically grant rewards or accept friend requests.</small>
+    </section>}
     <div className="portal-divider"></div>
     <h3 id="profile-settings">✏️ Profile settings</h3>
      <ProfileAvatarEditor account={profile} onChanged={avatarUrl=>setProfile(old=>({...old,avatarUrl}))}/>

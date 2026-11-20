@@ -1,6 +1,7 @@
 // Website OAuth must return to an HTTPS route in this browser.
 import {puppyService} from '../../supabaseConfig.js';
 import {getActivitySessionId,reportWebActivity} from '../../webActivity.js';
+import {readInviteCode} from '../../friendInvite.js';
 // Android retains its own app-only redirect; never use it for browser login.
 export const PUPPY_DISCORD_CLIENT_ID="1547982688898777118";
 export const PUPPY_DISCORD_REDIRECT_URI="https://puppy-clicker.vercel.app/auth/discord/callback";
@@ -74,7 +75,7 @@ export async function beginPuppyDiscord({mode="login",authUserId=null}={}){
  const verifier=base64url(crypto.getRandomValues(new Uint8Array(48)));
  const challenge=base64url(await digest(verifier));
  // Store verifier only in the original browser and never send it to Discord.
- localStorage.setItem(PENDING_KEY,JSON.stringify({state,verifier,at:Date.now(),mode,authUserId}));
+ localStorage.setItem(PENDING_KEY,JSON.stringify({state,verifier,at:Date.now(),mode,authUserId,inviteCode:readInviteCode()}));
  const url=new URL("https://discord.com/oauth2/authorize");
  for(const [key,value] of Object.entries({
   client_id:PUPPY_DISCORD_CLIENT_ID,response_type:"code",
@@ -143,7 +144,7 @@ async function finishPuppyDiscordCallback(client){
  if(data.registration_required===true&&data.ticket&&data.profile?.id){
   try{
    globalThis.sessionStorage?.setItem(SIGNUP_KEY,JSON.stringify({
-    ticket:data.ticket,profile:data.profile,at:Date.now()
+    ticket:data.ticket,profile:data.profile,at:Date.now(),inviteCode:pending.inviteCode||null
    }));
   }catch{throw new Error("SECURE_BROWSER_REQUIRED");}
   globalThis.location.replace("/account?mode=register&provider=discord");

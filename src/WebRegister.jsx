@@ -7,6 +7,7 @@ import {client} from "./supabase.js";
 import {suggestUsername,generateStrongPassword} from "./nameSuggestions.js";
 import JoinSourceFields from "./JoinSourceFields.jsx";
 import PasswordField from "./PasswordField.jsx";
+import {readInviteCode} from "./friendInvite.js";
 
 // Mirror the Supabase Auth password policy before submitting a new account.
 const PASSWORD_SYMBOLS=new Set(["!","@","#","$","%","^","&","*","(",")","_","+","-","=","[","]","{","}",";","'","\\",":","\"","|","<",">","?",",",".","/","`","~"]);
@@ -25,6 +26,7 @@ export default function WebRegister({onAuthenticated,onSignIn}){
  const [password,setPassword]=useState("");
  const [confirm,setConfirm]=useState("");
  const [contactEmail,setContactEmail]=useState("");
+ const [inviteCode]=useState(()=>readInviteCode());
  const [joinSource,setJoinSource]=useState("");
  const [joinDetails,setJoinDetails]=useState("");
  const [terms,setTerms]=useState(false);
@@ -68,7 +70,7 @@ export default function WebRegister({onAuthenticated,onSignIn}){
    const result=await requestPuppyAuth("register",{
     username:name,password:enteredPassword,contactEmail:contactEmail.trim()||null,
     termsAccepted:terms,privacyAccepted:privacy,
-    joinSource:joinSource||null,joinDetails:joinSource?joinDetails.trim()||null:null
+    joinSource:joinSource||null,joinDetails:joinSource?joinDetails.trim()||null:null,inviteCode
    });
    if(!result.registered)throw Error("PUP_SIGNUP_UNAVAILABLE");
    setRegistered(true);
@@ -132,7 +134,8 @@ export default function WebRegister({onAuthenticated,onSignIn}){
    <input id="reg-email" type="email" name="email" autoComplete="email" maxLength={254}
     value={contactEmail} onChange={e=>setContactEmail(e.target.value)} disabled={busy||registered}/>
    <p className="account-security-note">This contact address is unverified and used for manual support only, not automatic password recovery.</p>
-   <JoinSourceFields idPrefix="pup-register" source={joinSource} onSourceChange={setJoinSource}
+   {inviteCode&&<p className="account-security-note">Invited with Friend Code: {inviteCode}</p>}
+    <JoinSourceFields idPrefix="pup-register" source={joinSource} onSourceChange={setJoinSource}
     details={joinDetails} onDetailsChange={setJoinDetails} disabled={busy||registered}/>
    <label className="account-auth-consent">
     <input type="checkbox" required checked={terms} onChange={e=>setTerms(e.target.checked)} disabled={busy||registered}/>

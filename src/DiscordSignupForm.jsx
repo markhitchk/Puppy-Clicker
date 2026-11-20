@@ -4,12 +4,14 @@ import {requestPuppyAuth,verifyPuppySession,puppyAuthMessage,
 import {client} from "./supabase.js";
 import {suggestUsername} from "./nameSuggestions.js";
 import JoinSourceFields from "./JoinSourceFields.jsx";
+import {readInviteCode} from "./friendInvite.js";
 
 const TERMS="/legal/terms";
 const PRIVACY="/legal/privacy";
 
 export default function DiscordSignupForm({signup,onAuthenticated,onSignIn}){
  const {profile,ticket}=signup;
+ const inviteCode=signup.inviteCode||readInviteCode();
  const proposed=(profile.username||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,20);
  const [username,setUsername]=useState(proposed.length>=3?proposed:"");
  const [useDiscordEmail,setUseDiscordEmail]=useState(false);
@@ -32,7 +34,7 @@ export default function DiscordSignupForm({signup,onAuthenticated,onSignIn}){
    const result=await requestPuppyAuth("discord-register",{
     ticket,username:enteredName,termsAccepted:terms,privacyAccepted:privacy,
     useDiscordEmail,joinSource:joinSource||null,
-    joinDetails:joinSource?joinDetails.trim()||null:null
+    joinDetails:joinSource?joinDetails.trim()||null:null,inviteCode
    });
    if(result.registered!==true)throw Error("PUP_SIGNUP_UNAVAILABLE");
    setRegistered(true);
@@ -88,6 +90,7 @@ export default function DiscordSignupForm({signup,onAuthenticated,onSignIn}){
     </>:<p>No verified email was returned by Discord. Email remains optional.</p>}
     <small>Discord email is not automatically used for Supabase password recovery.</small>
    </div>
+   {inviteCode&&<p className="account-security-note">Invited with Friend Code: {inviteCode}</p>}
    <JoinSourceFields idPrefix="discord-register" source={joinSource} onSourceChange={setJoinSource}
     details={joinDetails} onDetailsChange={setJoinDetails} disabled={busy||registered}/>
    <label className="account-auth-consent">
