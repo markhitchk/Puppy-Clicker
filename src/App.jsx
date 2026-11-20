@@ -1,5 +1,6 @@
 import React,{useEffect,useId,useRef,useState} from "react";
 import NativeApp from "./native/App.jsx";
+import Christmas2026 from "./Christmas2026.jsx";
 import AdaptiveGraphics from "./AdaptiveGraphics.jsx";
 import BrowserSettings from "./BrowserSettings.jsx";
 import CookieConsent from "./privacy/CookieConsent.jsx";
@@ -98,6 +99,7 @@ function Header({page}){
    <a href="/" aria-current={page==="home"?"page":undefined}>{tr("home")}</a>
    <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 {tr("play")}</a>
    <a href="/pupdex" aria-current={page==="pupdex"?"page":undefined}>{tr("puppies")}</a>
+   <a href="/26xmas" aria-current={page==="xmas26"?"page":undefined}>🎄 Christmas 2026</a>
    <details className="site-nav-more" ref={moreRef}>
     <summary>More <span aria-hidden="true">▾</span></summary>
     <div className="site-nav-more-list">   <a href="/pupeye" aria-current={page==="pupeye"||page==="pupeye-status"?"page":undefined}><PupEyeBrand compact label="PupEye"/></a>
@@ -654,7 +656,7 @@ export default function App(){
  const callback=path==="/auth/discord/callback";
  const demo=isPlayDemoRoute(path,typeof window!=="undefined"?window.location.search:"");
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
-  const page=path==="/"?"home":path==="/pupeye"||path==="/pupeye/"?"pupeye":/^\/pupeye\/status\/?$/.test(path)?"pupeye-status":path==="/chat"?"chat":/^\/account\/admin\/rarity\/?$/.test(path)?"admin-rarity":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":/^\/(?:pupdex|puppies)\/?$/.test(path)?"pupdex":
+  const page=/^\/26xmas\/?$/.test(path)?"xmas26":path==="/"?"home":path==="/pupeye"||path==="/pupeye/"?"pupeye":/^\/pupeye\/status\/?$/.test(path)?"pupeye-status":path==="/chat"?"chat":/^\/account\/admin\/rarity\/?$/.test(path)?"admin-rarity":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":/^\/(?:pupdex|puppies)\/?$/.test(path)?"pupdex":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity|pupeye-web))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account/inventory"?"account-inventory":path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   path==="/settings"||path==="/browser/settings"?"browser-settings":
@@ -663,7 +665,7 @@ export default function App(){
   <Header page={callback||page==="admin"||page==="admin-chat"||page==="admin-privacy"||page==="privacy-center"||page==="account-inventory"?"account":page==="demo"?"play":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
    {page==="home"?<Home/>:page==="pupeye"?<PupEyeOverview/>:page==="pupeye-status"?<WebAccountGate><PupEyeAccountStatus/></WebAccountGate>:
-    page==="demo"?<DemoPage/>:page==="pupdex"?<div className="landing"><MeetPuppies/></div>:
+    page==="xmas26"?<><Christmas2026/><BrandFooter/></>:page==="demo"?<DemoPage/>:page==="pupdex"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
     page==="account-inventory"?<WebAccountGate><AccountInventoryPage/></WebAccountGate>:
     page==="browser-settings"?<BrowserSettings/>:
