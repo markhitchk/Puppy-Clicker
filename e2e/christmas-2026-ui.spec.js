@@ -36,3 +36,15 @@ test('reduced-motion preference stops falling snow',async({page})=>{
  const snow=page.locator('.xmas26-snow-layer').first();
  await expect(snow).toHaveCSS('animation-name','none');
 });
+
+test('falling snow stays exclusive to the Christmas route even with winter colors enabled',async({page})=>{
+ await page.goto('/26xmas');
+ await expect(page.locator('.xmas26-snow-overlay')).toHaveCount(1);
+ for(const route of ['/','/pupdex','/play']){
+  await page.goto(route);
+  await page.evaluate(()=>{document.documentElement.dataset.puppySeasonal='winter';});
+  await expect(page.locator('.xmas26-snow-overlay')).toHaveCount(0);
+ }
+ await page.goto('/26xmas');
+ await expect(page.locator('.xmas26-flake')).toHaveCount(42);
+});
