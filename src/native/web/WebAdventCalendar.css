@@ -22,3 +22,6 @@
 .pup-advent-claim:disabled{opacity:.58;cursor:not-allowed}
 .pup-advent :is(button):focus-visible{outline:3px solid #f5fcff;outline-offset:2px}
 @media(max-width:360px){.pup-advent{padding:8px}.pup-advent-grid{gap:4px}.pup-advent-door{min-height:48px}}
+
+.pup-advent-theme{justify-self:start;min-height:44px;padding:6px 10px;border:1px solid #7da6c1;border-radius:9px;background:#193849;color:#e8faff;font:700 12px system-ui}
+.pup-advent-theme[aria-pressed=true]{background:#97e7f0;color:#173340}
