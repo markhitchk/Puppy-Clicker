@@ -32,3 +32,20 @@
 }
 .privacy-links a.pup-link-button:hover{border-color:#80ebff;background:#245064;color:#fff}
 .privacy-links a.pup-link-button:focus-visible{outline:3px solid #00d5ee;outline-offset:2px}
+
+/* Give cookie choices the same geometry and spacing as the policy links. */
+.privacy-card .privacy-links{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:14px}
+.privacy-card .privacy-links>:is(a.pup-link-button,button.privacy-cookie-action){
+ display:flex;align-items:center;justify-content:center;box-sizing:border-box;
+ width:100%;min-width:0;min-height:44px;margin:0;padding:10px 12px;
+ border:1px solid #3c7285;border-radius:12px;
+ font-size:14px;font-weight:750;line-height:1.35;text-align:center;text-decoration:none;
+ white-space:normal;overflow-wrap:anywhere;
+}
+.privacy-card .privacy-links>button.privacy-cookie-action{background:#00cce5;color:#071b25;border-color:#00cce5}
+.privacy-card .privacy-links>button.privacy-cookie-action:hover{background:#70e9f8;border-color:#70e9f8}
+.privacy-card .privacy-links>:is(a,button):focus-visible{outline:3px solid #00d5ee;outline-offset:2px}
+html[data-puppy-theme="light"] .privacy-center{color:var(--site-text)}
+html[data-puppy-theme="light"] .privacy-card{background:var(--site-panel);border-color:var(--site-border);color:var(--site-text)}
+html[data-puppy-theme="light"] .privacy-card p,html[data-puppy-theme="light"] .privacy-hero p{color:var(--site-muted)}
+html[data-puppy-theme="light"] .privacy-card .privacy-links>a.pup-link-button{background:#edf5fa;color:#234457;border-color:#8bb2c3}

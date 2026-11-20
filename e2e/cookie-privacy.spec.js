@@ -61,3 +61,29 @@ test("cookie banner and preferences remain within narrow mobile viewport",async(
  await dialog.getByRole("button",{name:"Necessary only"}).click();
  await expect(dialog).toHaveCount(0);
 });
+
+for(const width of [360,390,1440]){
+ test("privacy notice cookie action aligns with policy buttons at "+width+"px",async({page})=>{
+  await page.setViewportSize({width,height:850});
+  await page.addInitScript(()=>localStorage.setItem("puppy-clicker:cookie-choice:v1",JSON.stringify({version:1,essential:true,functional:false,analytics:false,advertising:false,savedAt:Date.now()})));
+  await page.goto("/account/privacy");
+  const nav=page.getByRole("navigation",{name:"Privacy navigation"});
+  const cookie=nav.getByRole("button",{name:"Manage cookie choices"});
+  await expect(cookie).toBeVisible();
+  await expect(nav.getByRole("link")).toHaveCount(5);
+  const actions=await nav.locator(":scope > a, :scope > button").evaluateAll(els=>els.map(el=>{
+   const r=el.getBoundingClientRect(),s=getComputedStyle(el);
+   return {x:r.x,y:r.y,width:r.width,height:r.height,radius:s.borderTopLeftRadius};
+  }));
+  expect(actions).toHaveLength(6);
+  for(let i=0;i<actions.length;i++){
+   expect(Math.abs(actions[i].width-actions[0].width)).toBeLessThanOrEqual(1);
+   expect(Math.abs(actions[i].x-actions[0].x)).toBeLessThanOrEqual(1);
+   expect(actions[i].radius).toBe(actions[0].radius);
+   expect(actions[i].height).toBeGreaterThanOrEqual(44);
+   if(i)expect(actions[i].y-actions[i-1].y-actions[i-1].height).toBeGreaterThanOrEqual(9);
+  }
+  await cookie.click();
+  await expect(page.getByRole("dialog",{name:"Cookies & website storage"})).toBeVisible();
+ });
+}

@@ -39,8 +39,7 @@ export default function PrivacyCenter(){
  return <article className="privacy-center">
   <header className="privacy-hero"><p className="privacy-eyebrow">🐾 PUPPY CLICKER · GDPR</p><h1>🔒 {tr.title}</h1><p>{tr.intro}</p></header>
   <div className="privacy-layout"><section className="privacy-card"><h2>{tr.notice}</h2><p>{tr.onlyNecessary}</p>
-   <button type="button" className="privacy-button" onClick={openCookiePreferences}>{tr.cookies}</button>
-    <nav className="privacy-links" aria-label="Privacy navigation"><a className="pup-link-button" href="/legal/privacy">{tr.policy}</a><a className="pup-link-button" href="/privacy">{tr.activity}</a><a className="pup-link-button" href="/legal/terms">{tr.terms}</a><a className="pup-link-button" href="/leaderboard">{tr.rank}</a><a className="pup-link-button" href="/account">{tr.back}</a></nav>
+    <nav className="privacy-links" aria-label="Privacy navigation"><button type="button" className="privacy-cookie-action" onClick={openCookiePreferences}>{tr.cookies}</button><a className="pup-link-button" href="/legal/privacy">{tr.policy}</a><a className="pup-link-button" href="/privacy">{tr.activity}</a><a className="pup-link-button" href="/legal/terms">{tr.terms}</a><a className="pup-link-button" href="/leaderboard">{tr.rank}</a><a className="pup-link-button" href="/account">{tr.back}</a></nav>
   </section><section className="privacy-card">
   {loading?<p role="status">{tr.loading}</p>:!signedIn?<><p>{tr.signedOut} {tr.login}</p><a className="privacy-button" href="/account">{tr.signIn}</a></>:<>
    <h2>{tr.newRequest}</h2><p>{tr.review}</p>
