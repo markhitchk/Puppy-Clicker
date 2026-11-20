@@ -28,3 +28,30 @@
 .xmas26-page button:focus-visible{outline:3px solid #e6faff;outline-offset:2px}
 @media(max-width:760px){.xmas26-layout{grid-template-columns:minmax(0,1fr)}.xmas26-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.xmas26-pups{grid-template-columns:repeat(2,minmax(0,1fr))}.xmas26-hero{padding:14px}.xmas26-hero-copy{gap:8px}.xmas26-hero .puppy-artwork{max-height:140px}}
 @media(max-width:380px){.xmas26-page{padding:8px}.xmas26-hero{grid-template-columns:minmax(0,1fr) 84px;gap:6px}.xmas26-pup{padding:8px}}
+
+/* Festive scene is visible without enabling any browser preference. */
+.xmas26-page{position:relative;isolation:isolate;background:radial-gradient(ellipse at 50% 0%,#507c9f4d,transparent 38%),linear-gradient(180deg,#101b2e,#102739 55%,#142239);border-radius:24px}
+.xmas26-page[data-winter-decor=true]{padding-top:30px}
+.xmas26-page>header,.xmas26-page>section,.xmas26-page>.xmas26-layout,.xmas26-page>.xmas26-actions{position:relative;z-index:1}
+.xmas26-decor{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:hidden;border-radius:inherit}
+.xmas26-snow-layer{position:absolute;inset:0;pointer-events:none;opacity:.6;background-image:radial-gradient(circle,#fffffff0 0 1.5px,transparent 2.5px),radial-gradient(circle,#e5f5ffdf 0 1px,transparent 2px),radial-gradient(circle,#c5e9fbe0 0 2px,transparent 3px);background-size:137px 137px,211px 211px,293px 293px;background-position:0 0,47px 36px,93px 62px;animation:xmas26-snow 18s linear infinite}
+.xmas26-snow-layer-b{opacity:.32;animation:xmas26-snow-slow 29s linear infinite}
+@keyframes xmas26-snow{to{background-position:0 137px,47px 247px,93px 355px}}
+@keyframes xmas26-snow-slow{to{background-position:137px 274px,258px 458px,386px 648px}}
+.xmas26-lights{position:absolute;top:6px;left:8px;right:8px;display:flex;justify-content:space-between;align-items:center;height:18px;border-top:2px solid #769c91;border-radius:40%}
+.xmas26-lights i{width:7px;height:10px;margin-top:-3px;flex:0 0 auto;background:var(--light-color);border-radius:4px 4px 8px 8px;box-shadow:0 0 9px var(--light-color);transform:rotate(-12deg)}
+.xmas26-lights i:nth-child(even){transform:translateY(4px) rotate(12deg)}
+.xmas26-hero{grid-template-columns:minmax(0,1.2fr) minmax(150px,1fr);background:radial-gradient(ellipse at 82% 35%,#83bbd650,transparent 60%),linear-gradient(140deg,#19394d,#1c304b 75%);border-color:#8eb5ca;box-shadow:0 15px 40px #0005}
+.xmas26-hero-copy{position:relative;z-index:2}
+.xmas26-hero-scene{position:relative;isolation:isolate;display:grid;place-items:center;min-width:0;min-height:210px}
+.xmas26-hero-scene .puppy-artwork{position:relative;z-index:2;width:65%!important;max-width:230px;filter:drop-shadow(0 10px 12px #08203099)}
+.xmas26-tree{position:absolute;bottom:5%;width:43%;max-height:95%;z-index:1;filter:drop-shadow(0 4px 10px #001a2488)}
+.xmas26-tree.tree-left{left:0;transform:scale(.86);transform-origin:bottom}
+.xmas26-tree.tree-right{right:0}
+.xmas26-snowbank{position:absolute;bottom:0;left:0;right:0;height:16%;border-radius:50%;background:linear-gradient(#d8f4ff,#92cbe8);opacity:.68}
+.xmas26-calendar .pup-advent{background:radial-gradient(ellipse at 90% 0%,#6f8ebc4d,transparent 43%),linear-gradient(155deg,#1a3346e8,#181e32f2)}
+.xmas26-side .xmas26-panel:first-child{border-color:#dd96b8;background:radial-gradient(ellipse at 90% 5%,#cd73914a,transparent 70%),#35283d}
+.xmas26-stats div,.xmas26-panel,.xmas26-collection{box-shadow:0 8px 20px #0003;background:linear-gradient(145deg,#1b3448,#18273a)}
+@media(max-width:760px){.xmas26-page[data-winter-decor=true]{padding-top:28px}.xmas26-hero{grid-template-columns:minmax(0,1fr);gap:8px}.xmas26-hero-scene{min-height:172px;max-height:210px}.xmas26-hero-scene .puppy-artwork{max-height:165px!important;width:57%!important}.xmas26-tree{width:32%;max-height:100%}.xmas26-tree.tree-left{left:6%}.xmas26-tree.tree-right{right:6%}.xmas26-lights i:nth-child(2n){display:none}}
+@media(prefers-reduced-motion:reduce){.xmas26-snow-layer{animation:none!important}}
+html[data-puppy-reduced-motion="true"] .xmas26-snow-layer{animation:none!important}
