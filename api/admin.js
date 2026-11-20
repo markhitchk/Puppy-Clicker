@@ -1,5 +1,6 @@
 import {publicAvatarUrl} from "./_lib/publicAvatar.js";
 import {detectNetworkRisk} from "./_lib/networkRisk.js";
+import {isEventSetting,normalizeEventSettings} from "../supabase/functions/_shared/event-settings.js";
 import {validatePrivacyReview} from "./_lib/privacyReview.js";
 import {checkWebPupEye,WebPupEyeError} from './_lib/webPupEye.js';
 import {createClient} from "@supabase/supabase-js";
@@ -176,6 +177,21 @@ async function playerNames(db,ids){
 }
 export async function action(db,actor,body) {
   const type=body?.action;
+  if (type==="event-settings"){
+    const settings=normalizeEventSettings(ensure(await db.rpc("pup_event_settings_public")));
+    if(!settings)throw new AdminError(503,"EVENT_SETTINGS_UNAVAILABLE");
+    return {settings};
+  }
+  if(type==="event-setting-update"){
+    if(!isEventSetting(body.eventId)||typeof body.enabled!=="boolean")throw new AdminError(400,"INVALID_EVENT_SETTING");
+    if(!isStaff(actor.role))throw new AdminError(403,"STAFF_ACCESS_REQUIRED");
+    const row=ensure(await db.from("pup_event_settings").update({enabled:body.enabled}).eq("event_id",body.eventId).select("event_id,enabled").maybeSingle());
+    if(!row)throw new AdminError(503,"EVENT_SETTINGS_UNAVAILABLE");
+    await audit(db,actor,actor.player.id,"WEB_EVENT_SETTING_CHANGED",{eventId:row.event_id,enabled:row.enabled});
+    const settings=normalizeEventSettings(ensure(await db.rpc("pup_event_settings_public")));
+    if(!settings)throw new AdminError(503,"EVENT_SETTINGS_UNAVAILABLE");
+    return {settings};
+  }
   if (type==="staff-info") return {role:actor.role,username:actor.player.username,playerUuid:actor.player.id};
   if (type==="users") {
     const listed=await users(db,body.search);

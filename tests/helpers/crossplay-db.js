@@ -1,4 +1,4 @@
-export function crossplayDb(save, {owner=true, race=false, webOnly=false}={}) {
+export function crossplayDb(save, {owner=true, race=false, webOnly=false,eventSettings={all_events:true,christmas_2026:true,winter_effects:true}}={}) {
  const account={id:'account',player_uuid:'player',
   active_installation_uuid:webOnly?null:'install',origin_platform:webOnly?'web':'android'};
  let row=save?{player_uuid:'player',account_uuid:'account',revision:1,save_data:structuredClone(save),
@@ -6,6 +6,7 @@ export function crossplayDb(save, {owner=true, race=false, webOnly=false}={}) {
  let writes=0;
  const receipts=new Map();
  const admin={async rpc(name,args){
+   if(name==='pup_event_settings_public')return {data:eventSettings,error:null};
   // Mirror the existing server-owned PupEye RPC contract in isolated gameplay
   // tests. A clean fair-play status must not increment gameplay write counts.
   if(name==='pupeye_web_fairplay_status'||name==='pupeye_web_fairplay_record'){

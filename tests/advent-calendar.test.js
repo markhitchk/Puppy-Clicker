@@ -57,3 +57,11 @@ test('future and closed doors refuse claims, including forged client timestamps'
  await assert.rejects(claim(db,'2026-12-01',undefined),{message:'PUP_OPERATION_ID_INVALID'});
  assert.equal(db.writes(),0);
 });
+
+test('administrative event switches reject new Advent claims without altering balances',async t=>{
+ t.mock.method(Date,'now',()=>ADVENT_START);
+ for(const eventSettings of [{all_events:false,christmas_2026:true,winter_effects:true},{all_events:true,christmas_2026:false,winter_effects:true}]){
+  const db=crossplayDb(newBetaKotlinSave(),{webOnly:true,eventSettings});
+  await assert.rejects(claim(db,'2026-12-01','11111111-1111-4111-8111-111111111111'),{message:'ADVENT_DISABLED'});assert.equal(db.writes(),0);
+ }
+});

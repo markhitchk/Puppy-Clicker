@@ -20,7 +20,7 @@ export function describeDevice(userAgent=''){
 const titles={
  WEB_CONSOLE_OPENED:'Staff console opened',WEB_USERS_VIEW:'Account directory viewed',
  WEB_BANS_VIEW:'Restriction history viewed',WEB_AUDIT_VIEW:'Audit log viewed',
- WEB_ROLE_CHANGED:'Account role changed',WEB_BAN_CREATED:'Account banned',
+ WEB_EVENT_SETTING_CHANGED:'Event setting changed',WEB_ROLE_CHANGED:'Account role changed',WEB_BAN_CREATED:'Account banned',
  WEB_SUSPENSION_CREATED:'Account suspended',WEB_BAN_REVOKED:'Restriction lifted',
  WEB_SYSTEM_PUPPY_GRANTED:'System puppy delivered',WEB_PUPPY_REQUEST_DECLINED:'Puppy request declined',
  WEB_PUPPY_REQUEST_CREATED:'Puppy requested',WEB_PROFILE_UPDATED:'Profile updated',

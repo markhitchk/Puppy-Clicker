@@ -1,4 +1,5 @@
 import {adventDay} from '../_shared/advent-calendar.js';
+import {normalizeEventSettings,christmasEnabled} from '../_shared/event-settings.js';
 import {legacyCasinoRefund,recoverLegacyCasino} from "./legacyCasinoRecovery.ts";
 import {createHash} from "node:crypto";
 import {applyBetaLiveGameplay} from "../_shared/beta-live-gameplay.ts";
@@ -154,7 +155,13 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
  if(/^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent.type)&&
     current.save_data?.stores?.puppy_clicker_save?.values?.casino_active_round_v1)
   reject(409,"PUP_CASINO_ANDROID_ROUND_PENDING");
- const puppyReward = intent.type==="claimFreeTest" || /^(gacha$|slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent.type);
+ if(intent.type==="claimAdvent"){
+   const {data,error}=await admin.rpc("pup_event_settings_public");
+   const settings=normalizeEventSettings(data);
+   if(error||!settings)reject(503,"EVENT_SETTINGS_UNAVAILABLE");
+   if(!christmasEnabled(settings))reject(409,"ADVENT_DISABLED");
+  }
+  const puppyReward = intent.type==="claimFreeTest" || /^(gacha$|slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent.type);
  let catalog = [];
  let catalogVersion = null;
  if (puppyReward) {
