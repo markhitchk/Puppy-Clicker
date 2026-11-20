@@ -1,14 +1,65 @@
-@media(max-width:440px){
- html [data-testid="puppy-roster-grid"]{gap:9px!important}
- html .play-pupdex-card .meet-puppy-art{height:154px;padding:7px}
- html .play-pupdex-card .meet-puppy-body{padding:11px;gap:8px}
- html .play-pupdex-card .meet-puppy-body h3{font-size:15px}
- html .play-pupdex-card .play-pupdex-actions{gap:6px}
- html .play-pupdex-card .play-pupdex-actions button{min-height:42px;font-size:11px;padding:8px 5px}
- html .play-pupdex-card .meet-puppy-badge{font-size:9px;padding:5px 6px}}
+/* Compact in-game roster only. Public PupDex and inventory retain their own styles. */
+html [data-testid="puppy-roster-grid"]{
+ grid-template-columns:repeat(3,minmax(0,1fr));gap:10px!important;
+}
+@media(max-width:600px){
+ html [data-testid="puppy-roster-grid"]{
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;
+ }
+ html .play-pupdex-card.meet-puppy-card{border-radius:16px}
+ html .play-pupdex-card .play-pupdex-card-content{position:relative}
+ html .play-pupdex-card .meet-puppy-art{
+  box-sizing:border-box;height:clamp(122px,34vw,176px);padding:28px 6px 5px;
+ }
+ html .play-pupdex-card .meet-puppy-art .puppy-artwork{
+  max-width:100%;max-height:100%;object-fit:contain;
+ }
+ html .play-pupdex-card .meet-puppy-group{
+  top:7px;left:7px;right:auto;max-width:calc(100% - 60px);
+  font-size:10px;line-height:1.2;padding:4px 6px;white-space:normal;
+ }
+ html .play-pupdex-card .meet-puppy-body{
+  padding:8px;gap:6px;
+ }
+ html .play-pupdex-card .meet-puppy-body h3{
+  font-size:15px;line-height:1.2;margin:0;
+ }
+ /* Asset ID and unlock method remain in the puppy detail dialog. */
+ html .play-pupdex-card .play-pupdex-asset-id,
+ html .play-pupdex-card .meet-puppy-badges>.meet-puppy-badge:nth-child(2){display:none}
+ html .play-pupdex-card .meet-puppy-badges{
+  flex:0 0 auto;gap:4px;align-items:center;
+ }
+ html .play-pupdex-card .meet-puppy-badge{
+  font-size:10px;line-height:1.2;padding:4px 5px;
+ }
+ html .play-pupdex-card .play-pupdex-actions{
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:auto;
+ }
+ html .play-pupdex-card .play-pupdex-actions button{
+  min-height:44px;padding:5px 3px;font-size:11px;line-height:1.15;border-radius:9px;
+ }
+ html .play-pupdex-card .play-pupdex-actions .play-pupdex-details{
+  grid-column:auto;margin:0;align-items:center;gap:0;
+ }
+ html .play-pupdex-card .play-pupdex-details span{display:none}
+ html .play-pupdex-card .play-pupdex-actions:not(:has(.play-pupdex-use)) .play-pupdex-details{
+  grid-column:1/-1;
+ }
+ html .play-pupdex-card .play-pupdex-actions .play-pupdex-favorite{
+  position:absolute;top:4px;right:4px;z-index:4;
+  width:44px;height:44px;min-height:44px;padding:0;border:0;border-radius:50%;
+  display:grid;place-items:center;font-size:0;
+  background:transparent;color:#e4efff;line-height:1;
+ }
+ html .play-pupdex-card .play-pupdex-favorite::before{content:"♡";font-size:25px}
+ html .play-pupdex-card .play-pupdex-favorite[aria-pressed="true"]{color:#ff9cc4;background:#512b40}
+ html .play-pupdex-card .play-pupdex-favorite[aria-pressed="true"]::before{content:"♥"}
+ html .play-pupdex-card .play-pupdex-favorite:disabled{display:none}
+ html .play-pupdex-card .play-pupdex-retry{grid-column:1/-1}
+}
 @media(max-width:350px){
- html .play-pupdex-card .play-pupdex-actions{grid-template-columns:1fr}
- html .play-pupdex-card .play-pupdex-actions button{grid-column:1/-1}}
-[data-testid=puppy-roster-grid]{grid-template-columns:repeat(3,minmax(0,1fr))}
-@media(max-width:500px){
- [data-testid=puppy-roster-grid]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+ html .play-pupdex-card .meet-puppy-body{padding:6px}
+ html .play-pupdex-card .play-pupdex-actions button{font-size:10px}
+ html .play-pupdex-card .meet-puppy-badge{font-size:9px}
+}
