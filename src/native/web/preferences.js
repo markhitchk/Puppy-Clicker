@@ -17,12 +17,26 @@ export function isMobilePointerEnvironment(environment=globalThis){
   || /Android|iPhone|iPad|iPod|Mobile/i.test(agent)
   || Boolean(environment?.matchMedia?.('(pointer: coarse)')?.matches);
 }
-export function effectivePointerSize(preferences){
- return preferences?.puppyPointerSizeMode==='custom'&&POINTER_SIZE_STEPS.includes(preferences?.puppyPointerCustomSize)
-  ?preferences.puppyPointerCustomSize:SYSTEM_LIKE_POINTER_SIZE;
+// Android browsers can apply display-density scaling to image cursors. Stay
+// conservatively within a 128 physical-pixel bitmap budget, and never exceed
+// 64 logical pixels on Android. This is a compatibility policy, not a claim
+// that the browser exposes its native cursor limits.
+export function pointerSizeLimit(environment=globalThis){
+ const nav=environment?.navigator;
+ const android=/Android/i.test(nav?.userAgentData?.platform??'')||/Android/i.test(nav?.userAgent??'');
+ if(!android)return 96;
+ const raw=Number(environment?.devicePixelRatio);
+ const density=Number.isFinite(raw)&&raw>0?Math.max(1,raw):1;
+ const budget=Math.min(64,128/density);
+ return POINTER_SIZE_STEPS.filter(size=>size<=budget).at(-1)??24;
 }
-export function effectivePointerSizeKey(preferences){
- return preferences?.puppyPointerSizeMode==='custom'?'custom-'+effectivePointerSize(preferences):'system';
+export function effectivePointerSize(preferences,environment=globalThis){
+ const requested=preferences?.puppyPointerSizeMode==='custom'&&POINTER_SIZE_STEPS.includes(preferences?.puppyPointerCustomSize)
+  ?preferences.puppyPointerCustomSize:SYSTEM_LIKE_POINTER_SIZE;
+ return Math.min(requested,pointerSizeLimit(environment));
+}
+export function effectivePointerSizeKey(preferences,environment=globalThis){
+ return preferences?.puppyPointerSizeMode==='custom'?'custom-'+effectivePointerSize(preferences,environment):'system';
 }
 
 export const POINTER_THEMES=Object.freeze(['auto','dark','light']);

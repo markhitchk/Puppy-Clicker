@@ -3,7 +3,7 @@ import LanguagePicker from './LanguagePicker.jsx';
 import {CookiePrivacySettings} from './privacy/CookieConsent.jsx';
 import {ACCENT_PRESETS} from './native/src/engine/settings.js';
 import {
- WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,pointerThemeFor,effectivePointerSize,
+ WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,pointerThemeFor,effectivePointerSize,pointerSizeLimit,
  loadWebPreferences,saveWebPreferences,updateWebPreference
 } from './native/web/preferences.js';
 import {GRAPHICS_BACKENDS} from './graphics/graphicsCapabilities.js';
@@ -41,6 +41,8 @@ function graphicsSupport(){
 }
 export default function BrowserSettings(){
  const [prefs,setPrefs]=useState(()=>loadWebPreferences());
+ const [pointerLimit,setPointerLimit]=useState(()=>pointerSizeLimit());
+ useEffect(()=>{const update=()=>setPointerLimit(pointerSizeLimit());window.addEventListener('resize',update);return()=>window.removeEventListener('resize',update);},[]);
  const [systemDark,setSystemDark]=useState(()=>window.matchMedia('(prefers-color-scheme: dark)').matches);
  const [message,setMessage]=useState('');
  const [searchTerm,setSearchTerm]=useState('');
@@ -160,11 +162,11 @@ export default function BrowserSettings(){
      <BrowserChoices label="Pointer theme" value={prefs.puppyPointerTheme} choices={pointerThemeOptions} onChange={value=>change('puppyPointerTheme',value)}/>
      <BrowserChoices label="Pointer size" value={prefs.puppyPointerSizeMode} choices={[['system','Match system size'],['custom','Custom size']]} onChange={value=>change('puppyPointerSizeMode',value)}/>
      {prefs.puppyPointerSizeMode==='custom'?<div className="browser-pointer-size-control">
-      <label htmlFor="puppy-pointer-size">Custom pointer size <output htmlFor="puppy-pointer-size">{prefs.puppyPointerCustomSize} px</output></label>
-      <input id="puppy-pointer-size" type="range" min="24" max="96" step="8" value={prefs.puppyPointerCustomSize} onChange={event=>change('puppyPointerCustomSize',Number(event.target.value))}/>
-      <div className="browser-pointer-size-limits"><span>24 px · Small</span><span>96 px · Large</span></div>
-     </div>:<p className="browser-settings-detail" role="status">Match system size uses a standard 32 px Puppy pointer. Browsers cannot read the exact ChromeOS/Windows cursor-size setting; choose Custom size if you want to adjust it.</p>}
-     <p className="browser-settings-detail">Current Puppy pointer: <strong>{effectivePointerSize(prefs)} px</strong>. Size is separate from Interface size.</p>
+      <label htmlFor="puppy-pointer-size">Custom pointer size <output htmlFor="puppy-pointer-size">{effectivePointerSize(prefs)} px</output></label>
+      <input id="puppy-pointer-size" type="range" min="24" max={pointerLimit} step="8" value={effectivePointerSize(prefs)} onChange={event=>change('puppyPointerCustomSize',Number(event.target.value))}/>
+      <div className="browser-pointer-size-limits"><span>24 px · Small</span><span>{pointerLimit} px · Large</span></div>
+     </div>:<p className="browser-settings-detail" role="status">Match system size uses a standard 32 px Puppy pointer (or the safe device limit). Browsers cannot read the exact operating-system pointer size.</p>}
+     <p className="browser-settings-detail">Current Puppy pointer: <strong>{effectivePointerSize(prefs)} px</strong>. Size is separate from Interface size.</p>\n     {pointerLimit<96?<p className="browser-settings-detail" role="status">Android compatibility: this display supports a conservative Puppy pointer range of 24–{pointerLimit} px. Larger saved preferences are limited on this device without changing your saved choice.</p>:null}
      <div className="browser-pointer-preview" data-cursor-theme={pointerThemeFor(prefs,systemDark)} aria-label="Puppy pointer theme preview">
       <strong>Preview · {pointerThemeFor(prefs,systemDark)==='dark'?'Dark cursor':'Light cursor'}</strong>
       <div className="browser-pointer-preview-grid">
@@ -176,7 +178,7 @@ export default function BrowserSettings(){
          <span className="browser-pointer-preview-label">{title}</span>
         </div>)}
       </div>
-      <small>Preview and actual cursor use the same original Puppy artwork. Some browsers restrict larger custom cursors; the same 32 px themed Puppy pointer is the first fallback, then the system pointer.</small>
+      <small>Preview and actual cursor use the same original Puppy artwork. Some browsers restrict larger custom cursors; a small themed Puppy pointer is the first fallback, then the system pointer.</small>
      </div>
      <button className="browser-settings-action secondary" type="button" onClick={()=>{
       const next={...prefs,puppyPointerTheme:WEB_PREFERENCE_DEFAULTS.puppyPointerTheme,puppyPointerClickHighlight:WEB_PREFERENCE_DEFAULTS.puppyPointerClickHighlight,puppyPointerSizeMode:WEB_PREFERENCE_DEFAULTS.puppyPointerSizeMode,puppyPointerCustomSize:WEB_PREFERENCE_DEFAULTS.puppyPointerCustomSize};

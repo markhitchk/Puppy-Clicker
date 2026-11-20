@@ -9,7 +9,7 @@ import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
 import RarityAdmin from './RarityAdmin.jsx';
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
-import {loadWebPreferences,pointerThemeFor,effectivePointerSize,effectivePointerSizeKey,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
+import {loadWebPreferences,pointerThemeFor,effectivePointerSize,effectivePointerSizeKey,pointerSizeLimit,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
 import {beginPuppyDiscord,verifyPuppySession,puppyAuthMessage} from "./native/web/puppyOAuth.js";
 import {DISCORD_ICON_URL} from "./discordIcon.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
@@ -541,10 +541,12 @@ export default function App(){
   // Touchscreens can retain :hover after a tap (including when a mouse is
   // connected). Only enable the custom pointer for actual mouse/pen input.
   root.dataset.puppyCursorInput=primaryMouse.matches?'mouse':'touch';
+  let cursorSignature='';
+  const setCursorInput=input=>{if(root.dataset.puppyCursorInput!==input)root.dataset.puppyCursorInput=input;};
   const pointerInput=event=>{
-   if(event.pointerType==='touch')root.dataset.puppyCursorInput='touch';
+   if(event.pointerType==='touch')setCursorInput('touch');
    else if(event.pointerType==='mouse'||event.pointerType==='pen')
-    root.dataset.puppyCursorInput='mouse';
+    setCursorInput('mouse');
   };
   const pointerMovement=event=>{
    if(event.pointerType==='mouse'||event.pointerType==='pen')
@@ -560,9 +562,20 @@ export default function App(){
    root.dataset.puppyCursorSize=effectivePointerSizeKey(prefs);
    // Cursor URL dimensions cannot be changed with CSS width/height.
    // Each slider step has a real PNG generated from the original Puppy pack.
-   for(const [property,state,fallback] of puppyCursorVariants){
-    const hotspot=Math.floor(cursorSize/4); // canonical Android 16/64 hotspot
-    root.style.setProperty(property,`url('/assets/pointers/themes/puppy_pointer_${cursorTheme}_${state}_${cursorSize}.png') ${hotspot} ${hotspot}, url('/assets/pointers/themes/puppy_pointer_${cursorTheme}_${state}_32.png') 8 8, ${fallback}`);
+   const fallbackSize=Math.min(32,pointerSizeLimit());
+   const signature=cursorTheme+':'+cursorSize+':'+fallbackSize;
+   if(signature!==cursorSignature){
+    cursorSignature=signature;
+    for(const [property,state,fallback] of puppyCursorVariants){
+     const hotspot=Math.floor(cursorSize/4); // canonical Android 16/64 hotspot
+     const fallbackHotspot=Math.floor(fallbackSize/4);
+     const source=`/assets/pointers/themes/puppy_pointer_${cursorTheme}_${state}_${cursorSize}.png`;
+     const fallbackSource=`/assets/pointers/themes/puppy_pointer_${cursorTheme}_${state}_${fallbackSize}.png`;
+     // Warm every state once per size/theme change, not on each mouse movement.
+     if(pointerSizeLimit()<96){const img=new Image();img.src=source;}
+     const fallbackImage=cursorSize===fallbackSize?'':`url('${fallbackSource}') ${fallbackHotspot} ${fallbackHotspot}, `;
+     root.style.setProperty(property,`url('${source}') ${hotspot} ${hotspot}, ${fallbackImage}${fallback}`);
+    }
    }
    root.dataset.puppyPointerHalo=prefs.puppyPointerClickHighlight&&!prefs.reducedMotion?'enabled':'disabled';
    root.dataset.puppyTheme=dark?'dark':'light';
@@ -593,6 +606,7 @@ export default function App(){
   window.addEventListener('storage',syncSiteAppearance);
   systemTheme.addEventListener('change',syncSiteAppearance);
   mobilePointer.addEventListener('change',syncSiteAppearance);
+  window.addEventListener('resize',syncSiteAppearance);
   window.addEventListener('pointerdown',pointerInput,{passive:true});
   window.addEventListener('pointermove',pointerMovement,{passive:true});
   window.addEventListener('pointerover',pointerMovement,{passive:true});
@@ -601,6 +615,7 @@ export default function App(){
    window.removeEventListener('storage',syncSiteAppearance);
    systemTheme.removeEventListener('change',syncSiteAppearance);
    mobilePointer.removeEventListener('change',syncSiteAppearance);
+   window.removeEventListener('resize',syncSiteAppearance);
    window.removeEventListener('pointerdown',pointerInput);
    window.removeEventListener('pointermove',pointerMovement);
    window.removeEventListener('pointerover',pointerMovement);

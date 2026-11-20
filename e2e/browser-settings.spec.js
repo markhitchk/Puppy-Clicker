@@ -287,3 +287,31 @@ test('hybrid ChromeOS touchscreen and trackpad layout does not place panels on t
   }
  }finally{await context.close();}
 });
+
+test('Android high-density cursor slider, gallery and rendered cursor agree',async({browser})=>{
+ const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2.8125,isMobile:true,hasTouch:true,userAgent:'Mozilla/5.0 (Linux; Android 17; SM-A176U1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36'});
+ try{
+  const page=await context.newPage();
+  await page.addInitScript(()=>{
+   localStorage.setItem('puppy-clicker:cookie-choice:v1',JSON.stringify({version:1,essential:true,functional:true,analytics:false,advertising:false,savedAt:Date.now()}));
+   localStorage.setItem('puppy-clicker:web-preferences:v1',JSON.stringify({puppyPointerEnabled:true,puppyPointerSizeMode:'custom',puppyPointerCustomSize:96,puppyPointerTheme:'dark'}));
+  });
+  await page.goto('/settings#puppy-pointer-settings');
+  const root=page.locator('html'),slider=page.locator('#puppy-pointer-size');
+  await expect(slider).toHaveAttribute('max','40');
+  await expect(slider).toHaveValue('40');
+  await expect(root).toHaveAttribute('data-puppy-cursor-size','custom-40');
+  await expect(page.locator('.browser-pointer-preview img').first()).toHaveAttribute('src','/assets/pointers/themes/puppy_pointer_dark_default_40.png');
+  await page.evaluate(()=>document.body.dispatchEvent(new PointerEvent('pointermove',{pointerType:'mouse',bubbles:true})));
+  await expect(root).toHaveAttribute('data-puppy-cursor-input','mouse');
+  expect(await page.locator('body').evaluate(node=>getComputedStyle(node).cursor)).toContain('puppy_pointer_dark_default_40.png');
+  await page.evaluate(()=>document.body.dispatchEvent(new PointerEvent('pointerdown',{pointerType:'touch',bubbles:true})));
+  await expect(root).toHaveAttribute('data-puppy-cursor-input','touch');
+  expect(await page.locator('body').evaluate(node=>getComputedStyle(node).cursor)).not.toContain('puppy_pointer_dark_default_40.png');
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('puppy-clicker:web-preferences:v1')).puppyPointerCustomSize)).toBe(96);
+  await slider.focus();await page.keyboard.press('Home');
+  await expect(slider).toHaveValue('24');
+  await expect(root).toHaveAttribute('data-puppy-cursor-size','custom-24');
+  await expect(page.locator('.browser-pointer-preview img').first()).toHaveAttribute('src','/assets/pointers/themes/puppy_pointer_dark_default_24.png');
+ }finally{await context.close();}
+});

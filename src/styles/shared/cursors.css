@@ -26,7 +26,7 @@ html[data-puppy-cursor-theme='light'] {
   --puppy-alternate: url('/assets/pointers/puppy_pointer_light_alternate.png') 16 16, auto;
   --puppy-secondary: url('/assets/pointers/puppy_pointer_light_secondary.png') 16 16, auto;
 }
-@media(any-hover: hover) and (any-pointer: fine){
+@media(any-hover: hover) and (any-pointer: fine), (pointer: coarse){
  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body,
   html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body * {
     cursor: var(--puppy-current-cursor, var(--puppy-default)) !important;
@@ -67,7 +67,7 @@ html[data-puppy-cursor-theme='light'] {
 }
 
 /* Native dropdown options and disabled control descendants keep a coherent state. */
-@media(any-hover: hover) and (any-pointer: fine){
+@media(any-hover: hover) and (any-pointer: fine), (pointer: coarse){
  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where(select option,select optgroup){cursor:default!important}
  html[data-puppy-cursor='enabled']:not([data-puppy-cursor-input='touch']) body :where(:disabled,[disabled],[aria-disabled='true']) *{--puppy-current-cursor:var(--puppy-not-allowed)}
 }
