@@ -1,4 +1,5 @@
 import React,{useEffect,useState} from 'react';
+import {createPortal} from 'react-dom';
 import WebAccountGate from './native/web/AccountGate.jsx';
 import {useGame} from './native/src/state/useGame.js';
 import WebAdventCalendar from './native/web/WebAdventCalendar.jsx';
@@ -25,11 +26,21 @@ function ChristmasTree({className}){
   <rect x="116" y="187" width="34" height="19" rx="3" fill="#467ea6"/><path d="M130 187h6v19" stroke="#c1f5ff" strokeWidth="4"/>
  </svg>;
 }
+// Fixed viewport overlay bypasses scroll containers and stacking contexts.
+const snowFlakes=Array.from({length:42},(_,i)=>({
+ left:((i*37+13)%101)+'%',size:3+(i%5),duration:7+(i*3%10),
+ delay:-(i*19%170)/10,drift:(i%2?1:-1)*(14+i%22),opacity:.46+(i%5)*.12
+}));
+export function WinterSnow({sitewide=false}){
+ if(typeof document==='undefined')return null;
+ return createPortal(<div className={'xmas26-snow-overlay'+(sitewide?' sitewide':'')} aria-hidden="true" data-testid="winter-snow">
+  {[0,1].map(layer=><div key={layer} className={'xmas26-snow-layer'+(layer?' xmas26-snow-layer-b':'')}>{snowFlakes.slice(layer*21,(layer+1)*21).map((f,i)=><span key={i} className="xmas26-flake" style={{left:f.left,width:f.size,height:f.size,'--flake-duration':f.duration+'s','--flake-delay':f.delay+'s','--flake-drift':f.drift+'px','--flake-opacity':f.opacity}}/>)}</div>)}
+ </div>,document.body);
+}
 function WinterDecor(){
- return <div className="xmas26-decor" aria-hidden="true">
-  <div className="xmas26-snow-layer"/><div className="xmas26-snow-layer xmas26-snow-layer-b"/>
+ return <><WinterSnow/><div className="xmas26-decor" aria-hidden="true">
   <div className="xmas26-lights">{Array.from({length:24},(_,i)=><i key={i} style={{'--light-color':['#ff9ab0','#fce5a0','#9be8ff','#a8edc6'][i%4]}}/>)}</div>
- </div>;
+ </div></>;
 }
 function useClock(){
  const [clock,setClock]=useState(Date.now);
@@ -75,14 +86,14 @@ export default function Christmas2026(){
    <header className="xmas26-hero">
     <div className="xmas26-hero-copy">
      <span className="xmas26-kicker">PUPPY CLICKER · SEASONAL EVENT</span>
-     <h1>Santa Paws<br/>Christmas 2026</h1>
-     <p>December 1–25 · 25 days of treats, gifts and festive puppies.</p>
+     <h1>Santa Paws Christmas 2026</h1>
+     <p>December 1–25 · 25 festive gifts</p>
      <div className="xmas26-actions">
-      <button className="xmas26-primary" type="button" onClick={()=>document.getElementById('xmas26-calendar')?.scrollIntoView({block:'start'})}>🎁 Advent Calendar</button>
+      <button className="xmas26-primary" type="button" onClick={()=>document.getElementById('xmas26-calendar')?.scrollIntoView({block:'start'})}>🎁 Calendar</button>
       <button className="xmas26-secondary" type="button" onClick={()=>setDecor(v=>!v)} aria-pressed={decor}>{decor?'❄ Hide winter effects':'❄ Show winter effects'}</button>
      </div>
     </div>
-    <div className="xmas26-hero-scene">{decor&&<><ChristmasTree className="xmas26-tree tree-left"/><ChristmasTree className="xmas26-tree tree-right"/><span className="xmas26-snowbank" aria-hidden="true"/></>}<PuppyArtwork id="santa" name="Santa Paws" uri="/assets/transparent/v1/v1_santa.png" size={240}/></div>
+    <div className="xmas26-hero-scene">{decor&&<><ChristmasTree className="xmas26-tree tree-left"/><ChristmasTree className="xmas26-tree tree-right"/><span className="xmas26-snowbank" aria-hidden="true"/></>}<PuppyArtwork id="santa" name="Santa Paws" uri="/assets/transparent/v1/v1_santa.png" size={100}/></div>
    </header>
    <section className="xmas26-stats" aria-label="Event rewards">
     <div><strong>25</strong><span>Gift doors</span></div>
