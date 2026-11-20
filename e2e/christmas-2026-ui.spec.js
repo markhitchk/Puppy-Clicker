@@ -7,7 +7,10 @@ for(const width of [320,360,412,1366]){
   const hub=page.locator('.xmas26-page');
   await expect(hub.getByRole('heading',{name:'Santa Paws Christmas 2026'})).toBeVisible();
   await expect(hub.locator('.xmas26-tree')).toHaveCount(2);
-  await expect(hub.locator('.xmas26-snow-layer')).toHaveCount(2);
+  await expect(page.locator('.xmas26-flake')).toHaveCount(42);
+  await expect(page.locator('.xmas26-snow-overlay')).toHaveCSS('position','fixed');
+  expect((await hub.locator('.xmas26-hero').boundingBox()).height).toBeLessThan(215);
+  await expect(page.locator('.xmas26-snow-overlay .xmas26-snow-layer')).toHaveCount(2);
   await expect(hub.locator('.pup-advent-door')).toHaveCount(25);
   await expect(hub.locator('.pup-advent-door svg')).toHaveCount(25);
   await expect(hub.locator('.pup-advent-door.finale')).toHaveCount(1);
@@ -21,7 +24,7 @@ for(const width of [320,360,412,1366]){
   await dialog.getByRole('button',{name:'Close gift details'}).click();
   await expect(dialog).toHaveCount(0);
   await hub.getByRole('button',{name:/Hide winter effects/}).click();
-  await expect(hub.locator('.xmas26-snow-layer')).toHaveCount(0);
+  await expect(page.locator('.xmas26-snow-overlay .xmas26-snow-layer')).toHaveCount(0);
   await expect(hub.locator('.xmas26-tree')).toHaveCount(0);
   await hub.getByRole('button',{name:/Show winter effects/}).click();
   await expect(hub.locator('.xmas26-tree')).toHaveCount(2);
