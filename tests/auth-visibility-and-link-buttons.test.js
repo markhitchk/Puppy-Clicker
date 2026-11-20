@@ -26,10 +26,15 @@ test('all website password flows share the same visibility widget',()=>{
  assert.match(css,/\.pup-password-field>\.pup-password-visibility/);
 });
 
-test('remaining website text links use action-shaped anchors; footer is not buttonified',()=>{
+test('remaining website text links use action-shaped anchors; footer only has logo modal controls',()=>{
  const paths=['src/CommunityChat.jsx','src/DiscordSignupForm.jsx','src/AdminPortal.jsx','src/AdminChat.jsx','src/PupEyePages.jsx','src/InventoryScreen.jsx','src/LegalReader.jsx','src/SiteAccountMenu.jsx','src/native/web/AccountGate.jsx'];
  for(const p of paths)assert.match(read(p),/pup-link-button/,p);
  const homepage=read('src/App.jsx');
  const footer=homepage.slice(homepage.indexOf('<footer className="site-footer"'),homepage.indexOf('</footer>',homepage.indexOf('<footer className="site-footer"')));
- assert.doesNotMatch(footer,/<a\b|<button\b/);
+ assert.doesNotMatch(footer,/<a\b/);
+ assert.equal((footer.match(/<button\b/g)||[]).length,2,'only brandmark and modal close controls');
+ assert.match(footer,/FOOTER_BRANDS\.map/);
+ assert.match(footer,/aria-haspopup="dialog"/);
+ assert.match(footer,/<dialog\b/);
+ assert.match(footer,/site-footer-logo-close/);
 });
