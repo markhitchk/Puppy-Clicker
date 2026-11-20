@@ -120,7 +120,7 @@ export function transition(state,action){
    if(!validBirthday(action.month,action.day))return {...state,notice:'Choose a valid month and day or skip'};
    g.birthdayMonth=action.month;g.birthdayDay=action.day;break;
   case 'setPreference':{
-   const value=preferenceValue(action.name,action.value);
+   const value=action.name==='seasonalTheme'&&['default','winter'].includes(action.value)?action.value:preferenceValue(action.name,action.value);
    if(value===undefined)return no();
    g[action.name]=value;
    break;
