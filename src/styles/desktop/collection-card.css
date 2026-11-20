@@ -1,0 +1,10 @@
+html .meet-puppy-card.collection-card[data-rarity] .meet-puppy-art{
+ height:clamp(148px,15vw,205px);padding:24px 10px 8px;
+}
+html .meet-puppy-card.collection-card[data-rarity] .meet-puppy-body{
+ padding:12px;gap:8px;
+}
+html .meet-puppy-card.collection-card[data-rarity] .meet-puppy-body h3{
+ font-size:17px;
+}
+html .meet-puppy-card.collection-card[data-rarity] .meet-puppy-badge{font-size:11px}
