@@ -14,7 +14,7 @@ function transparentArt(puppy){
 const groupFor=puppy=>puppy.groupTitle||'Puppies';
 
 export function WebPlayPupDexCard({puppy,name,owned,current,favorite,onInspect,artVersion=0}){
- return <PuppyCollectionCard puppy={puppy} name={name} image={transparentArt(puppy)}
+ return <PuppyCollectionCard area="roster" puppy={puppy} name={name} image={transparentArt(puppy)}
   group={groupFor(puppy)} rarity={puppy.rarity} unlock={puppy.rarity?unlockText(puppy):'Owned from an earlier version'}
   statuses={[{text:current?'Current':owned?'Unlocked':'🔒 Locked',className:current?'meet-puppy-badge-status play-pupdex-current':owned?'meet-puppy-badge-status':'play-pupdex-locked'}]}
   favorite={favorite} artVersion={artVersion} cardClass="play-pupdex-card" contentClass="play-pupdex-card-content"
