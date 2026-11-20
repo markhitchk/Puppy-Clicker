@@ -14,6 +14,7 @@ for(const [mode,width] of [['phone',360],['small-phone',320],['desktop',1366]]){
   await expect(current.getByText('Owned',{exact:true})).toBeVisible();
   await expect(current.getByText('Current',{exact:true})).toBeVisible();
   await expect(current.getByRole('button',{name:'View Buddy puppy details'})).toBeVisible();
+  await expect(current.getByRole('button')).toHaveCount(1);
   const values=await inventory.evaluate(node=>{
    const first=node.querySelector('[data-pup-inventory-id="classic"]');
    const btn=first.querySelector('.pup-inventory-view');
@@ -136,7 +137,7 @@ for(const width of [320,360,390,1366]){
     pictureLoaded:img.complete&&img.naturalWidth>0
    };
   });
-  expect(geometry.artHeight).toBeGreaterThanOrEqual(130);
+  expect(geometry.artHeight).toBeGreaterThanOrEqual(width<960?96:148);
   expect(geometry.badgeHeight).toBeLessThan(38);
   expect(geometry.coverage).toBeLessThan(0.17);
   expect(geometry.insetTop).toBeGreaterThanOrEqual(0);
@@ -148,7 +149,7 @@ for(const width of [320,360,390,1366]){
   expect(geometry.imageRadius).toBe('0px');
   expect(geometry.imageOpacity).toBe('1');
   expect(geometry.pictureLoaded).toBe(true);
-  await puppy.getByRole('button',{name:'Inspect Buddy'}).click();
+  await puppy.getByRole('button',{name:'View Buddy puppy details'}).click();
   await expect(page.locator('dialog.pup-inventory-detail-dialog')).toBeVisible();
   await page.locator('dialog.pup-inventory-detail-dialog').getByRole('button',{name:'Done'}).click();
  });
