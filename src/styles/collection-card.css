@@ -52,3 +52,9 @@ html .collection-card a.collection-card-content:focus-visible{
 }
 html .meet-puppy-card.collection-card[data-rarity]:active{transform:none}
 html .collection-card[data-current="true"]{border-color:#59bda0}
+
+html .collection-details .collection-rename-input{
+ display:block;box-sizing:border-box;width:100%;min-height:44px;margin-top:8px;
+ padding:10px;border-radius:12px;border:1px solid #527991;background:#0e2534;color:#f4fbff;font:inherit;
+}
+html .collection-details button:disabled{opacity:.5;cursor:not-allowed}
