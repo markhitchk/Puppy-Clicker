@@ -9,7 +9,7 @@ import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
 import RarityAdmin from './RarityAdmin.jsx';
 import WebAccountGate,{useWebAccount} from "./native/web/AccountGate.jsx";
-import {loadWebPreferences,pointerThemeFor,effectivePointerSize,effectivePointerSizeKey,pointerSizeLimit,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
+import {loadWebPreferences,pointerThemeFor,effectivePointerSize,effectivePointerSizeKey,pointerSizeLimit,isAndroidPointerEnvironment,WEB_PREFERENCES_CHANGED} from "./native/web/preferences.js";
 import {beginPuppyDiscord,verifyPuppySession,puppyAuthMessage} from "./native/web/puppyOAuth.js";
 import {DISCORD_ICON_URL} from "./discordIcon.js";
 import AndroidAppBanner from "./AndroidAppBanner.jsx";
@@ -550,7 +550,7 @@ export default function App(){
   };
   const pointerMovement=event=>{
    if(event.pointerType==='mouse'||event.pointerType==='pen')
-    root.dataset.puppyCursorInput='mouse';
+    setCursorInput('mouse');
   };
   const syncSiteAppearance=event=>{
    const prefs={...loadWebPreferences(),...(event?.detail??{})};
@@ -562,7 +562,7 @@ export default function App(){
    root.dataset.puppyCursorSize=effectivePointerSizeKey(prefs);
    // Cursor URL dimensions cannot be changed with CSS width/height.
    // Each slider step has a real PNG generated from the original Puppy pack.
-   const fallbackSize=Math.min(32,pointerSizeLimit());
+   const fallbackSize=isAndroidPointerEnvironment()?cursorSize:Math.min(32,pointerSizeLimit());
    const signature=cursorTheme+':'+cursorSize+':'+fallbackSize;
    if(signature!==cursorSignature){
     cursorSignature=signature;

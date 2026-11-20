@@ -95,20 +95,20 @@ test('system-size mode ignores interface size and hybrid pointer environment',as
  assert.equal(isMobilePointerEnvironment({navigator:{userAgent:'Desktop'},matchMedia:()=>({matches:false})}),false);
 });
 
-test('Android cursor compatibility limits high-density rendering without changing stored size',async()=>{
- const {pointerSizeLimit,effectivePointerSize,effectivePointerSizeKey}=await import('../src/native/web/preferences.js');
+test('Android normal cursor keeps the native Puppy canvas at every display density',async()=>{
+ const {pointerSizeLimit,effectivePointerSize,effectivePointerSizeKey,systemLikePointerSize}=await import('../src/native/web/preferences.js');
  const android=density=>({navigator:{userAgent:'Mozilla/5.0 (Linux; Android 17; SM-A176U1)'},devicePixelRatio:density});
  const custom={puppyPointerSizeMode:'custom',puppyPointerCustomSize:96};
- assert.equal(pointerSizeLimit(android(1)),64);
- assert.equal(pointerSizeLimit(android(2)),64);
- assert.equal(pointerSizeLimit(android(2.8125)),40);
- assert.equal(pointerSizeLimit(android(3)),40);
- assert.equal(pointerSizeLimit(android(4)),32);
- assert.equal(pointerSizeLimit(android(5)),24);
- assert.equal(effectivePointerSize(custom,android(2.8125)),40);
- assert.equal(effectivePointerSizeKey(custom,android(2.8125)),'custom-40');
+ for(const density of [1,2,2.8125,3,4,5]){
+  assert.equal(pointerSizeLimit(android(density)),64);
+  assert.equal(systemLikePointerSize(android(density)),64);
+  assert.equal(effectivePointerSize({puppyPointerSizeMode:'system'},android(density)),64);
+  assert.equal(effectivePointerSize(custom,android(density)),64);
+  assert.equal(effectivePointerSizeKey(custom,android(density)),'custom-64');
+  assert.equal(effectivePointerSize({...custom,puppyPointerCustomSize:40},android(density)),40);
+ }
  assert.equal(custom.puppyPointerCustomSize,96);
  assert.equal(effectivePointerSize(custom,{navigator:{userAgent:'CrOS'},devicePixelRatio:3}),96);
- assert.equal(pointerSizeLimit({navigator:{userAgentData:{platform:'Android'}},devicePixelRatio:3}),40);
- assert.equal(effectivePointerSize({puppyPointerSizeMode:'system'},android(2.8125)),32);
+ assert.equal(pointerSizeLimit({navigator:{userAgentData:{platform:'Android'}},devicePixelRatio:3}),64);
+ assert.equal(systemLikePointerSize({navigator:{userAgent:'Desktop'},devicePixelRatio:3}),32);
 });

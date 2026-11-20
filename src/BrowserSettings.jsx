@@ -3,7 +3,7 @@ import LanguagePicker from './LanguagePicker.jsx';
 import {CookiePrivacySettings} from './privacy/CookieConsent.jsx';
 import {ACCENT_PRESETS} from './native/src/engine/settings.js';
 import {
- WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,pointerThemeFor,effectivePointerSize,pointerSizeLimit,
+ WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,pointerThemeFor,effectivePointerSize,pointerSizeLimit,systemLikePointerSize,
  loadWebPreferences,saveWebPreferences,updateWebPreference
 } from './native/web/preferences.js';
 import {GRAPHICS_BACKENDS} from './graphics/graphicsCapabilities.js';
@@ -165,8 +165,9 @@ export default function BrowserSettings(){
       <label htmlFor="puppy-pointer-size">Custom pointer size <output htmlFor="puppy-pointer-size">{effectivePointerSize(prefs)} px</output></label>
       <input id="puppy-pointer-size" type="range" min="24" max={pointerLimit} step="8" value={effectivePointerSize(prefs)} onChange={event=>change('puppyPointerCustomSize',Number(event.target.value))}/>
       <div className="browser-pointer-size-limits"><span>24 px · Small</span><span>{pointerLimit} px · Large</span></div>
-     </div>:<p className="browser-settings-detail" role="status">Match system size uses a standard 32 px Puppy pointer (or the safe device limit). Browsers cannot read the exact operating-system pointer size.</p>}
-     <p className="browser-settings-detail">Current Puppy pointer: <strong>{effectivePointerSize(prefs)} px</strong>. Size is separate from Interface size.</p>\n     {pointerLimit<96?<p className="browser-settings-detail" role="status">Android compatibility: this display supports a conservative Puppy pointer range of 24–{pointerLimit} px. Larger saved preferences are limited on this device without changing your saved choice.</p>:null}
+     </div>:<p className="browser-settings-detail" role="status">Match system size uses the standard {systemLikePointerSize()} px Puppy pointer for this platform. Select System pointer for the exact operating-system cursor.</p>}
+     <p className="browser-settings-detail">Current Puppy pointer: <strong>{effectivePointerSize(prefs)} px</strong>. Size is separate from Interface size.</p>
+     {pointerLimit<96?<p className="browser-settings-detail" role="status">Android: the normal Puppy pointer uses the original 64 px Android artwork size. Custom sizes are 24–{pointerLimit} px. Display density does not shrink the pointer.</p>:null}
      <div className="browser-pointer-preview" data-cursor-theme={pointerThemeFor(prefs,systemDark)} aria-label="Puppy pointer theme preview">
       <strong>Preview · {pointerThemeFor(prefs,systemDark)==='dark'?'Dark cursor':'Light cursor'}</strong>
       <div className="browser-pointer-preview-grid">
@@ -178,7 +179,7 @@ export default function BrowserSettings(){
          <span className="browser-pointer-preview-label">{title}</span>
         </div>)}
       </div>
-      <small>Preview and actual cursor use the same original Puppy artwork. Some browsers restrict larger custom cursors; a small themed Puppy pointer is the first fallback, then the system pointer.</small>
+      <small>Preview and actual cursor use the same original Puppy artwork. If the browser cannot render the selected cursor, Android uses its native system pointer instead of a smaller Puppy image. Other platforms may use a smaller themed fallback.</small>
      </div>
      <button className="browser-settings-action secondary" type="button" onClick={()=>{
       const next={...prefs,puppyPointerTheme:WEB_PREFERENCE_DEFAULTS.puppyPointerTheme,puppyPointerClickHighlight:WEB_PREFERENCE_DEFAULTS.puppyPointerClickHighlight,puppyPointerSizeMode:WEB_PREFERENCE_DEFAULTS.puppyPointerSizeMode,puppyPointerCustomSize:WEB_PREFERENCE_DEFAULTS.puppyPointerCustomSize};

@@ -84,7 +84,7 @@ test('Puppy cursor uses the original artwork with custom size CSS variables',()=
 test("cursor hotspots match the canonical Android pack and fallback preserves artwork",()=>{
  assert.ok(app.includes("const hotspot=Math.floor(cursorSize/4)"));
  assert.ok(!app.includes("state==='precision'?Math.floor(cursorSize/2)"));
- assert.ok(app.includes("const fallbackSize=Math.min(32,pointerSizeLimit())"));
+ assert.ok(app.includes("const fallbackSize=isAndroidPointerEnvironment()?cursorSize:Math.min(32,pointerSizeLimit())"));
  assert.ok(app.includes("if(signature!==cursorSignature)"));
  assert.ok(app.includes("const fallbackHotspot=Math.floor(fallbackSize/4)"));
  assert.ok(app.includes("cursorSize===fallbackSize?'':"));

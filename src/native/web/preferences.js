@@ -17,22 +17,24 @@ export function isMobilePointerEnvironment(environment=globalThis){
   || /Android|iPhone|iPad|iPod|Mobile/i.test(agent)
   || Boolean(environment?.matchMedia?.('(pointer: coarse)')?.matches);
 }
-// Android browsers can apply display-density scaling to image cursors. Stay
-// conservatively within a 128 physical-pixel bitmap budget, and never exceed
-// 64 logical pixels on Android. This is a compatibility policy, not a claim
-// that the browser exposes its native cursor limits.
-export function pointerSizeLimit(environment=globalThis){
+// Use the original native Android Puppy pointer canvas (64×64, hotspot 16×16).
+// Do not divide its bitmap size by devicePixelRatio. Native OS cursor sizes
+// are not exposed to websites; users who need an exact system cursor can
+// choose System pointer instead of the custom Puppy artwork.
+export const ANDROID_NORMAL_POINTER_SIZE=64;
+export function isAndroidPointerEnvironment(environment=globalThis){
  const nav=environment?.navigator;
- const android=/Android/i.test(nav?.userAgentData?.platform??'')||/Android/i.test(nav?.userAgent??'');
- if(!android)return 96;
- const raw=Number(environment?.devicePixelRatio);
- const density=Number.isFinite(raw)&&raw>0?Math.max(1,raw):1;
- const budget=Math.min(64,128/density);
- return POINTER_SIZE_STEPS.filter(size=>size<=budget).at(-1)??24;
+ return /Android/i.test(nav?.userAgentData?.platform??'')||/Android/i.test(nav?.userAgent??'');
+}
+export function pointerSizeLimit(environment=globalThis){
+ return isAndroidPointerEnvironment(environment)?64:96;
+}
+export function systemLikePointerSize(environment=globalThis){
+ return isAndroidPointerEnvironment(environment)?ANDROID_NORMAL_POINTER_SIZE:SYSTEM_LIKE_POINTER_SIZE;
 }
 export function effectivePointerSize(preferences,environment=globalThis){
  const requested=preferences?.puppyPointerSizeMode==='custom'&&POINTER_SIZE_STEPS.includes(preferences?.puppyPointerCustomSize)
-  ?preferences.puppyPointerCustomSize:SYSTEM_LIKE_POINTER_SIZE;
+  ?preferences.puppyPointerCustomSize:systemLikePointerSize(environment);
  return Math.min(requested,pointerSizeLimit(environment));
 }
 export function effectivePointerSizeKey(preferences,environment=globalThis){
