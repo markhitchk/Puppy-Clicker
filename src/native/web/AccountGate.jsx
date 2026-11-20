@@ -14,7 +14,7 @@ export const useWebAccount=()=>useContext(C);
 const action={backgroundColor:"#00b8f0",padding:15,borderRadius:13,alignItems:"center",marginTop:10};
 const text={color:"#f5fcff",fontSize:14};
 
-export default function WebAccountGate({children}){
+export default function WebAccountGate({children,guestFallback=null,compact=false}){
  const recovery=globalThis.location?.pathname==="/recovery";
  const [user,setUser]=useState(null),[pupAccount,setPupAccount]=useState(null);
  const panelRef=useRef(null);
@@ -88,6 +88,7 @@ export default function WebAccountGate({children}){
   try{
    try{globalThis.sessionStorage?.setItem("puppy-web-discord-return-v1",
     recovery?"/recovery":/^\/pupeye\/status\/?$/.test(globalThis.location?.pathname||"")?"/pupeye/status":globalThis.location?.pathname?.startsWith("/account/admin")?"/account/admin":
+    /^\/26xmas\/?$/.test(globalThis.location?.pathname||"")?"/26xmas":
     ["/account","/register"].includes(globalThis.location?.pathname)?"/account":"/play");}catch{}
    const url=await beginPuppyDiscord();
    // Discord returns to /auth/discord/callback in this same browser on
@@ -118,12 +119,14 @@ export default function WebAccountGate({children}){
   <a className="pup-link-button" href={callbackLinkFailed?"/account":"/play"}>{callbackLinkFailed?"Return to your Pup Account":"Return to sign-in"}</a>
   <a className="pup-link-button" href="/recovery">Account recovery</a>
  </View>;
- if(loading)return <WebLoading stage={hasPuppyDiscordCallback()?"callback":"account"}/>;
+ if(loading)return <WebLoading compact={compact} stage={hasPuppyDiscordCallback()?"callback":"account"}/>;
  // Banned users may inspect their own standing at /pupeye/status. Other
  // protected routes and all gameplay mutations remain server-denied.
  if(user&&pupAccount?.status==="BANNED"&&!/^\/pupeye\/status\/?$/.test(globalThis.location?.pathname||""))
   return <PupAccountBanned account={pupAccount} onRefresh={()=>setStandingRefresh(n=>n+1)}
    onSignOut={()=>client.auth.signOut()}/>;
+ // Public seasonal pages may show a read-only guest preview after verification.
+ if((!user||!pupAccount)&&guestFallback!==null)return guestFallback;
  if(!user||!pupAccount)return <div className="pup-auth-page" data-testid="pup-auth-page">
   <aside className="pup-auth-intro" aria-label="Welcome to Pup Account">
    <a className="pup-auth-home pup-link-button" href="/">← Back to Puppy Clicker Home</a>

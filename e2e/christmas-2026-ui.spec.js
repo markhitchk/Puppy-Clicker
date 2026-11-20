@@ -52,3 +52,30 @@ test('sitewide snowfall respects reduced motion',async({page})=>{
  await page.goto('/');
  await expect(page.locator('.xmas26-flake').first()).toHaveCSS('animation-name','none');
 });
+
+// The fixture starts signed in unless the signedout query parameter is present.
+test('existing Pup Account session opens the Christmas calendar without signing in again',async({page})=>{
+ await page.goto('/26xmas');
+ const hub=page.locator('.xmas26-page');
+ await expect(hub.getByRole('button',{name:'Refresh account rewards'})).toBeVisible();
+ await expect(hub.getByRole('button',{name:'Sign in to collect gifts'})).toHaveCount(0);
+ await expect(hub.getByText('Sign in to collect your gifts when the event opens.')).toHaveCount(0);
+ await expect(hub.locator('.pup-advent-door')).toHaveCount(25);
+ await page.reload();
+ await expect(hub.getByRole('button',{name:'Refresh account rewards'})).toBeVisible();
+ await expect(hub.getByRole('button',{name:'Sign in to collect gifts'})).toHaveCount(0);
+});
+test('signed-out Christmas visitors can preview gifts and choose to sign in',async({page})=>{
+ await page.goto('/26xmas?signedout=1');
+ const hub=page.locator('.xmas26-page');
+ await expect(hub.locator('.pup-advent-door')).toHaveCount(25);
+ await expect(hub.getByRole('button',{name:'Refresh account rewards'})).toHaveCount(0);
+ await hub.getByRole('button',{name:'Sign in to collect gifts'}).click();
+ await expect(page.getByTestId('pup-auth-form')).toBeVisible();
+ await expect(page).toHaveURL(/collect=1/);
+});
+test('legacy collect links still recognize existing verified accounts',async({page})=>{
+ await page.goto('/26xmas?collect=1');
+ await expect(page.getByRole('button',{name:'Refresh account rewards'})).toBeVisible();
+ await expect(page.getByTestId('pup-auth-form')).toHaveCount(0);
+});

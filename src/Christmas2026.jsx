@@ -47,7 +47,7 @@ function useClock(){
  useEffect(()=>{const timer=setInterval(()=>setClock(Date.now()),1000);return()=>clearInterval(timer);},[]);
  return clock;
 }
-function GuestCalendar(){
+function GuestCalendar({onSignIn}){
  const clock=useClock();
  const [preferences,setPreferences]=useState(()=>loadWebPreferences());
  function act(action){
@@ -56,7 +56,7 @@ function GuestCalendar(){
   saveWebPreferences(next);setPreferences(next);
  }
  return <><WebAdventCalendar game={{...preferences,adventClaims:[]}} act={act} clock={clock} readOnly showTheme={false} guest/>
-  <button className="xmas26-primary" type="button" onClick={()=>window.location.assign('/26xmas?collect=1')}>Sign in to collect gifts</button></>;
+  <button className="xmas26-primary" type="button" onClick={onSignIn}>Sign in to collect gifts</button></>;
 }
 function AccountCalendar(){
  const clock=useClock();
@@ -69,7 +69,13 @@ function AccountCalendar(){
 }
 const total=ADVENT_REWARDS.reduce((a,r)=>({treats:a.treats+r.treats,bones:a.bones+r.bones,coins:a.coins+r.coins}),{treats:0,bones:0,coins:0});
 export default function Christmas2026(){
- const collect=new URLSearchParams(window.location.search).get('collect')==='1';
+ const [collect,setCollect]=useState(()=>new URLSearchParams(window.location.search).get('collect')==='1');
+ function requestSignIn(){
+  const url=new URL(window.location.href);
+  url.searchParams.set('collect','1');
+  window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);
+  setCollect(true);
+ }
  const [theme,setTheme]=useState(()=>loadWebPreferences().seasonalTheme==='winter');
  const [decor,setDecor]=useState(true);
  useEffect(()=>{
@@ -103,7 +109,9 @@ export default function Christmas2026(){
    </section>
    <div className="xmas26-layout">
     <div className="xmas26-calendar" id="xmas26-calendar">
-     {collect?<WebAccountGate><AccountCalendar/></WebAccountGate>:<GuestCalendar/>}
+     <WebAccountGate compact guestFallback={collect?null:<GuestCalendar onSignIn={requestSignIn}/>}>
+      <AccountCalendar/>
+     </WebAccountGate>
     </div>
     <aside className="xmas26-side">
      <section className="xmas26-panel"><span className="xmas26-kicker">DECEMBER 25</span><h2>🎁 Christmas jackpot</h2><p>10,000 Treats · 50 Bones · 50 Pup Coins</p><p>Collect the final gift on Christmas Day.</p></section>
