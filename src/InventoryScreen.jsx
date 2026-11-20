@@ -1,11 +1,10 @@
 import PuppyCollectionCard from './PuppyCollectionCard.jsx';
 import "./styles/puppy-details.css";
-import React,{useEffect,useRef,useState} from 'react';
+import React,{useEffect,useState} from 'react';
 import {ROSTER,UPGRADES,RARITIES} from './native/src/engine/game.js';
 import {LEGACY_V6_PUPPIES} from './native/src/engine/rosterV6.js';
 import {PUPPY_IMAGES} from './native/src/assets/puppies.js';
-import PuppyArtwork from './native/web/PuppyArtwork.jsx';
-import {WebPlayPuppyAssetViewer} from './native/web/WebPlayPupDex.jsx';
+import PuppyCollectionDetails from './PuppyCollectionDetails.jsx';
 import {usePuppyRarity} from './usePuppyRarity.js';
 import {rarityLabels,rarityOrder,unlockText,transferText} from './puppyRarity.js';
 import {puppyDetailsHref,puppyAssetId} from './puppyLinks.js';
@@ -40,70 +39,10 @@ const artworkUri=p=>{
 };
 const safeRarity=p=>rarityLabels[p.rarity]||'Rarity unavailable';
 
-function InventoryPuppyDetails({puppy,name,onClose,onViewAsset}){
- const ref=useRef(null);
- const [copyStatus,setCopyStatus]=useState('');
- const url=puppyDetailsHref(puppy);
- const assetId=puppyAssetId({...puppy,image:artworkUri(puppy)});
- useEffect(()=>{
-  const node=ref.current;
-  if(node&&!node.open)node.showModal();
-  return()=>{if(node?.open)node.close();};
- },[]);
- const copyLink=async()=>{
-  try{
-   if(!navigator.clipboard?.writeText)throw Error('Clipboard unavailable');
-   await navigator.clipboard.writeText(new URL(url,window.location.origin).href);
-   setCopyStatus('Puppy link copied!');
-  }catch{setCopyStatus('Clipboard unavailable. Use Open in PupDex to share this puppy.');}
- };
- return <dialog ref={ref} className="meet-puppy-dialog pup-inventory-detail-dialog"
-  aria-labelledby="pup-inventory-detail-title"
-  onCancel={event=>{event.preventDefault();onClose();}}
-  onClick={event=>{if(event.target===ref.current)onClose();}}>
-  <div className="meet-puppy-dialog-inner">
-   <header className="meet-detail-heading">
-    <h2 id="pup-inventory-detail-title">Owned Puppy Details</h2>
-    <button type="button" className="meet-detail-close" onClick={onClose} aria-label="Close puppy details">×</button>
-   </header>
-   <div className="meet-detail-main">
-    <div className="meet-detail-identity" data-rarity={puppy.rarity||'unknown'}>
-     <div className="meet-detail-artwork">
-      <PuppyArtwork id={puppy.id} name={name+' puppy artwork'}
-       uri={artworkUri(puppy)} size={164} fullResolution/>
-     </div>
-     <div className="meet-detail-name">
-      <h3>{name}</h3><p className="meet-detail-asset-id">{assetId}</p>
-      <div className="meet-detail-pills">
-       <span>{puppyGroup(puppy)}</span>
-       <span className="meet-detail-rarity">{safeRarity(puppy)}</span>
-       <span>{unlockText(puppy.rarity?puppy:null)}</span>
-       <span className="pup-inventory-owned-pill">Owned</span>
-       {puppy.current&&<span>Current puppy</span>}
-       {puppy.favorite&&<span>♥ Favorite</span>}
-      </div>
-     </div>
-    </div>
-    <div className="meet-detail-aside">
-     <section className="meet-detail-about">
-      <h3>About</h3>
-      <p>{puppy.description||'This puppy is in your protected Pup Account collection.'}</p>
-      {puppy.rarity&&<p className="pup-inventory-transfer">{transferText(puppy)}</p>}
-     </section>
-     <div className="meet-detail-actions" aria-label="Owned puppy tools">
-      <button type="button" className="meet-detail-secondary" onClick={()=>void copyLink()}>Copy Link</button>
-      <button type="button" className="meet-detail-secondary" onClick={onViewAsset}>View Asset</button>
-     </div>
-     {copyStatus&&<p className="meet-detail-copy-status" role="status">{copyStatus}</p>}
-     <p className="meet-detail-disclaimer">Inventory is read-only. Use the game Roster to switch puppies or update favorites.</p>
-     <div className="meet-detail-main-actions">
-      <a href={url} className="meet-detail-primary">Open in PupDex</a>
-      <button type="button" className="meet-detail-done" onClick={onClose}>Done</button>
-     </div>
-    </div>
-   </div>
-  </div>
- </dialog>;
+function InventoryPuppyDetails({puppy,name,onClose}){
+ return <PuppyCollectionDetails area="inventory" puppy={puppy} name={name}
+  assetId={puppyAssetId({...puppy,image:artworkUri(puppy)})} image={artworkUri(puppy)} group={puppyGroup(puppy)}
+  owned current={puppy.current} favorite={puppy.favorite} onClose={onClose}/>;
 }
 
 function OwnedPuppyCard({puppy,game,onInspect}){
@@ -124,7 +63,6 @@ export default function InventoryScreen({game,origin='account',onBack,updatedAt,
  const [rarityFilter,setRarityFilter]=useState('all');
  const [sort,setSort]=useState('roster');
  const [detailsId,setDetailsId]=useState(null);
- const [assetId,setAssetId]=useState(null);
  const catalog=usePuppyRarity();
  if(!game)return null;
  const ownedIds=[...new Set(Array.isArray(game.unlockedPuppies)?game.unlockedPuppies:[])].filter(id=>typeof id==='string');
@@ -150,8 +88,7 @@ export default function InventoryScreen({game,origin='account',onBack,updatedAt,
  const counts={puppies:ownedIds.length,accessories:accessories.length,tickets:RARITIES.reduce((n,r)=>n+numeric(game.ticketInventory?.[r]),0),upgrades:purchasedUpgrades.length,wallet:4};
  const safeDate=updatedAt&&!Number.isNaN(new Date(updatedAt).valueOf())?new Date(updatedAt).toLocaleString():null;
  const inspectedPuppy=detailsId?knownPuppies.find(p=>p.id===detailsId):null;
- const viewerPuppy=assetId?knownPuppies.find(p=>p.id===assetId):null;
- const closeDetails=()=>{setDetailsId(null);setAssetId(null);};
+ const closeDetails=()=>setDetailsId(null);
  return <section className={'pup-inventory '+(origin==='play'?'pup-inventory-play':'pup-inventory-account')}
   aria-label="Puppy Clicker Inventory" data-testid="pup-inventory">
   <header className="pup-inventory-heading">
@@ -273,10 +210,7 @@ export default function InventoryScreen({game,origin='account',onBack,updatedAt,
   </footer>
   {inspectedPuppy&&<InventoryPuppyDetails key={inspectedPuppy.id} puppy={inspectedPuppy}
    name={puppyDisplay(inspectedPuppy,game)}
-   onClose={closeDetails} onViewAsset={()=>setAssetId(inspectedPuppy.id)}/>}
-  {viewerPuppy&&<WebPlayPuppyAssetViewer key={viewerPuppy.id} puppy={viewerPuppy}
-   assetId={puppyAssetId({...viewerPuppy,image:artworkUri(viewerPuppy)})}
-   name={puppyDisplay(viewerPuppy,game)} onClose={()=>setAssetId(null)}/>}
+   onClose={closeDetails}/>}
  </section>;
 }
 
