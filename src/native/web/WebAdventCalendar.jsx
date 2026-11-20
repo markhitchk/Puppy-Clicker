@@ -38,7 +38,7 @@ export default function WebAdventCalendar({game,act,clock,readOnly}){
    <progress value={claims.length} max={25} aria-label="Advent gift collection progress"/>
   </div>
   <p className="pup-advent-note">December 1–25 · UTC. Missed days remain available until the event ends. One gift per day per Pup Account.</p>
-  {readOnly&&<p className="pup-advent-note">Connect your Pup Account and cloud save to collect gifts.</p>}
+  {readOnly&&<p className="pup-advent-note">Gift collection is unavailable until the verified Advent service and your cloud save are connected.</p>}
   <div className="pup-advent-grid">
    {ADVENT_REWARDS.map(r=>{
     const state=adventDoorState(r,claims,now);
