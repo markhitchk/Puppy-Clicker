@@ -7,6 +7,8 @@ export const client =
   url && key
     ? createClient(url, key, {
         auth: {
+          // Supabase verifies WebAuthn challenges and RP origin server-side.
+          experimental: {passkey: true},
           flowType: "pkce",
           persistSession: true,
           // Encrypt auth tokens before writing browser storage. Existing

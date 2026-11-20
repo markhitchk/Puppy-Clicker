@@ -1,5 +1,15 @@
 import {test,expect} from '@playwright/test';
 
+// Existing settings regressions explicitly opt in to saved customization.
+// The separate cookie-privacy suite tests the no-consent and reject paths.
+test.beforeEach(async({page})=>{
+ await page.addInitScript(()=>{
+  localStorage.setItem('puppy-clicker:cookie-choice:v1',JSON.stringify({
+   version:1,essential:true,functional:true,analytics:false,advertising:false,savedAt:Date.now()
+  }));
+ });
+});
+
 test('guest can open browser settings without logging in and preferences survive a reload',async({page})=>{
  await page.goto('/settings');
  await expect(page.getByRole('heading',{name:'Browser Settings'})).toBeVisible();
@@ -200,6 +210,7 @@ test('Android Compact interface leaves matching system-like Puppy cursor size un
  });
  try{
   const page=await context.newPage();
+  await page.addInitScript(()=>localStorage.setItem('puppy-clicker:cookie-choice:v1',JSON.stringify({version:1,essential:true,functional:true,analytics:false,advertising:false,savedAt:Date.now()})));
   await page.goto('/settings#puppy-pointer-settings');
   await page.getByRole('radio',{name:'Compact',exact:true}).check();
   await expect(page.getByRole('radio',{name:'Compact',exact:true})).toBeChecked();

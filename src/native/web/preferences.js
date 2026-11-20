@@ -1,4 +1,5 @@
 import {DEFAULT_PREFERENCES,preferenceValue} from '../src/engine/settings.js';
+import {canPersistCustomization} from '../../privacy/cookiePreferences.js';
 
 export const WEB_PREFERENCES_KEY='puppy-clicker:web-preferences:v1';
 export const WEB_PREFERENCES_CHANGED='puppy-clicker:web-preferences-changed';
@@ -47,20 +48,31 @@ function sanitize(input){
  const normalized=legacy?{...input,puppyPointerClickHighlight:true}:input;
  return Object.fromEntries(fields.map(key=>[key,validValue(key,normalized?.[key])??WEB_PREFERENCE_DEFAULTS[key]]));
 }
+// When customization storage is declined, settings still work for this tab but
+// are never written to persistent localStorage.
+let volatilePreferences=null;
+export function resetVolatileWebPreferences(){volatilePreferences=null;}
 export function loadWebPreferences(storage){
- try{const raw=(storage??globalThis.localStorage).getItem(WEB_PREFERENCES_KEY);return sanitize(raw?JSON.parse(raw):null);}catch{return {...WEB_PREFERENCE_DEFAULTS};}
+ const target=storage??globalThis.localStorage;
+ if(storage===undefined&&!canPersistCustomization(target))
+  return volatilePreferences?{...volatilePreferences}:{...WEB_PREFERENCE_DEFAULTS};
+ try{
+  const raw=target.getItem(WEB_PREFERENCES_KEY);
+  return sanitize(raw?JSON.parse(raw):null);
+ }catch{return {...WEB_PREFERENCE_DEFAULTS};}
 }
 export function saveWebPreferences(preferences,storage){
  const cleaned=sanitize(preferences);
  let saved=true;
- try{(storage??globalThis.localStorage).setItem(WEB_PREFERENCES_KEY,JSON.stringify(cleaned));}
- catch{saved=false;}
+ if(storage===undefined&&!canPersistCustomization()){
+  volatilePreferences=cleaned;
+ }else{
+  try{(storage??globalThis.localStorage).setItem(WEB_PREFERENCES_KEY,JSON.stringify(cleaned));volatilePreferences=null;}
+  catch{saved=false;}
+ }
  // Same-tab changes do not fire a browser storage event.
- // Notify the website cursor controller immediately, even if storage is blocked.
  if(typeof window!=='undefined'){
-  window.dispatchEvent(new CustomEvent(WEB_PREFERENCES_CHANGED,{
-   detail:{...cleaned}
-  }));
+  window.dispatchEvent(new CustomEvent(WEB_PREFERENCES_CHANGED,{detail:{...cleaned}}));
  }
  return saved;
 }

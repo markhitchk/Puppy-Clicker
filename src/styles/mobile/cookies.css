@@ -1,0 +1,18 @@
+/* Mobile-only cookie controls. Keep the consent notice clear of the game tab bar. */
+.puppy-cookie-banner{
+ bottom:max(75px,calc(62px + env(safe-area-inset-bottom)));
+ max-height:min(43dvh,370px);
+ padding:12px;
+ width:calc(100vw - 16px);
+ border-radius:13px;
+}
+.puppy-cookie-banner strong{font-size:14px}
+.puppy-cookie-banner p{font-size:12px}
+.puppy-cookie-actions{gap:6px}
+.puppy-cookie-actions .puppy-cookie-btn{flex:1 1 125px;padding:8px;min-height:40px}
+.puppy-cookie-dialog{padding:13px;max-height:calc(100dvh - 20px)}
+.puppy-cookie-backdrop{padding:10px}
+.puppy-cookie-dialog h2{font-size:16px}
+.puppy-cookie-category{padding:9px;gap:9px}
+.puppy-cookie-category strong{font-size:13px}
+.puppy-cookie-category small{font-size:11px}

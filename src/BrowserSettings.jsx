@@ -1,5 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import LanguagePicker from './LanguagePicker.jsx';
+import {CookiePrivacySettings} from './privacy/CookieConsent.jsx';
 import {ACCENT_PRESETS} from './native/src/engine/settings.js';
 import {
  WEB_PREFERENCES_CHANGED,WEB_PREFERENCE_DEFAULTS,pointerThemeFor,effectivePointerSize,
@@ -219,6 +220,7 @@ export default function BrowserSettings(){
       setConfirmReset(false);
      }}>Confirm reset</button><button className="browser-settings-action secondary" onClick={()=>setConfirmReset(false)}>Cancel</button>
     </div>}
+    <CookiePrivacySettings/>
     <nav className="browser-settings-links" aria-label="Related pages"><a className="pup-link-button" href="/play">🐾 Play</a><a className="pup-link-button" href="/play?=demo">🎮 Guest demo</a><a className="pup-link-button" href="/account">👤 Pup Account</a><a className="pup-link-button" href="/legal/privacy">Privacy policy</a></nav>
    </section>
   </div>

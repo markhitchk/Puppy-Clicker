@@ -9,6 +9,7 @@
 @import "./shared/modals.css";
 @import "./shared/navigation.css";
 @import "./shared/account.css";
+@import "./shared/passkeys.css";
 @import "./shared/inventory.css";
 @import "./shared/settings.css";
 @import "./shared/app-banner.css";
@@ -16,6 +17,7 @@
 @import "./shared/admin.css";
 @import "./shared/pupeye.css";
 @import "./shared/privacy.css";
+@import "./shared/cookies.css";
 @import "./shared/legal.css";
 @import "./shared/leaderboard.css";
 @import "./shared/chat.css";

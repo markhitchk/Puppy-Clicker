@@ -1,5 +1,6 @@
 import React,{useCallback,useEffect,useState} from "react";
-import {LANGUAGE_CHANGED,readLanguage,t,writeLanguage} from "./communityI18n.js";
+import {LANGUAGE_CHANGED,t} from "./communityI18n.js";
+import {readWebLanguage as readLanguage,writeWebLanguage as writeLanguage} from "./privacy/webLanguagePreference.js";
 export function useLanguage(){
  const [language,setLanguage]=useState(()=>readLanguage());
  useEffect(()=>{

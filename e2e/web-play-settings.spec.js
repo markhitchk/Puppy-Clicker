@@ -1,5 +1,16 @@
 import {test,expect} from '@playwright/test';
 
+// Existing settings regressions explicitly opt in to saved customization.
+// The separate cookie-privacy suite tests the no-consent and reject paths.
+test.beforeEach(async({page})=>{
+ await page.addInitScript(()=>{
+  localStorage.setItem('puppy-clicker:cookie-choice:v1',JSON.stringify({
+   version:1,essential:true,functional:true,analytics:false,advertising:false,savedAt:Date.now()
+  }));
+ });
+});
+
+
 for(const [width,height] of [[320,568],[360,640],[390,844],[768,1024],[844,390],[1280,600],[1280,720],[1440,900]]){
  test('Play fits one screen at '+width+'x'+height,async({page})=>{
   await page.setViewportSize({width,height});
