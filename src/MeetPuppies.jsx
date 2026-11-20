@@ -1,7 +1,7 @@
 import PuppyCollectionCard from './PuppyCollectionCard.jsx';
-import PuppyAssetViewer from './native/web/PuppyAssetViewer.jsx';
+import PuppyCollectionDetails from './PuppyCollectionDetails.jsx';
 import "./styles/puppy-details.css";
-import React,{useEffect,useMemo,useRef,useState} from "react";
+import React,{useEffect,useMemo,useState} from "react";
 // Import alongside the dialog so styling cannot be omitted by a partial stylesheet deploy.
 import {usePuppyRarity} from './usePuppyRarity.js';
 import {client} from './supabase.js';
@@ -10,7 +10,6 @@ import {useRoster} from './native/src/state/useRoster.js';
 import {collectionStats,rarityLabels,rarityOrder,unlockText,transferText} from './puppyRarity.js';
 import roster from "./data/roster.js";
 import {LEGACY_V6_PUPPIES} from "./native/src/engine/rosterV6.js";
-import PuppyArtwork from "./native/web/PuppyArtwork.jsx";
 import {PUPPY_IMAGES} from "./native/src/assets/puppies.js";
 import {matchPuppy,puppyAssetId,puppyDetailsHref,readPuppyQuery,withoutPuppyQuery} from "./puppyLinks.js";
 
@@ -52,84 +51,9 @@ function PuppyCard({p,onSelect}){
 }
 
 function PublicPuppyDetails({puppy,onDismiss}){
- const dialogRef=useRef(null);
- const [artVersion,setArtVersion]=useState(0);
- const [artFailed,setArtFailed]=useState(false);
- const [assetOpen,setAssetOpen]=useState(false);
- const [copyStatus,setCopyStatus]=useState("");
- const assetId=puppyAssetId(puppy);
- const href=puppyDetailsHref(puppy);
- useEffect(()=>{
-  const dialog=dialogRef.current;
-  if(dialog&&!dialog.open)dialog.showModal();
-  return ()=>{if(dialog?.open)dialog.close();};
- },[]);
- const retryArtwork=()=>{
-  setArtFailed(false);
-  setArtVersion(version=>version+1);
- };
- const copyText=async(value,success,onStatus)=>{
-  try{
-   if(!navigator.clipboard?.writeText)throw Error("Clipboard unavailable");
-   await navigator.clipboard.writeText(value);
-   onStatus(success);
-  }catch{
-   onStatus("Clipboard unavailable. You can copy this information from the page.");
-  }
- };
- const closeAssetViewer=()=>setAssetOpen(false);
- const dismiss=()=>{if(assetOpen)closeAssetViewer();else onDismiss();};
- return <dialog ref={dialogRef} className="meet-puppy-dialog"
-  aria-labelledby="meet-puppy-dialog-title" aria-describedby="meet-puppy-dialog-info"
-  onCancel={event=>{event.preventDefault();dismiss();}}
-  onClick={event=>{if(event.target===dialogRef.current)dismiss();}}>
-  <div className="meet-puppy-dialog-inner">
-   <header className="meet-detail-heading">
-    <h2 id="meet-puppy-dialog-title">Puppy Details</h2>
-    <button type="button" className="meet-detail-close" onClick={dismiss} aria-label="Close puppy details">×</button>
-   </header>
-   <div className="meet-detail-main">
-    <div className="meet-detail-identity" data-rarity={puppy.rarity||'common'}>
-     <div className="meet-detail-artwork">
-      <PuppyArtwork key={assetId+"-"+artVersion} id={puppy.id}
-       name={puppy.name+" puppy"} uri={transparentImage(puppy)} size={164} fullResolution
-       onUnavailable={()=>setArtFailed(true)}/>
-     </div>
-     <div className="meet-detail-name">
-      <h3>{puppy.name}</h3>
-      <p className="meet-detail-asset-id">{assetId}</p>
-      <div className="meet-detail-pills">
-       <span>{groupLabel(puppy)}</span>
-       <span className="meet-detail-rarity">{rarityLabels[puppy.rarity]}</span>
-       <span>{unlockText(puppy)}</span>
-       <span>{transferText(puppy)}</span>
-       {puppy.collectionStatus&&<span>{puppy.collectionStatus}</span>}
-      </div>
-     </div>
-    </div>
-    <div className="meet-detail-aside">
-     <section className="meet-detail-about" aria-labelledby="meet-detail-about-heading">
-      <h3 id="meet-detail-about-heading">About</h3>
-      <p id="meet-puppy-dialog-info">{puppy.description||"No additional puppy details are available yet."}</p>
-     </section>
-     <div className="meet-detail-actions" aria-label="Puppy tools">
-      <button type="button" className="meet-detail-secondary"
-       onClick={()=>void copyText(new URL(href,window.location.origin).href,"Puppy link copied!",setCopyStatus)}>Copy Link</button>
-      <button type="button" className="meet-detail-secondary" onClick={()=>{setCopyStatus("");setAssetOpen(true);}}>View Asset</button>
-     </div>
-     {artFailed&&<button type="button" className="meet-detail-retry" onClick={retryArtwork}>↻ Retry Art</button>}
-     {copyStatus?<p className="meet-detail-copy-status" role="status">{copyStatus}</p>:null}
-     <p className="meet-detail-disclaimer">Public roster preview. Ownership and unlock status are checked in your Pup Account when playing.</p>
-     <div className="meet-detail-main-actions">
-      <a className="meet-detail-primary" href="/play">Use Puppy in Game</a>
-      <button type="button" className="meet-detail-done" onClick={onDismiss}>Done</button>
-     </div>
-    </div>
-   </div>
-  </div>
-  {assetOpen&&<PuppyAssetViewer puppy={puppy} assetId={assetId} name={puppy.name}
-   collection={groupLabel(puppy)} uri={transparentImage(puppy)} onClose={closeAssetViewer}/>}
- </dialog>;
+ return <PuppyCollectionDetails area="pupdex" puppy={puppy} name={puppy.name}
+  assetId={puppyAssetId(puppy)} image={transparentImage(puppy)} group={groupLabel(puppy)}
+  collectionStatus={puppy.collectionStatus} onClose={onDismiss}/>;
 }
 
 export default function MeetPuppies({preview=false}){
