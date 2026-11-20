@@ -92,3 +92,23 @@ test('reload stays disabled until every queued gameplay action finishes',async({
  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('puppy_test_authoritative_kotlin_save_v1')||'null')?.saveData?.stores?.puppy_clicker_save?.values?.treats)).toBe(6);
  await expect(page.getByRole('button',{name:'Reload website',exact:true})).toBeEnabled();
 });
+
+for(const width of [320,390,1440]){
+ test('in-play settings use compact searchable cards at '+width+'px',async({page})=>{
+  await page.setViewportSize({width,height:900});
+  await page.goto('/play');
+  if(width>=960)await page.getByTestId('desktop-navigation').getByRole('button',{name:'Settings',exact:true}).click();
+  else await page.getByRole('button',{name:'Open settings',exact:true}).click();
+  const settings=page.locator('.play-settings');
+  await expect(settings.locator('.play-settings-panel:visible')).toHaveCount(7);
+  const search=settings.getByRole('searchbox',{name:'Find a setting'});
+  await search.fill('reduced motion');
+  await expect(settings.locator('.play-settings-panel:visible')).toHaveCount(1);
+  await expect(settings.getByRole('switch',{name:'Reduced motion'})).toBeVisible();
+  await search.fill('nonexistent-setting');
+  await expect(settings.getByText('No settings match your search.')).toBeVisible();
+  await settings.getByRole('button',{name:'Clear search'}).click();
+  await expect(settings.locator('.play-settings-panel:visible')).toHaveCount(7);
+  expect(await settings.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+ });
+}
