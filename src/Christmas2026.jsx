@@ -114,9 +114,9 @@ export default function Christmas2026(){
      </WebAccountGate>
     </div>
     <aside className="xmas26-side">
-     <section className="xmas26-panel"><span className="xmas26-kicker">DECEMBER 25</span><h2>🎁 Christmas jackpot</h2><p>10,000 Treats · 50 Bones · 50 Pup Coins</p><p>Collect the final gift on Christmas Day.</p></section>
-     <section className="xmas26-panel"><h2>❄ Winter theme</h2><p>Snow falls across Puppy Clicker by default. Christmas trees and festive lights are exclusive to this event page. The optional winter theme changes the website colors.</p><button type="button" className="xmas26-secondary" aria-pressed={theme} onClick={toggleTheme}>{theme?'Winter theme enabled · turn off':'Enable winter theme'}</button></section>
-     <section className="xmas26-panel"><h2>Event rules</h2><p>Doors unlock at midnight UTC. Catch up on missed days through December 25. Every gift can be collected once per Pup Account.</p></section>
+     <section className="xmas26-panel"><span className="xmas26-kicker">DECEMBER 25</span><h2>🎁 Christmas jackpot</h2><div className="xmas26-jackpot-rewards"><div><strong>10,000</strong><span>Treats</span></div><div><strong>50</strong><span>Bones</span></div><div><strong>50</strong><span>Pup Coins</span></div></div><p>Collect the final gift on Christmas Day.</p></section>
+     <section className="xmas26-panel"><h2>❄ Winter theme</h2><p>Snow is sitewide. Trees and lights are exclusive to this event. The optional winter theme changes website colors.</p><button type="button" className="xmas26-secondary" aria-pressed={theme} onClick={toggleTheme}>{theme?'Winter theme enabled · turn off':'Enable winter theme'}</button></section>
+     <section className="xmas26-panel"><h2>Event rules</h2><ul className="xmas26-rules-list"><li>Doors unlock at 00:00 UTC.</li><li>Catch up through December 25 (UTC).</li><li>One claim per gift per Pup Account.</li></ul></section>
     </aside>
    </div>
    <section className="xmas26-collection"><div><span className="xmas26-kicker">PUPDEX COLLECTION</span><h2>Winter puppies</h2><p>Meet the seasonal catalog. Featured puppies are not automatically granted by the calendar.</p></div><div className="xmas26-pups">

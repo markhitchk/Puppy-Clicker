@@ -53,3 +53,5 @@
 @container(max-width:290px){.pup-advent-grid{gap:5px}.pup-advent-door{border-radius:12px}.pup-advent-door-pill{top:4px;right:4px;font-size:9px;padding:3px 5px}.pup-advent-door-body{padding:7px 4px}.pup-advent-door-body strong{font-size:11px}.pup-advent-door-tag{font-size:9px;padding:3px 4px}.pup-advent-door-art{min-height:88px}}
 @media(prefers-reduced-motion:reduce){.pup-advent-door,.pup-advent-door::after{animation:none!important;transition:none!important;transform:none!important}}
 html[data-puppy-reduced-motion="true"] .pup-advent-door,html[data-puppy-reduced-motion="true"] .pup-advent-door::after{animation:none!important;transition:none!important;transform:none!important}
+
+.pup-advent-unlock-times{display:grid;gap:5px;margin:0;padding:9px;border:1px solid #759cb255;border-radius:10px;background:#101c2c}.pup-advent-unlock-times>div{display:grid;gap:2px}.pup-advent-unlock-times dt{font-size:11px;color:#a9c7d9;font-weight:800}.pup-advent-unlock-times dd{margin:0;font-size:13px;color:#f0f9ff;overflow-wrap:anywhere}

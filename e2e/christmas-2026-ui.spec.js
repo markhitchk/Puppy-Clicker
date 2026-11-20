@@ -79,3 +79,15 @@ test('legacy collect links still recognize existing verified accounts',async({pa
  await expect(page.getByRole('button',{name:'Refresh account rewards'})).toBeVisible();
  await expect(page.getByTestId('pup-auth-form')).toHaveCount(0);
 });
+
+test('gift modal shows UTC and local unlock dates',async({browser})=>{
+ const context=await browser.newContext({timezoneId:'America/Los_Angeles',locale:'en-US'});
+ const page=await context.newPage();await page.goto('/26xmas?signedout=1');
+ await page.getByRole('button',{name:/December 1,/}).click();
+ const dialog=page.getByRole('dialog',{name:'December 1 gift'});
+ await expect(dialog.getByText('Unlock time (UTC)')).toBeVisible();
+ await expect(dialog.getByText(/1 December 2026.*00:00 UTC/)).toBeVisible();
+ await expect(dialog.getByText('Your local time')).toBeVisible();
+ await expect(dialog.getByText(/Nov 30, 2026.*4:00 PM/)).toBeVisible();
+ await context.close();
+});

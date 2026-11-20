@@ -1,6 +1,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {ADVENT_START,ADVENT_END,ADVENT_REWARDS,adventClaims,adventDoorState,adventPhase} from '../../../supabase/functions/_shared/advent-calendar.js';
 import './WebAdventCalendar.css';
+import {adventUnlockTime} from './adventUnlockTime.js';
 
 const money=n=>n.toLocaleString('en-US');
 const countdown=ms=>{
@@ -52,6 +53,7 @@ export default function WebAdventCalendar({game,act,clock,readOnly,showTheme=tru
   return ()=>clearTimeout(timeout);
  },[pending]);
  const status=reward?adventDoorState(reward,claims,now):null;
+ const unlock=reward?adventUnlockTime(reward.day):null;
  const next=phase==='active'?Math.min(ADVENT_END,Date.UTC(2026,11,new Date(now).getUTCDate()+1)):ADVENT_START;
  return <section className="pup-advent" aria-label="Puppy Advent Calendar">
   <header className="pup-advent-hero">
@@ -84,10 +86,11 @@ export default function WebAdventCalendar({game,act,clock,readOnly,showTheme=tru
     <div className="pup-advent-detail-art"><GiftArt reward={reward} opened={status==='claimed'}/></div>
     <div className="pup-advent-detail-copy"><strong>{reward.bonus?'Christmas Jackpot':isMilestone(reward)?'Bonus Gift':'Holiday Gift'}</strong>
     <p>{status==='locked'?'This gift opens on December '+reward.day+' (UTC).':status==='expired'?'The claim period has ended.':status==='claimed'?'This gift is in your collection.':'Your festive gift is ready!'}</p>
+    {unlock&&<dl className="pup-advent-unlock-times"><div><dt>Unlock time (UTC)</dt><dd><time dateTime={new Date(unlock.timestamp).toISOString()}>{unlock.utc}</time></dd></div><div><dt>Your local time</dt><dd><time dateTime={new Date(unlock.timestamp).toISOString()}>{unlock.local}</time></dd></div></dl>}
     {(status!=='locked'||reward.bonus)&&<div className="pup-advent-reward-row"><span>🍪 {money(reward.treats)} Treats</span><span>🦴 {reward.bones} Bones</span><span>🪙 {reward.coins} Pup Coins</span></div>}</div>
     <button type="button" className="pup-advent-claim" disabled={readOnly||status!=='available'||pending!==null}
      onClick={()=>{setPending(reward.id);setMessage('Collecting gift…');act({type:'claimAdvent',id:reward.id});}}>
-     {status==='claimed'?'✓ Collected':status==='locked'?'Locked':status==='expired'?'Expired':readOnly?'Sign in / connect account':pending===reward.id?'Collecting…':'Open Gift'}
+     {status==='claimed'?'✓ Collected':status==='locked'?'Locked':status==='expired'?'Expired':readOnly?(guest?'Sign in to collect':'Cloud sync required'):pending===reward.id?'Collecting…':'Open Gift'}
     </button>
     <p className="pup-advent-note" role="status" aria-live="polite">{message}</p>
    </div>
