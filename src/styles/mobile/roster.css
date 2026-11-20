@@ -6,23 +6,23 @@ html [data-testid="puppy-roster-grid"]{
  html [data-testid="puppy-roster-grid"]{
   grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;
  }
- html .play-pupdex-card.meet-puppy-card{border-radius:16px}
+ html .play-pupdex-card.meet-puppy-card{border-radius:13px}
  html .play-pupdex-card .play-pupdex-card-content{position:relative}
  html .play-pupdex-card .meet-puppy-art{
-  box-sizing:border-box;height:clamp(122px,34vw,176px);padding:28px 6px 5px;
+  box-sizing:border-box;height:clamp(96px,27vw,132px);padding:22px 5px 4px;
  }
  html .play-pupdex-card .meet-puppy-art .puppy-artwork{
   max-width:100%;max-height:100%;object-fit:contain;
  }
  html .play-pupdex-card .meet-puppy-group{
-  top:7px;left:7px;right:auto;max-width:calc(100% - 60px);
-  font-size:10px;line-height:1.2;padding:4px 6px;white-space:normal;
+  top:5px;left:5px;right:auto;max-width:calc(100% - 48px);
+  font-size:9px;line-height:1.2;padding:3px 5px;white-space:normal;
  }
  html .play-pupdex-card .meet-puppy-body{
-  padding:8px;gap:6px;
+  padding:7px;gap:5px;
  }
  html .play-pupdex-card .meet-puppy-body h3{
-  font-size:15px;line-height:1.2;margin:0;
+  font-size:14px;line-height:1.2;margin:0;
  }
  /* Asset ID and unlock method remain in the puppy detail dialog. */
  html .play-pupdex-card .play-pupdex-asset-id,
@@ -31,7 +31,7 @@ html [data-testid="puppy-roster-grid"]{
   flex:0 0 auto;gap:4px;align-items:center;
  }
  html .play-pupdex-card .meet-puppy-badge{
-  font-size:10px;line-height:1.2;padding:4px 5px;
+  font-size:10px;line-height:1.2;padding:3px 5px;
  }
  html .play-pupdex-card .play-pupdex-actions{
   grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:auto;
@@ -52,7 +52,7 @@ html [data-testid="puppy-roster-grid"]{
   display:grid;place-items:center;font-size:0;
   background:transparent;color:#e4efff;line-height:1;
  }
- html .play-pupdex-card .play-pupdex-favorite::before{content:"♡";font-size:25px}
+ html .play-pupdex-card .play-pupdex-favorite::before{content:"♡";font-size:20px}
  html .play-pupdex-card .play-pupdex-favorite[aria-pressed="true"]{color:#ff9cc4;background:#512b40}
  html .play-pupdex-card .play-pupdex-favorite[aria-pressed="true"]::before{content:"♥"}
  html .play-pupdex-card .play-pupdex-favorite:disabled{display:none}
@@ -70,5 +70,42 @@ html [data-testid="puppy-roster-grid"]{
  }
  html .play-pupdex-card .play-pupdex-current-action{
   grid-column:2;min-height:44px;padding:5px 3px;border-radius:9px;
+ }
+}
+
+/* Mobile roster: override public collection sizing without changing PupDex or inventory. */
+@media(max-width:600px){
+ html [data-testid="puppy-roster-grid"] .play-pupdex-card[data-rarity]{
+  box-shadow:inset 0 1px 0 rgb(255 255 255 / .08),0 3px 10px #0005;
+ }
+ html [data-testid="puppy-roster-grid"] .play-pupdex-card .play-pupdex-art-button{
+  flex:0 0 auto;min-height:0;height:auto;margin:0;
+ }
+ html [data-testid="puppy-roster-grid"] .play-pupdex-card[data-rarity] .meet-puppy-art{
+  height:clamp(96px,27vw,132px);min-height:0;max-height:132px;
+ }
+ html [data-testid="puppy-roster-grid"] .play-pupdex-card .meet-puppy-body{
+  min-height:0;justify-content:flex-start;
+ }
+ html [data-testid="puppy-roster-grid"] .play-pupdex-card .meet-puppy-badge-rarity{
+  gap:4px;
+ }
+ html [data-testid="puppy-roster-grid"] .play-pupdex-card .pup-rarity-dot{
+  width:7px;height:7px;flex-basis:7px;
+ }
+ html [data-testid="puppy-roster-grid"] .play-pupdex-card .play-pupdex-actions button:not(.play-pupdex-favorite){
+  min-height:44px;max-width:100%;margin:0;font-size:11px;letter-spacing:0;line-height:1.15;
+ }
+ html [data-testid="puppy-roster-grid"] .play-pupdex-card .play-pupdex-actions .play-pupdex-use{
+  background:rgb(var(--rarity-rgb,0 220 237) / .18);
+  color:var(--rarity-ink,#e8faff);border-color:rgb(var(--rarity-rgb,0 220 237) / .65);
+ }
+ html [data-testid="puppy-roster-grid"] .play-pupdex-card[data-rarity]:hover{
+  transform:none;
+ }
+}
+@media(max-width:350px){
+ html [data-testid="puppy-roster-grid"] .play-pupdex-card .play-pupdex-actions button:not(.play-pupdex-favorite){
+  font-size:10px;
  }
 }
