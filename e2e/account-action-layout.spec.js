@@ -100,3 +100,17 @@ test('account shortcut buttons stay in one compact responsive grid',async({page}
   expect(result.overlaps).toBe(false);
  }
 });
+
+test('account content uses two balanced stacks on desktop without losing mobile sections',async({page})=>{
+ for(const width of [390,1188,1440]){
+  await page.setViewportSize({width,height:768});
+  await page.goto('/account');
+  const first=page.locator('.account-primary-stack'),second=page.locator('.account-secondary-stack');
+  await expect(first.getByRole('heading',{name:/Cloud game progress/})).toBeVisible();
+  await expect(first.getByRole('heading',{name:/Your inventory/})).toBeVisible();
+  await expect(second.getByRole('heading',{name:/Account management/})).toBeVisible();
+  const a=await first.boundingBox(),b=await second.boundingBox();
+  if(width>=1188){expect(b.x).toBeGreaterThanOrEqual(a.x+a.width);expect(Math.abs(a.y-b.y)).toBeLessThanOrEqual(2);}
+  else expect(b.y).toBeGreaterThanOrEqual(a.y+a.height);
+ }
+});

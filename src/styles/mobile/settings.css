@@ -81,3 +81,8 @@
  .browser-pointer-preview-tile{padding:4px}
  .browser-pointer-preview-art{height:72px;padding:3px}
 }
+
+@media(max-width:600px){
+ .browser-settings-page .browser-settings-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .browser-settings-page .browser-settings-shortcuts .pup-link-button{min-height:44px}
+}

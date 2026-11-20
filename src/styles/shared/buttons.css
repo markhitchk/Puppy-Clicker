@@ -41,7 +41,7 @@ html .cta-secondary,html .small-action{background:var(--bg-secondary);border-col
 .site-frame a[href]:not(:where(
  .site-brand,.desktop-brand,.meet-puppy-link,
  .site-header a,.desktop-navigation a,.site-account a,.site-footer a,
- .cta,.cyber-button,.pup-link-button,.meet-detail-primary,.meet-detail-secondary,
+ .cta,.cyber-button,.pup-link-button,.pupeye-button,.meet-detail-primary,.meet-detail-secondary,
  [role="tab"],[role="menuitem"],a:has(img),a:has(svg)
 )){
  display:inline-flex;align-items:center;justify-content:center;
@@ -57,7 +57,7 @@ html .cta-secondary,html .small-action{background:var(--bg-secondary);border-col
 .site-frame a[href]:not(:where(
  .site-brand,.desktop-brand,.meet-puppy-link,
  .site-header a,.desktop-navigation a,.site-account a,.site-footer a,
- .cta,.cyber-button,.pup-link-button,.meet-detail-primary,.meet-detail-secondary,
+ .cta,.cyber-button,.pup-link-button,.pupeye-button,.meet-detail-primary,.meet-detail-secondary,
  [role="tab"],[role="menuitem"],a:has(img),a:has(svg)
 )):hover{
  border-color:var(--site-accent,#00cde8);

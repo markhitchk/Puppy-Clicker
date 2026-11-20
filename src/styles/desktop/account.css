@@ -44,3 +44,13 @@
  .pup-auth-benefits{margin-top:10px}
  .pup-auth-form{padding-block:20px}
 }
+
+@media(min-width:1051px){
+ .account-content{padding:28px 22px 48px}
+ .account-content .account-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+ .account-content .account-details{gap:9px}
+ .account-content .account-detail{padding:11px}
+}
+@media(max-height:740px){
+ .pup-auth-intro{position:relative;top:auto;min-height:0;max-height:none}
+}

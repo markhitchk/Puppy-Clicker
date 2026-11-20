@@ -1,6 +1,6 @@
 :root{
   --site-accent:#00E5FF;
-  --site-accent-ink:color-mix(in srgb,var(--site-accent) 68%,#12313c);
+  --site-accent-ink:color-mix(in srgb,var(--site-accent) 48%,#eafaff);
 }
 :root[data-puppy-theme="dark"]{
   color-scheme:dark;

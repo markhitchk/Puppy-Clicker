@@ -55,3 +55,24 @@ test('mobile settings controls and shortcut row do not overflow the page',async(
  await expect(search).toBeVisible();
  await expect(search).toHaveCSS('min-height','44px');
 });
+
+test('PupEye primary actions preserve the bright primary fill instead of inheriting generic anchor backgrounds',async({page})=>{
+ await page.goto('/pupeye');
+ const links=page.locator('.pupeye-page a.pupeye-button--primary');
+ expect(await links.count()).toBeGreaterThan(0);
+ for(const link of await links.all()){
+  await expect(link).toHaveCSS('text-decoration-line','none');
+  expect(await link.evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('linear-gradient');
+ }
+});
+test('settings shortcuts form a readable grid on phone and desktop',async({page})=>{
+ for(const width of [390,1188]){
+  await page.setViewportSize({width,height:768});
+  await page.goto('/settings');
+  const nav=page.getByRole('navigation',{name:'Jump to settings'});
+  await expect(nav).toHaveCSS('display','grid');
+  const dimensions=await nav.evaluate(el=>({overflow:el.scrollWidth-el.clientWidth,buttons:[...el.querySelectorAll('a')].map(a=>a.getBoundingClientRect().width)}));
+  expect(dimensions.overflow).toBeLessThanOrEqual(2);
+  expect(Math.max(...dimensions.buttons)-Math.min(...dimensions.buttons)).toBeLessThanOrEqual(2);
+ }
+});

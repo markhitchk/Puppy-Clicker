@@ -361,6 +361,7 @@ function AccountDashboard(){
  return <div className="account-content">
   <div className="account-heading"><p className="eyebrow">🐾 PUP ACCOUNT</p><h1>Your account</h1><p>View your verified Puppy Clicker identity, profile picture and Android-linked account details. Only your signed-in account is shown.</p></div>
   <div className="account-grid">
+   <div className="portal-stack account-primary-stack">
    <section className="portal-card profile-main" aria-label="Pup Account details">
     <div className="profile-head"><ProfileAvatar account={profile} className="profile-avatar-large"/><div><small>Signed in as</small><h2>{profile.displayName||profile.username}</h2><p>@{profile.username}</p></div><span className="verified">✓ {standing}</span></div>
     <div className="portal-divider"></div>
@@ -404,7 +405,6 @@ function AccountDashboard(){
      <div className="profile-row"><span><small>Display name</small><strong>{profile.displayName||profile.username}</strong></span><button className="small-action" type="button" onClick={()=>setEditing(true)}>Edit name</button></div>}
     {status?<p className="portal-message" role="status">{status}</p>:null}
    </section>
-   <div className="portal-stack">
     <section className="portal-card"><h3>☁️ Cloud game progress</h3><p>Your website and Android game use the same protected Pup Account save when linked. No backend credentials or private save identifiers are displayed.</p><p className="cloud-status" role="status">{cloudLabel}</p>
      {cloud.updatedAt?<p className="cloud-updated">Last cloud update: {new Date(cloud.updatedAt).toLocaleString()}</p>:null}
      <a href="/play" className="cta cta-primary stretch">🐾 Continue playing</a>
@@ -415,6 +415,8 @@ function AccountDashboard(){
      <p>Browse your collected puppies, accessories, upgrade tickets, purchased upgrades and current wallet from your protected game save.</p>
      <a href="/account/inventory" className="cta cta-primary stretch">🎒 Open inventory</a>
     </section>
+   </div>
+   <div className="portal-stack account-secondary-stack">
     <section className="portal-card" aria-labelledby="discord-account-heading">
      <h3 id="discord-account-heading">🔗 Discord account</h3>
      {profile.discordUserId?<>

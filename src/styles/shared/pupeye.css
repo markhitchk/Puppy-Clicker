@@ -104,3 +104,14 @@
 .pupeye-footer a:hover{background:#1d485b;color:#fff;text-decoration:none}
 .pupeye-footer a:focus-visible{outline:3px solid #a3efff;outline-offset:2px}
 .pupeye-actions .pupeye-button--quiet{border-color:#51889f;color:#e1faff!important}
+
+/* Protect button contrast from generic link and accent overrides. */
+.site-frame .pupeye-page a.pupeye-button--primary,
+.site-frame .pupeye-page button.pupeye-button--primary{
+ background:linear-gradient(115deg,#7af4ff,#00c6e6);color:#071e28!important;
+ border-color:#70edf8;text-decoration:none;min-height:44px;
+}
+.site-frame .pupeye-page a.pupeye-button--quiet{
+ background:#203a4f;color:#e5faff!important;border-color:#608da2;text-decoration:none;
+}
+.site-frame .pupeye-footer a.pup-link-button{color:#d4f8ff;text-decoration:none}
