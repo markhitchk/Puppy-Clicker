@@ -38,11 +38,14 @@ import SiteAccountMenu,{ProfileAvatar,PUP_ACCOUNT_CHANGED} from "./SiteAccountMe
 import PasswordField from "./PasswordField.jsx";
 import ConfirmSignOut from "./ConfirmSignOut.jsx";
 import {friendInviteUrl} from "./friendInvite.js";
+import FooterSystemClock from "./FooterSystemClock.jsx";
+import useEventSettings from "./useEventSettings.js";
+import {christmasEnabled,winterEnabled} from "../supabase/functions/_shared/event-settings.js";
 
 import "./styles/index.css";
 
 const logo="/assets/logos/puppy_clicker.png";
-function Header({page}){
+function Header({page,eventSettings}){
  const {t:tr}=useLanguage();
  const [menuOpen,setMenuOpen]=useState(false);
  const navId=useId(),navRef=useRef(null),menuButton=useRef(null),moreRef=useRef(null);
@@ -100,7 +103,7 @@ function Header({page}){
    <a href="/" aria-current={page==="home"?"page":undefined}>{tr("home")}</a>
    <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 {tr("play")}</a>
    <a href="/pupdex" aria-current={page==="pupdex"?"page":undefined}>{tr("puppies")}</a>
-   <a href="/26xmas" aria-current={page==="xmas26"?"page":undefined}>🎄 Christmas 2026</a>
+   {christmasEnabled(eventSettings)&&<a href="/26xmas" aria-current={page==="xmas26"?"page":undefined}>🎄 Christmas 2026</a>}
    <details className="site-nav-more" ref={moreRef}>
     <summary>More <span aria-hidden="true">▾</span></summary>
     <div className="site-nav-more-list">   <a href="/pupeye" aria-current={page==="pupeye"||page==="pupeye-status"?"page":undefined}><PupEyeBrand compact label="PupEye"/></a>
@@ -168,6 +171,7 @@ function BrandFooter(){
    </button>)}
   </div>
   <div className="site-footer-bottom"><p>© {new Date().getFullYear()} Harley's Studios. All rights reserved.</p></div>
+  <FooterSystemClock/>
   {brand?<dialog ref={dialog} className="site-footer-logo-dialog" aria-labelledby={title} aria-describedby={description}
    onCancel={event=>{event.preventDefault();close();}}
    onClick={event=>{if(event.target!==event.currentTarget)return;const r=event.currentTarget.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)close();}}>
@@ -541,6 +545,7 @@ const puppyCursorVariants=[
  ['--puppy-secondary','secondary','auto']
 ];
 export default function App(){
+ const eventSettings=useEventSettings();
  useEffect(()=>{
   // Root-level styling includes Home, Play, Account, and all website routes.
   const systemTheme=window.matchMedia('(prefers-color-scheme: dark)');
@@ -665,15 +670,15 @@ export default function App(){
  const demo=isPlayDemoRoute(path,typeof window!=="undefined"?window.location.search:"");
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
   const page=/^\/26xmas\/?$/.test(path)?"xmas26":path==="/"?"home":path==="/pupeye"||path==="/pupeye/"?"pupeye":/^\/pupeye\/status\/?$/.test(path)?"pupeye-status":path==="/chat"?"chat":/^\/account\/admin\/rarity\/?$/.test(path)?"admin-rarity":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":/^\/(?:pupdex|puppies)\/?$/.test(path)?"pupdex":
-  (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity|pupeye-web))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
+  (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity|pupeye-web|events))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account/inventory"?"account-inventory":path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   path==="/settings"||path==="/browser/settings"?"browser-settings":
   callback?"callback":demo?"demo":path==="/play"?"play":"error";
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
-  <Header page={callback||page==="admin"||page==="admin-chat"||page==="admin-privacy"||page==="privacy-center"||page==="account-inventory"?"account":page==="demo"?"play":page}/>
+  <Header eventSettings={eventSettings} page={callback||page==="admin"||page==="admin-chat"||page==="admin-privacy"||page==="privacy-center"||page==="account-inventory"?"account":page==="demo"?"play":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
    {page==="home"?<Home/>:page==="pupeye"?<PupEyeOverview/>:page==="pupeye-status"?<WebAccountGate><PupEyeAccountStatus/></WebAccountGate>:
-    page==="xmas26"?<><Christmas2026/><BrandFooter/></>:page==="demo"?<DemoPage/>:page==="pupdex"?<div className="landing"><MeetPuppies/></div>:
+    page==="xmas26"?<>{christmasEnabled(eventSettings)?<Christmas2026 winterEffects={winterEnabled(eventSettings)}/>:<div className="landing"><section className="portal-card" role="status"><h1>Christmas 2026</h1><p>{eventSettings?"This event is currently disabled. Your collected gifts are preserved.":"Checking event availability…"}</p></section></div>}<BrandFooter/></>:page==="demo"?<DemoPage/>:page==="pupdex"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
     page==="account-inventory"?<WebAccountGate><AccountInventoryPage/></WebAccountGate>:
     page==="browser-settings"?<BrowserSettings/>:
@@ -691,7 +696,7 @@ export default function App(){
     page==="error"?<WebErrorPage code={errorRoute?Number(errorRoute[1]):404}/>:<NativeApp/>}
   </main>
   {page==="play"?<AdaptiveGraphics/>:null}
-  {page!=="xmas26"&&<WinterSnow/>}
+  {(page!=="xmas26"||!christmasEnabled(eventSettings))&&winterEnabled(eventSettings)&&<WinterSnow/>}
   <NetworkCheckReporter/>
   <AndroidAppBanner/>
   <CookieConsent/>

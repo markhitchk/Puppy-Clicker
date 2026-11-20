@@ -68,7 +68,7 @@ function AccountCalendar(){
   <button className="xmas26-secondary" type="button" onClick={()=>void refreshAccount()}>Refresh account rewards</button></>;
 }
 const total=ADVENT_REWARDS.reduce((a,r)=>({treats:a.treats+r.treats,bones:a.bones+r.bones,coins:a.coins+r.coins}),{treats:0,bones:0,coins:0});
-export default function Christmas2026(){
+export default function Christmas2026({winterEffects=true}){
  const [collect,setCollect]=useState(()=>new URLSearchParams(window.location.search).get('collect')==='1');
  function requestSignIn(){
   const url=new URL(window.location.href);
@@ -87,8 +87,8 @@ export default function Christmas2026(){
   const next=updateWebPreference(loadWebPreferences(),'seasonalTheme',theme?'default':'winter');
   saveWebPreferences(next);setTheme(next.seasonalTheme==='winter');
  }
- return <div className="xmas26-page" data-winter-decor={decor}>
-   {decor&&<WinterDecor/>}
+ return <div className="xmas26-page" data-winter-decor={decor&&winterEffects}>
+   {decor&&winterEffects&&<WinterDecor/>}
    <header className="xmas26-hero">
     <div className="xmas26-hero-copy">
      <span className="xmas26-kicker">PUPPY CLICKER · SEASONAL EVENT</span>
@@ -96,10 +96,10 @@ export default function Christmas2026(){
      <p>December 1–25 · 25 festive gifts</p>
      <div className="xmas26-actions">
       <button className="xmas26-primary" type="button" onClick={()=>document.getElementById('xmas26-calendar')?.scrollIntoView({block:'start'})}>🎁 Calendar</button>
-      <button className="xmas26-secondary" type="button" onClick={()=>setDecor(v=>!v)} aria-pressed={decor}>{decor?'❄ Hide winter effects':'❄ Show winter effects'}</button>
+      {winterEffects&&<button className="xmas26-secondary" type="button" onClick={()=>setDecor(v=>!v)} aria-pressed={decor}>{decor?'❄ Hide winter effects':'❄ Show winter effects'}</button>}
      </div>
     </div>
-    <div className="xmas26-hero-scene">{decor&&<><ChristmasTree className="xmas26-tree tree-left"/><ChristmasTree className="xmas26-tree tree-right"/><span className="xmas26-snowbank" aria-hidden="true"/></>}<PuppyArtwork id="santa" name="Santa Paws" uri="/assets/transparent/v1/v1_santa.png" size={100}/></div>
+    <div className="xmas26-hero-scene">{decor&&winterEffects&&<><ChristmasTree className="xmas26-tree tree-left"/><ChristmasTree className="xmas26-tree tree-right"/><span className="xmas26-snowbank" aria-hidden="true"/></>}<PuppyArtwork id="santa" name="Santa Paws" uri="/assets/transparent/v1/v1_santa.png" size={100}/></div>
    </header>
    <section className="xmas26-stats" aria-label="Event rewards">
     <div><strong>25</strong><span>Gift doors</span></div>
@@ -115,7 +115,7 @@ export default function Christmas2026(){
     </div>
     <aside className="xmas26-side">
      <section className="xmas26-panel"><span className="xmas26-kicker">DECEMBER 25</span><h2>🎁 Christmas jackpot</h2><div className="xmas26-jackpot-rewards"><div><strong>10,000</strong><span>Treats</span></div><div><strong>50</strong><span>Bones</span></div><div><strong>50</strong><span>Pup Coins</span></div></div><p>Collect the final gift on Christmas Day.</p></section>
-     <section className="xmas26-panel"><h2>❄ Winter theme</h2><p>Snow is sitewide. Trees and lights are exclusive to this event. The optional winter theme changes website colors.</p><button type="button" className="xmas26-secondary" aria-pressed={theme} onClick={toggleTheme}>{theme?'Winter theme enabled · turn off':'Enable winter theme'}</button></section>
+     <section className="xmas26-panel"><h2>❄ Winter theme</h2><p>{winterEffects?"Snow is sitewide. Trees and lights are exclusive to this event.":"Winter effects are currently disabled."} The optional winter theme changes website colors.</p><button type="button" className="xmas26-secondary" aria-pressed={theme} onClick={toggleTheme}>{theme?'Winter theme enabled · turn off':'Enable winter theme'}</button></section>
      <section className="xmas26-panel"><h2>Event rules</h2><ul className="xmas26-rules-list"><li>Doors unlock at 00:00 UTC.</li><li>Catch up through December 25 (UTC).</li><li>One claim per gift per Pup Account.</li></ul></section>
     </aside>
    </div>

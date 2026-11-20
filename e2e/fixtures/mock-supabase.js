@@ -24,6 +24,7 @@ const failure=code=>({data:null,error:{context:new Response(JSON.stringify({erro
 const save=r=>localStorage.setItem(key,JSON.stringify(r));
 export const client={
  async rpc(name){
+  if(name==='pup_event_settings_public')return {data:{all_events:!new URLSearchParams(location.search).has('eventsoff'),christmas_2026:!new URLSearchParams(location.search).has('christmasoff'),winter_effects:!new URLSearchParams(location.search).has('winteroff')},error:null};
   if(name!=='pup_rarity_public')throw Error('Unexpected public RPC');
   // Mirror published rarity/acquisition groups rather than making every
   // non-developer puppy Common. Visual rarity/filter tests depend on this.

@@ -7,10 +7,11 @@ import {banTargetFromLocation,banAccountUrl} from "./banRoute.js";
 import AdminActivity from "./AdminActivity.jsx";
 import PupEyeBrand from "./PupEyeBrand.jsx";
 import AdminRestrictionDialog from "./AdminRestrictionDialog.jsx";
+import {EVENT_SETTINGS} from "../supabase/functions/_shared/event-settings.js";
 import {formatTime,describeDevice,presentAuditEvent} from "./adminPresentation.js";
 
 const initialSection=()=> {
- const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit|gifts|rarity|activity|pupeye-web)\/?$/);
+ const match=globalThis.location?.pathname?.match(/^\/account\/admin\/(users|bans|audit|gifts|rarity|activity|pupeye-web|events)\/?$/);
  return match?.[1] || "users";
 };
 const joinSourceNames={friend:"Friend or player",discord:"Discord",youtube:"YouTube",tiktok:"TikTok",
@@ -57,6 +58,7 @@ export default function AdminPortal(){
  const [section,setSection] = useState(initialSection);
  const [staff,setStaff] = useState(null);
  const [users,setUsers] = useState([]);
+ const [eventSettings,setEventSettings]=useState(null);
  const [ipLocations,setIpLocations]=useState({});
  const [bans,setBans] = useState([]);
  const [events,setEvents] = useState([]);
@@ -100,10 +102,11 @@ export default function AdminPortal(){
   }catch{setIpLocations(old=>({...old,[key]:{error:true}}));}
  }
  const refresh=useCallback(async(tab,silent=false)=>{
-  if(!['users','bans','audit','activity','pupeye-web'].includes(tab))return;
+  if(!['users','bans','audit','activity','pupeye-web','events'].includes(tab))return;
   if(!silent){setTabLoading(true);setError("");}
   try {
-   const result=await request({action:tab,filter:activityFilter});
+   const result=await request({action:tab==="events"?"event-settings":tab,filter:activityFilter});
+   if(tab==="events")setEventSettings(result.settings);
    if(tab==="users")setUsers(result.users||[]);
    if(tab==="bans")setBans(result.bans||[]);
    if(tab==="audit")setEvents(result.events||[]);
@@ -147,6 +150,13 @@ export default function AdminPortal(){
   if(section!=='audit')void refresh('audit',true);
  },[staff]);
 
+ async function updateEventSetting(eventId,enabled){
+  if(busy)return;
+  setBusy(true);setError("");setMessage("");
+  try{const result=await request({action:"event-setting-update",eventId,enabled});setEventSettings(result.settings);setMessage("Event settings saved.");window.dispatchEvent(new Event("pup-event-settings-changed"));}
+  catch(e){setError(normalizeError(e.message));}
+  finally{setBusy(false);}
+ }
  const navigate=(tab)=>{
   setSection(tab);setMessage("");setError("");
   const next="/account/admin/"+tab;
@@ -268,7 +278,7 @@ export default function AdminPortal(){
    <Stat label="Errors in 24 hours" value={activity.summary?.errors24h??'—'}/>
   </div>
   <nav className="pup-admin-tabs" aria-label="Administration sections">
-   {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["pupeye-web",<PupEyeBrand compact label="PupEye Anticheat"/>],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"],["rarity","Puppy rarities"]].map(([tab,label])=>
+   {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["pupeye-web",<PupEyeBrand compact label="PupEye Anticheat"/>],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"],["rarity","Puppy rarities"],["events","🎄 Events & holidays"]].map(([tab,label])=>
     <button key={tab} type="button" className={section===tab?"is-selected":""}
      aria-current={section===tab?"page":undefined} onClick={()=>navigate(tab)}>{label}</button>)}
    <a className="pup-admin-link pup-link-button" href="/account/admin/chat">💬 Chat moderation</a>
@@ -378,7 +388,13 @@ export default function AdminPortal(){
  {!webPupEyeEvents.length&&!tabLoading?<p className="pup-admin-empty">No PupEye Web security incidents recorded.</p>:null}
 </section>:null}
 
-  {section==="rarity"?<RarityAdmin/>:null}
+  {section==="events"?<section className="pup-admin-panel" aria-label="Events and holiday settings"><h2>Events &amp; holidays</h2><p className="pup-admin-note">Global event settings apply to all website users. Disabling an event does not remove previously collected rewards or change the UTC event schedule. Changes reach open pages on their next refresh; the server checks new gift claims.</p>
+    {eventSettings?EVENT_SETTINGS.map(event=><div key={event.id} className="pup-admin-section-heading" style={{padding:"12px 0",flexWrap:"wrap"}}>
+     <div><strong>{event.name}</strong><p className="pup-admin-note">{event.description}</p>{event.id!=="all_events"&&!eventSettings.all_events&&<small>Paused by master switch</small>}</div>
+     <label style={{display:"flex",alignItems:"center",gap:8}}><input type="checkbox" checked={eventSettings[event.id]===true} disabled={busy} onChange={e=>void updateEventSetting(event.id,e.target.checked)}/>{eventSettings[event.id]?"Enabled":"Disabled"}</label>
+    </div>):<p role="status">Event settings unavailable or loading.</p>}
+   </section>:null}
+   {section==="rarity"?<RarityAdmin/>:null}
   {section==="gifts"?<AdminPuppyGifts request={request} role={staff.role}/>:null}
   {section==="bans"?<section className="pup-admin-panel">
    <h2>Suspension & ban history</h2><p className="pup-admin-note">Restrictions apply to Android and the website. Timed restrictions stop applying at their end time. Bans issued outside this panel must be managed by their original system.</p>

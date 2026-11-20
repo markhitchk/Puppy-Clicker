@@ -91,3 +91,13 @@ test('gift modal shows UTC and local unlock dates',async({browser})=>{
  await expect(dialog.getByText(/Nov 30, 2026.*4:00 PM/)).toBeVisible();
  await context.close();
 });
+
+test('disabled Christmas event is unavailable and hidden from navigation',async({page})=>{
+ await page.goto('/26xmas?christmasoff=1');await expect(page.getByText('This event is currently disabled. Your collected gifts are preserved.')).toBeVisible();await expect(page.locator('.pup-advent-door')).toHaveCount(0);await expect(page.getByRole('link',{name:'🎄 Christmas 2026'})).toHaveCount(0);
+});
+test('master switch disables Christmas and sitewide snow',async({page})=>{
+ await page.goto('/26xmas?eventsoff=1');await expect(page.getByText('This event is currently disabled. Your collected gifts are preserved.')).toBeVisible();await expect(page.locator('.xmas26-snow-overlay')).toHaveCount(0);
+});
+test('footer shows both clocks',async({page})=>{
+ await page.goto('/');const footer=page.getByRole('contentinfo');await expect(footer.getByText('System time (UTC)')).toBeVisible();await expect(footer.getByText('Your local time')).toBeVisible();await expect(footer.locator('time')).toHaveCount(2);
+});
