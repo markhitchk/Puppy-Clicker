@@ -205,7 +205,7 @@ async function registerWebAccount(req,body,origin){
    throw new PublicError(409,"PUP_USERNAME_TAKEN");
   throw new PublicError(503,"PUP_SIGNUP_UNAVAILABLE");
  }
- await recordJoinSource(admin,created.user.id,joinSource);
+ await recordJoinSource(admin,created.user.id,joinSource,"password",body.inviteCode);
  // The new account remains usable via password login if auto-sign-in fails.
  const {data:signed,error:signError}=await auth.auth.signInWithPassword({
   email:internalEmail,password

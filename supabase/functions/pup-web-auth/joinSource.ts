@@ -13,16 +13,29 @@ export function parseJoinSource(body:any,PublicError:any){
   throw new PublicError(400,"PUP_JOIN_SOURCE_INVALID");
  return {source:raw,details:details||null};
 }
-export async function recordJoinSource(admin:any,authUserId:string,answer:{source:string|null,details:string|null}){
- if(!answer.source)return;
+export async function recordJoinSource(admin:any,authUserId:string,answer:{source:string|null,details:string|null},method?:"password"|"discord",inviteCode?:unknown){
+ if(!answer.source&&!method)return;
  try{
   const {data:link,error:lookupError}=await admin.from("pup_web_auth_links")
    .select("account_uuid").eq("auth_user_id",authUserId).maybeSingle();
   if(lookupError||!link?.account_uuid)throw Error("lookup");
-  const {error}=await admin.from("pup_registration_sources").insert({
-   account_uuid:link.account_uuid,source:answer.source,details:answer.details
-  });
-  if(error)throw Error("insert");
+  let inviterAccountId:string|null=null;
+  const code=typeof inviteCode==="string"?inviteCode.trim().toUpperCase():"";
+  if(/^(?:PUP-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}|PUP-HARLEYTG-DEV)$/.test(code)){
+   const {data:inviterPlayer}=await admin.from("pupeye_players").select("id").eq("friend_code",code).eq("status","active").maybeSingle();
+   if(inviterPlayer?.id){
+    const {data:inviter}=await admin.from("pup_accounts").select("id").eq("player_uuid",inviterPlayer.id).eq("status","active").maybeSingle();
+    if(inviter?.id&&inviter.id!==link.account_uuid)inviterAccountId=inviter.id;
+   }
+  }
+  const base={account_uuid:link.account_uuid,source:answer.source,details:answer.details};
+  const {error}=await admin.from("pup_registration_sources").insert(method?{...base,registration_method:method,inviter_account_uuid:inviterAccountId}:base);
+  if(error){
+   if(method&&answer.source&&["PGRST204","42703"].includes(error.code)){
+    const legacy=await admin.from("pup_registration_sources").insert(base);
+    if(legacy.error)throw Error("legacy insert");
+   }else throw Error("insert");
+  }
  }catch{
   // Optional analytics cannot invalidate a newly created player account.
   console.error("Pup registration discovery feedback could not be saved");

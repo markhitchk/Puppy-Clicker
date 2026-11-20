@@ -15,7 +15,7 @@ test("both sign-up providers send the answer and server validates it",()=>{
  const web=read("src/WebRegister.jsx"),discord=read("src/DiscordSignupForm.jsx");
  const edge=read("supabase/functions/pup-web-auth/index.ts"),handler=read("supabase/functions/pup-web-auth/discordRegistration.ts");
  for(const form of [web,discord]){assert.ok(form.includes("JoinSourceFields"));assert.ok(form.includes("joinSource:joinSource||null"));}
- for(const source of [edge,handler]){assert.ok(source.includes("parseJoinSource(body,PublicError)"));assert.ok(source.includes("recordJoinSource(admin,created.user.id,joinSource)"));}
+ for(const source of [edge,handler]){assert.ok(source.includes("parseJoinSource(body,PublicError)"));assert.ok(source.includes("recordJoinSource(admin,created.user.id,joinSource,"));}
 });
 test("server derives account from verified user; never accepts a player ID",async()=>{
  let inserted;
@@ -33,4 +33,12 @@ test("staff directory is the only UI reading attribution",()=>{
  const sql=read("supabase/migrations/20261104162300_web_registration_sources.sql");
  assert.ok(sql.includes("enable row level security"));
  assert.ok(sql.includes("revoke all on public.pup_registration_sources from public, anon, authenticated"));
+});
+
+test("permanent registration metadata and invite references remain service-only",()=>{
+ const sql=read("supabase/registration-attribution.sql");
+ assert.match(sql,/registration_method text/);
+ assert.match(sql,/inviter_account_uuid uuid references puppy_accounts.pup_accounts/);
+ assert.match(sql,/security_invoker = true/);
+ assert.match(sql,/revoke all on public.pup_registration_sources from public, anon, authenticated/);
 });

@@ -78,7 +78,7 @@ export async function registerDiscordWebAccount({req,body,origin,admin,json,Publ
    throw new PublicError(409,"PUP_USERNAME_TAKEN");
   throw new PublicError(503,"PUP_SIGNUP_UNAVAILABLE");
  }
- await recordJoinSource(admin,created.user.id,joinSource);
+ await recordJoinSource(admin,created.user.id,joinSource,"discord",body.inviteCode);
  const {data:link,error:linkError}=await admin.auth.admin.generateLink({
   type:"magiclink",email:internalEmail
  });
