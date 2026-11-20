@@ -1,3 +1,4 @@
+import {adventDay} from '../_shared/advent-calendar.js';
 import {legacyCasinoRefund,recoverLegacyCasino} from "./legacyCasinoRecovery.ts";
 import {createHash} from "node:crypto";
 import {applyBetaLiveGameplay} from "../_shared/beta-live-gameplay.ts";
@@ -13,7 +14,7 @@ export class CrossPlayError extends Error {
 type Dict=Record<string,any>;
 const allowed=new Set([
  "casinoRecoverLegacy","tap","care","purchase","ticket","accessory","equip","exchange","skill",
- "daily","claimDailyGoal","parkStart","parkClaim","prestige",
+ "daily","claimDailyGoal","claimAdvent","parkStart","parkClaim","prestige",
  "slotsStart","slotsReveal","rouletteStart","rouletteReveal",
  "plinkoStart","plinkoReveal","scratchStart","scratchReveal",
  "wheelStart","wheelReveal","gacha","claimFreeTest","switch","rename","favorite",
@@ -37,7 +38,7 @@ export function publicCloudSnapshot(save:Dict|null){
   !/^(pup_eye_strikes|pupeye_|private_|device_|secret_|auth_|discord_token)/i.test(k)));
  return {exists:true,revision:Number(save.revision),updatedAt:save.updated_at,
   saveJson:JSON.stringify({format:source.format,version:1,
-   webCompanion:{nativeCasinoPending:!!main.values.casino_active_round_v1,
+   webCompanion:{adventServerTime:Date.now(),nativeCasinoPending:!!main.values.casino_active_round_v1,
     ...(legacyCasinoRefund(main.values)!==null?{nativeCasinoRefund:legacyCasinoRefund(main.values)}:{})},
    stores:{puppy_clicker_save:{values,types:main.types||{}}}})};
 }
@@ -71,6 +72,10 @@ function validatedIntent(raw:any){
   reject(400,"PUP_GAMEPLAY_ACTION_INVALID");
  // Intent-only field whitelist: values, inventory, costs, payout, RNG,
  // timestamp and whole save data can never be supplied by the browser.
+ if(raw.type==="claimAdvent"){
+  if(!adventDay(raw.id))reject(400,"ADVENT_DAY_INVALID");
+  return {type:raw.type,id:raw.id};
+ }
  return {
   type:raw.type,
   payment:typeof raw.payment==="string"?raw.payment:undefined,
@@ -116,10 +121,18 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
  const durable=typeof operationId==="string"&&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(operationId);
  if(operationId!==undefined&&!durable)reject(400,"PUP_OPERATION_ID_INVALID");
+ if(intent.type==="claimAdvent"&&!durable)reject(400,"PUP_OPERATION_ID_INVALID");
+ // Deterministic ledger receipt for this account and door, independent
+ // of browser-generated UUIDs. It also survives native save rewrites.
+ let ledgerOperationId=operationId;
+ if(intent.type==="claimAdvent"){
+  const hex=sha256Hex("advent:2026:"+account.id+":"+intent.id);
+  ledgerOperationId=hex.slice(0,8)+"-"+hex.slice(8,12)+"-5"+hex.slice(13,16)+"-a"+hex.slice(17,20)+"-"+hex.slice(20,32);
+ }
  const intentHash=durable?sha256Hex(canonicalJson(intent)):null;
  if(durable){
   const {data:receipt,error}=await admin.rpc("pup_web_gameplay_receipt",{
-   p_account_uuid:account.id,p_operation_id:operationId,p_intent_hash:intentHash
+   p_account_uuid:account.id,p_operation_id:ledgerOperationId,p_intent_hash:intentHash
   });
   if(error||!receipt)reject(503,"PUP_OPERATION_LEDGER_UNAVAILABLE");
   if(receipt.status==="reused_id")reject(409,"PUP_OPERATION_ID_REUSED");
@@ -173,6 +186,7 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
    "INVALID_WAGER","BLACKJACK_INVALID_WAGER","BLACKJACK_CANNOT_DOUBLE",
    "BLACKJACK_CANNOT_SPLIT","BLACKJACK_MOVE_UNAVAILABLE",
    "DAILY_ALREADY_CLAIMED","GOAL_ALREADY_CLAIMED","GOAL_NOT_COMPLETE",
+   "ADVENT_DAY_INVALID","ADVENT_ALREADY_CLAIMED","ADVENT_CLOSED","ADVENT_DAY_LOCKED",
    "UNKNOWN_DAILY_GOAL","PARK_NOT_READY","UPGRADE_NOT_AFFORDABLE",
    "UPGRADE_MAXED","UPGRADE_NEEDS_TICKETS","TICKET_NOT_AFFORDABLE",
    "ACCESSORY_NOT_AFFORDABLE","ACCESSORY_NOT_OWNED",
@@ -193,7 +207,7 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
   const {data:commit,error}=await admin.rpc(puppyReward?"pup_rarity_reward_commit":"pup_web_gameplay_commit",{
    ...(puppyReward?{p_catalog_version:catalogVersion}:{}),
    p_player_uuid:account.player_uuid,p_account_uuid:account.id,
-   p_expected_revision:body.expectedRevision,p_operation_id:operationId??crypto.randomUUID(),
+   p_expected_revision:body.expectedRevision,p_operation_id:ledgerOperationId??crypto.randomUUID(),
    p_intent_hash:intentHash??sha256Hex(canonicalJson(intent)),p_intent_type:intent.type,
    p_save_data:next,p_payload_hash:sha256Hex(canonicalJson(next))
   });

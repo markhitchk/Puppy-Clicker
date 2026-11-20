@@ -25,6 +25,7 @@ import {SafeAreaProvider,useSafeAreaInsets} from 'react-native-safe-area-context
 import {applyAppearance,interaction} from './src/theme.js';
 import {DEFAULT_PREFERENCES,effectiveMotion} from './src/engine/settings.js';
 import SettingsScreen from './web/WebSettings.jsx';
+import WebAdventCalendar from './web/WebAdventCalendar.jsx';
 import AccountDetailsScreen from './src/components/AccountDetailsScreen.jsx';
 import NotificationInbox from './src/components/NotificationInbox.jsx';
 import PuppyDetailsDialog from './src/components/PuppyDetailsDialog.jsx';
@@ -743,6 +744,7 @@ function RewardsScreen({g,act,clock,schedule,onOpen,onPrestige,readOnly=false,pe
  const park=parkPreview(g,clock);
  return <View style={styles.gamePage}>
   <PageHeader title={tr("rewards")} subtitle={tr("rewardsSubtitle")}/>
+   {Platform.OS==="web"&&<><button type="button" className="cyber-button secondary" onClick={()=>window.location.assign("/26xmas")}>🎄 Explore Christmas 2026</button><WebAdventCalendar game={g} act={act} clock={clock} readOnly={readOnly||!Number.isFinite(g.adventClockOffset)}/></>}
   <RewardsGroup title={"⭐ "+tr("overview")} description={tr("playerOverview")} initiallyOpen>
   <View style={styles.dailyGiftCard}>
    <Txt style={{fontSize:30}}>⭐</Txt>

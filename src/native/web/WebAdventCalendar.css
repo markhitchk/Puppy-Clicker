@@ -1,0 +1,55 @@
+/* Collectible Advent cards inspired by the PupDex; all rules are event-scoped. */
+.pup-advent{color:#e9f9ff;border:1px solid #7093a8;border-radius:22px;padding:clamp(10px,2vw,18px);min-width:0;background:radial-gradient(ellipse at 85% 0%,#52799b38,transparent 38%),linear-gradient(150deg,#182e40,#151b2c 74%);display:grid;gap:14px;box-shadow:0 14px 35px #0005;container-type:inline-size}
+.pup-advent-hero{display:grid;gap:7px;padding:15px 12px;border-radius:16px;background:radial-gradient(ellipse at 80% 10%,#a4e4f34a,transparent 65%),linear-gradient(135deg,#244c56,#343b58);border:1px solid #80b3c77d}
+.pup-advent-kicker{font-size:10px;font-weight:900;letter-spacing:.12em;color:#b8efff}
+.pup-advent h2{font-size:clamp(19px,3vw,26px);line-height:1.18;margin:0;color:#f4fbff}
+.pup-advent p{margin:0;line-height:1.4}
+.pup-advent-clock{font-size:12px;font-weight:800;color:#c8f6ff}
+.pup-advent-summary{display:grid;grid-template-columns:1fr auto;gap:7px;font-size:13px}
+.pup-advent-summary progress{appearance:none;width:100%;grid-column:1/-1;height:8px;border:0;border-radius:10px;overflow:hidden;background:#0e1a29}
+.pup-advent-summary progress::-webkit-progress-bar{background:#0e1a29;border-radius:10px}
+.pup-advent-summary progress::-webkit-progress-value{background:linear-gradient(90deg,#89e5ef,#b5f0d3);border-radius:10px}
+.pup-advent-summary progress::-moz-progress-bar{background:#89e5ef}
+.pup-advent-note{font-size:12px;color:#d0e5ec}
+.pup-advent-note:empty{display:none}
+.pup-advent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pup-advent-door{--gift-rgb:153 177 207;min-width:0;min-height:0;display:flex;flex-direction:column;align-items:stretch;text-align:left;padding:0;position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(160deg,rgb(var(--gift-rgb) / .14),#191c2b 44%,#10131f);color:#e8f7ff;border:1px solid rgb(var(--gift-rgb) / .55);border-radius:15px;font:800 12px/1.2 system-ui;box-shadow:inset 0 1px 0 #ffffff18,0 8px 18px #0005,0 0 10px rgb(var(--gift-rgb) / .12);cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s}
+.pup-advent-door::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;opacity:.6;background:linear-gradient(112deg,transparent 30%,#ffffff05 38%,#ffffff20 48%,transparent 64%);transform:translateX(-100%);}
+.pup-advent-door.milestone{--gift-rgb:179 143 248}
+.pup-advent-door[data-state=available]{--gift-rgb:104 224 245}
+.pup-advent-door[data-state=claimed]{--gift-rgb:117 218 170}
+.pup-advent-door.finale{--gift-rgb:255 166 199;border-width:2px;background:linear-gradient(150deg,#793e58,#251d36 65%);grid-column:1/-1}
+.pup-advent-door.finale .pup-advent-door-art{min-height:135px}
+.pup-advent-door-art{display:grid;place-items:center;position:relative;min-height:105px;padding:25px 5px 4px;background:radial-gradient(ellipse at 50% 60%,rgb(var(--gift-rgb) / .28),transparent 75%),linear-gradient(160deg,#ffffff0d,transparent);border-bottom:1px solid rgb(var(--gift-rgb) / .26)}
+.pup-advent-door-pill{position:absolute;top:6px;right:6px;z-index:1;padding:4px 7px;background:#112331ef;border:1px solid rgb(var(--gift-rgb) / .55);border-radius:30px;font-size:10px;color:#e9f9ff;white-space:nowrap}
+.pup-advent-gift{display:block;width:100%;max-width:98px;height:auto;filter:drop-shadow(0 6px 7px #0006)}
+.pup-advent-door.finale .pup-advent-gift{max-width:130px}
+.pup-advent-door-body{min-width:0;display:flex;flex-direction:column;flex:1;gap:6px;padding:8px 6px 9px;align-items:flex-start}
+.pup-advent-door-body strong{font-size:12px;line-height:1.25;overflow-wrap:anywhere;color:#f4f8ff}
+.pup-advent-door-tag{display:inline-flex;align-items:center;gap:3px;max-width:100%;padding:4px 6px;border-radius:30px;font:800 10px/1.15 system-ui;color:#edf6ff;background:rgb(var(--gift-rgb,153 177 207) / .14);border:1px solid rgb(var(--gift-rgb,153 177 207) / .48)}
+.pup-advent-door[data-state=locked] .pup-advent-door-tag,.pup-advent-door[data-state=expired] .pup-advent-door-tag{color:#c8d4e0}
+@media(hover:hover){.pup-advent-door:hover{transform:translateY(-2px);border-color:rgb(var(--gift-rgb));box-shadow:0 12px 24px #0007,0 0 20px rgb(var(--gift-rgb) / .3)}.pup-advent-door:hover::after{animation:advent-foil 1.2s ease-out}}
+.pup-advent-door.finale::after{animation:advent-foil 7s ease-in-out infinite}
+@keyframes advent-foil{0%{transform:translateX(-100%)}35%,100%{transform:translateX(100%)}}
+.pup-advent-dialog{max-width:min(420px,calc(100vw - 28px));width:100%;max-height:calc(100dvh - 36px);box-sizing:border-box;padding:0;border:0;background:none;color:#e9f9ff;overflow:auto;border-radius:22px;box-shadow:0 20px 80px #000a}
+.pup-advent-dialog::backdrop{background:#060e19b8;backdrop-filter:blur(5px)}
+.pup-advent-detail{--gift-rgb:153 177 207;display:grid;gap:14px;padding:16px;border:1px solid #7797b5;border-radius:22px;background:linear-gradient(145deg,#233b4d,#1b2033);color:#f4fbff}
+.pup-advent-detail.finale{--gift-rgb:255 166 199;border-color:#ffc3d9;background:linear-gradient(145deg,#593549,#1b2033)}
+.pup-advent-detail-header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pup-advent-close{width:44px;height:44px;border:1px solid #7c9bb4;border-radius:50%;background:#142739;color:#fff;font:700 24px/1 system-ui;cursor:pointer}
+.pup-advent-detail-art{display:grid;place-items:center;min-height:150px;border:1px solid rgb(var(--gift-rgb) / .3);border-radius:16px;background:radial-gradient(ellipse,rgb(var(--gift-rgb) / .3),transparent 70%),#101c2b}
+.pup-advent-detail-art .pup-advent-gift{max-width:155px}
+.pup-advent-detail-copy{display:grid;gap:8px}
+.pup-advent-detail-copy strong{font-size:20px}
+.pup-advent-detail-copy p,.pup-advent-detail .pup-advent-note{font-size:13px;color:#d2e5ef}
+.pup-advent-reward-row{display:grid;gap:5px;font-size:13px;font-weight:800}
+.pup-advent-reward-row span{padding:8px;border:1px solid #759cb24d;border-radius:9px;background:#101c2c}
+.pup-advent-claim{min-height:44px;border:1px solid #7de3ef;border-radius:11px;background:#8debf2;color:#122b3a;font:800 13px system-ui;padding:8px 12px;cursor:pointer}
+.pup-advent-claim:disabled{opacity:.58;cursor:not-allowed}
+.pup-advent button:focus-visible{outline:3px solid #f5fcff;outline-offset:2px}
+.pup-advent-theme{justify-self:start;min-height:44px;padding:6px 10px;border:1px solid #7da6c1;border-radius:9px;background:#193849;color:#e8faff;font:700 12px system-ui}
+.pup-advent-theme[aria-pressed=true]{background:#97e7f0;color:#173340}
+@container(min-width:490px){.pup-advent-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.pup-advent-door.finale{grid-column:auto}.pup-advent-door.finale .pup-advent-door-art{min-height:105px}.pup-advent-door.finale .pup-advent-gift{max-width:98px}}
+@container(max-width:290px){.pup-advent-grid{gap:5px}.pup-advent-door{border-radius:12px}.pup-advent-door-pill{top:4px;right:4px;font-size:9px;padding:3px 5px}.pup-advent-door-body{padding:7px 4px}.pup-advent-door-body strong{font-size:11px}.pup-advent-door-tag{font-size:9px;padding:3px 4px}.pup-advent-door-art{min-height:88px}}
+@media(prefers-reduced-motion:reduce){.pup-advent-door,.pup-advent-door::after{animation:none!important;transition:none!important;transform:none!important}}
+html[data-puppy-reduced-motion="true"] .pup-advent-door,html[data-puppy-reduced-motion="true"] .pup-advent-door::after{animation:none!important;transition:none!important;transform:none!important}

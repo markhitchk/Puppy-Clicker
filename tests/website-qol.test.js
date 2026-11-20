@@ -26,8 +26,13 @@ test('browser settings has category search, shortcuts, undo and five independent
  assert.match(styles,/\.browser-settings-shortcuts/);
 });
 
-test('footer maintains static logos without links or buttons',()=>{
+test('footer maintains logo-only navigation with accessible brand dialogs',()=>{
  const home=read('src/App.jsx');
  const footer=home.slice(home.indexOf('<footer className="site-footer"'),home.indexOf('</footer>',home.indexOf('<footer className="site-footer"')));
- assert.doesNotMatch(footer,/<a\b|<button\b/);
+ assert.doesNotMatch(footer,/<a\b/);
+ assert.equal((footer.match(/<button\b/g)||[]).length,2,'only brandmark and modal close controls');
+ assert.match(footer,/FOOTER_BRANDS\.map/);
+ assert.match(footer,/aria-haspopup="dialog"/);
+ assert.match(footer,/<dialog\b/);
+ assert.match(footer,/site-footer-logo-close/);
 });
