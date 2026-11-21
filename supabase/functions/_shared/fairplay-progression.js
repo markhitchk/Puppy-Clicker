@@ -27,7 +27,8 @@ export function validateFairplayProgression(before,after,intent,{maxTapReward,ma
   check('treats',(old,next)=>next<=old);
   check('lifetime_treats',(old,next)=>next===old);
  }
- const oldXp=read(a,'player_xp_v1',read(a,'lifetime_treats'));
+ // Legacy saves without explicit XP derive the initial XP from lifetime Treats after the tap reward.
+ const oldXp=read(a,'player_xp_v1',read(b,'lifetime_treats'));
  const newXp=read(b,'player_xp_v1');
  const beforeAchievements=new Set(Array.isArray(a.achievement_rewarded_v1)?a.achievement_rewarded_v1:[]);
  const afterAchievements=new Set(Array.isArray(b.achievement_rewarded_v1)?b.achievement_rewarded_v1:[]);

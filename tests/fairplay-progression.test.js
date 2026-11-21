@@ -24,3 +24,8 @@ test('old tap counters and numeric saturation are supported',()=>{
  const max=Number.MAX_SAFE_INTEGER;
  assert.deepEqual(validate(save({...base,treats:max,total_taps:max,legitimate_taps_v7:max}),save({...tap,treats:max,total_taps:max,legitimate_taps_v7:max}),'tap',limits),[]);
 });
+
+test('legacy saves initialize missing XP from post-tap lifetime Treats',()=>{
+ const legacy={...base};delete legacy.player_xp_v1;
+ assert.deepEqual(validate(save(legacy),save({...tap,player_xp_v1:33}),'tap',limits),[]);
+});
