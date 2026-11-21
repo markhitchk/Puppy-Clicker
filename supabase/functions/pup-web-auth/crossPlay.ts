@@ -3,6 +3,8 @@ import {normalizeEventSettings,christmasEnabled} from '../_shared/event-settings
 import {legacyCasinoRefund,recoverLegacyCasino} from "./legacyCasinoRecovery.ts";
 import {createHash} from "node:crypto";
 import {applyBetaLiveGameplay} from "../_shared/beta-live-gameplay.ts";
+import {MAX_TAP_REWARD,MAX_PLAYER_XP} from "../_shared/beta-progression.ts";
+import {validateFairplayProgression} from "../_shared/fairplay-progression.js";
 import {applyBetaEconomy} from "../_shared/beta-economy.ts";
 import {applyBetaBlackjack} from "../_shared/beta-blackjack.ts";
 
@@ -205,6 +207,12 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
    "BETA_ACTION_NOT_PORTED"]).has(code))
    reject(409,code);
   reject(409,"PUP_GAMEPLAY_REJECTED");
+ }
+ // Reject invalid server transitions before commit, without attributing guilt to the player.
+ const progressionIssues=validateFairplayProgression(current.save_data,next,intent.type,{maxTapReward:MAX_TAP_REWARD,maxXp:MAX_PLAYER_XP});
+ if(progressionIssues.length){
+  console.error("PupEye server progression invariant failed",intent.type,progressionIssues.join(","));
+  reject(503,"PUP_PROGRESSION_VALIDATION_FAILED");
  }
  const savedAt=new Date().toISOString();
  let written:Dict|null=null;

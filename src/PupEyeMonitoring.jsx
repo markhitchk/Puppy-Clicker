@@ -17,6 +17,8 @@ export default function PupEyeMonitoring({data,unavailable=false}){
    <Metric label="Web rate-gated accounts · 24h" value={data.webAccounts24h}/><Metric label="Fair-play accounts · 24h" value={data.fairplayAccounts24h}/><Metric label="Linked Android accounts · 24h" value={data.androidAccounts24h}/>
    <Metric label="Retained fair-play profiles" value={data.retainedFairplayProfiles}/><Metric label="Open investigations" value={data.openCases}/><Metric label="Current temporary tap holds" value={data.activeTapHolds}/>
   </div>
+  <div className="pup-admin-stats"><Metric label="Repeated server signals · 7d" value={data.repeatedServerSignals7d}/><Metric label="Volume and rejection signals · 7d" value={data.multipleServerSignals7d}/></div>
+  <p className="pup-admin-note">Seven-day correlations count accounts with non-dismissed server observations, excluding browser hints. Correlation is not a finding of cheating and never triggers a sanction.</p>
   <p className="pup-admin-note">Last web request bucket: {data.lastWebRequest?formatTime(data.lastWebRequest):'Not observed'} · Last fair-play observation: {data.lastFairplayObservation?formatTime(data.lastFairplayObservation):'Not observed'}. No recent observations does not mean cheating or that monitoring is disabled.</p>
   <div className="pup-monitoring-grid">
    <Breakdown title="Server request counts · 24h" counts={data.requestsByAction} keys={['gameplay','profile','notifications','exchange','admin','gift']}/>

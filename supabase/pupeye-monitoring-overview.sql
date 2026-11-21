@@ -29,6 +29,13 @@ as $f$
  ), case_stats as (
   select severity,count(*) as cases from puppy_pupeye.web_fairplay_cases
   where created_at >= now()-interval '24 hours' group by severity
+ ), review_signals as (
+  select account_uuid,
+   count(distinct date_trunc('day',created_at)) filter(where evidence->>'source'='server_received' and signal in ('SUSTAINED_TAP_VOLUME','EXTREME_TAP_VOLUME','REPEATED_RATE_REJECTION','BURST_RATE_REJECTION')) as observed_days,
+   bool_or(evidence->>'source'='server_received' and signal in ('SUSTAINED_TAP_VOLUME','EXTREME_TAP_VOLUME')) as volume_signal,
+   bool_or(evidence->>'source'='server_received' and signal in ('REPEATED_RATE_REJECTION','BURST_RATE_REJECTION')) as rejection_signal
+  from puppy_pupeye.web_fairplay_cases
+  where created_at>=now()-interval '7 days' and status<>'dismissed' group by account_uuid
  ), device_stats as (
   select coalesce(i.integrity_state,'unknown') as state,count(*) as devices
   from puppy_pupeye.pupeye_installations i
@@ -46,6 +53,8 @@ as $f$
   'retainedFairplayProfiles',(select count(*) from puppy_pupeye.web_fairplay_profiles),
   'openCases',(select count(*) from puppy_pupeye.web_fairplay_cases where status='open'),
   'activeTapHolds',(select count(*) from puppy_pupeye.web_fairplay_profiles where restricted_until>now()),
+  'repeatedServerSignals7d',(select count(*) from review_signals where observed_days>=2),
+  'multipleServerSignals7d',(select count(*) from review_signals where volume_signal and rejection_signal),
   'lastFairplayObservation',(select max(updated_at) from puppy_pupeye.web_fairplay_profiles),
   'lastWebRequest',(select max(window_start) from puppy_pupeye.web_rate_buckets),
   'requestsByAction',coalesce((select jsonb_object_agg(action_code,requests) from request_stats),'{}'::jsonb),
