@@ -102,7 +102,7 @@ test("static HTML gets Open Graph, Twitter, canonical and SEO metadata for a pup
 });
 
 test("middleware serves preview metadata in HTML to all user agents",async()=>{
- assert.deepEqual(config.matcher,["/pupdex","/puppies"]);
+ assert.deepEqual(config.matcher,["/pupdex","/puppies","/account"]);
  const before=globalThis.fetch;
  let fetched=null;
  globalThis.fetch=async input=>{

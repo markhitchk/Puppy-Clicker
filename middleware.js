@@ -3,9 +3,10 @@
 // Return the normal Vite document with its scripts intact for human visitors.
 import {applyPuppySharePreview,getPuppySharePreview} from "./src/puppySharePreview.js";
 
+import {invitePreview,lookupInviteUsername} from "./src/friendInvitePreview.js";
 import {puppyService} from "./src/supabaseConfig.js";
 
-export const config={matcher:["/pupdex","/puppies"]};
+export const config={matcher:["/pupdex","/puppies","/account"]};
 
 export default async function middleware(request){
  const url=new URL(request.url);
@@ -13,8 +14,12 @@ export default async function middleware(request){
   url.pathname="/pupdex";
   return Response.redirect(url,308);
  }
- let preview=getPuppySharePreview(url.search);
- if(preview){
+ const isAccount=url.pathname==="/account"||url.pathname==="/account/";
+ let preview=isAccount?invitePreview(url.search):getPuppySharePreview(url.search);
+ if(isAccount&&preview){
+  const username=await lookupInviteUsername(url.search,{url:process.env.SUPABASE_URL||puppyService.url,key:process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY});
+  preview=invitePreview(url.search,username);
+ }else if(preview){
   try{
    const catalog=await fetch(puppyService.url+"/rest/v1/rpc/pup_rarity_public",{
     method:"POST",headers:{apikey:puppyService.key,"Content-Type":"application/json"},body:"{}",cache:"no-store",
@@ -38,6 +43,7 @@ export default async function middleware(request){
   "Cache-Control":"private, no-store",
   "X-Content-Type-Options":"nosniff"
  });
+ if(isAccount&&preview)resultHeaders.set("X-Robots-Tag","noindex, follow");
  for(const key of ["content-security-policy","referrer-policy","x-frame-options"]){
   const value=response.headers.get(key);
   if(value)resultHeaders.set(key,value);

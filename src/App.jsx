@@ -372,6 +372,14 @@ function AccountDashboard(){
   }catch{}
   setStatus("Select and copy the "+label.toLowerCase()+" shown in Account details.");
  };
+ const shareInvite=async()=>{
+  if(!inviteUrl)return;
+  if(typeof navigator.share==="function"){
+   try{await navigator.share({title:"@"+profile.username+"’s Invite to Puppy Clicker",text:"Join my pack in Puppy Clicker! Create a free Pup Account.",url:inviteUrl});return;}
+   catch(error){if(error?.name==="AbortError")return;}
+  }
+  await shareFriendCode();
+ };
  const detail=(label,value,description)=> <div className="account-detail" key={label}>
   <dt>{label==="PupEye Anticheat"?<PupEyeBrand compact label={label}/>:label}</dt><dd>{value||"Not available"}</dd>{description?<small>{description}</small>:null}
  </div>;
@@ -421,13 +429,14 @@ function AccountDashboard(){
      {["ADMIN","DEVELOPER"].includes(profile.guildRole)&&<a className="cta cta-secondary" href="/account/admin">🛡️ Open Admin Panel</a>}
      </nav>
     {inviteUrl&&<section className="profile-form" aria-label="Share Friend Code">
-     <label htmlFor="pup-friend-invite">🔗 Share Friend Code · Invite link</label>
+     <label htmlFor="pup-friend-invite">🐾 Invite friends to Puppy Clicker</label>
      <input id="pup-friend-invite" type="url" readOnly value={inviteUrl} onFocus={e=>e.currentTarget.select()} aria-label="Friend invite link"/>
      <div className="account-shortcut-grid">
-      <button type="button" className="cta cta-primary" onClick={()=>void shareFriendCode()}>Copy invite link</button>
+      <button type="button" className="cta cta-primary" onClick={()=>void shareInvite()}>Share invite</button>
+      <button type="button" className="cta cta-secondary" onClick={()=>void shareFriendCode()}>Copy invite link</button>
       <button type="button" className="cta cta-secondary" onClick={()=>void shareFriendCode(profile.friendCode,"Friend Code")}>Copy Friend Code</button>
      </div>
-     <small>New players can register with this link. It does not automatically grant rewards or accept friend requests.</small>
+     <small>Share your personal invite with friends. Verified signups are attributed to you automatically. No rewards or friend requests are automatically granted.</small>
     </section>}
     <div className="portal-divider"></div>
     <h3 id="profile-settings">✏️ Profile settings</h3>

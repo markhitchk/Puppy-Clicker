@@ -90,8 +90,8 @@ export default function DiscordSignupForm({signup,onAuthenticated,onSignIn}){
     </>:<p>No verified email was returned by Discord. Email remains optional.</p>}
     <small>Discord email is not automatically used for Supabase password recovery.</small>
    </div>
-   {inviteCode&&<p className="account-security-note">Invited with Friend Code: {inviteCode}</p>}
-   <JoinSourceFields idPrefix="discord-register" source={joinSource} onSourceChange={setJoinSource}
+   {inviteCode&&<p className="account-security-note">Invite link detected. Your discovery source will be recorded automatically after verification.</p>}
+   <JoinSourceFields idPrefix="discord-register" inviteCode={inviteCode} source={joinSource} onSourceChange={setJoinSource}
     details={joinDetails} onDetailsChange={setJoinDetails} disabled={busy||registered}/>
    <label className="account-auth-consent">
     <input type="checkbox" required checked={terms} disabled={busy||registered}
