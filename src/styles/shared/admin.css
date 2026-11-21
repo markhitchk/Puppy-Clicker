@@ -203,3 +203,7 @@
 .pup-admin-stat-action:hover,.pup-admin-stat-action:focus-visible{border-color:#73eaff;outline:2px solid #73eaff;outline-offset:2px}
 .pup-admin-stat-action small{display:block;color:#9deeff;font-size:12px;margin-top:6px}
 .pup-admin-activity{display:flex;flex-direction:column;gap:16px}
+
+.pup-monitoring-overview{margin:18px 0 28px;padding:clamp(12px,2vw,20px);border:1px solid #31586c;border-radius:16px;background:#101c28;min-width:0}
+.pup-monitoring-overview h3{margin:0 0 8px}.pup-monitoring-overview .pup-admin-stats{margin:14px 0}
+.pup-monitoring-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}.pup-monitoring-breakdown{border:1px solid #31586c;border-radius:12px;padding:12px}.pup-monitoring-breakdown h4{margin:0 0 10px;color:#bde8f3}.pup-monitoring-breakdown dl{margin:0}.pup-monitoring-breakdown dl div{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #31586c55}.pup-monitoring-breakdown dd{margin:0;font-weight:700}.pup-monitoring-breakdown dt{overflow-wrap:anywhere}

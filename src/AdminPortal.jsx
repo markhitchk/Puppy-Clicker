@@ -6,6 +6,7 @@ import AdminPuppyGifts from "./AdminPuppyGifts.jsx";
 import {banTargetFromLocation,banAccountUrl} from "./banRoute.js";
 import AdminActivity from "./AdminActivity.jsx";
 import PupEyeBrand from "./PupEyeBrand.jsx";
+import PupEyeMonitoring from "./PupEyeMonitoring.jsx";
 import AdminRestrictionDialog from "./AdminRestrictionDialog.jsx";
 import {EVENT_SETTINGS} from "../supabase/functions/_shared/event-settings.js";
 import {formatTime,describeDevice,presentAuditEvent} from "./adminPresentation.js";
@@ -66,6 +67,8 @@ export default function AdminPortal(){
  const [events,setEvents] = useState([]);
  const [webPupEyeEvents,setWebPupEyeEvents] = useState([]);
  const [fairplayCases,setFairplayCases]=useState([]);
+ const [monitoring,setMonitoring]=useState(null);
+ const [monitoringError,setMonitoringError]=useState(false);
  const [caseReview,setCaseReview]=useState({});
  const [query,setQuery] = useState("");
  const [busy,setBusy] = useState(false);
@@ -115,8 +118,11 @@ export default function AdminPortal(){
    if(tab==="activity")setActivity(result);
    if(tab==="pupeye-web"){
     setWebPupEyeEvents(result.events||[]);
-    const cases=await request({action:"fairplay-cases"});
-    setFairplayCases(cases.cases||[]);
+    const [cases,overview]=await Promise.allSettled([request({action:"fairplay-cases"}),request({action:"fairplay-monitoring"})]);
+    if(overview.status==="fulfilled"){setMonitoring(overview.value.monitoring);setMonitoringError(false);}
+    else setMonitoringError(true);
+    if(cases.status==="fulfilled")setFairplayCases(cases.value.cases||[]);
+    else throw cases.reason;
    }
   }catch(e){setError(normalizeError(e.message));}
   finally{if(!silent)setTabLoading(false);}
@@ -343,6 +349,7 @@ export default function AdminPortal(){
  {section==="pupeye-web"?<section className="pup-admin-panel" aria-label="PupEye Web security incidents">
  <h2><PupEyeBrand label="PupEye Anticheat"/></h2>
  <p className="pup-admin-note">Server-verified browser account activity and abuse-limit incidents. These are not Android device detections. VPN/network risk alone does not constitute cheating or trigger an automatic ban.</p>
+ <PupEyeMonitoring data={monitoring} unavailable={monitoringError}/>
  <div className="pup-fairplay-heading">
    <h3>🔎 Fair-play investigations</h3>
    <p>Server-detected volume and rate anomalies. Browser timing reports are advisory only and cannot trigger automatic restrictions. A case is evidence for human review, not proof of cheating.</p>

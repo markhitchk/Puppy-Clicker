@@ -31,3 +31,10 @@ test('error view shows failures only and clear counts with readable explanations
  const html=renderToStaticMarkup(React.createElement(Activity,{filter:'errors',onFilter(){},activity:{summary:{errors24h:8},events:[{id:1,event_code:'service_error',outcome:'failure',source:'server',error_code:'PUP_AUTH_REQUIRED'},{id:2,event_code:'service_error',outcome:'failure',source:'server',error_code:'CLOUD_SAVE_CONFLICT'},{id:3,event_code:'login_success',outcome:'success',source:'server'}]}}));
  assert.match(html,/Errors in the last 24 hours/);assert.match(html,/2 matching records · 8 total failures/);assert.match(html,/valid signed-in Pup Account session/);assert.match(html,/cloud save revision changed/);assert.doesNotMatch(html,/Sign-in succeeded/);
 });
+
+const {default:Monitoring}=await server.ssrLoadModule('/src/PupEyeMonitoring.jsx');
+test('PupEye monitoring distinguishes no observation, zero incidents and unavailable data',()=>{
+ const html=renderToStaticMarkup(React.createElement(Monitoring,{data:{activeAccounts:10,observedAccounts24h:4,webAccounts24h:4,fairplayAccounts24h:3,androidAccounts24h:1,openCases:0,activeTapHolds:0,requestsByAction:{gameplay:30},incidentsByType:{},casesBySeverity:{},androidIntegrityStates:{unknown:1}}}));
+ assert.match(html,/No recent observation/);assert.match(html,/Observed accounts/);assert.match(html,/Open investigations/);assert.match(html,/Browser timing is advisory only/);assert.match(html,/does not mean cheating/);
+ const missing=renderToStaticMarkup(React.createElement(Monitoring,{unavailable:true}));assert.match(missing,/Monitoring summary unavailable/);
+});
