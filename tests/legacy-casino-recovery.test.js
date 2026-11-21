@@ -21,7 +21,9 @@ const values=db=>db.row().save_data.stores.puppy_clicker_save.values;
 
 test('web recovery refunds the old reserved chips once and permits a fresh server round',async()=>{
  const db=crossplayDb(seed());
- const receipt=await play(db,{type:'casinoRecoverLegacy',amount:999999,payout:999999});
+ await assert.rejects(play(db,{type:'casinoRecoverLegacy',amount:999999,payout:999999}),{message:'PUP_GAMEPLAY_SERVER_FIELDS_FORBIDDEN'});
+ assert.equal(db.writes(),0);
+ const receipt=await play(db,{type:'casinoRecoverLegacy',amount:999999});
  assert.equal(values(db).casino_chips_v7,600);
  assert.equal(values(db).casino_active_round_v1,undefined);
  assert.deepEqual(JSON.parse(values(db).casino_completed_round_ids_v1),[id]);

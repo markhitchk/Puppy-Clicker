@@ -230,6 +230,10 @@ export async function action(db,actor,body) {
     const rows=ensure(await db.rpc('pupeye_web_admin_events',{p_limit:80}));
     return {events:rows||[]};
   }
+  if(type==="fairplay-monitoring"){
+    // Aggregate-only operational metrics; authenticated staff gate runs before this action.
+    return {monitoring:ensure(await db.rpc("pupeye_admin_monitoring_overview"))};
+  }
   if(type==="fairplay-cases"){
     // Only an authorized staff member can reach these service-role-only findings.
     const rows=ensure(await db.rpc("pupeye_web_fairplay_admin_cases",{p_limit:160}));
