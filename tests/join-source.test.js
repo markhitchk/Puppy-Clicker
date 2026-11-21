@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import {resolveRegistrationMethod} from "../api/_lib/registrationMethod.js";
 import {readFileSync} from "node:fs";
 import {parseJoinSource,recordJoinSource} from "../supabase/functions/pup-web-auth/joinSource.ts";
 const read=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
@@ -91,4 +92,19 @@ test("grouped discovery options stay aligned across signup, backend, admin and s
  assert.ok(ui.includes("<optgroup"));
  assert.ok(ui.includes("Select a discovery source"));
  assert.throws(()=>parseJoinSource({joinSource:"invite_link"},PublicError),/PUP_JOIN_SOURCE_INVALID/);
+});
+
+test("legacy accounts detect linked authentication without inventing original signup",()=>{
+ const discordUserId="123456789012345678";
+ assert.deepEqual(resolveRegistrationMethod({discordUserId}),{registrationMethod:null,detectedAuthMethods:["discord"]});
+ assert.deepEqual(resolveRegistrationMethod({hasPassword:true}),{registrationMethod:null,detectedAuthMethods:["password"]});
+ assert.deepEqual(resolveRegistrationMethod({hasPassword:true,discordUserId}),{registrationMethod:null,detectedAuthMethods:["password","discord"]});
+ assert.deepEqual(resolveRegistrationMethod({storedMethod:"password",auditMethod:"discord",hasPassword:true,discordUserId}),{registrationMethod:"password",detectedAuthMethods:["password","discord"]});
+ assert.deepEqual(resolveRegistrationMethod({auditMethod:"discord",hasPassword:true}),{registrationMethod:"discord",detectedAuthMethods:["password"]});
+ assert.deepEqual(resolveRegistrationMethod({storedMethod:"tiktok",discordUserId:"invalid"}),{registrationMethod:null,detectedAuthMethods:[]});
+ assert.deepEqual(resolveRegistrationMethod(),{registrationMethod:null,detectedAuthMethods:[]});
+ const api=read("api/admin.js"),ui=read("src/AdminPortal.jsx");
+ assert.ok(api.includes('db.from("pup_credential_links").select("account_uuid")'));
+ assert.ok(ui.includes("Detected from account"));
+ assert.ok(ui.includes("Method not recorded"));
 });

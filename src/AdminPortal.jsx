@@ -16,6 +16,8 @@ const initialSection=()=> {
 };
 const joinSourceNames={invite_link:"Invite link (automatic)",friend:"Friend or player",discord:"Discord",youtube:"YouTube",tiktok:"TikTok",
  instagram:"Instagram",reddit:"Reddit",google:"Google Search",play_store:"Google Play Store",other:"Other",snapchat:"Snapchat",facebook:"Facebook",x:"X (Twitter)",twitch:"Twitch"};
+const authMethodLabel=method=>method==="discord"?"Discord":method==="password"?"Pup Account":"";
+const detectedAuthLabel=user=>(user.detectedAuthMethods||[]).map(authMethodLabel).filter(Boolean).join(" + ");
 const lastIp=user=>user.connection?.ip||user.network?.ip||null;
 const lastUserAgent=user=>(user.connection?user.connection.userAgent:user.network?.userAgent)||null;
 const normalizeError=(code)=>{
@@ -256,7 +258,7 @@ export default function AdminPortal(){
   </div>;
  }
  const visibleUsers=users.filter(u=>
-   [u.username,u.displayName,u.playerId,u.friendCode,u.joinSource,u.joinDetails,u.registrationMethod,u.invitedBy].some(v=>
+   [u.username,u.displayName,u.playerId,u.friendCode,u.joinSource,u.joinDetails,u.registrationMethod,authMethodLabel(u.registrationMethod),detectedAuthLabel(u),u.invitedBy].some(v=>
      String(v||"").toLowerCase().includes(query.trim().toLowerCase())));
  const activeBans=bans.filter(b=>b.status==="active"&&!b.revoked_at&&
     (!b.expires_at || new Date(b.expires_at)>new Date())).length;
@@ -300,7 +302,9 @@ export default function AdminPortal(){
      <tr key={user.id}>
       <td><div className="pup-admin-player"><UserAvatar src={user.avatarUrl} name={user.displayName||user.username} className="pup-admin-avatar"/>
         <div><strong>{user.displayName||user.username}</strong><small>@{user.username}</small><small>{user.friendCode||"—"}</small>{user.contactEmail?<small>Support email: {user.contactEmail}</small>:null}</div></div></td>
-      <td><strong>{user.registrationMethod==="discord"?"Discord":user.registrationMethod==="password"?"Pup Account":"Registration method unknown"}</strong>
+      <td><strong>{authMethodLabel(user.registrationMethod)||detectedAuthLabel(user)||"Method not recorded"}</strong>
+        {!user.registrationMethod&&detectedAuthLabel(user)&&<small>Detected from account · original signup not recorded</small>}
+        {user.registrationMethod&&detectedAuthLabel(user)&&<small>Linked authentication: {detectedAuthLabel(user)}</small>}
        {user.invitedBy&&<small>Invited by · @{user.invitedBy}</small>}
        {user.joinSource&&<small>Discovery: {joinSourceNames[user.joinSource]||user.joinSource}</small>}
        {user.joinDetails?<small>{user.joinDetails}</small>:null}</td>

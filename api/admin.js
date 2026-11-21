@@ -1,3 +1,4 @@
+import {resolveRegistrationMethod} from "./_lib/registrationMethod.js";
 import {publicAvatarUrl} from "./_lib/publicAvatar.js";
 import {detectNetworkRisk} from "./_lib/networkRisk.js";
 import {isEventSetting,normalizeEventSettings} from "../supabase/functions/_shared/event-settings.js";
@@ -90,6 +91,9 @@ async function users(db,query) {
     .in("account_uuid",accountIds).eq("event_code","register_success").eq("source","server").eq("outcome","success").order("created_at",{ascending:true}).limit(500):{data:[]};
   const methods=new Map();
   for(const event of registrationEvents.data||[])if(!methods.has(event.account_uuid)&&["password","discord"].includes(event.provider))methods.set(event.account_uuid,event.provider);
+  // Read only the account UUID of each existing credential mapping; no emails, hashes or secrets.
+  const credentials=accountIds.length?await db.from("pup_credential_links").select("account_uuid").in("account_uuid",accountIds):{data:[]};
+  const passwordAccounts=new Set((credentials.error?[]:credentials.data||[]).map(row=>row.account_uuid));
   const inviterIds=[...new Set([...sources.values()].map(r=>r.inviter_account_uuid).filter(Boolean))];
   const inviterRows=inviterIds.length?await db.from("pup_accounts").select("id,username").in("id",inviterIds):{data:[]};
   const inviters=new Map((inviterRows.data||[]).map(r=>[r.id,r.username]));
@@ -133,7 +137,7 @@ async function users(db,query) {
         expiresAt:restriction.expires_at,managedHere:String(restriction.issued_by||"").startsWith("web_admin:")}:null,
       accountStatus:a.status,createdAt:a.created_at,updatedAt:a.updated_at,
       contactEmail:a.contact_email || null,
-      registrationMethod:sources.get(a.id)?.registration_method||methods.get(a.id)||null,
+      ...resolveRegistrationMethod({storedMethod:sources.get(a.id)?.registration_method,auditMethod:methods.get(a.id),hasPassword:passwordAccounts.has(a.id),discordUserId:a.discord_user_id}),
        invitedBy:sources.get(a.id)?.inviter_account_uuid?inviters.get(sources.get(a.id).inviter_account_uuid)||null:null,
        joinSource:sources.get(a.id)?.inviter_account_uuid?"invite_link":sources.get(a.id)?.source||null,
       joinDetails:sources.get(a.id)?.inviter_account_uuid?null:sources.get(a.id)?.details||null,
