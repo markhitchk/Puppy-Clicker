@@ -28,11 +28,13 @@ export async function recordJoinSource(admin:any,authUserId:string,answer:{sourc
     if(inviter?.id&&inviter.id!==link.account_uuid)inviterAccountId=inviter.id;
    }
   }
-  const base={account_uuid:link.account_uuid,source:answer.source,details:answer.details};
+  // Only a server-verified, active, non-self inviter overrides the manual answer.
+  const base={account_uuid:link.account_uuid,source:inviterAccountId?"friend":answer.source,details:inviterAccountId?null:answer.details};
   const {error}=await admin.from("pup_registration_sources").insert(method?{...base,registration_method:method,inviter_account_uuid:inviterAccountId}:base);
   if(error){
    if(method&&answer.source&&["PGRST204","42703"].includes(error.code)){
-    const legacy=await admin.from("pup_registration_sources").insert(base);
+    // A legacy schema cannot retain the verified inviter; do not falsely attribute it.
+    const legacy=await admin.from("pup_registration_sources").insert({account_uuid:link.account_uuid,source:answer.source,details:answer.details});
     if(legacy.error)throw Error("legacy insert");
    }else throw Error("insert");
   }

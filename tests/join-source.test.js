@@ -42,3 +42,40 @@ test("permanent registration metadata and invite references remain service-only"
  assert.match(sql,/security_invoker = true/);
  assert.match(sql,/revoke all on public.pup_registration_sources from public, anon, authenticated/);
 });
+
+test("verified invite takes priority over manual discovery for both providers",async()=>{
+ for(const method of ["password","discord"]){
+  for(const answer of [{source:"tiktok",details:"manual answer"},{source:null,details:null}]){
+   let inserted;
+   const rows={pup_web_auth_links:{account_uuid:"new-account"},pupeye_players:{id:"inviter-player"},pup_accounts:{id:"inviter-account"}};
+   const admin={from(table){
+    if(table==="pup_registration_sources")return {async insert(row){inserted=row;return {error:null}}};
+    assert.ok(table in rows);
+    return {select(){return this},eq(key,value){
+     if(key==="status")assert.equal(value,"active");
+     if(key==="friend_code")assert.equal(value,"PUP-HARLEYTG-DEV");
+     return this;
+    },async maybeSingle(){return {data:rows[table]}}};
+   }};
+   await recordJoinSource(admin,"new-auth-user",answer,method,"pup-harleytg-dev");
+   assert.deepEqual(inserted,{account_uuid:"new-account",source:"friend",details:null,registration_method:method,inviter_account_uuid:"inviter-account"});
+  }
+ }
+});
+test("unverified or self invites retain the optional manual answer",async()=>{
+ for(const [code,player,inviter] of [["invalid",null,null],["PUP-1234-ABCD-5678",null,null],["PUP-HARLEYTG-DEV",{id:"p"},{id:"new-account"}],["PUP-HARLEYTG-DEV",{id:"p"},null]]){
+  let inserted;
+  const rows={pup_web_auth_links:{account_uuid:"new-account"},pupeye_players:player,pup_accounts:inviter};
+  const admin={from(table){
+   if(table==="pup_registration_sources")return {async insert(row){inserted=row;return {error:null}}};
+   return {select(){return this},eq(){return this},async maybeSingle(){return {data:rows[table]}}};
+  }};
+  await recordJoinSource(admin,"new-auth-user",{source:"tiktok",details:"manual"},"password",code);
+  assert.deepEqual(inserted,{account_uuid:"new-account",source:"tiktok",details:"manual",registration_method:"password",inviter_account_uuid:null});
+ }
+});
+test("staff discovery takes precedence for existing verified invitation records",()=>{
+ assert.ok(read("api/admin.js").includes('inviter_account_uuid?"invite_link"'));
+ assert.ok(read("src/AdminPortal.jsx").includes('invite_link:"Invite link (automatic)"'));
+ for(const path of ["src/WebRegister.jsx","src/DiscordSignupForm.jsx"])assert.ok(read(path).includes("inviteCode={inviteCode}"));
+});
