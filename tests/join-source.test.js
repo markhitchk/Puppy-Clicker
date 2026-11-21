@@ -79,3 +79,16 @@ test("staff discovery takes precedence for existing verified invitation records"
  assert.ok(read("src/AdminPortal.jsx").includes('invite_link:"Invite link (automatic)"'));
  for(const path of ["src/WebRegister.jsx","src/DiscordSignupForm.jsx"])assert.ok(read(path).includes("inviteCode={inviteCode}"));
 });
+
+test("grouped discovery options stay aligned across signup, backend, admin and staged SQL",()=>{
+ const ui=read("src/JoinSourceFields.jsx"),admin=read("src/AdminPortal.jsx"),sql=read("supabase/registration-attribution.sql");
+ for(const source of ["snapchat","facebook","x","twitch"]){
+  assert.deepEqual(parseJoinSource({joinSource:source},PublicError),{source,details:null});
+  assert.ok(ui.includes('["'+source+'",'));
+  assert.ok(admin.includes(source+':"'));
+  assert.ok(sql.includes("'"+source+"'"));
+ }
+ assert.ok(ui.includes("<optgroup"));
+ assert.ok(ui.includes("Select a discovery source"));
+ assert.throws(()=>parseJoinSource({joinSource:"invite_link"},PublicError),/PUP_JOIN_SOURCE_INVALID/);
+});

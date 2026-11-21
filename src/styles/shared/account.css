@@ -340,3 +340,16 @@ html[data-puppy-theme="light"] .account-auth-text-button{background:#eaf4fa;colo
 .site-frame button.account-auth-text-button:hover:not(:disabled){background:#254d61;border-color:#85d8e8;color:#fff;text-decoration:none}
 html[data-puppy-theme="light"] .site-frame button.account-auth-text-button{background:#edf5fa;color:#214559;border-color:#9abacb}
 .site-frame button.account-auth-text-button:disabled{opacity:.55;cursor:not-allowed}
+
+/* Compact, accessible discovery fields in both registration providers. */
+.account-join-source{gap:8px;padding:12px;margin:8px 0;border-radius:12px}
+.account-discovery-title{display:flex;align-items:center;gap:10px;min-width:0}
+.account-discovery-title>span{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border:1px solid rgba(0,229,255,.24);border-radius:10px;background:rgba(0,229,255,.08)}
+.account-discovery-title>div{display:grid;gap:3px;min-width:0}
+.account-discovery-title strong{color:#e9faff;font-size:15px}
+.account-join-source label{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px}
+.account-discovery-optional{font-size:11px;font-weight:500;color:#b4cbd7}
+.account-join-source select,.account-join-source input{box-sizing:border-box;max-width:100%;min-width:0}
+.account-join-source select:focus-visible,.account-join-source input:focus-visible,.account-discovery-fallback summary:focus-visible{outline:2px solid #00e5ff;outline-offset:2px}
+.account-discovery-fallback{margin:8px 0;color:#b4cbd7;font-size:13px}
+.account-discovery-fallback summary{cursor:pointer;padding:8px 0}

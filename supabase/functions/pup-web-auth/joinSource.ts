@@ -1,5 +1,5 @@
 // Optional discovery data. It does not prove account ownership or grant referral credits.
-const SOURCES=new Set(["friend","discord","youtube","tiktok","instagram","reddit","google","play_store","other"]);
+const SOURCES=new Set(["friend","discord","youtube","tiktok","instagram","reddit","google","play_store","other","snapchat","facebook","x","twitch"]);
 export function parseJoinSource(body:any,PublicError:any){
  const raw=body?.joinSource;
  const details=body?.joinDetails==null?"":typeof body.joinDetails==="string"?body.joinDetails.trim():null;

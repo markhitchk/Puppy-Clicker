@@ -15,7 +15,7 @@ const initialSection=()=> {
  return match?.[1] || "users";
 };
 const joinSourceNames={invite_link:"Invite link (automatic)",friend:"Friend or player",discord:"Discord",youtube:"YouTube",tiktok:"TikTok",
- instagram:"Instagram",reddit:"Reddit",google:"Google search",play_store:"Google Play",other:"Other"};
+ instagram:"Instagram",reddit:"Reddit",google:"Google Search",play_store:"Google Play Store",other:"Other",snapchat:"Snapchat",facebook:"Facebook",x:"X (Twitter)",twitch:"Twitch"};
 const lastIp=user=>user.connection?.ip||user.network?.ip||null;
 const lastUserAgent=user=>(user.connection?user.connection.userAgent:user.network?.userAgent)||null;
 const normalizeError=(code)=>{
