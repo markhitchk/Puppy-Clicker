@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {hasServerOwnedFields} from '../supabase/functions/_shared/fairplay-intent.js';
 test('explicit client state, payout and identity injection are rejected',()=>{
- for(const key of ['save_data','saveJson','treats','player_xp_v1','total_taps','inventory','randomSeed','payout','account_uuid','role','risk_score']){
+ for(const key of ['save_data','saveJson','treats','player_xp_v1','total_taps','inventory','randomSeed','roll','deck','payout','account_uuid','role','risk_score']){
   assert.equal(hasServerOwnedFields({type:'tap',[key]:1}),true,key);
  }
  assert.equal(hasServerOwnedFields({type:'rouletteStart',bet:{type:'red',payout:500}}),true);

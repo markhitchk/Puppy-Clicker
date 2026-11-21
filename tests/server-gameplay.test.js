@@ -38,11 +38,14 @@ for(const [start,reveal,field] of [
 ])test(start+' debits, projects and settles once using server RNG',async t=>{
  const db=crossplayDb(seed());
  t.mock.method(crypto,'getRandomValues',array=>{array.fill(0);return array});
- const started=await play(db,{type:start,wager:100,bet:{type:'RED'},roll:99,payout:999999,deck:[],balance:999999});
+ await assert.rejects(play(db,{type:start,wager:100,bet:{type:'RED'},roll:99,payout:999999,deck:[],balance:999999}),{message:'PUP_GAMEPLAY_SERVER_FIELDS_FORBIDDEN'});
+ assert.equal(db.writes(),0);
+ const started=await play(db,{type:start,wager:100,bet:{type:'RED'}});
  const pending=view(started).game[field];
  assert.ok(pending,field+' must survive projection and hydration');
  assert.equal(values(db).casino_chips_v7,9900);
- const settled=await play(db,{type:reveal,payout:999999});
+ await assert.rejects(play(db,{type:reveal,payout:999999}),{message:'PUP_GAMEPLAY_SERVER_FIELDS_FORBIDDEN'});
+ const settled=await play(db,{type:reveal});
  assert.equal(values(db).casino_chips_v7,9900+pending.payout);
  assert.equal(values(db).beta_casino_round_v1,'');
  assert.equal(values(db).unknown_android_field,'preserved');
@@ -54,7 +57,9 @@ for(const [start,reveal,field] of [
 test('gacha charges Treats or one ticket, updates inventory, and never grants protected puppies',async t=>{
  t.mock.method(crypto,'getRandomValues',array=>{array.fill(0);return array});
  const db=crossplayDb(seed());
- const first=view(await play(db,{type:'gacha',payment:'TREATS',puppyId:'v2_dev_pup',roll:999}));
+ await assert.rejects(play(db,{type:'gacha',payment:'TREATS',puppyId:'v2_dev_pup',roll:999}),{message:'PUP_GAMEPLAY_SERVER_FIELDS_FORBIDDEN'});
+ assert.equal(db.writes(),0);
+ const first=view(await play(db,{type:'gacha',payment:'TREATS',puppyId:'v2_dev_pup'}));
  assert.equal(values(db).treats,7500);
  assert.equal(first.gachaResult.isNewUnlock,true);
  assert.ok(first.game.unlockedPuppies.includes(first.gachaResult.puppyId));
@@ -96,7 +101,9 @@ test('Blackjack server deals no future shoe, supports hit/stand/double/split, an
   for(let i=0;i<500;i++){
    const id='00000000-0000-4000-8000-'+String(i).padStart(12,'0');
    const mock=t.mock.method(crypto,'randomUUID',()=>id);
-   db=crossplayDb(seed());started=await play(db,{type:'blackjackStart',wager:100,deck:[0,1,2,3]});
+   db=crossplayDb(seed());
+   await assert.rejects(play(db,{type:'blackjackStart',wager:100,deck:[0,1,2,3]}),{message:'PUP_GAMEPLAY_SERVER_FIELDS_FORBIDDEN'});
+   started=await play(db,{type:'blackjackStart',wager:100});
    mock.mock.restore();
    const round=view(started).blackjack;
    if(round&&(move!=='blackjackSplit'||round.hands[0].cards[0]%13===round.hands[0].cards[1]%13))break;
@@ -104,7 +111,8 @@ test('Blackjack server deals no future shoe, supports hit/stand/double/split, an
   assert.ok(view(started).blackjack,move);
   const publicRound=JSON.parse(JSON.parse(started.cloud.saveJson).stores.puppy_clicker_save.values.beta_casino_round_v1);
   assert.equal(publicRound.remainingDeck,undefined);assert.equal(publicRound.dealerCards.length,1);
-  const after=await play(db,{type:move,payout:999999});
+  await assert.rejects(play(db,{type:move,payout:999999}),{message:'PUP_GAMEPLAY_SERVER_FIELDS_FORBIDDEN'});
+  const after=await play(db,{type:move});
   if(move==='blackjackDouble'||move==='blackjackSplit'){
    const round=view(after).blackjack||view(after).blackjackDisplay?.state;
    assert.equal(round.hands.reduce((n,h)=>n+h.wager,0),200);

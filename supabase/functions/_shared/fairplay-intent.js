@@ -1,6 +1,6 @@
 // Fail closed on explicit attempts to submit server-owned gameplay state.
  // This is a request-integrity check, not an automated determination of cheating.
- const forbidden=new Set(['savedata','savejson','save','stores','values','types','treats','lifetimetreats','xp','playerxp','playerxpv1','totaltaps','legitimatetaps','legitimatetapsv7','inventory','balance','balances','reward','payout','rng','random','randomseed','seed','timestamp','savedatepochms','accountuuid','playeruuid','installationuuid','role','guildrole','riskscore','restricteduntil','serverreceipt']);
+ const forbidden=new Set(['savedata','savejson','save','stores','values','types','treats','lifetimetreats','xp','playerxp','playerxpv1','totaltaps','legitimatetaps','legitimatetapsv7','inventory','balance','balances','reward','payout','rng','random','randomseed','seed','roll','deck','shoe','remainingdeck','timestamp','savedatepochms','accountuuid','playeruuid','installationuuid','role','guildrole','riskscore','restricteduntil','serverreceipt']);
  const normalize=key=>key.replace(/[^a-z0-9]/gi,'').toLowerCase();
  export function hasServerOwnedFields(intent){
   if(!intent||typeof intent!=='object'||Array.isArray(intent))return false;
