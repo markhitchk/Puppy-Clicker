@@ -6,9 +6,9 @@ const SOURCES=[
  ["reddit","Reddit"],["google","Google search"],["play_store","Google Play Store"],
  ["other","Somewhere else"]
 ];
-export default function JoinSourceFields({idPrefix,source,onSourceChange,details,onDetailsChange,disabled}){
+export default function JoinSourceFields({idPrefix,source,onSourceChange,details,onDetailsChange,disabled,inviteCode}){
  const sourceId=idPrefix+"-join-source",detailsId=idPrefix+"-join-details";
- return <div className="account-join-source">
+ const fields=<div className="account-join-source">
   <label htmlFor={sourceId}>🐾 How did you hear about Puppy Clicker? (optional)</label>
   <select id={sourceId} name="join-source" value={source} disabled={disabled}
    onChange={event=>{onSourceChange(event.target.value);onDetailsChange("");}}>
@@ -21,4 +21,8 @@ export default function JoinSourceFields({idPrefix,source,onSourceChange,details
     value={details} onChange={event=>onDetailsChange(event.target.value)} disabled={disabled}/></>:null}
   <small>This helps us understand how players find the game. No invite code or reward is required.</small>
  </div>;
+ return inviteCode?<details className="account-join-source">
+  <summary>Optional discovery answer (only used if the invitation cannot be verified)</summary>
+  {fields}
+ </details>:fields;
 }
