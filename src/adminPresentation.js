@@ -33,6 +33,8 @@ const titles={
 const humanize=value=>String(value||'Activity').replace(/_/g,' ').toLowerCase().replace(/^./,s=>s.toUpperCase());
 export function friendlyError(code){
  return ({PUP_SIGNIN_INVALID:'Username or password was not accepted.',
+ PUP_AUTH_REQUIRED:'A valid signed-in Pup Account session was required.',
+ CLOUD_SAVE_CONFLICT:'The cloud save revision changed before this request completed. Refresh to obtain the latest save.',
  PUP_USERNAME_TAKEN:'That username is already registered.',PUP_USERNAME_INVALID:'The username format was not valid.',
  PUP_PASSWORD_COMPLEXITY_REQUIRED:'The password did not meet the account requirements.',
  PUP_LEGAL_ACCEPTANCE_REQUIRED:'Terms and privacy acceptance are required.',
