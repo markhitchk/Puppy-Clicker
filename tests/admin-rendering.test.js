@@ -26,3 +26,8 @@ test('ban dialog explicitly allows a permanent ban',()=>{
  const html=renderToStaticMarkup(React.createElement(Dialog,{user:{username:'TestPup'},type:'ban',busy:false,onClose(){},onSubmit(){}}));
  assert.match(html,/value="permanent"/);assert.match(html,/Confirm ban/);
 });
+
+test('error view shows failures only and clear counts with readable explanations',()=>{
+ const html=renderToStaticMarkup(React.createElement(Activity,{filter:'errors',onFilter(){},activity:{summary:{errors24h:8},events:[{id:1,event_code:'service_error',outcome:'failure',source:'server',error_code:'PUP_AUTH_REQUIRED'},{id:2,event_code:'service_error',outcome:'failure',source:'server',error_code:'CLOUD_SAVE_CONFLICT'},{id:3,event_code:'login_success',outcome:'success',source:'server'}]}}));
+ assert.match(html,/Errors in the last 24 hours/);assert.match(html,/2 matching records · 8 total failures/);assert.match(html,/valid signed-in Pup Account session/);assert.match(html,/cloud save revision changed/);assert.doesNotMatch(html,/Sign-in succeeded/);
+});

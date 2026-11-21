@@ -198,3 +198,8 @@
  .pup-rarity-reason{grid-column:auto}
  .pup-rarity-actions button{flex:1 1 140px}
 }
+
+.pup-admin-stat-action{font:inherit;color:inherit;text-align:left;cursor:pointer;min-width:0;transition:border-color .15s ease}
+.pup-admin-stat-action:hover,.pup-admin-stat-action:focus-visible{border-color:#73eaff;outline:2px solid #73eaff;outline-offset:2px}
+.pup-admin-stat-action small{display:block;color:#9deeff;font-size:12px;margin-top:6px}
+.pup-admin-activity{display:flex;flex-direction:column;gap:16px}

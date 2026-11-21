@@ -43,7 +43,7 @@ const normalizeError=(code)=>{
  };
  return errors[code] || (code?"Request failed: "+code:"The administration service is temporarily unavailable.");
 };
-function Stat({label,value}) {return <div className="pup-admin-stat"><span>{label}</span><strong>{value}</strong></div>;}
+function Stat({label,value,onClick}) {const content=<><span>{label}</span><strong>{value}</strong></>;return onClick?<button type="button" className="pup-admin-stat pup-admin-stat-action" onClick={onClick} aria-label={`${label}: ${value}. View error records`}>{content}<small>View errors →</small></button>:<div className="pup-admin-stat">{content}</div>;}
 function Connection({user}){
  const connection=user.connection,network=user.network;
  if(!connection&&!network)return <small>No website connection recorded yet</small>;
@@ -76,7 +76,7 @@ export default function AdminPortal(){
  const [reason,setReason]=useState("");
  const [expiry,setExpiry]=useState("");
  const [activity,setActivity] = useState({sessions:[],events:[],androidDevices:[],summary:{}});
- const [activityFilter,setActivityFilter] = useState('all');
+ const [activityFilter,setActivityFilter] = useState(()=>new URLSearchParams(globalThis.location?.search||'').get('filter')==='errors'?'errors':'all');
  const [selectedRole,setSelectedRole] = useState({});
  const [tabLoading,setTabLoading] = useState(false);
 
@@ -159,9 +159,10 @@ export default function AdminPortal(){
   catch(e){setError(normalizeError(e.message));}
   finally{setBusy(false);}
  }
- const navigate=(tab)=>{
+ const navigate=(tab,filter)=>{
   setSection(tab);setMessage("");setError("");
-  const next="/account/admin/"+tab;
+  if(tab==="activity"&&filter)setActivityFilter(filter);
+  const next="/account/admin/"+tab+(tab==="activity"&&(filter||activityFilter)==="errors"?"?filter=errors":"");
   if(globalThis.history?.replaceState)globalThis.history.replaceState(null,"",next);
  };
  const run=async(body,success)=>{
@@ -277,7 +278,7 @@ export default function AdminPortal(){
    <Stat label="Active restrictions" value={activeBans}/>
    <Stat label="Accounts online" value={activity.summary?.onlineAccounts??'—'}/>
    <Stat label="Browser sessions online" value={activity.summary?.onlineSessions??'—'}/>
-   <Stat label="Errors in 24 hours" value={activity.summary?.errors24h??'—'}/>
+   <Stat label="Errors in 24 hours" value={activity.summary?.errors24h??'—'} onClick={()=>navigate("activity","errors")}/>
   </div>
   <nav className="pup-admin-tabs" aria-label="Administration sections">
    {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["pupeye-web",<PupEyeBrand compact label="PupEye Anticheat"/>],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"],["rarity","Puppy rarities"],["events","🎄 Events & holidays"]].map(([tab,label])=>
@@ -338,7 +339,7 @@ export default function AdminPortal(){
    {!visibleUsers.length&&!tabLoading?<p className="pup-admin-empty">No matching Pup Accounts.</p>:null}
    <p className="pup-admin-note">Up to 100 registered accounts. Open Activity & Devices for website sessions, linked Android devices, sign-ins and errors.</p>
   </section>:null}
-  {section==="activity"?<AdminActivity activity={activity} filter={activityFilter} onFilter={setActivityFilter}/>:null}
+  {section==="activity"?<AdminActivity activity={activity} filter={activityFilter} onFilter={value=>navigate("activity",value)} loading={tabLoading}/>:null}
  {section==="pupeye-web"?<section className="pup-admin-panel" aria-label="PupEye Web security incidents">
  <h2><PupEyeBrand label="PupEye Anticheat"/></h2>
  <p className="pup-admin-note">Server-verified browser account activity and abuse-limit incidents. These are not Android device detections. VPN/network risk alone does not constitute cheating or trigger an automatic ban.</p>
