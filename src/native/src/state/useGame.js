@@ -190,7 +190,8 @@ export function useGame(){
   try{
    const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"cloud-save-read"},timeout:15000});
    if(error||!data?.verified||data.account?.id!==pupAccount.id||!data.cloud?.exists)return false;
-   revision.current=data.cloud.revision;
+   if(!Number.isSafeInteger(Number(data.cloud.revision))||Number(data.cloud.revision)<revision.current)return false;
+   revision.current=Number(data.cloud.revision);
    dispatch({type:"hydrate",game:decorateGame(projectKotlinCloudSave(data.cloud.saveJson,data.account.displayName)),now:Date.now(),readOnly:true});
    setCloudState("LIVE_SYNCED");
    return true;
