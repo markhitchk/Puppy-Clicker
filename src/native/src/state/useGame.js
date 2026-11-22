@@ -232,7 +232,7 @@ export function useGame(){
     setSyncStatus({state:"SAVING",revision:revision.current,errorCode:null});
     try{
      const {data,error}=await client.functions.invoke("pup-web-auth",{
-      body:{action:"gameplay",operationId:op.id,expectedRevision:revision.current,intent:op.intent},timeout:15000
+      body:{action:"gameplay",operationId:op.id,expectedRevision:revision.current,intent:op.intent},headers:{"x-pup-path":globalThis.location?.pathname||"/play"},timeout:15000
      });
      if(error||!data?.saved||!data.cloud?.exists||data.operationId!==op.id)
       throw new Error(error?await functionError(error):"SAVE_RECEIPT_MISSING");
