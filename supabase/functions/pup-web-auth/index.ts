@@ -234,6 +234,7 @@ async function handleAuthRequest(req,auditContext){
     await enforceWebPupEye(account,'profile');
     // Refresh also queues the next verified referral, never deposits currency.
     const queued=await admin.rpc("pup_referral_claim",{p_inviter:account.id});
+    if(queued.data?.queued>0){const scan=await admin.rpc("pupeye_web_strict_scan",{p_account:account.id,p_kind:"reward"});if(scan.error)console.error("PupEye referral review unavailable");}
     if(queued.error)throw new PublicError(503,"PUP_REFERRALS_UNAVAILABLE");
     const {data,error}=await admin.rpc("pup_referral_status",{p_inviter:account.id});
     if(error)throw new PublicError(503,"PUP_REFERRALS_UNAVAILABLE");
@@ -251,6 +252,7 @@ async function handleAuthRequest(req,auditContext){
      .order("created_at",{ascending:false}).limit(100);
     if(error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
     const queued=await admin.rpc("pup_referral_claim",{p_inviter:account.id});
+    if(queued.data?.queued>0){const scan=await admin.rpc("pupeye_web_strict_scan",{p_account:account.id,p_kind:"reward"});if(scan.error)console.error("PupEye referral review unavailable");}
     if(queued.error)console.error("Could not queue referral reward");
     const playerGifts=await admin.rpc("pup_player_gift_inbox_sync",{p_account:account.id});
     if(playerGifts.error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
