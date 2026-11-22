@@ -50,12 +50,12 @@ export default function AdminPuppyGifts({request:adminRequest,role}){
   if(!target||!pup)return;
   const reason=window.prompt("Reason for this gift","System puppy gift")?.trim();
   if(!reason)return;
-  if(!window.confirm("Grant "+puppyId+" to @"+target.username+" from the system? This permanently modifies their cloud save."))return;
-  void run({action:"gift",targetPlayerId:playerId,puppyId,reason,operationId:crypto.randomUUID()},"Puppy granted to "+target.username+".");
+  if(!window.confirm("Send "+puppyId+" to @"+target.username+" from the system? They must claim it in Notifications."))return;
+  void run({action:"gift",targetPlayerId:playerId,puppyId,reason,operationId:crypto.randomUUID()},"Gift notification sent to "+target.username+".");
  };
  const approve=r=>{
-  if(!window.confirm("Approve and grant "+r.puppy_id+" to @"+r.username+"?"))return;
-  void run({action:"gift",targetPlayerId:r.player_uuid,puppyId:r.puppy_id,requestId:r.id},"Request approved and puppy granted.");
+  if(!window.confirm("Approve and send "+r.puppy_id+" to @"+r.username+"?"))return;
+  void run({action:"gift",targetPlayerId:r.player_uuid,puppyId:r.puppy_id,requestId:r.id},"Request approved and gift sent to Notifications.");
  };
  const decline=r=>{
   const note=window.prompt("Reason for declining this request (optional):","");
@@ -66,7 +66,7 @@ export default function AdminPuppyGifts({request:adminRequest,role}){
  return <section className="pup-admin-panel pup-admin-gifts">
   <div className="pup-admin-section-heading"><h2>🎁 System puppy gifts</h2>
    <button type="button" onClick={()=>void refresh()} disabled={busy||loading}>↻ Refresh gifts</button></div>
-  <p className="pup-admin-note">Issue a single puppy to a registered player through an audited cloud-save update. Restricted gifts require HarleyTG’s verified account. No friendship connection is necessary for staff-issued gifts.</p>
+  <p className="pup-admin-note">Send a single puppy to a registered player through an audited gift notification. Their collection updates only when they claim it. Restricted gifts require HarleyTG’s verified account. No friendship connection is necessary for staff-issued gifts.</p>
   {loading?<p role="status">Loading gifting options…</p>:null}
   <form className="pup-admin-gift-form" onSubmit={gift}>
    <label htmlFor="gift-player">Recipient Pup Account</label>
@@ -77,7 +77,7 @@ export default function AdminPuppyGifts({request:adminRequest,role}){
    <select id="gift-puppy" value={puppyId} onChange={e=>setPuppyId(e.target.value)} required>
     {puppies.map(p=><option key={p.puppy_id} value={p.puppy_id}>{human(p.puppy_id)} ({p.puppy_id}){p.bound||!p.giftable?" · Developer only":""}</option>)}
    </select>
-   <button type="submit" disabled={busy||loading||!playerId||!puppyId}>Grant system puppy</button>
+   <button type="submit" disabled={busy||loading||!playerId||!puppyId}>Send system puppy</button>
   </form>
   {error?<p role="alert" className="pup-admin-error">{error}</p>:null}
   {notice?<p role="status" className="pup-admin-success">{notice}</p>:null}
@@ -87,7 +87,7 @@ export default function AdminPuppyGifts({request:adminRequest,role}){
     <div><strong>@{r.username} · {human(r.puppy_id)}</strong><small>{new Date(r.created_at).toLocaleString()} · {r.status}</small>
      {r.note?<p>{r.note}</p>:null}{r.review_note?<p>Staff note: {r.review_note}</p>:null}</div>
     {r.status==="pending"?<div className="pup-admin-gift-actions">
-     <button disabled={busy||loading} type="button" onClick={()=>approve(r)}>Approve &amp; gift</button>
+     <button disabled={busy||loading} type="button" onClick={()=>approve(r)}>Approve &amp; send gift</button>
      <button disabled={busy||loading} type="button" onClick={()=>decline(r)}>Decline</button>
     </div>:null}
    </article>)}
