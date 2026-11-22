@@ -30,7 +30,7 @@ begin
  if p_source='advent' then
   if p_ordinal in (10,20,25) then k:='puppy'; n:=1;
   elsif p_ordinal in (5,15,24) then k:='upgrade_ticket_rare'; n:=1;
-  else slot:=p_ordinal%5;
+  else slot:=(p_ordinal-1)%5;
    k:=(array['treats','bones_v7','pup_coins_v7','casino_chips_v7','upgrade_ticket_common'])[slot+1];
    n:=(array[500+p_ordinal*25,5,10,100,1])[slot+1];
   end if;
@@ -43,7 +43,7 @@ begin
   select c.puppy_id into pup from puppy_rarity.catalog c
   where c.published and c.rarity in ('common','uncommon','rare','epic','legendary')
    and ((p_source='advent' and c.puppy_id in ('snowball','v2_frost','v2_flurry','santa')) or
-        (p_source='referral' and c.acquisition='standard' and c.rarity in ('common','uncommon','rare') and c.puppy_id not like 'test_%'))
+        (p_source='referral' and c.acquisition='standard' and c.rarity in ('common','uncommon','rare') and c.puppy_id not like 'test_%' and c.puppy_id not in ('classic','golden','poodle','spotty')))
    and not (coalesce(p_save#>'{stores,puppy_clicker_save,values,unlocked_puppies}','[]') ? c.puppy_id)
    and not exists(select 1 from puppy_web.pup_reward_inbox q where q.account_uuid=p_account and q.claimed_at is null and q.puppy_id=c.puppy_id)
   order by case when p_source='advent' and p_ordinal=25 and c.puppy_id='santa' then 0 when p_source='advent' and c.puppy_id='santa' then 2 else 1 end,c.rarity,c.puppy_id limit 1;
