@@ -1,4 +1,3 @@
-import {ADVENT_CLAIMS_KEY,adventClaims,requireAdventReward} from './advent-calendar.js';
 import {eligibleIds, weightedChoice, secureInt, type RarityRow} from "./puppy-rarity.ts";
 import {MAX_PLAYER_XP,MAX_UPGRADES_PER_ITEM,MAX_REWARD_STREAK_DAYS,xpLevel,addBoundedXp,boundedXp} from "./beta-progression.ts";
 import {grantCasinoBonuses,canWheelUnlock,unownedCasinoPuppies} from "./beta-casino-rewards.ts";
@@ -587,15 +586,7 @@ export async function applyBetaEconomy(raw:unknown,intent:BetaEconomyIntent,now=
    expect(owned<5&&num(v,"prestige_skill_points_v6")>=price,"SKILL_UNAVAILABLE");
    setInt(v,t,k,owned+1);setInt(v,t,"prestige_skill_points_v6",num(v,"prestige_skill_points_v6")-price);break;
   }
-  case "claimAdvent":{
-   const claims=adventClaims(v[ADVENT_CLAIMS_KEY]);
-   const gift=requireAdventReward(intent.id,claims,now);
-   earned(v,t,gift.treats);
-   addLong(v,t,"bones_v7",gift.bones);
-   addLong(v,t,"pup_coins_v7",gift.coins);
-   write(v,t,ADVENT_CLAIMS_KEY,[...claims,gift.id],"string_set");
-   break;
-  }
+  case "claimAdvent":throw Error("ADVENT_NOTIFICATION_REQUIRED");
   case "daily":{
    expect(Number(v.daily_claim_day??0)!==today&&Number(v.daily_claim_day??0)<today,"DAILY_ALREADY_CLAIMED");
    const last=Number(v.daily_claim_day??0),streak=last===today-1?Math.min(365,num(v,"daily_streak_v5")+1):1;
