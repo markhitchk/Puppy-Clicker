@@ -45,7 +45,7 @@ begin
  update puppy_pupeye.web_strict_evidence set case_id=c where account_uuid=p_account and signal=p_signal and reference=p_reference;
  -- Behavior, shared networks, repeated legitimate claims and advisory client
  -- timing never independently create global bans. Staff accounts are review-only.
- if p_signal not in ('OPERATION_TAMPER','FOREIGN_GIFT_PROBE') or coalesce(role_code,'') in ('ADMIN','DEVELOPER') then return; end if;
+ if p_signal not in ('OPERATION_TAMPER','FOREIGN_GIFT_PROBE') or coalesce(role_code,'') not in ('PLAYER','GUEST') then return; end if;
  if exists(select 1 from public.pupeye_resolve_global_ban(player,discord_id,null,null,null)) then return; end if;
  -- Only distinct, independently verified targets count; known false positives do not.
  select count(*),count(distinct e.signal) into row_count_recent,kinds
@@ -54,7 +54,7 @@ begin
  select max(f.reviewed_at) into prior_review from puppy_pupeye.web_fairplay_cases f
  where f.account_uuid=p_account and f.signal in ('OPERATION_TAMPER','FOREIGN_GIFT_PROBE') and f.status='confirmed' and f.reviewed_by is not null and f.reviewed_at>now()-interval '90 days';
  select max(b.expires_at) into prior_suspension from puppy_pupeye.web_strict_enforcement e join puppy_pupeye.pupeye_global_bans b on b.id=e.ban_uuid
- where e.account_uuid=p_account and e.kind='temporary' and e.lifted_at is null and b.status='active' and b.expires_at<=now() and b.expires_at>now()-interval '90 days';
+ where e.account_uuid=p_account and e.kind='temporary' and e.lifted_at is null and b.status in ('active','expired') and b.expires_at<=now() and b.expires_at>now()-interval '90 days';
  recent_since:=greatest(prior_review,prior_suspension);
  -- Permanent escalation requires a completed prior automatic suspension,
  -- a human-confirmed abuse case, and fresh evidence of BOTH classes afterward.
@@ -157,4 +157,49 @@ $$;
 revoke all on function public.pupeye_web_strict_integrity(uuid,text,uuid,text),public.pupeye_web_strict_scan(uuid,text),public.pupeye_web_strict_overview(),public.pupeye_web_strict_lift(uuid,uuid,text),public.pupeye_web_strict_prune() from public,anon,authenticated;
 grant execute on function public.pupeye_web_strict_integrity(uuid,text,uuid,text),public.pupeye_web_strict_scan(uuid,text),public.pupeye_web_strict_overview(),public.pupeye_web_strict_lift(uuid,uuid,text),public.pupeye_web_strict_prune() to service_role;
 select cron.schedule('puppy-pupeye-strict-daily-cleanup','25 3 * * *','select public.pupeye_web_strict_prune()');
+
+-- Keep eligibility consistent with global sanctions, including suspended invitees
+-- whose account status itself remains active so the ban notice is viewable.
+create or replace function puppy_web.referral_rows(p_inviter uuid)
+returns table(invited_id uuid,username text,joined_at timestamptz,progress text,paid integer)
+language sql stable security definer set search_path='' as $$
+ select a.id,a.username::text,r.created_at,
+ case when rr.invited_account_uuid is not null then 'rewarded'
+ when a.status <> 'active' or p.status is distinct from 'active' or exists(
+  select 1 from public.pupeye_resolve_global_ban(a.player_uuid,a.discord_user_id,null,null,null)) then 'ineligible'
+ when r.created_at<=now()-interval '24 hours' and s.origin_platform='web' and s.installation_uuid is null
+ and case when jsonb_typeof(s.save_data#>'{stores,puppy_clicker_save,values,legitimate_taps_v7}')='number'
+ then (s.save_data#>>'{stores,puppy_clicker_save,values,legitimate_taps_v7}')::numeric>=100 else false end then 'ready' else 'pending' end,
+ coalesce(rr.treats,0)
+ from puppy_web.pup_registration_sources r
+ join puppy_accounts.pup_accounts a on a.id=r.account_uuid
+ left join puppy_pupeye.pupeye_players p on p.id=a.player_uuid
+ left join puppy_game.pup_account_saves s on s.account_uuid=a.id and s.player_uuid=a.player_uuid
+ left join puppy_web.pup_referral_rewards rr on rr.invited_account_uuid=a.id
+ where r.inviter_account_uuid=p_inviter and a.id<>p_inviter and r.registration_method in ('password','discord')
+$$;
+revoke all on function puppy_web.referral_rows(uuid) from public,anon,authenticated,service_role;
+
+-- Revalidate both parties before a new transfer; previously redeemed receipts
+-- remain idempotent and must not be retroactively removed.
+alter function public.pup_reward_redeem(uuid,uuid,bigint) rename to pup_reward_redeem_checked;
+alter function public.pup_reward_redeem_checked(uuid,uuid,bigint) set schema puppy_web;
+revoke all on function puppy_web.pup_reward_redeem_checked(uuid,uuid,bigint) from public,anon,authenticated,service_role;
+create function public.pup_reward_redeem(p_account uuid,p_id uuid,p_revision bigint)
+returns jsonb language plpgsql security definer set search_path='' as $$
+declare q puppy_web.pup_reward_inbox%rowtype; participant uuid;
+begin
+ if exists(select 1 from puppy_accounts.pup_accounts a where a.id=p_account and exists(select 1 from public.pupeye_resolve_global_ban(a.player_uuid,a.discord_user_id,null,null,null))) then return jsonb_build_object('status','PUP_ACCOUNT_BLOCKED'); end if;
+ select * into q from puppy_web.pup_reward_inbox where id=p_id and account_uuid=p_account;
+ if found and q.claimed_at is null and q.source in ('referral','player') then
+  participant:=case when q.source='referral' then q.source_key::uuid else q.sender_account_uuid end;
+  if not exists(select 1 from puppy_accounts.pup_accounts a join puppy_pupeye.pupeye_players p on p.id=a.player_uuid where a.id=participant and a.status='active' and p.status='active' and not exists(select 1 from public.pupeye_resolve_global_ban(a.player_uuid,a.discord_user_id,null,null,null))) then
+   return jsonb_build_object('status','REWARD_GIFT_INELIGIBLE');
+  end if;
+ end if;
+ return puppy_web.pup_reward_redeem_checked(p_account,p_id,p_revision);
+end $$;
+revoke all on function public.pup_reward_redeem(uuid,uuid,bigint) from public,anon,authenticated;
+grant execute on function public.pup_reward_redeem(uuid,uuid,bigint) to service_role;
+
 notify pgrst,'reload schema';
