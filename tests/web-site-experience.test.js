@@ -15,9 +15,11 @@ test("public roster uses published roster metadata rather than hardcoded placeho
  assert.match(gallery,/\["test","Test puppies"\]/);
  assert.match(gallery,/test_v1_crash_dummy/);
  assert.match(gallery,/test_v2_crash_dummy/);
- assert.match(gallery,/import PuppyArtwork from "\.\/native\/web\/PuppyArtwork\.jsx"/);
- assert.match(gallery,/<PuppyArtwork id=\{p\.id\}/);
- assert.match(gallery,/size=\{215\} lazy/);
+ const card=read("src/PuppyCollectionCard.jsx");
+ assert.match(gallery,/<PuppyCollectionCard puppy=\{p\}/);
+ assert.match(card,/import PuppyArtwork from ['"]\.\/native\/web\/PuppyArtwork\.jsx['"]/);
+ assert.match(card,/<PuppyArtwork[^>]*id=\{puppy\.id\}/);
+ assert.match(card,/size=\{215\} lazy/);
  assert.match(gallery,/\/assets\/transparent\/\$1/);
  assert.doesNotMatch(gallery,/<img[^>]+src=\{[^}]*p\.image/);
  assert.match(gallery,/Search puppies/);
@@ -56,7 +58,7 @@ test("loading phases use one branded component without fake progress",()=>{
  const native=read("src/native/App.jsx");
  const page=read("src/App.jsx");
  const loading=read("src/WebLoading.jsx");
- assert.match(gate,/<WebLoading stage=\{hasPuppyDiscordCallback/);
+ assert.match(gate,/<WebLoading[^>]*stage=\{hasPuppyDiscordCallback/);
  assert.match(native,/<WebLoading stage="progress"\/>/);
  assert.match(native,/<WebLoading stage="startup" compact\/>/);
  assert.match(page,/<WebLoading stage="callback"\/>/);
