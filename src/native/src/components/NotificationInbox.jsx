@@ -6,7 +6,7 @@ import PuppyPointer from './PuppyPointer.jsx';
 import {DEVELOPER_SUPPORT_MESSAGE,visibleInboxItems} from '../engine/inbox.js';
 const tabs=[['all','All'],['reward','🎁 Reward'],['pup','🐾 Pup'],['system','⚙️ System']];
 const dayStart=value=>{const d=new Date(value);d.setHours(0,0,0,0);return d.getTime();};
-export default function NotificationInbox({visible,g,act,onClose,onNavigate,serverBacked=false}){
+export default function NotificationInbox({visible,g,act,onClose,onNavigate,serverBacked=false,syncStatus,claimNotice,onRetrySync}){
  const [filter,setFilter]=useState('all');
  const insets=useSafeAreaInsets(),{height}=useWindowDimensions();
  const short=height-insets.top-insets.bottom<700;
@@ -28,6 +28,8 @@ export default function NotificationInbox({visible,g,act,onClose,onNavigate,serv
   <PuppyPointer enabled={g.puppyPointerEnabled} style={[s.scrim,{paddingTop:insets.top+18,paddingBottom:insets.bottom+18}]}>
    <View accessibilityViewIsModal style={[s.panel,{height:short?'96%':'90%'}]}>
     <View style={s.header}><Image source={({uri:"/assets/logos/puppy_clicker.png"})} resizeMode="contain" style={s.logo}/><Text style={s.heading}>Notifications</Text><Pressable accessibilityRole="button" accessibilityLabel="Close notifications" onPress={onClose} style={s.close}><Text style={s.closeText}>×</Text></Pressable></View>
+    {items.some(n=>n.action==='claimInboxReward'||n.action==='afkClaim')&&['QUEUED','SAVING','RETRYING','BLOCKED','QUEUED_OFFLINE'].includes(syncStatus?.state)?<View accessibilityRole="alert" style={{padding:10,gap:5,backgroundColor:C.surface}}><Text style={{color:C.text}}> {syncStatus.state==='RETRYING'?'Reward or gameplay sync pending — retrying automatically.':syncStatus.state==='BLOCKED'?'Cloud sync unavailable — check your connection or browser storage.':syncStatus.state==='QUEUED_OFFLINE'?'Offline — pending actions will sync when connected.':'Synchronizing gameplay actions…'}</Text>{['RETRYING','BLOCKED'].includes(syncStatus.state)&&onRetrySync?<Pressable accessibilityRole="button" onPress={onRetrySync} style={s.claim}><Text style={s.claimText}>Retry sync</Text></Pressable>:null}</View>:null}
+    {claimNotice&&/reward|claim|cloud|pending|browser|sync/i.test(claimNotice)?<View accessibilityRole="alert" style={{padding:10,backgroundColor:C.surface}}><Text style={{color:C.text}}>{claimNotice}</Text></View>:null}
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.filters} contentContainerStyle={s.filterContent}>{tabs.map(([id,title])=><Pressable key={id} accessibilityRole="tab" accessibilityState={{selected:filter===id}} onPress={()=>setFilter(id)} style={[s.tab,filter===id&&s.selected]}><Text style={s.tabText}>{title}</Text>{id==='all'&&unread?<View style={s.unreadBadge}><Text style={s.unreadCount}>{Math.min(99,unread)}</Text></View>:null}</Pressable>)}</ScrollView>
     <ScrollView style={{flex:1}} contentContainerStyle={s.content}>{items.length===0?<View style={s.empty}><Text style={s.emptyTitle}>All caught up!</Text><Text style={s.emptyText}>Your rewards, puppy reminders and system notices appear here.</Text></View>:groups.map(([title,list])=>list.length?<View key={title} style={{gap:8}}><Text style={s.day}>{title}</Text>{list.map(n=><View key={n.id} style={[s.item,n.action&&s.claimable,n.pinned&&s.pinnedItem]}>
      <Pressable accessibilityRole="button" accessibilityLabel={n.title+(n.read?'':', unread')} onPress={()=>openItem(n)} style={s.itemHead}>
