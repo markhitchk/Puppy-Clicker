@@ -40,6 +40,8 @@ const normalizeIntent=action=>Object.fromEntries(
  "goalId","amount","wager","bet"].filter(k=>action[k]!==undefined).map(k=>[k,action[k]])
 );
 const exclusiveIntentKey=intent=>{
+ // A care action can change every care meter and invalidate the next action.
+ if(intent?.type==='care')return 'care';
  if(intent?.type==='claimDailyGoal')return 'claimDailyGoal:'+String(intent.goalId||'');
  if(intent?.type==='claimInboxReward')return 'claimInboxReward:'+String(intent.id||'');
  if(intent?.type==='claimAdvent')return 'claimAdvent:'+String(intent.id||'');
@@ -230,7 +232,7 @@ export function useGame(){
     setSyncStatus({state:"SAVING",revision:revision.current,errorCode:null});
     try{
      const {data,error}=await client.functions.invoke("pup-web-auth",{
-      body:{action:"gameplay",operationId:op.id,expectedRevision:revision.current,intent:op.intent},timeout:15000
+      body:{action:"gameplay",operationId:op.id,expectedRevision:revision.current,intent:op.intent},headers:{"x-pup-path":globalThis.location?.pathname||"/play"},timeout:15000
      });
      if(error||!data?.saved||!data.cloud?.exists||data.operationId!==op.id)
       throw new Error(error?await functionError(error):"SAVE_RECEIPT_MISSING");
@@ -298,7 +300,7 @@ export function useGame(){
         continue;
        }
       }
-      if(code==="GOAL_NOT_COMPLETE")await refreshForConflict();
+      if(code==="GOAL_NOT_COMPLETE"||code==="CARE_ACTION_UNAVAILABLE")await refreshForConflict();
       setSyncStatus({state:"REJECTED",revision:revision.current,errorCode:code});
       dispatch({type:"webActionFailed",message:gameplayMessage(code)});
       continue;
@@ -411,11 +413,13 @@ export function useGame(){
   const intent=normalizeIntent(action);
   const exclusiveKey=exclusiveIntentKey(intent);
   if(exclusiveKey&&inFlight.current.has(exclusiveKey)){
+   if(intent.type==="care")return;
    dispatch({type:"webActionNotice",message:"This action is already pending. Your confirmed progress will update when it completes."});
    void drainRef.current?.();
    return;
   }
   if(exclusiveKey)inFlight.current.add(exclusiveKey);
+  if(intent.type==="care")setPendingActions(n=>n+1);
   // Maintain enqueue order when several controls are tapped in the same tick.
   pending.current++;
   setSyncStatus(old=>({...old,state:"QUEUED",errorCode:null}));
@@ -426,6 +430,7 @@ export function useGame(){
    else void drainRef.current?.();
   }).catch(error=>{
    if(exclusiveKey)inFlight.current.delete(exclusiveKey);
+   if(intent.type==="care")setPendingActions(n=>Math.max(0,n-1));
    // Never send an action that failed to enter durable storage.
    const code=String(error?.message||"PUP_LOCAL_CACHE_UNAVAILABLE");
    setSyncStatus({state:"BLOCKED",revision:revision.current,errorCode:code});
@@ -486,6 +491,7 @@ export function useGame(){
  return {state,gameForDisplay,queuedTaps,notificationInbox,act,account,cloudState,
   fairplay,refreshFairplay,
   gameplayBusy:pendingActions>queuedTaps,
+  careBusy:inFlight.current.has("care")||pendingActions>queuedTaps,
   startupError:syncStatus.errorCode?{code:syncStatus.errorCode}:null,syncStatus,
   retryPendingActions:()=>{void drainRef.current?.();},
   refreshAccount:reload,updateAccountName};

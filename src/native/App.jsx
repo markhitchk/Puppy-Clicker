@@ -239,7 +239,7 @@ function DesktopPlayScreen({g,act,clock,schedule,viewportHeight,onOpen,pendingTa
  </div>;
 }
 // Shipped PuppyRevampedCareScreen, preserving the existing care reducer effects.
-function CareScreen({g,act,viewportHeight}){
+function CareScreen({g,act,viewportHeight,careBusy=false}){
  const pup=ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
  const tiny=viewportHeight<590,compact=viewportHeight<700;
  const portraitSize=tiny?66:compact?78:92;
@@ -250,7 +250,7 @@ function CareScreen({g,act,viewportHeight}){
   <View accessibilityRole="progressbar" accessibilityLabel={label} accessibilityValue={{min:0,max:100,now:value}} style={styles.compactCareTrack}><View style={[styles.compactCareFill,{width:Math.max(0,Math.min(100,value))+'%'}]}/></View>
   <Txt style={styles.compactCareValue}>{value}%</Txt>
  </View>;
- const action=(kind,icon,title,detail,label)=><Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{disabled:!canPerformCare(g,kind)}} disabled={!canPerformCare(g,kind)} onPress={()=>act({type:'care',kind,now:Date.now()})} style={[styles.restoredCareAction,!canPerformCare(g,kind)&&{opacity:.45}]}>
+ const action=(kind,icon,title,detail,label)=><Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{disabled:careBusy||!canPerformCare(g,kind)}} disabled={careBusy||!canPerformCare(g,kind)} onPress={()=>act({type:'care',kind,now:Date.now()})} style={[styles.restoredCareAction,(careBusy||!canPerformCare(g,kind))&&{opacity:.45}]}>
   <Txt style={{fontSize:22}}>{icon}</Txt><Txt style={styles.restoredCareActionTitle}>{title}</Txt><Txt muted style={styles.restoredCareActionDetail}>{detail}</Txt>
  </Pressable>;
  return <View style={[styles.restoredCare,{gap:tiny?5:8}]}>
@@ -263,7 +263,7 @@ function CareScreen({g,act,viewportHeight}){
    {[['Happiness','💖',g.happiness],['Fullness','🍖',g.fullness],['Energy','⚡',g.energy],['Cleanliness','🫧',g.cleanliness],['Bond','🤝',g.bond]].map(([label,icon,value])=>meter(label,icon,value))}
    <View style={styles.restoredCareDivider}/><Txt muted style={{fontSize:12,fontWeight:'700',color:g.energy<=10?C.danger:C.muted}}>{note}</Txt>
   </View>
-  <Txt style={{fontSize:14,fontWeight:'900'}}>Care actions</Txt>
+  <Txt style={{fontSize:14,fontWeight:'900'}}>{careBusy?"Synchronizing care…":"Care actions"}</Txt>
   <View style={styles.restoredCareRow}>
    {action('feed','🍖','Feed','-20 🍪','Feed, costs 20 Treats')}
    {action('play','🎾','Play','-1 🦴 · -12 ⚡','Play, costs 1 Bone and 12 energy')}
@@ -1100,7 +1100,7 @@ export default function App(){return <SafeAreaProvider><PuppyErrorBoundary><WebA
 export function PuppyApp({betaMode=false}){
  const insets=useSafeAreaInsets();
  const systemDark=useColorScheme()==='dark';
- const {state,gameForDisplay,queuedTaps,notificationInbox,act:gameAct,account,cloudState,startupError,syncStatus,gameplayBusy,refreshAccount,updateAccountName,fairplay,refreshFairplay,retryPendingActions}=useGame({mode:betaMode?'beta':'guest'});
+ const {state,gameForDisplay,queuedTaps,notificationInbox,act:gameAct,account,cloudState,startupError,syncStatus,gameplayBusy,refreshAccount,updateAccountName,fairplay,refreshFairplay,retryPendingActions,careBusy}=useGame({mode:betaMode?'beta':'guest'});
  const onboarding=useAccountOnboarding({enabled:betaMode,account,activateAccount:refreshAccount});
  const act=useCallback(action=>{
   gameAct(action);
@@ -1201,7 +1201,7 @@ export function PuppyApp({betaMode=false}){
   if(secondary==='gacha')return <GachaScreen g={{...g,gameplayBusy}} act={act} state={state} registry={registry} onBack={()=>openScreen('rewards')}/>;
   if(secondary==='casino')return <CasinoScreen g={{...g,gameplayBusy}} act={act} bet={bet} setBet={setBet} state={state} onBack={()=>openScreen('rewards')}/>;
   if(tab==='play')return desktop?<DesktopPlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen} pendingTaps={queuedTaps}/>:<PlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen} pendingTaps={queuedTaps}/>
-  if(tab==='care')return <CareScreen g={g} act={act} viewportHeight={contentHeight-6}/>;
+  if(tab==='care')return <CareScreen g={g} act={act} viewportHeight={contentHeight-6} careBusy={careBusy}/>;
   if(tab==='shop')return <ShopScreen g={g} act={act} onOpen={openScreen}/>;
   return null;
  };
