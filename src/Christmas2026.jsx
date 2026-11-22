@@ -5,7 +5,6 @@ import {useGame} from './native/src/state/useGame.js';
 import WebAdventCalendar from './native/web/WebAdventCalendar.jsx';
 import PuppyArtwork from './native/web/PuppyArtwork.jsx';
 import {loadWebPreferences,saveWebPreferences,updateWebPreference} from './native/web/preferences.js';
-import {ADVENT_REWARDS} from '../supabase/functions/_shared/advent-calendar.js';
 import './Christmas2026.css';
 
 const puppies=[
@@ -67,7 +66,6 @@ function AccountCalendar(){
   {syncStatus.errorCode&&<p role="status">Cloud sync: {syncStatus.errorCode}</p>}
   <button className="xmas26-secondary" type="button" onClick={()=>void refreshAccount()}>Refresh account rewards</button></>;
 }
-const total=ADVENT_REWARDS.reduce((a,r)=>({treats:a.treats+r.treats,bones:a.bones+r.bones,coins:a.coins+r.coins}),{treats:0,bones:0,coins:0});
 export default function Christmas2026({winterEffects=true}){
  const [collect,setCollect]=useState(()=>new URLSearchParams(window.location.search).get('collect')==='1');
  function requestSignIn(){
@@ -103,9 +101,9 @@ export default function Christmas2026({winterEffects=true}){
    </header>
    <section className="xmas26-stats" aria-label="Event rewards">
     <div><strong>25</strong><span>Gift doors</span></div>
-    <div><strong>{total.treats.toLocaleString('en-US')}</strong><span>Total Treats</span></div>
-    <div><strong>{total.bones}</strong><span>Total Bones</span></div>
-    <div><strong>{total.coins}</strong><span>Total Pup Coins</span></div>
+    <div><strong>🐶</strong><span>Puppies</span></div>
+    <div><strong>🎟️</strong><span>Upgrade tickets</span></div>
+    <div><strong>🪙</strong><span>Currency gifts</span></div>
    </section>
    <div className="xmas26-layout">
     <div className="xmas26-calendar" id="xmas26-calendar">
@@ -114,12 +112,12 @@ export default function Christmas2026({winterEffects=true}){
      </WebAccountGate>
     </div>
     <aside className="xmas26-side">
-     <section className="xmas26-panel"><span className="xmas26-kicker">DECEMBER 25</span><h2>🎁 Christmas jackpot</h2><div className="xmas26-jackpot-rewards"><div><strong>10,000</strong><span>Treats</span></div><div><strong>50</strong><span>Bones</span></div><div><strong>50</strong><span>Pup Coins</span></div></div><p>Collect the final gift on Christmas Day.</p></section>
+     <section className="xmas26-panel"><span className="xmas26-kicker">DECEMBER 25</span><h2>🎁 Christmas jackpot</h2><div className="xmas26-jackpot-rewards"><div><strong>🐶</strong><span>Special puppy or Treats fallback</span></div></div><p>Open the final gift on Christmas Day and claim it from game notifications.</p></section>
      <section className="xmas26-panel"><h2>❄ Winter theme</h2><p>{winterEffects?"Snow is sitewide. Trees and lights are exclusive to this event.":"Winter effects are currently disabled."} The optional winter theme changes website colors.</p><button type="button" className="xmas26-secondary" aria-pressed={theme} onClick={toggleTheme}>{theme?'Winter theme enabled · turn off':'Enable winter theme'}</button></section>
-     <section className="xmas26-panel"><h2>Event rules</h2><ul className="xmas26-rules-list"><li>Doors unlock at 00:00 UTC.</li><li>Catch up through December 25 (UTC).</li><li>One claim per gift per Pup Account.</li></ul></section>
+     <section className="xmas26-panel"><h2>Event rules</h2><ul className="xmas26-rules-list"><li>Doors unlock at 00:00 UTC.</li><li>Catch up through December 25 (UTC).</li><li>One reward per door, claimed individually from game notifications.</li></ul></section>
     </aside>
    </div>
-   <section className="xmas26-collection"><div><span className="xmas26-kicker">PUPDEX COLLECTION</span><h2>Winter puppies</h2><p>Meet the seasonal catalog. Featured puppies are not automatically granted by the calendar.</p></div><div className="xmas26-pups">
+   <section className="xmas26-collection"><div><span className="xmas26-kicker">PUPDEX COLLECTION</span><h2>Winter puppies</h2><p>Meet the seasonal catalog. Selected winter puppies can be awarded by opening Advent doors and claiming the notification.</p></div><div className="xmas26-pups">
     {puppies.map(p=><article className="xmas26-pup" key={p.id}><PuppyArtwork id={p.id} name={p.name} uri={'/assets/transparent/'+p.group+'/'+p.asset+'.png'} size={140} lazy/><h3>{p.name}</h3><p>{p.description}</p><button className="xmas26-secondary" type="button" onClick={()=>window.location.assign('/pupdex?pup='+encodeURIComponent(p.asset))}>View in PupDex</button></article>)}
    </div></section>
    <div className="xmas26-actions"><button className="xmas26-secondary" type="button" onClick={()=>window.location.assign('/play')}>Back to Puppy Clicker</button></div>
