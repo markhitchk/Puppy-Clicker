@@ -232,8 +232,10 @@ async function handleAuthRequest(req,auditContext){
    if(body.action==="referral-status"||body.action==="referral-claim"){
     const {account}=await currentSession(req);
     await enforceWebPupEye(account,'profile');
-    const claim=body.action==="referral-claim";
-    const {data,error}=await admin.rpc(claim?"pup_referral_claim":"pup_referral_status",{p_inviter:account.id});
+    // Refresh also queues the next verified referral, never deposits currency.
+    const queued=await admin.rpc("pup_referral_claim",{p_inviter:account.id});
+    if(queued.error)throw new PublicError(503,"PUP_REFERRALS_UNAVAILABLE");
+    const {data,error}=await admin.rpc("pup_referral_status",{p_inviter:account.id});
     if(error)throw new PublicError(503,"PUP_REFERRALS_UNAVAILABLE");
     return json(200,{referrals:data},origin);
    }
@@ -248,10 +250,14 @@ async function handleAuthRequest(req,auditContext){
      .is("dismissed_at",null)
      .order("created_at",{ascending:false}).limit(100);
     if(error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
-    return json(200,{notifications:(data||[]).map(row=>({
+    const queued=await admin.rpc("pup_referral_claim",{p_inviter:account.id});
+    if(queued.error)console.error("Could not queue referral reward");
+    const rewards=await admin.rpc("pup_reward_inbox",{p_account:account.id});
+    if(rewards.error||!Array.isArray(rewards.data))throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
+    return json(200,{notifications:[...rewards.data,...(data||[]).map(row=>({
      id:row.id,kind:row.kind,title:row.title,body:row.body,
      createdAt:row.created_at,read:row.read_at!==null
-    }))},origin);
+    }))].slice(0,100)},origin);
    }
    if(body.action==="notifications-mark"){
     const {account}=await currentSession(req);
@@ -271,6 +277,10 @@ async function handleAuthRequest(req,auditContext){
     else update=update.not("read_at","is",null);
     const {error}=await update;
     if(error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
+    if(mode!=="clear-read"){
+     const rewardRead=await admin.rpc("pup_reward_inbox_read",{p_account:account.id,p_id:mode==="read-one"?body.id:null});
+     if(rewardRead.error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
+    }
     return json(200,{updated:true},origin);
    }
    if(body.action==="status"){
