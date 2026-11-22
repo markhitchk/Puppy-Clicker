@@ -7,6 +7,7 @@ export function crossplayDb(save, {owner=true, race=false, webOnly=false,eventSe
  const receipts=new Map();
  const gifts=new Map();
  const admin={async rpc(name,args){
+   if(name==='pupeye_web_strict_integrity'||name==='pupeye_web_strict_scan')return {data:null,error:null};
    if(name==='pup_advent_queue'){
     const day=args.p_day,now=Date.now(),v=row.save_data.stores.puppy_clicker_save.values,t=row.save_data.stores.puppy_clicker_save.types;
     if(gifts.has(day)||(v.web_advent_2026_claimed_v1||[]).includes(day))return {data:{status:'duplicate'},error:null};
