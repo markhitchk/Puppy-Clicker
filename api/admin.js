@@ -134,7 +134,7 @@ async function users(db,query) {
       playerId:p.player_id,friendCode:p.friend_code,role:p.guild_role || "GUEST",
       status:standing.status!=="active"?standing.status:a.status!=="active"?a.status:p.status,
       restriction:restriction?{id:restriction.id,reason:restriction.public_reason,
-        expiresAt:restriction.expires_at,managedHere:String(restriction.issued_by||"").startsWith("web_admin:")}:null,
+        expiresAt:restriction.expires_at,managedHere:String(restriction.issued_by||"").startsWith("web_admin:")||restriction.issued_by==="pupeye_web:v2",strict:restriction.issued_by==="pupeye_web:v2"}:null,
       accountStatus:a.status,createdAt:a.created_at,updatedAt:a.updated_at,
       contactEmail:a.contact_email || null,
       ...resolveRegistrationMethod({storedMethod:sources.get(a.id)?.registration_method,auditMethod:methods.get(a.id),hasPassword:passwordAccounts.has(a.id),discordUserId:a.discord_user_id}),
@@ -233,7 +233,8 @@ export async function action(db,actor,body) {
   if(type==="fairplay-cases"){
     // Only an authorized staff member can reach these service-role-only findings.
     const rows=ensure(await db.rpc("pupeye_web_fairplay_admin_cases",{p_limit:160}));
-    return {cases:rows||[]};
+    const overview=ensure(await db.rpc("pupeye_web_strict_overview"));
+    return {cases:rows||[],players:overview?.players||[]};
   }
   if(type==="fairplay-review"){
     const caseId=Number(body.caseId);
@@ -331,6 +332,11 @@ export async function action(db,actor,body) {
     const ban=ensure(await db.from("pupeye_global_bans")
       .select("id,issued_by,status").eq("id",id).maybeSingle());
     if (!ban) throw new AdminError(404,"BAN_NOT_FOUND");
+    if(ban.issued_by==="pupeye_web:v2"){
+      const note=String(body.note||"").trim();
+      if(note.length<5||note.length>500)throw new AdminError(400,"FAIRPLAY_REVIEW_NOTE_REQUIRED");
+      return ensure(await db.rpc("pupeye_web_strict_lift",{p_actor:actor.player.id,p_ban:id,p_note:note}));
+    }
     if (!String(ban.issued_by||"").startsWith("web_admin:"))
       throw new AdminError(403,"MANAGE_FROM_ORIGINAL_SYSTEM");
     if (ban.status !== "active") return {revoked:true,unchanged:true};
