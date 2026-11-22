@@ -139,7 +139,17 @@ try{
  const trade=id();
  await db.query("insert into puppy_exchange.pup_exchange_offers(id,sender,recipient,kind,offered) values($1,$2,$3,'trade',array['cocoa'])",[trade,inviter,other]);
  assert.equal((await scalar("select public.pup_exchange_complete($1,$2)",[trade,inviter])).state,"completed");
- console.log("Unified reward inbox, staff permissions, claim-only player gift routing and trade regression tests passed.");
+ await db.exec(await load("../supabase/migrations/20261122103000_legacy_native_exchange_compat.sql"));
+ const nativeGift=id();
+ await db.query("insert into puppy_exchange.pup_exchange_offers(id,sender,recipient,kind,offered) values($1,$2,$3,'gift',array['cocoa'])",[nativeGift,other,inviter]);
+ await scalar("select public.pup_player_gift_inbox_sync($1)",[inviter]);
+ await assert.rejects(scalar("select public.pup_exchange_complete($1,$2)",[nativeGift,inviter]),/EXCHANGE_NOTIFICATION_REQUIRED/);
+ assert.equal((await scalar("select public.pup_exchange_complete_native($1,$2)",[nativeGift,inviter])).state,"completed");
+ assert.equal((await inbox(inviter)).length,0);
+ await db.exec("set role authenticated");
+ await assert.rejects(scalar("select public.pup_exchange_complete_native($1,$2)",[nativeGift,inviter]),/permission denied/);
+ await db.exec("reset role");
+ console.log("Unified reward inbox, staff permissions, claim-only web gifts, signed legacy compatibility and trade regression tests passed.");
 
 
 }finally{await db.close();}
