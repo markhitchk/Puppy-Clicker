@@ -45,7 +45,7 @@ begin
  update puppy_pupeye.web_strict_evidence set case_id=c where account_uuid=p_account and signal=p_signal and reference=p_reference;
  -- Behavior, shared networks, repeated legitimate claims and advisory client
  -- timing never independently create global bans. Staff accounts are review-only.
- if p_signal not in ('OPERATION_TAMPER','FOREIGN_GIFT_PROBE') or coalesce(role_code,'') not in ('PLAYER','GUEST') then return; end if;
+ if p_signal not in ('OPERATION_TAMPER','FOREIGN_GIFT_PROBE') or coalesce(role_code,'GUEST') not in ('PUP_MEMBER','GUEST') then return; end if;
  if exists(select 1 from public.pupeye_resolve_global_ban(player,discord_id,null,null,null)) then return; end if;
  -- Only distinct, independently verified targets count; known false positives do not.
  select count(*),count(distinct e.signal) into row_count_recent,kinds
