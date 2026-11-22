@@ -66,6 +66,7 @@ export default function AdminPortal(){
  const [events,setEvents] = useState([]);
  const [webPupEyeEvents,setWebPupEyeEvents] = useState([]);
  const [fairplayCases,setFairplayCases]=useState([]);
+ const [strictPlayers,setStrictPlayers]=useState([]);
  const [caseReview,setCaseReview]=useState({});
  const [query,setQuery] = useState("");
  const [busy,setBusy] = useState(false);
@@ -116,7 +117,7 @@ export default function AdminPortal(){
    if(tab==="pupeye-web"){
     setWebPupEyeEvents(result.events||[]);
     const cases=await request({action:"fairplay-cases"});
-    setFairplayCases(cases.cases||[]);
+    setFairplayCases(cases.cases||[]);setStrictPlayers(cases.players||[]);
    }
   }catch(e){setError(normalizeError(e.message));}
   finally{if(!silent)setTabLoading(false);}
@@ -195,7 +196,9 @@ export default function AdminPortal(){
  const restrictUser=body=>run(body,body.action==='suspend-account'?'Account suspended until the selected end time.':'Account ban created.');
  const liftRestriction=user=>{
   if(!window.confirm('Lift the current restriction on @'+user.username+'?'))return;
-  void run({action:'unban-account',banId:user.restriction.id},'Restriction lifted.');
+  const note=user.restriction.strict?window.prompt('Explain why the PupEye enforcement should be lifted (minimum 5 characters):',''):null;
+  if(user.restriction.strict&&(!note||note.trim().length<5))return;
+  void run({action:'unban-account',banId:user.restriction.id,...(note?{note:note.trim()}: {})},'Restriction lifted.');
  };
  const banUser=async(event,target)=>{
   event.preventDefault();
@@ -341,8 +344,17 @@ export default function AdminPortal(){
   </section>:null}
   {section==="activity"?<AdminActivity activity={activity} filter={activityFilter} onFilter={value=>navigate("activity",value)} loading={tabLoading}/>:null}
  {section==="pupeye-web"?<section className="pup-admin-panel" aria-label="PupEye Web security incidents">
- <h2><PupEyeBrand label="PupEye Anticheat"/></h2>
+ <h2><PupEyeBrand label="PupEye Web V2 · Strict"/></h2>
  <p className="pup-admin-note">Server-verified browser account activity and abuse-limit incidents. These are not Android device detections. VPN/network risk alone does not constitute cheating or trigger an automatic ban.</p>
+ <h3>Player monitoring</h3>
+ <p className="pup-admin-note">Risk and enforcement records include accounts without previous incidents. Timing patterns, network risks and reward volume are review-only; automatic global sanctions require corroborated integrity violations.</p>
+ <div className="pup-admin-table-wrap"><table className="pup-admin-table"><thead><tr><th>Player</th><th>Risk / last activity</th><th>Tap window</th><th>Rewards / referrals · 24h</th><th>Enforcement</th></tr></thead><tbody>
+ {strictPlayers.map(p=><tr key={p.id}><td><strong>@{p.username}</strong></td>
+ <td>Score {p.risk_score}<small>{p.updated_at?formatTime(p.updated_at):"No tap telemetry yet"}</small></td>
+ <td>{p.window_taps} accepted · {p.window_rejected} rejected</td>
+ <td>{p.gifts_claimed_24h} claims · {p.referrals_24h} signups<small>{p.strict_signals_24h} strict signals · {p.open_cases} open cases</small></td>
+ <td>{p.enforcement?<><strong>{p.enforcement.kind==="permanent"?"Permanent ban":"Temporary suspension"}</strong><small>{p.enforcement.expiresAt?formatTime(p.enforcement.expiresAt):"No expiry"}</small><button type="button" disabled={busy} onClick={()=>{const note=window.prompt("Review explanation (minimum 5 characters):","");if(note?.trim().length>=5)void run({action:"unban-account",banId:p.enforcement.banId,note:note.trim()},"PupEye restriction lifted.");}}>Lift restriction</button></>:p.restricted_until&&new Date(p.restricted_until)>new Date()?"Tap hold":"No automatic sanction"}</td></tr>)}
+ </tbody></table></div>
  <div className="pup-fairplay-heading">
    <h3>🔎 Fair-play investigations</h3>
    <p>Server-detected volume and rate anomalies. Browser timing reports are advisory only and cannot trigger automatic restrictions. A case is evidence for human review, not proof of cheating.</p>
@@ -355,7 +367,8 @@ export default function AdminPortal(){
    <td><strong>{item.signal?.replaceAll("_"," ")}</strong><small>{item.severity} · score {item.score_after}</small></td>
    <td><small>{item.evidence?.source==="browser_advisory"?
     "Self-reported browser signal (not trusted for enforcement)":
-    "Server-confirmed gameplay timing / volume"}</small>
+    item.evidence?.source==="server_verified"?"Server-verified integrity / behavioral evidence":"Server-confirmed gameplay timing / volume"}</small>
+    {item.evidence?.source==="server_verified"&&<small>{Object.entries(item.evidence).filter(([key])=>!["source","v2"].includes(key)).map(([key,value])=>key+": "+String(value)).join(" · ")}</small>}
     <small>{Number.isFinite(item.evidence?.windowTaps)?"Taps in window: "+item.evidence.windowTaps:""}</small>
     <small>{Number.isFinite(item.evidence?.windowRejections)?"Rejected taps: "+item.evidence.windowRejections:""}</small>
     {item.evidence?.source==="browser_advisory"?<small>Samples: {item.evidence.sampleCount} · variation: {item.evidence.coefficientVariation}</small>:null}
