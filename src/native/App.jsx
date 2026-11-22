@@ -1100,7 +1100,7 @@ export default function App(){return <SafeAreaProvider><PuppyErrorBoundary><WebA
 export function PuppyApp({betaMode=false}){
  const insets=useSafeAreaInsets();
  const systemDark=useColorScheme()==='dark';
- const {state,gameForDisplay,queuedTaps,notificationInbox,act:gameAct,account,cloudState,startupError,syncStatus,gameplayBusy,refreshAccount,updateAccountName,fairplay,refreshFairplay}=useGame({mode:betaMode?'beta':'guest'});
+ const {state,gameForDisplay,queuedTaps,notificationInbox,act:gameAct,account,cloudState,startupError,syncStatus,gameplayBusy,refreshAccount,updateAccountName,fairplay,refreshFairplay,retryPendingActions}=useGame({mode:betaMode?'beta':'guest'});
  const onboarding=useAccountOnboarding({enabled:betaMode,account,activateAccount:refreshAccount});
  const act=useCallback(action=>{
   gameAct(action);
@@ -1248,6 +1248,7 @@ export function PuppyApp({betaMode=false}){
    <Pressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={()=>setSecondary('settings')} style={styles.headerButton}><Txt style={{fontSize:23}}>⚙️</Txt></Pressable></div></>}
   </View>:null}
 
+{Platform.OS==="web"&&gameplayBusy&&["RETRYING","BLOCKED"].includes(syncStatus?.state)?<View accessibilityRole="alert" style={styles.notice}><Txt style={styles.small}>Your gameplay action is still pending. {syncStatus.state==="RETRYING"?"The server will be retried automatically.":"Check your connection or site storage."}</Txt><Button compact onPress={()=>retryPendingActions?.()}>Retry sync</Button></View>:null}
 {state.notice?<Pressable accessibilityRole="alert" onPress={()=>act({type:'dismiss'})} style={styles.notice}><Txt style={styles.small}>{state.notice}  ✕</Txt></Pressable>:null}
   {!betaMode&&['warning','restricted'].includes(fairplay?.status)?<div className={'pup-fairplay-banner '+(fairplay.status==='restricted'?'is-restricted':'')} role="status" aria-live="polite">
    <span aria-hidden="true">🐶👁️</span><div><strong>{fairplay.status==='restricted'?'PupEye: temporary tap hold':'PupEye fair-play notice'}</strong>
@@ -1269,7 +1270,7 @@ export function PuppyApp({betaMode=false}){
   </View>:null}
     </View>
    </View>
-  <NotificationInbox visible={inboxOpen} g={inboxGame} act={act} onClose={()=>setInboxOpen(false)} onNavigate={openScreen} serverBacked={betaMode}/>
+  <NotificationInbox visible={inboxOpen} g={inboxGame} act={act} onClose={()=>setInboxOpen(false)} onNavigate={openScreen} serverBacked={betaMode} syncStatus={syncStatus} claimNotice={state.notice} onRetrySync={retryPendingActions}/>
   {betaMode?<BetaAccountEntry visible={accountOpen} initialMode={accountEntryMode} onVerified={refreshAccount} onClose={()=>setAccountOpen(false)}/>:null}
  </PuppyPointer>;
 }
