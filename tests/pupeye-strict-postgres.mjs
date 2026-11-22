@@ -14,8 +14,11 @@ try{
  create function cron.schedule(text,text,text) returns bigint language sql as 'select 1::bigint';
  alter table puppy_accounts.pup_accounts add column username text, add column created_at timestamptz default now(), add column discord_user_id text;
  create table puppy_game.pup_web_gameplay_operations(account_uuid uuid,operation_id uuid,intent_hash text,intent_type text,created_at timestamptz default now(),primary key(account_uuid,operation_id));
- create table puppy_web.pup_reward_inbox(id uuid primary key,account_uuid uuid,source text,claimed_at timestamptz);
- create table puppy_web.pup_registration_sources(account_uuid uuid,inviter_account_uuid uuid,created_at timestamptz default now());
+ create table puppy_web.pup_reward_inbox(id uuid primary key,account_uuid uuid,source text,claimed_at timestamptz,source_key text,sender_account_uuid uuid);
+ create table puppy_web.pup_registration_sources(account_uuid uuid,inviter_account_uuid uuid,created_at timestamptz default now(),registration_method text default 'password');
+ create table puppy_web.pup_referral_rewards(invited_account_uuid uuid,treats integer);
+ alter table puppy_game.pup_account_saves add column origin_platform text, add column installation_uuid uuid;
+ create function public.pup_reward_redeem(uuid,uuid,bigint) returns jsonb language sql as 'select jsonb_build_object(''status'',''saved'')';
  create table puppy_pupeye.pupeye_global_bans(id uuid primary key,kind text,status text,expires_at timestamptz,player_uuid uuid);
  -- Disposable stubs model ONLY the existing global-ban API contract.
  create function public.pupeye_create_global_ban(text,text,text,text,timestamptz,text,text,jsonb)
@@ -51,7 +54,7 @@ try{
  }
  async function gift(actor){
   const g=id();
-  await db.query("insert into puppy_web.pup_reward_inbox values($1,$2,'player',null)",[g,actor.a]);
+  await db.query("insert into puppy_web.pup_reward_inbox(id,account_uuid,source,claimed_at) values($1,$2,'player',null)",[g,actor.a]);
   return g;
  }
  await integrity(cheater,"receipt",id(),otherHash);
@@ -72,6 +75,10 @@ try{
  const suspension=await scalar("select id from puppy_pupeye.pupeye_global_bans where player_uuid=$1",[cheater.p]);
  assert.equal(await scalar("select kind from puppy_pupeye.pupeye_global_bans where id=$1",[suspension]),"temporary");
  assert.equal((await overview()).players.find(p=>p.id===cheater.a).enforcement.kind,"temporary");
+ assert.equal((await scalar("select public.pup_reward_redeem($1,$2,1)",[cheater.a,id()])).status,"PUP_ACCOUNT_BLOCKED");
+ const blockedGift=id();
+ await db.query("insert into puppy_web.pup_reward_inbox(id,account_uuid,source,sender_account_uuid) values($1,$2,'player',$3)",[blockedGift,recipient.a,cheater.a]);
+ assert.equal((await scalar("select public.pup_reward_redeem($1,$2,1)",[recipient.a,blockedGift])).status,"REWARD_GIFT_INELIGIBLE");
  // Simulate expired suspension and reviewed evidence without wall-clock delay.
  await db.query("update puppy_pupeye.web_strict_evidence set created_at=now()-interval '2 days' where account_uuid=$1",[cheater.a]);
  await db.query("update puppy_pupeye.pupeye_global_bans set expires_at=now()-interval '1 hour' where id=$1",[suspension]);
@@ -85,7 +92,7 @@ try{
  assert.equal((await scalar("select public.pupeye_web_strict_lift($1,$2,'Appeal reviewed; false positive')",[staff.p,permanent.banId])).revoked,true);
  assert.equal((await overview()).players.find(p=>p.id===cheater.a).enforcement,null);
  // Review-only evidence can never cause a global ban.
- for(let i=0;i<12;i++)await db.query("insert into puppy_web.pup_registration_sources values($1,$2,now())",[id(),clean.a]);
+ for(let i=0;i<12;i++)await db.query("insert into puppy_web.pup_registration_sources(account_uuid,inviter_account_uuid,created_at) values($1,$2,now())",[id(),clean.a]);
  await scalar("select public.pupeye_web_strict_scan($1,'reward')",[clean.a]);
  assert.equal(await count(clean),1);assert.equal(await bans(clean),0);
  for(let i=0;i<3;i++){await integrity(staff,"receipt",await receipt(staff),otherHash);await integrity(staff,"gift",await gift(recipient));}
