@@ -1,5 +1,6 @@
 import React,{useEffect,useId,useRef,useState} from "react";
 import NativeApp from "./native/App.jsx";
+import ReferralRewards from "./ReferralRewards.jsx";
 import Christmas2026,{WinterSnow} from "./Christmas2026.jsx";
 import AdaptiveGraphics from "./AdaptiveGraphics.jsx";
 import BrowserSettings from "./BrowserSettings.jsx";
@@ -436,7 +437,7 @@ function AccountDashboard(){
       <button type="button" className="cta cta-secondary" onClick={()=>void shareFriendCode()}>Copy invite link</button>
       <button type="button" className="cta cta-secondary" onClick={()=>void shareFriendCode(profile.friendCode,"Friend Code")}>Copy Friend Code</button>
      </div>
-     <small>Share your personal invite with friends. Verified signups are attributed to you automatically. No rewards or friend requests are automatically granted.</small>
+     <ReferralRewards key={profile.id} client={client} accountId={profile.id}/>
     </section>}
     <div className="portal-divider"></div>
     <h3 id="profile-settings">✏️ Profile settings</h3>
