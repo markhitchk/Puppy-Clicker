@@ -252,6 +252,8 @@ async function handleAuthRequest(req,auditContext){
     if(error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
     const queued=await admin.rpc("pup_referral_claim",{p_inviter:account.id});
     if(queued.error)console.error("Could not queue referral reward");
+    const playerGifts=await admin.rpc("pup_player_gift_inbox_sync",{p_account:account.id});
+    if(playerGifts.error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
     const rewards=await admin.rpc("pup_reward_inbox",{p_account:account.id});
     if(rewards.error||!Array.isArray(rewards.data))throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
     return json(200,{notifications:[...rewards.data,...(data||[]).map(row=>({
