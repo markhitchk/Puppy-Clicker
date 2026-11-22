@@ -13,7 +13,7 @@ try{
   const a=id(),p=id();
   await db.query("insert into puppy_accounts.pup_accounts(id,player_uuid,status,username) values($1,$2,$3,$4)",[a,p,status,username]);
   await db.query("insert into puppy_pupeye.pupeye_players values($1,'PLAYER',$2)",[p,status]);
-  const save={format:"puppy-clicker-cloud-save",version:1,stores:{puppy_clicker_save:{types:{treats:"long",lifetime_treats:"long",legitimate_taps_v7:"long"},values:{treats:50,lifetime_treats:80,legitimate_taps_v7:taps,unknown_android_field:42}}}};
+  const save={format:"puppy-clicker-cloud-save",version:1,stores:{puppy_clicker_save:{types:{treats:"long",lifetime_treats:"long",legitimate_taps_v7:"long",unlocked_puppies:"string_set"},values:{unlocked_puppies:["classic"],treats:50,lifetime_treats:80,legitimate_taps_v7:taps,unknown_android_field:42}}}};
   await db.query("insert into puppy_game.pup_account_saves(player_uuid,account_uuid,revision,save_data,updated_at,origin_platform) values($1,$2,1,$3,now(),'web')",[p,a,save]);
   return a;
  }
@@ -45,5 +45,52 @@ try{
  assert.equal(save.stores.puppy_clicker_save.values.unknown_android_field,42);
  assert.equal((await status(inviter)).earned,500);
  assert.equal((await status(inviter)).rewarded,1);
- console.log("Referral attribution, eligibility, privacy grants, rollback and replay tests passed.");
+
+ // Test the production upgrade on top of previous referral receipts.
+ await db.exec(`create schema puppy_rarity;
+ create table puppy_rarity.config(version bigint);
+ insert into puppy_rarity.config values(1);
+ create table puppy_rarity.catalog(puppy_id text primary key,rarity text,published boolean,acquisition text);
+ insert into puppy_rarity.catalog values ('classic','common',true,'standard'),('cocoa','common',true,'standard'),('santa','epic',true,'event'),('dev_pup','unobtainable',true,'developer');
+ create function public.pup_event_settings_public() returns jsonb language sql as 'select ''{"all_events":true,"christmas_2026":true}''::jsonb';`);
+ await db.exec(await load("../supabase/migrations/20261122094500_shared_reward_inbox.sql"));
+ for(let i=0;i<6;i++){
+  const a=await setup("next"+i,100);
+  await db.query("insert into puppy_web.pup_registration_sources(account_uuid,source,created_at,registration_method,inviter_account_uuid) values($1,'friend',now()-interval '25 hours','discord',$2)",[a,inviter]);
+ }
+ const inbox=who=>scalar("select public.pup_reward_inbox($1)",[who]);
+ const revision=()=>scalar("select revision::int from puppy_game.pup_account_saves where account_uuid=$1",[inviter]);
+ const redeem=async(who,gift,rev)=>scalar("select public.pup_reward_redeem($1,$2,$3)",[who,gift,rev]);
+ for(let i=0;i<6;i++){
+  const before=await revision();
+  assert.equal((await claim(inviter)).queued,1);
+  assert.equal((await claim(inviter)).queued,0);
+  assert.equal(await revision(),before);
+  const notices=await inbox(inviter);assert.equal(notices.length,1);assert.equal(notices[0].claimable,true);
+  assert.equal((await inbox(other)).length,0);
+  const gift=notices[0].id;
+  assert.equal((await redeem(other,gift,1)).status,"REWARD_NOT_FOUND");
+  assert.equal((await redeem(inviter,gift,before-1)).status,"CLOUD_SAVE_CONFLICT");
+  assert.equal((await redeem(inviter,gift,before)).status,"saved");
+  assert.equal((await redeem(inviter,gift,before)).status,"duplicate");
+  assert.equal(await revision(),before+1);
+  assert.equal((await inbox(inviter)).length,0);
+ }
+ const final=await scalar("select save_data from puppy_game.pup_account_saves where account_uuid=$1",[inviter]);
+ const values=final.stores.puppy_clicker_save.values;
+ assert.equal(values.treats,1050);assert.equal(values.upgrade_ticket_common,1);assert.equal(values.bones_v7,5);
+ assert.equal(values.pup_coins_v7,10);assert.equal(values.casino_chips_v7,100);
+ assert.deepEqual(values.unlocked_puppies,["classic","cocoa"]);assert.equal(values.unknown_android_field,42);
+ assert.equal((await status(inviter)).rewarded,7);
+ // Advent puppy is queued but not owned until redemption. Private helper is fixture-only.
+ const q=await scalar("select puppy_web.queue_one_reward($1,'advent','2026-12-25',25,$2)",[inviter,final]);
+ assert.equal((await inbox(inviter)).length,1);
+ assert.equal((await redeem(inviter,q,await revision())).label,"Puppy: santa");
+ assert.equal((await redeem(inviter,q,await revision())).status,"duplicate");
+ await db.exec("set role authenticated");
+ await assert.rejects(inbox(inviter),/permission denied/);
+ await assert.rejects(redeem(inviter,q,1),/permission denied/);
+ await db.exec("reset role");
+ console.log("Referral and Advent inbox eligibility, single-prize rotation, privacy, claims and replay tests passed.");
+
 }finally{await db.close();}
