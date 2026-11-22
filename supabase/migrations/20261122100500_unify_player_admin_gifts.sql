@@ -2,6 +2,13 @@
 alter table puppy_web.pup_reward_inbox drop constraint pup_reward_inbox_source_check;
 alter table puppy_web.pup_reward_inbox add constraint pup_reward_inbox_source_check check(source in ('advent','referral','admin','player'));
 alter table puppy_web.pup_reward_inbox add column sender_account_uuid uuid references puppy_accounts.pup_accounts(id) on delete set null;
+-- An approved request is now distinct from a redeemed request.
+alter table puppy_exchange.pup_gift_requests drop constraint if exists pup_gift_review_consistency;
+alter table puppy_exchange.pup_gift_requests add constraint pup_gift_review_consistency check(
+ (status='pending' and reviewed_at is null and reviewed_by_player_uuid is null and gifted_revision is null) or
+ (status='declined' and reviewed_at is not null and reviewed_by_player_uuid is not null and gifted_revision is null) or
+ (status='approved' and reviewed_at is not null and reviewed_by_player_uuid is not null)
+);
 
 -- Move the existing checked exchange gateway behind a private schema. Trades
 -- retain their public confirmation path; gifts can only be redeemed by inbox.
@@ -136,6 +143,7 @@ begin
    )) then return jsonb_build_object('status','REWARD_GIFT_INELIGIBLE'); end if;
    if owned ? q.puppy_id then
     update puppy_web.pup_reward_inbox set claimed_at=now(),read_at=coalesce(read_at,now()),claimed_label='Already owned' where id=p_id;
+    update puppy_exchange.pup_gift_requests set gifted_revision=s.revision where id::text=split_part(q.source_key,':',2) and account_uuid=p_account and status='approved' and gifted_revision is null;
     return jsonb_build_object('status','saved','label','Already owned');
    end if;
    if restricted then perform set_config('puppy_rarity.grant',s.player_uuid::text||'/'||q.puppy_id,true); end if;
