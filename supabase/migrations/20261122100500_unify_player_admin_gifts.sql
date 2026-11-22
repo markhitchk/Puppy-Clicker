@@ -179,7 +179,7 @@ end $$;
 
 -- Staff-created resource gifts use the same inbox and one-item claim transaction.
 create function public.pup_admin_resource_gift(p_actor uuid,p_target uuid,p_key text,p_amount integer,p_operation uuid,p_reason text)
-returns jsonb language plpgsql security definer set search_path='' as $
+returns jsonb language plpgsql security definer set search_path='' as $$
 declare actor_player uuid; target_account uuid; q puppy_web.pup_reward_inbox%rowtype; label_text text; gift_id uuid; max_amount integer;
 begin
  select a.player_uuid into actor_player from puppy_accounts.pup_accounts a join puppy_pupeye.pupeye_players p on p.id=a.player_uuid
@@ -203,7 +203,7 @@ begin
  insert into puppy_admin.pup_admin_actions(actor_player_uuid,target_player_uuid,action_code,detail)
  values(actor_player,p_target,'WEB_SYSTEM_RESOURCE_GIFT_QUEUED',jsonb_build_object('notificationId',gift_id,'reward',p_key,'amount',p_amount,'reason',p_reason));
  return jsonb_build_object('queued',true,'notificationId',gift_id);
-end $;
+end $$;
 revoke all on function public.pup_admin_resource_gift(uuid,uuid,text,integer,uuid,text) from public,anon,authenticated;
 grant execute on function public.pup_admin_resource_gift(uuid,uuid,text,integer,uuid,text) to service_role;
 
