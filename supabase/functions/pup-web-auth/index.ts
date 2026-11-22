@@ -229,6 +229,14 @@ async function handleAuthRequest(req,auditContext){
    if(body.action==="discord-register")return await registerDiscordWebAccount({
     req,body,origin,admin,json,PublicError,key,newBetaKotlinSave
    });
+   if(body.action==="referral-status"||body.action==="referral-claim"){
+    const {account}=await currentSession(req);
+    await enforceWebPupEye(account,'profile');
+    const claim=body.action==="referral-claim";
+    const {data,error}=await admin.rpc(claim?"pup_referral_claim":"pup_referral_status",{p_inviter:account.id});
+    if(error)throw new PublicError(503,"PUP_REFERRALS_UNAVAILABLE");
+    return json(200,{referrals:data},origin);
+   }
    if(body.action==="notifications-read"){
     // Derive recipient exclusively from the verified Supabase Auth session.
     // A browser cannot select another player's inbox by supplying an ID.
