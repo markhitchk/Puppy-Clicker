@@ -5,7 +5,28 @@ export function crossplayDb(save, {owner=true, race=false, webOnly=false,eventSe
   origin_platform:webOnly?'web':'android',installation_uuid:webOnly?null:'install'}:null;
  let writes=0;
  const receipts=new Map();
+ const gifts=new Map();
  const admin={async rpc(name,args){
+   if(name==='pup_advent_queue'){
+    const day=args.p_day,now=Date.now(),v=row.save_data.stores.puppy_clicker_save.values,t=row.save_data.stores.puppy_clicker_save.types;
+    if(gifts.has(day)||(v.web_advent_2026_claimed_v1||[]).includes(day))return {data:{status:'duplicate'},error:null};
+    if(now<Date.UTC(2026,11,1)||now>=Date.UTC(2026,11,26))return {data:{status:'ADVENT_CLOSED'},error:null};
+    if(now<Date.parse(day+'T00:00:00Z'))return {data:{status:'ADVENT_DAY_LOCKED'},error:null};
+    if(race||row.revision!==args.p_revision)return {data:{status:'CLOUD_SAVE_CONFLICT'},error:null};
+    gifts.set(day,{id:'aaaaaaaa-aaaa-4aaa-8aaa-'+day.slice(-2).padStart(12,'0'),claimed:false});
+    v.web_advent_2026_claimed_v1=[...(v.web_advent_2026_claimed_v1||[]),day];t.web_advent_2026_claimed_v1='string_set';
+    row.revision++;writes++;
+    return {data:{status:'saved'},error:null};
+   }
+   if(name==='pup_reward_redeem'){
+    const gift=[...gifts.values()].find(g=>g.id===args.p_id);
+    if(!gift||args.p_account!==account.id)return {data:{status:'REWARD_NOT_FOUND'},error:null};
+    if(gift.claimed)return {data:{status:'duplicate',label:'500 Treats'},error:null};
+    if(race||row.revision!==args.p_revision)return {data:{status:'CLOUD_SAVE_CONFLICT'},error:null};
+    gift.claimed=true;const v=row.save_data.stores.puppy_clicker_save.values;
+    v.treats+=500;v.lifetime_treats+=500;row.revision++;writes++;
+    return {data:{status:'saved',label:'500 Treats'},error:null};
+   }
    if(name==='pup_event_settings_public')return {data:eventSettings,error:null};
   // Mirror the existing server-owned PupEye RPC contract in isolated gameplay
   // tests. A clean fair-play status must not increment gameplay write counts.
@@ -43,5 +64,5 @@ export function crossplayDb(save, {owner=true, race=false, webOnly=false,eventSe
    }};
   return query;
  }};
- return {admin,account,row:()=>structuredClone(row),writes:()=>writes};
+ return {admin,account,row:()=>structuredClone(row),writes:()=>writes,gifts:()=>structuredClone([...gifts.values()])};
 }
