@@ -99,6 +99,19 @@ function validatedIntent(raw:any){
   }:undefined
  };
 }
+// Evidence is checked again inside Postgres against authoritative receipts.
+async function strictIntegrity(admin:any,account:Dict,kind:string,id:string,hash:string|null=null){
+ try{
+  const {error}=await admin.rpc("pupeye_web_strict_integrity",{p_account:account.id,p_kind:kind,p_id:id,p_hash:hash});
+  if(error)throw error;
+ }catch{console.error("PupEye integrity telemetry unavailable");}
+}
+async function strictScan(admin:any,account:Dict,kind:string){
+ try{
+  const {error}=await admin.rpc("pupeye_web_strict_scan",{p_account:account.id,p_kind:kind});
+  if(error)throw error;
+ }catch{console.error("PupEye behavioral telemetry unavailable");}
+}
 export async function crossPlay(admin:any,account:Dict,body:Dict){
  if(body.action==="account-update"){
   const name=body.displayName;
@@ -131,7 +144,9 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
   if(!Number.isSafeInteger(body.expectedRevision)||body.expectedRevision<1)reject(400,"CLOUD_REVISION_REQUIRED");
   const {data,error}=await admin.rpc("pup_reward_redeem",{p_account:account.id,p_id:intent.id,p_revision:body.expectedRevision});
   if(error||!data)reject(503,"PUP_REWARD_UNAVAILABLE");
+  if(data.status==="REWARD_NOT_FOUND")await strictIntegrity(admin,account,"gift",intent.id);
   if(!["saved","duplicate"].includes(data.status))reject(409,data.status);
+  if(data.status==="saved")await strictScan(admin,account,"reward");
   return {saved:true,duplicate:data.status==="duplicate",operationId,rewardLabel:data.label,cloud:publicCloudSnapshot(await authoritativeSave(admin,account))};
  }
  // Deterministic ledger receipt for this account and door, independent
@@ -147,7 +162,7 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
    p_account_uuid:account.id,p_operation_id:ledgerOperationId,p_intent_hash:intentHash
   });
   if(error||!receipt)reject(503,"PUP_OPERATION_LEDGER_UNAVAILABLE");
-  if(receipt.status==="reused_id")reject(409,"PUP_OPERATION_ID_REUSED");
+  if(receipt.status==="reused_id"){await strictIntegrity(admin,account,"receipt",ledgerOperationId,intentHash);reject(409,"PUP_OPERATION_ID_REUSED");}
   if(receipt.status==="saved")
    return {saved:true,duplicate:true,operationId,cloud:publicCloudSnapshot(current)};
   if(receipt.status!=="unknown")reject(503,"PUP_OPERATION_LEDGER_UNAVAILABLE");
@@ -234,7 +249,7 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
    p_save_data:next,p_payload_hash:sha256Hex(canonicalJson(next))
   });
   if(error||!commit)reject(503,"PUP_CLOUD_WRITE_UNAVAILABLE");
-  if(commit.status==="reused_id")reject(409,"PUP_OPERATION_ID_REUSED");
+  if(commit.status==="reused_id"){if(durable)await strictIntegrity(admin,account,"receipt",ledgerOperationId,intentHash);reject(409,"PUP_OPERATION_ID_REUSED");}
   if(commit.status==="conflict")reject(409,"CLOUD_SAVE_CONFLICT");
   if(commit.status==="missing")reject(409,"CLOUD_SAVE_REQUIRED");
   if(!["saved","duplicate"].includes(commit.status))reject(503,"PUP_CLOUD_WRITE_UNAVAILABLE");
@@ -271,6 +286,7 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
    });
    if(error)throw error;
    fairplay=data;
+   if(Number(written.revision)%100===0)await strictScan(admin,account,"tap");
   }catch{console.error("PupEye Web tap telemetry unavailable after commit");}
  }
  return {saved:true,...(durable?{operationId}:{}),cloud:publicCloudSnapshot(written),
