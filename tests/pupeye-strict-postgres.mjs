@@ -35,7 +35,7 @@ try{
  `);
  await db.exec(await load("../supabase/migrations/20261105011336_pupeye_web_fairplay.sql"));
  await db.exec(await load("../supabase/migrations/20261122102500_pupeye_web_strict.sql"));
- async function account(name,role="PLAYER"){
+ async function account(name,role="PUP_MEMBER"){
   const a=id(),p=id();
   await db.query("insert into puppy_accounts.pup_accounts(id,player_uuid,status,username) values($1,$2,'active',$3)",[a,p,name]);
   await db.query("insert into puppy_pupeye.pupeye_players values($1,$2,'active')",[p,role]);
