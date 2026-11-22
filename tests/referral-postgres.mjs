@@ -98,13 +98,13 @@ try{
  alter table puppy_exchange.pup_exchange_offers add column state text default 'pending', add column created_at timestamptz default now(), add column expires_at timestamptz default now()+interval '1 day';
  create table puppy_rarity.history(actor uuid,operation_id uuid,action text,puppy_id text,target uuid,reason text,payload jsonb,before_value jsonb,after_value jsonb,catalog_version bigint,primary key(actor,operation_id));
  insert into puppy_exchange.pup_exchange_transfer_policy values ('cocoa',false,true,true,false),('santa',false,true,true,false),('dev_pup',true,false,false,false);
- create or replace function public.pup_exchange_complete(p_offer uuid,p_actor uuid) returns jsonb language plpgsql as $
+ create or replace function public.pup_exchange_complete(p_offer uuid,p_actor uuid) returns jsonb language plpgsql as $$
  begin
   update puppy_game.pup_account_saves set save_data=jsonb_set(save_data,'{stores,puppy_clicker_save,values,unlocked_puppies}',(save_data#>'{stores,puppy_clicker_save,values,unlocked_puppies}')||to_jsonb(o.offered[1])),revision=revision+1
   from puppy_exchange.pup_exchange_offers o where o.id=p_offer and o.recipient=p_actor and account_uuid=p_actor and o.kind='gift';
   update puppy_exchange.pup_exchange_offers set state='completed' where id=p_offer;
   return jsonb_build_object('offerId',p_offer,'state','completed');
- end $;`);
+ end $$;`);
  await db.exec(await load("../supabase/migrations/20261119080100_rarity_exchange_gifts.sql"));
  await db.exec(await load("../supabase/migrations/20261122100500_unify_player_admin_gifts.sql"));
  const staff=await setup("staff",0);
