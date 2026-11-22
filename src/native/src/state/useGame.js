@@ -144,13 +144,15 @@ export function useGame(){
  },[client,pupAccount.id]);
  const reload=useCallback(async()=>{
   if(pending.current>0||draining.current)return false;
-  const request=++generation.current;
+  const request=++generation.current, startedRevision=revision.current;
+  // Ignore a poll response superseded by a queued or committed write.
+  const superseded=()=>request!==generation.current||draining.current||pending.current>0||revision.current!==startedRevision;
   setSyncStatus(old=>({...old,state:"LOADING",errorCode:null}));
   try{
    const {data,error}=await client.functions.invoke("pup-web-auth",{body:{action:"cloud-save-read"},timeout:15000});
    if(error||!data?.verified||data.account?.id!==pupAccount.id)
     throw new Error(error?await functionError(error):"PUP_ACCOUNT_VERIFICATION_FAILED");
-   if(request!==generation.current)return false;
+   if(superseded())return false;
    if(!data.cloud?.exists){
     // Never seed a blank website save over a pre-existing Kotlin player.
     loaded.current=false;revision.current=0;
@@ -159,6 +161,7 @@ export function useGame(){
     setSyncStatus({state:"BLOCKED",revision:0,errorCode:"CLOUD_SAVE_REQUIRED"});
     return false;
    }
+   if(Number(data.cloud.revision)<revision.current)return false;
    const game=projectKotlinCloudSave(data.cloud.saveJson,data.account.displayName);
    revision.current=data.cloud.revision;
    loaded.current=true;
@@ -169,7 +172,7 @@ export function useGame(){
    setTimeout(()=>drainRef.current?.(),0);
    return true;
   }catch(error){
-   if(request!==generation.current)return false;
+   if(superseded())return false;
    const message=String(error?.message||"CLOUD_LOAD_FAILED");
    setSyncStatus({state:loaded.current?"RECONNECTING":"BLOCKED",
     revision:revision.current,errorCode:/^CLOUD_|^PUP_/.test(message)?message:"CLOUD_LOAD_FAILED"});
@@ -254,7 +257,9 @@ export function useGame(){
     }catch(error){
      const code=String(error?.message||"SAVE_RESULT_UNKNOWN");
      if(code==="CLOUD_SAVE_CONFLICT"){
-      if(await refreshForConflict())continue;
+      const before=revision.current;
+      if(await refreshForConflict()&&revision.current>before)continue;
+      // An unchanged snapshot must back off instead of spinning.
      }
      const rejected=new Set([
       "PUP_GAMEPLAY_REJECTED","PUP_GAMEPLAY_ACTION_INVALID",
@@ -301,7 +306,7 @@ export function useGame(){
      const delay=code==="PUP_TAP_RATE_LIMIT"?250:
       code==="PUPEYE_WEB_RATE_LIMIT"?4000:
       Math.min(30000,500*2**retryAttempt.current)+Math.floor(Math.random()*250);
-     setSyncStatus({state:"RETRYING",revision:revision.current,errorCode:null});
+     setSyncStatus({state:"RETRYING",revision:revision.current,errorCode:code});
      clearTimeout(retryTimer.current);
      retryTimer.current=setTimeout(()=>drainRef.current?.(),delay);
      break;
@@ -398,11 +403,17 @@ export function useGame(){
   }
   if(!loaded.current||revision.current<1){
    setSyncStatus(old=>({...old,state:"BLOCKED",errorCode:"CLOUD_SAVE_REQUIRED"}));
+   dispatch({type:"webActionFailed",message:"Cloud progress is not ready. Refresh your account and retry; no reward was consumed."});
+   void reload();
    return;
   }
   const intent=normalizeIntent(action);
   const exclusiveKey=exclusiveIntentKey(intent);
-  if(exclusiveKey&&inFlight.current.has(exclusiveKey))return;
+  if(exclusiveKey&&inFlight.current.has(exclusiveKey)){
+   dispatch({type:"webActionNotice",message:"This action is already pending. Your confirmed progress will update when it completes."});
+   void drainRef.current?.();
+   return;
+  }
   if(exclusiveKey)inFlight.current.add(exclusiveKey);
   // Maintain enqueue order when several controls are tapped in the same tick.
   pending.current++;
@@ -475,6 +486,7 @@ export function useGame(){
   fairplay,refreshFairplay,
   gameplayBusy:pendingActions>queuedTaps,
   startupError:syncStatus.errorCode?{code:syncStatus.errorCode}:null,syncStatus,
+  retryPendingActions:()=>{void drainRef.current?.();},
   refreshAccount:reload,updateAccountName};
 }
 
