@@ -28,7 +28,7 @@ test("server derives account from verified user; never accepts a player ID",asyn
  await recordJoinSource(admin,"new-auth-user",{source:"discord",details:"Indie Game Hub"});
  assert.deepEqual(inserted,{account_uuid:"uuid-1",source:"discord",details:"Indie Game Hub"});
 });
-test("staff directory is the only UI reading attribution",()=>{
+test("staff directory and service-only referral endpoint read attribution",()=>{
  assert.ok(read("api/admin.js").includes('db.from("pup_registration_sources")'));
  assert.ok(read("src/AdminPortal.jsx").includes("Joined via"));
  const sql=read("supabase/migrations/20261104162300_web_registration_sources.sql");

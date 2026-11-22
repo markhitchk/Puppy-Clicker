@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 
 const read=path=>readFileSync(new URL(path,import.meta.url),'utf8');
 const component=read('../src/MeetPuppies.jsx');
+const details=read('../src/PuppyCollectionDetails.jsx');
 const css=read('../src/styles/shared/puppy-dialog.css')+read('../src/styles/mobile/puppy-dialog.css');
 const globalCss=read('../src/styles/index.css');
 
@@ -27,8 +28,8 @@ test('public modal has dark surface, rounded close control, two-column portrait 
 });
 
 test('public page does not imply ownership and uses app for authenticated puppy selection',()=>{
- assert.ok(component.includes('Ownership and unlock status are checked in your Pup Account'));
- assert.ok(component.includes('href="/play"'));
- assert.ok(component.includes('Retry Art'));
+ assert.ok(details.includes('Ownership and unlock status are checked in your Pup Account'));
+ assert.ok(details.includes('href="/play"'));
+ assert.ok(details.includes('Retry Art'));
  assert.ok(component.includes('onDismiss'));
 });

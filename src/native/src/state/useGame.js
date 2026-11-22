@@ -16,7 +16,7 @@ import {normalizeSystemNotifications,mergeSystemNotifications,systemNotification
 // Never read or write puppy_web_saves, never forge a PupEye signed envelope.
 const LIVE_ACTIONS=new Set([
  "casinoRecoverLegacy","tap","care","purchase","ticket","accessory","equip","exchange","skill",
- "daily","claimDailyGoal","claimAdvent","parkStart","parkClaim","prestige",
+ "daily","claimDailyGoal","claimAdvent","claimInboxReward","parkStart","parkClaim","prestige",
  "slotsStart","slotsReveal","rouletteStart","rouletteReveal",
  "plinkoStart","plinkoReveal","scratchStart","scratchReveal",
  "wheelStart","wheelReveal","gacha","claimFreeTest","switch","rename","favorite",
@@ -41,6 +41,7 @@ const normalizeIntent=action=>Object.fromEntries(
 );
 const exclusiveIntentKey=intent=>{
  if(intent?.type==='claimDailyGoal')return 'claimDailyGoal:'+String(intent.goalId||'');
+ if(intent?.type==='claimInboxReward')return 'claimInboxReward:'+String(intent.id||'');
  if(intent?.type==='claimAdvent')return 'claimAdvent:'+String(intent.id||'');
  if(intent?.type==='claimFreeTest')return 'claimFreeTest:'+String(intent.id||'');
  if(['daily','parkStart','parkClaim','prestige'].includes(intent?.type))return intent.type;
@@ -241,6 +242,8 @@ export function useGame(){
       if(op.intent.type==="casinoRecoverLegacy"){
        dispatch({type:"webActionNotice",message:"Old round recovered. Your reserved Chips have been returned."});
       }
+      if(op.intent.type==="claimAdvent"||op.intent.type==="claimInboxReward")void notificationSyncRef.current?.();
+      if(op.intent.type==="claimInboxReward")dispatch({type:"webActionNotice",message:"Reward claimed: "+(data.rewardLabel||"Gift")});
       setCloudState("LIVE_SYNCED");
      }catch{
       setSyncStatus({state:"SAVED_DISPLAY_ERROR",revision:revision.current,
@@ -265,7 +268,7 @@ export function useGame(){
       "PUP_ACCOUNT_BLOCKED","PUP_ACCOUNT_LEGAL_REQUIRED",
       "PUP_OWNER_DEVICE_UNAVAILABLE","GOAL_ALREADY_CLAIMED","DAILY_ALREADY_CLAIMED",
       "GOAL_NOT_COMPLETE","UNKNOWN_DAILY_GOAL","PARK_NOT_READY",
-       "ADVENT_DAY_INVALID","ADVENT_ALREADY_CLAIMED","ADVENT_CLOSED","ADVENT_DAY_LOCKED","ADVENT_DISABLED",
+       "ADVENT_DAY_INVALID","ADVENT_ALREADY_CLAIMED","ADVENT_CLOSED","ADVENT_DAY_LOCKED","ADVENT_DISABLED","REWARD_NOT_FOUND","REWARD_BALANCE_LIMIT","REWARD_GIFT_CLOSED","REWARD_GIFT_INELIGIBLE",
       "UPGRADE_NOT_AFFORDABLE","UPGRADE_MAXED","UPGRADE_NEEDS_TICKETS",
       "TICKET_NOT_AFFORDABLE","ACCESSORY_NOT_AFFORDABLE","ACCESSORY_NOT_OWNED",
       "EXCHANGE_NOT_AFFORDABLE","GACHA_NO_PUPPIES","PUPPY_LOCKED",
@@ -491,6 +494,10 @@ function gameplayMessage(code){
    ADVENT_DAY_INVALID:'This Advent gift does not exist.',
    ADVENT_CLOSED:'The Advent event is not open.',
    ADVENT_DISABLED:'The Advent event is temporarily disabled.',
+   REWARD_NOT_FOUND:'This reward is no longer available.',
+   REWARD_GIFT_CLOSED:'This gift was cancelled, declined or expired.',
+   REWARD_GIFT_INELIGIBLE:'This gift no longer meets the exchange or gifting rules. Check your gift offers.',
+   REWARD_BALANCE_LIMIT:'Your balance is at its limit. Make room and try claiming again.',
    EVENT_SETTINGS_UNAVAILABLE:'Event status is unavailable. Try again later.',
    ADVENT_DAY_LOCKED:'This Advent door is not open yet.',
    DAILY_ALREADY_CLAIMED:'Your daily gift is already claimed for this UTC day. Your progress was refreshed.',

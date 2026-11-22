@@ -1172,7 +1172,15 @@ export function PuppyApp({betaMode=false}){
  },[appearance.bg,appearance.surface,appearance.card,appearance.dark,appearance.accent,appearance.accentInk,appearance.onAccent,appearance.text,appearance.muted,appearance.line,motion.decorative,motion.buttons]);
  const g={...saved,animationsEnabled:motion.casino,tapAnimationsEnabled:motion.tap,idleAnimationsEnabled:motion.decorative&&saved.animationsEnabled,buttonMotionEnabled:motion.buttons};
  const inboxGame={...saved,notificationInbox};
- const [inboxOpen,setInboxOpen]=useState(false);
+ const [inboxOpen,setInboxOpen]=useState(()=>Platform.OS==='web'&&new URLSearchParams(globalThis.location?.search||'').get('notifications')==='1');
+ useEffect(()=>{
+  if(Platform.OS!=='web'||!inboxOpen)return;
+  const url=new URL(window.location.href);
+  if(url.searchParams.get('notifications')==='1'){
+   url.searchParams.delete('notifications');
+   window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);
+  }
+ },[inboxOpen]);
  const notifications=useNotifications({game:inboxGame,ready:betaMode?(onboarding.ready&&onboarding.setup.setupComplete&&account?.status==='VERIFIED'&&account?.legalAccepted===true):(state.ready&&saved.onboardingComplete),act,onOpen:()=>setInboxOpen(true)});
  const openScreen=id=>{if(id==='notifications'){notifications.check();setInboxOpen(true);}else if(TABS.some(tab=>tab[0]===id)){setTab(id);setSecondary(null);}else setSecondary(id);};
  const usePuppy=id=>{if(!saved.unlockedPuppies.includes(id))return;act({type:'switch',id,now:Date.now()});setTab('play');setSecondary(null);};

@@ -20,7 +20,7 @@ for(const width of [320,360,412,1366]){
   const dialog=page.getByRole('dialog',{name:'December 25 gift'});
   await expect(dialog).toBeVisible();
   await expect(dialog.getByText('Christmas Jackpot',{exact:true})).toBeVisible();
-  await expect(dialog.getByText(/10,000 Treats/)).toBeVisible();
+  await expect(dialog.getByText(/One surprise reward/)).toBeVisible();
   await dialog.getByRole('button',{name:'Close gift details'}).click();
   await expect(dialog).toHaveCount(0);
   await hub.getByRole('button',{name:/Hide winter effects/}).click();

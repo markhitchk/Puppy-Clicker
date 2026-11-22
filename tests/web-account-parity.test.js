@@ -30,7 +30,9 @@ test("status endpoint returns server-owned fields for only the authenticated pla
  assert.match(auth,/guildRole:player\?\.guild_role/);
  assert.match(auth,/gameplayWritable:webOnly\|\|connected/);
  assert.match(auth,/contactEmail:account\.contact_email/);
- assert.doesNotMatch(read("src/App.jsx"),/profile\.id|profile\.playerUuid|profile\.installationId|cloud\.revision/);
+ const app=read("src/App.jsx");
+ assert.match(app,/<ReferralRewards key=\{profile\.id\} client=\{client\} accountId=\{profile\.id\}/);
+ assert.doesNotMatch(app.replace(/<ReferralRewards[^>]*\/>/g,""),/profile\.id|profile\.playerUuid|profile\.installationId|cloud\.revision/);
 });
 
 test("account details remain usable if cloud backup is temporarily unavailable",()=>{

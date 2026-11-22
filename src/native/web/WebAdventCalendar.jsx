@@ -9,7 +9,7 @@ const countdown=ms=>{
  const days=Math.floor(seconds/86400),hours=Math.floor(seconds/3600)%24,minutes=Math.floor(seconds/60)%60;
  return [days&&days+'d',hours+'h',minutes+'m'].filter(Boolean).join(' ');
 };
-const stateLabels={locked:'Locked',available:'Ready',claimed:'Collected',expired:'Expired'};
+const stateLabels={locked:'Locked',available:'Ready',claimed:'Opened',expired:'Expired'};
 const stateIcons={locked:'🔒',available:'✦',claimed:'✓',expired:'–'};
 const isMilestone=r=>r.day%5===0||r.day===24;
 function GiftArt({reward,opened=false}){
@@ -45,7 +45,7 @@ export default function WebAdventCalendar({game,act,clock,readOnly,showTheme=tru
  const [pending,setPending]=useState(null);
  const [message,setMessage]=useState('');
  React.useEffect(()=>{
-  if(pending&&claims.includes(pending)){setPending(null);setMessage('Gift collected! Your Pup Account has been updated.');}
+  if(pending&&claims.includes(pending)){setPending(null);setMessage('Gift sent to game notifications! Open Notifications to claim your reward.');}
  },[pending,claims.join(',')]);
  React.useEffect(()=>{
   if(!pending)return;
@@ -64,10 +64,10 @@ export default function WebAdventCalendar({game,act,clock,readOnly,showTheme=tru
    <span className="pup-advent-clock">{phase==='upcoming'?'Opens in '+countdown(ADVENT_START-now):phase==='active'?'Next reset in '+countdown(next-now):'Event ended'}</span>
   </header>
   <div className="pup-advent-summary">
-   <strong>{claims.length} / 25 collected</strong><span>{available} ready</span>
+   <strong>{claims.length} / 25 opened</strong><span>{available} ready</span>
    <progress value={claims.length} max={25} aria-label="Advent gift collection progress"/>
   </div>
-  <p className="pup-advent-note">December 1–25 · UTC. Missed days remain available until the event ends. One gift per day per Pup Account.</p>
+  <p className="pup-advent-note">December 1–25 · UTC. Missed days remain available until the event ends. One reward per door. Open gifts here, then claim each reward individually in game notifications.</p>
   {readOnly&&<p className="pup-advent-note">{guest?"Sign in to collect your gifts when the event opens.":"Connect your Pup Account cloud save to collect gifts."}</p>}
   <div className="pup-advent-grid">
    {ADVENT_REWARDS.map(r=>{
@@ -85,13 +85,14 @@ export default function WebAdventCalendar({game,act,clock,readOnly,showTheme=tru
     <div className="pup-advent-detail-header"><span className="pup-advent-door-tag">December {reward.day}</span><button type="button" className="pup-advent-close" onClick={closeDetails} aria-label="Close gift details">×</button></div>
     <div className="pup-advent-detail-art"><GiftArt reward={reward} opened={status==='claimed'}/></div>
     <div className="pup-advent-detail-copy"><strong>{reward.bonus?'Christmas Jackpot':isMilestone(reward)?'Bonus Gift':'Holiday Gift'}</strong>
-    <p>{status==='locked'?'This gift opens on December '+reward.day+' (UTC).':status==='expired'?'The claim period has ended.':status==='claimed'?'This gift is in your collection.':'Your festive gift is ready!'}</p>
+    <p>{status==='locked'?'This gift opens on December '+reward.day+' (UTC).':status==='expired'?'The claim period has ended.':status==='claimed'?'This door has been opened. Check game notifications for any unclaimed gift.':'Your festive gift is ready!'}</p>
     {unlock&&<dl className="pup-advent-unlock-times"><div><dt>Unlock time (UTC)</dt><dd><time dateTime={new Date(unlock.timestamp).toISOString()}>{unlock.utc}</time></dd></div><div><dt>Your local time</dt><dd><time dateTime={new Date(unlock.timestamp).toISOString()}>{unlock.local}</time></dd></div></dl>}
-    {(status!=='locked'||reward.bonus)&&<div className="pup-advent-reward-row"><span>🍪 {money(reward.treats)} Treats</span><span>🦴 {reward.bones} Bones</span><span>🪙 {reward.coins} Pup Coins</span></div>}</div>
+    {(status!=='locked'||reward.bonus)&&<div className="pup-advent-reward-row"><span>🎁 One surprise reward: puppy, ticket or currency</span></div>}</div>
     <button type="button" className="pup-advent-claim" disabled={readOnly||status!=='available'||pending!==null}
-     onClick={()=>{setPending(reward.id);setMessage('Collecting gift…');act({type:'claimAdvent',id:reward.id});}}>
-     {status==='claimed'?'✓ Collected':status==='locked'?'Locked':status==='expired'?'Expired':readOnly?(guest?'Sign in to collect':'Cloud sync required'):pending===reward.id?'Collecting…':'Open Gift'}
+     onClick={()=>{setPending(reward.id);setMessage('Sending gift to notifications…');act({type:'claimAdvent',id:reward.id});}}>
+     {status==='claimed'?'✓ Opened':status==='locked'?'Locked':status==='expired'?'Expired':readOnly?(guest?'Sign in to collect':'Cloud sync required'):pending===reward.id?'Sending…':'Open Gift'}
     </button>
+    {status==='claimed'&&<button type="button" className="pup-advent-claim" onClick={()=>window.location.assign('/play?notifications=1')}>Open game notifications</button>}
     <p className="pup-advent-note" role="status" aria-live="polite">{message}</p>
    </div>
   </dialog>}

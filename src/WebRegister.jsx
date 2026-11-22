@@ -134,7 +134,7 @@ export default function WebRegister({onAuthenticated,onSignIn}){
    <input id="reg-email" type="email" name="email" autoComplete="email" maxLength={254}
     value={contactEmail} onChange={e=>setContactEmail(e.target.value)} disabled={busy||registered}/>
    <p className="account-security-note">This contact address is unverified and used for manual support only, not automatic password recovery.</p>
-   {inviteCode&&<p className="account-security-note">Invite link detected. Your discovery source will be recorded automatically after verification.</p>}
+   {inviteCode&&<p className="account-security-note">Invite link detected. If verified, the inviter can see your public username, signup date and referral reward status and may earn a gift when you qualify.</p>}
     <JoinSourceFields idPrefix="pup-register" inviteCode={inviteCode} source={joinSource} onSourceChange={setJoinSource}
     details={joinDetails} onDetailsChange={setJoinDetails} disabled={busy||registered}/>
    <label className="account-auth-consent">

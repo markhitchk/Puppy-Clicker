@@ -128,7 +128,7 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
   }
   confirmExchange(offerKind==='gift'?'Send puppy gift?':'Create trade offer?',
    offerKind==='gift'
-    ?'The recipient must accept your gift. The sender keeps their original copy.'
+    ?'The recipient claims your gift in Notifications. The sender keeps their original copy.'
     :'The recipient selects their side; you must confirm before anything transfers.',
    async()=>{
     if(await run('offer',{friendCode,kind:offerKind,offered:selected},
@@ -158,7 +158,7 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
   const pups=eligible(kind);
   return <View style={styles.section}>
    <Text style={styles.label}>{kind==='gift'&&canGiftAll?'All official puppies':'Your eligible puppies'} · {chosen.length}/{max}</Text>
-   {kind==='gift'&&canGiftAll?<Text style={styles.muted}>Developer gifting: choose any published puppy, including protected and future roster styles. The recipient must still accept.</Text>:null}
+   {kind==='gift'&&canGiftAll?<Text style={styles.muted}>Developer gifting: choose any published puppy, including protected and future roster styles. The recipient must claim in Notifications.</Text>:null}
    {pups.length===0?<Text style={styles.muted}>No server-approved {kind==='gift'?'giftable':'tradeable'} puppies are available in your verified roster. Protected and source-copy puppies cannot be exchanged.</Text>:null}
    <View style={styles.wrap}>{pups.map(p=>{
     const checked=chosen.includes(p.id);
@@ -176,7 +176,7 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
    <Text style={styles.body}>Sender offers: {details(o.offered)}</Text>
    {o.kind==='trade'?<Text style={styles.body}>Recipient offers: {details(o.requested)}</Text>:null}
    {o.state==='pending'&&o.incoming&&o.kind==='gift'?<View style={styles.actions}>
-    {button('Accept gift',()=>finishOffer(o,'confirm'))}
+    {button('Claim in notifications',()=>{if(webRequest){globalThis.location.assign('/play?notifications=1');}else finishOffer(o,'confirm');})}
     {button('Decline',()=>finishOffer(o,'decline'),false,true)}
    </View>:null}
    {o.state==='pending'&&o.incoming&&o.kind==='trade'?<View style={styles.section}>
@@ -285,8 +285,8 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
     <Text style={styles.heading}>{tab==='gifts'?'🎁 Send a puppy gift':'⇄ Trade puppies'}</Text>
     <Text style={styles.muted}>{tab==='gifts'
      ?(canGiftDirect
-       ?'Developer gift: send to any eligible account using their Friend Code, without connecting. The recipient must accept.'
-       :'The sender retains their original puppy; the recipient must accept.')
+       ?'Developer gift: send to any eligible account using their Friend Code, without connecting. The recipient must claim in Notifications.'
+       :'The sender retains their original puppy; the recipient must claim in Notifications.')
      :'You offer up to five owned puppies. Your friend counters with up to five, then you confirm.'}</Text>
     <Text style={styles.label}>{tab==='gifts'&&canGiftDirect?'Gift recipient':'Accepted friend'}</Text>
     <View style={styles.wrap}>{friends.map(c=><Pressable key={c.id}
@@ -314,7 +314,7 @@ export default function PuppyExchangeScreen({game,registry,onBack,onRefresh,acco
       setError('Enter a valid recipient Friend Code and select a puppy.');return;
      }
      confirmExchange(kind==='gift'?'Send gift?':'Propose trade?',
-      kind==='gift'?'Your friend must accept the puppy copy.':
+      kind==='gift'?'Your friend claims the puppy copy in Notifications.':
        'Your friend must counter, and you must approve the final trade.',
       async()=>{
        if(await run('offer',{friendCode:recipientCode,kind,offered:selected},'Offer sent.'))setSelected([]);

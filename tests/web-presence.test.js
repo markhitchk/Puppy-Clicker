@@ -28,7 +28,7 @@ test("verified presence captures request-header User-Agent and server-derived IP
   assert.ok(!presence.includes("req.body.ip"));
   assert.ok(!presence.includes("req.body.userAgent"));
   assert.match(admin,/select\("account_uuid,ip_address,user_agent,path,started_at,last_seen_at,ended_at"\)/);
-  assert.match(ui,/<th>IP address<\/th><th>User-Agent<\/th>/);
+  assert.match(ui,/<th>IP address \/ location<\/th><th>User-Agent<\/th>/);
   assert.match(ui,/lastIp\(user\)/);
   assert.match(ui,/lastUserAgent\(user\)/);
 });

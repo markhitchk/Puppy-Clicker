@@ -38,9 +38,9 @@ test('authoritative account claim ignores client quantities and deduplicates acr
  assert.equal(first.operationId,'11111111-1111-4111-8111-111111111111');
  const projected=projectKotlinCloudSave(first.cloud.saveJson);
  assert.deepEqual(projected.adventClaims,[day]);
- assert.equal(projected.treats,10000);
- assert.equal(projected.bones,50);
- assert.equal(projected.pupCoins,50);
+ assert.equal(projected.treats,0);
+ assert.equal(projected.bones,0);
+ assert.equal(projected.pupCoins,0);
  const second=await claim(db,day,'22222222-2222-4222-8222-222222222222');
  assert.equal(second.duplicate,true);
  assert.equal(second.operationId,'22222222-2222-4222-8222-222222222222');
@@ -48,6 +48,13 @@ test('authoritative account claim ignores client quantities and deduplicates acr
  assert.deepEqual(db.row().save_data.stores.puppy_clicker_save.values[ADVENT_CLAIMS_KEY],[day]);
  await claim(db,'2026-12-01','33333333-3333-4333-8333-333333333333');
  assert.equal(db.writes(),2);
+ assert.equal(db.gifts().length,2);
+ const id=db.gifts()[0].id;
+ const redeem=operationId=>crossPlay(db.admin,db.account,{action:'gameplay',expectedRevision:db.row().revision,operationId,intent:{type:'claimInboxReward',id,amount:999999}});
+ const result=await redeem('44444444-4444-4444-8444-444444444444');
+ assert.equal(projectKotlinCloudSave(result.cloud.saveJson).treats,500);
+ assert.equal((await redeem('55555555-5555-4555-8555-555555555555')).duplicate,true);
+ assert.equal(db.writes(),3);
 });
 test('future and closed doors refuse claims, including forged client timestamps',async t=>{
  t.mock.method(Date,'now',()=>ADVENT_START);

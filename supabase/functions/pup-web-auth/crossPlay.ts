@@ -15,7 +15,7 @@ export class CrossPlayError extends Error {
 type Dict=Record<string,any>;
 const allowed=new Set([
  "casinoRecoverLegacy","tap","care","purchase","ticket","accessory","equip","exchange","skill",
- "daily","claimDailyGoal","claimAdvent","parkStart","parkClaim","prestige",
+ "daily","claimDailyGoal","claimAdvent","claimInboxReward","parkStart","parkClaim","prestige",
  "slotsStart","slotsReveal","rouletteStart","rouletteReveal",
  "plinkoStart","plinkoReveal","scratchStart","scratchReveal",
  "wheelStart","wheelReveal","gacha","claimFreeTest","switch","rename","favorite",
@@ -73,6 +73,10 @@ function validatedIntent(raw:any){
   reject(400,"PUP_GAMEPLAY_ACTION_INVALID");
  // Intent-only field whitelist: values, inventory, costs, payout, RNG,
  // timestamp and whole save data can never be supplied by the browser.
+ if(raw.type==="claimInboxReward"){
+  if(typeof raw.id!=="string"||!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(raw.id))reject(400,"REWARD_NOT_FOUND");
+  return {type:raw.type,id:raw.id};
+ }
  if(raw.type==="claimAdvent"){
   if(!adventDay(raw.id))reject(400,"ADVENT_DAY_INVALID");
   return {type:raw.type,id:raw.id};
@@ -94,6 +98,19 @@ function validatedIntent(raw:any){
    number:typeof raw.bet.number==="number"?raw.bet.number:undefined
   }:undefined
  };
+}
+// Evidence is checked again inside Postgres against authoritative receipts.
+async function strictIntegrity(admin:any,account:Dict,kind:string,id:string,hash:string|null=null){
+ try{
+  const {error}=await admin.rpc("pupeye_web_strict_integrity",{p_account:account.id,p_kind:kind,p_id:id,p_hash:hash});
+  if(error)throw error;
+ }catch{console.error("PupEye integrity telemetry unavailable");}
+}
+async function strictScan(admin:any,account:Dict,kind:string){
+ try{
+  const {error}=await admin.rpc("pupeye_web_strict_scan",{p_account:account.id,p_kind:kind});
+  if(error)throw error;
+ }catch{console.error("PupEye behavioral telemetry unavailable");}
 }
 export async function crossPlay(admin:any,account:Dict,body:Dict){
  if(body.action==="account-update"){
@@ -122,7 +139,16 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
  const durable=typeof operationId==="string"&&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(operationId);
  if(operationId!==undefined&&!durable)reject(400,"PUP_OPERATION_ID_INVALID");
- if(intent.type==="claimAdvent"&&!durable)reject(400,"PUP_OPERATION_ID_INVALID");
+ if(["claimAdvent","claimInboxReward"].includes(intent.type)&&!durable)reject(400,"PUP_OPERATION_ID_INVALID");
+ if(intent.type==="claimInboxReward"){
+  if(!Number.isSafeInteger(body.expectedRevision)||body.expectedRevision<1)reject(400,"CLOUD_REVISION_REQUIRED");
+  const {data,error}=await admin.rpc("pup_reward_redeem",{p_account:account.id,p_id:intent.id,p_revision:body.expectedRevision});
+  if(error||!data)reject(503,"PUP_REWARD_UNAVAILABLE");
+  if(data.status==="REWARD_NOT_FOUND")await strictIntegrity(admin,account,"gift",intent.id);
+  if(!["saved","duplicate"].includes(data.status))reject(409,data.status);
+  if(data.status==="saved")await strictScan(admin,account,"reward");
+  return {saved:true,duplicate:data.status==="duplicate",operationId,rewardLabel:data.label,cloud:publicCloudSnapshot(await authoritativeSave(admin,account))};
+ }
  // Deterministic ledger receipt for this account and door, independent
  // of browser-generated UUIDs. It also survives native save rewrites.
  let ledgerOperationId=operationId;
@@ -136,13 +162,23 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
    p_account_uuid:account.id,p_operation_id:ledgerOperationId,p_intent_hash:intentHash
   });
   if(error||!receipt)reject(503,"PUP_OPERATION_LEDGER_UNAVAILABLE");
-  if(receipt.status==="reused_id")reject(409,"PUP_OPERATION_ID_REUSED");
+  if(receipt.status==="reused_id"){await strictIntegrity(admin,account,"receipt",ledgerOperationId,intentHash);reject(409,"PUP_OPERATION_ID_REUSED");}
   if(receipt.status==="saved")
    return {saved:true,duplicate:true,operationId,cloud:publicCloudSnapshot(current)};
   if(receipt.status!=="unknown")reject(503,"PUP_OPERATION_LEDGER_UNAVAILABLE");
  }
  if(!Number.isSafeInteger(body.expectedRevision)||body.expectedRevision<1)
   reject(400,"CLOUD_REVISION_REQUIRED");
+ if(intent.type==="claimAdvent"){
+  const {data,error}=await admin.rpc("pup_event_settings_public");
+  const settings=normalizeEventSettings(data);
+  if(error||!settings)reject(503,"EVENT_SETTINGS_UNAVAILABLE");
+  if(!christmasEnabled(settings))reject(409,"ADVENT_DISABLED");
+  const {data:queued,error:qe}=await admin.rpc("pup_advent_queue",{p_account:account.id,p_day:intent.id,p_revision:body.expectedRevision});
+  if(qe||!queued)reject(503,"PUP_REWARD_UNAVAILABLE");
+  if(!["saved","duplicate"].includes(queued.status))reject(409,queued.status);
+  return {saved:true,duplicate:queued.status==="duplicate",operationId,cloud:publicCloudSnapshot(await authoritativeSave(admin,account))};
+ }
  if(Number(current.revision)!==body.expectedRevision)reject(409,"CLOUD_SAVE_CONFLICT");
  if(intent.type==="tap"){
   // Server time and verified identity control actual restrictions; browser hints never do.
@@ -155,12 +191,6 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
  if(/^(slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent.type)&&
     current.save_data?.stores?.puppy_clicker_save?.values?.casino_active_round_v1)
   reject(409,"PUP_CASINO_ANDROID_ROUND_PENDING");
- if(intent.type==="claimAdvent"){
-   const {data,error}=await admin.rpc("pup_event_settings_public");
-   const settings=normalizeEventSettings(data);
-   if(error||!settings)reject(503,"EVENT_SETTINGS_UNAVAILABLE");
-   if(!christmasEnabled(settings))reject(409,"ADVENT_DISABLED");
-  }
   const puppyReward = intent.type==="claimFreeTest" || /^(gacha$|slots|roulette|plinko|scratch|wheel|blackjack)/.test(intent.type);
  let catalog = [];
  let catalogVersion = null;
@@ -219,7 +249,7 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
    p_save_data:next,p_payload_hash:sha256Hex(canonicalJson(next))
   });
   if(error||!commit)reject(503,"PUP_CLOUD_WRITE_UNAVAILABLE");
-  if(commit.status==="reused_id")reject(409,"PUP_OPERATION_ID_REUSED");
+  if(commit.status==="reused_id"){if(durable)await strictIntegrity(admin,account,"receipt",ledgerOperationId,intentHash);reject(409,"PUP_OPERATION_ID_REUSED");}
   if(commit.status==="conflict")reject(409,"CLOUD_SAVE_CONFLICT");
   if(commit.status==="missing")reject(409,"CLOUD_SAVE_REQUIRED");
   if(!["saved","duplicate"].includes(commit.status))reject(503,"PUP_CLOUD_WRITE_UNAVAILABLE");
@@ -256,6 +286,7 @@ export async function crossPlay(admin:any,account:Dict,body:Dict){
    });
    if(error)throw error;
    fairplay=data;
+   if(Number(written.revision)%100===0)await strictScan(admin,account,"tap");
   }catch{console.error("PupEye Web tap telemetry unavailable after commit");}
  }
  return {saved:true,...(durable?{operationId}:{}),cloud:publicCloudSnapshot(written),

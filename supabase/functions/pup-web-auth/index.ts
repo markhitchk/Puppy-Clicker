@@ -229,6 +229,17 @@ async function handleAuthRequest(req,auditContext){
    if(body.action==="discord-register")return await registerDiscordWebAccount({
     req,body,origin,admin,json,PublicError,key,newBetaKotlinSave
    });
+   if(body.action==="referral-status"||body.action==="referral-claim"){
+    const {account}=await currentSession(req);
+    await enforceWebPupEye(account,'profile');
+    // Refresh also queues the next verified referral, never deposits currency.
+    const queued=await admin.rpc("pup_referral_claim",{p_inviter:account.id});
+    if(queued.data?.queued>0){const scan=await admin.rpc("pupeye_web_strict_scan",{p_account:account.id,p_kind:"reward"});if(scan.error)console.error("PupEye referral review unavailable");}
+    if(queued.error)throw new PublicError(503,"PUP_REFERRALS_UNAVAILABLE");
+    const {data,error}=await admin.rpc("pup_referral_status",{p_inviter:account.id});
+    if(error)throw new PublicError(503,"PUP_REFERRALS_UNAVAILABLE");
+    return json(200,{referrals:data},origin);
+   }
    if(body.action==="notifications-read"){
     // Derive recipient exclusively from the verified Supabase Auth session.
     // A browser cannot select another player's inbox by supplying an ID.
@@ -240,10 +251,17 @@ async function handleAuthRequest(req,auditContext){
      .is("dismissed_at",null)
      .order("created_at",{ascending:false}).limit(100);
     if(error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
-    return json(200,{notifications:(data||[]).map(row=>({
+    const queued=await admin.rpc("pup_referral_claim",{p_inviter:account.id});
+    if(queued.data?.queued>0){const scan=await admin.rpc("pupeye_web_strict_scan",{p_account:account.id,p_kind:"reward"});if(scan.error)console.error("PupEye referral review unavailable");}
+    if(queued.error)console.error("Could not queue referral reward");
+    const playerGifts=await admin.rpc("pup_player_gift_inbox_sync",{p_account:account.id});
+    if(playerGifts.error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
+    const rewards=await admin.rpc("pup_reward_inbox",{p_account:account.id});
+    if(rewards.error||!Array.isArray(rewards.data))throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
+    return json(200,{notifications:[...rewards.data,...(data||[]).map(row=>({
      id:row.id,kind:row.kind,title:row.title,body:row.body,
      createdAt:row.created_at,read:row.read_at!==null
-    }))},origin);
+    }))].slice(0,100)},origin);
    }
    if(body.action==="notifications-mark"){
     const {account}=await currentSession(req);
@@ -263,6 +281,10 @@ async function handleAuthRequest(req,auditContext){
     else update=update.not("read_at","is",null);
     const {error}=await update;
     if(error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
+    if(mode!=="clear-read"){
+     const rewardRead=await admin.rpc("pup_reward_inbox_read",{p_account:account.id,p_id:mode==="read-one"?body.id:null});
+     if(rewardRead.error)throw new PublicError(503,"PUP_NOTIFICATIONS_UNAVAILABLE");
+    }
     return json(200,{updated:true},origin);
    }
    if(body.action==="status"){

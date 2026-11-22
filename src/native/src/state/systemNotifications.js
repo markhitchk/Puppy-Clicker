@@ -20,10 +20,10 @@ export function normalizeSystemNotifications(rows){
   if(!Number.isSafeInteger(createdAt)||createdAt<=0)continue;
   seen.add(id);
   result.push({
-   id,category:row.kind==='developer'||row.kind==='item_grant'?'pup':'system',
+   id,category:row.kind==='reward'&&row.claimable===true?'reward':row.kind==='developer'||row.kind==='item_grant'?'pup':'system',
    title:String(row.title||'Puppy Clicker system notification').slice(0,180),
    body:String(row.body||'').slice(0,1000),
-   createdAt,read:row.read===true,action:null
+   createdAt,read:row.read===true,action:row.kind==='reward'&&row.claimable===true?'claimInboxReward':null
   });
  }
  return result.sort((a,b)=>b.createdAt-a.createdAt);
@@ -37,7 +37,7 @@ export function mergeSystemNotifications(game,serverRows){
   if(notice&&typeof notice.id==='string')byId.set(notice.id,notice);
  }
  return {...game,notificationInbox:[...byId.values()]
-  .sort((a,b)=>b.createdAt-a.createdAt).slice(0,INBOX_LIMIT)};
+  .sort((a,b)=>Number(b.action==='claimInboxReward')-Number(a.action==='claimInboxReward')||b.createdAt-a.createdAt).slice(0,INBOX_LIMIT)};
 }
 export function systemNotificationMarkAction(action){
  if(action?.type==='openNotification'){

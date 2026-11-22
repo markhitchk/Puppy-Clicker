@@ -31,7 +31,13 @@ async function callRarity(db,name,args){
 }
 async function grant(db,actor,body){
  staffRequired(actor);
- if(!validId(body.targetPlayerId)||!validPuppy(body.puppyId))throw new PupError(400,"INVALID_GIFT");
+ if(!validId(body.targetPlayerId))throw new PupError(400,"INVALID_GIFT");
+ if(body.rewardKey&&body.rewardKey!=="puppy"){
+  if(body.requestId||!validId(body.operationId)||!Number.isSafeInteger(body.amount)||typeof body.rewardKey!=="string"||body.rewardKey.length>40)
+   throw new PupError(400,"INVALID_GIFT");
+  return callRarity(db,"pup_admin_resource_gift",{p_actor:actor.account.id,p_target:body.targetPlayerId,p_key:body.rewardKey,p_amount:body.amount,p_operation:body.operationId,p_reason:body.reason||"System resource gift"});
+ }
+ if(!validPuppy(body.puppyId))throw new PupError(400,"INVALID_GIFT");
  return callRarity(db,"pup_rarity_gift",{p_actor:actor.account.id,p_target:body.targetPlayerId,
   p_puppy:body.puppyId,p_operation:body.operationId||body.requestId||randomUUID(),
   p_reason:body.reason||"System puppy gift",p_request:body.requestId||null});
