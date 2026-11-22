@@ -61,7 +61,7 @@ begin
  end if;
  owned:=saved.save_data#>'{stores,puppy_clicker_save,values,unlocked_puppies}';
  if jsonb_typeof(owned) is distinct from 'array' or saved.save_data#>>'{stores,puppy_clicker_save,types,unlocked_puppies}' is distinct from 'string_set' then raise exception 'TARGET_CLOUD_SAVE_REQUIRED'; end if;
- if owned ? p_puppy or exists(select 1 from puppy_web.pup_reward_inbox q where q.account_uuid=saved.account_uuid and q.puppy_id=p_puppy and q.claimed_at is null) then raise exception 'PUPPY_ALREADY_OWNED'; end if;
+ if owned ? p_puppy or exists(select 1 from puppy_web.pup_reward_inbox q where q.account_uuid=saved.account_uuid and q.puppy_id=p_puppy and q.claimed_at is null and q.source<>'player') then raise exception 'PUPPY_ALREADY_OWNED'; end if;
  if p_request is not null then
   update puppy_exchange.pup_gift_requests set status='approved',reviewed_at=now(),reviewed_by_player_uuid=actor_row.player_uuid,gifted_revision=null
   where id=p_request and status='pending' and puppy_id=p_puppy and account_uuid=saved.account_uuid and player_uuid=p_target;
@@ -167,5 +167,36 @@ begin
  update puppy_web.pup_reward_inbox set claimed_at=now(),read_at=coalesce(read_at,now()),claimed_label=lbl where id=p_id;
  return jsonb_build_object('status','saved','label',lbl);
 end $$;
+
+
+-- Staff-created resource gifts use the same inbox and one-item claim transaction.
+create function public.pup_admin_resource_gift(p_actor uuid,p_target uuid,p_key text,p_amount integer,p_operation uuid,p_reason text)
+returns jsonb language plpgsql security definer set search_path='' as $
+declare actor_player uuid; target_account uuid; q puppy_web.pup_reward_inbox%rowtype; label_text text; gift_id uuid; max_amount integer;
+begin
+ select a.player_uuid into actor_player from puppy_accounts.pup_accounts a join puppy_pupeye.pupeye_players p on p.id=a.player_uuid
+ where a.id=p_actor and a.status='active' and p.status='active' and p.guild_role in ('ADMIN','DEVELOPER');
+ if not found then raise exception 'STAFF_REQUIRED'; end if;
+ if p_key not in ('treats','bones_v7','pup_coins_v7','casino_chips_v7','upgrade_ticket_common','upgrade_ticket_uncommon','upgrade_ticket_rare','upgrade_ticket_epic','upgrade_ticket_legendary') or p_key is null or p_operation is null or coalesce(length(trim(p_reason)),0) not between 1 and 300 then raise exception 'INVALID_GIFT'; end if;
+ max_amount:=case when p_key like 'upgrade_ticket_%' then 100 when p_key='treats' then 10000 else 1000 end;
+ if p_amount is null or p_amount not between 1 and max_amount then raise exception 'INVALID_GIFT'; end if;
+ select a.id into target_account from puppy_accounts.pup_accounts a join puppy_pupeye.pupeye_players p on p.id=a.player_uuid
+ join puppy_game.pup_account_saves s on s.account_uuid=a.id and s.player_uuid=p.id
+ where p.id=p_target and p.status='active' and a.status='active' for update of s;
+ if not found then raise exception 'TARGET_CLOUD_SAVE_REQUIRED'; end if;
+ select * into q from puppy_web.pup_reward_inbox where account_uuid=target_account and source='admin' and source_key=p_actor::text||':'||p_operation::text;
+ if found then
+  if q.reward_key<>p_key or q.amount<>p_amount then raise exception 'OPERATION_REUSED'; end if;
+  return jsonb_build_object('queued',true,'notificationId',q.id);
+ end if;
+ label_text:=case p_key when 'treats' then p_amount||' Treats' when 'bones_v7' then p_amount||' Bones' when 'pup_coins_v7' then p_amount||' Pup Coins' when 'casino_chips_v7' then p_amount||' Casino Chips' else p_amount||' '||initcap(replace(p_key,'upgrade_ticket_',''))||' Upgrade Ticket(s)' end;
+ insert into puppy_web.pup_reward_inbox(account_uuid,source,source_key,reward_key,amount,label,sender_account_uuid)
+ values(target_account,'admin',p_actor::text||':'||p_operation::text,p_key,p_amount,label_text,p_actor) returning id into gift_id;
+ insert into puppy_admin.pup_admin_actions(actor_player_uuid,target_player_uuid,action_code,detail)
+ values(actor_player,p_target,'WEB_SYSTEM_RESOURCE_GIFT_QUEUED',jsonb_build_object('notificationId',gift_id,'reward',p_key,'amount',p_amount,'reason',p_reason));
+ return jsonb_build_object('queued',true,'notificationId',gift_id);
+end $;
+revoke all on function public.pup_admin_resource_gift(uuid,uuid,text,integer,uuid,text) from public,anon,authenticated;
+grant execute on function public.pup_admin_resource_gift(uuid,uuid,text,integer,uuid,text) to service_role;
 
 notify pgrst,'reload schema';
