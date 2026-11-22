@@ -91,6 +91,55 @@ try{
  await assert.rejects(inbox(inviter),/permission denied/);
  await assert.rejects(redeem(inviter,q,1),/permission denied/);
  await db.exec("reset role");
- console.log("Referral and Advent inbox eligibility, single-prize rotation, privacy, claims and replay tests passed.");
+
+ // Exercise unified admin and player gift routing against existing exchange
+ // wrapper. The underlying legacy exchange engine is a disposable fixture.
+ await db.exec(`alter table puppy_rarity.config add column owner_id uuid;
+ alter table puppy_exchange.pup_exchange_offers add column state text default 'pending', add column created_at timestamptz default now(), add column expires_at timestamptz default now()+interval '1 day';
+ create table puppy_rarity.history(actor uuid,operation_id uuid,action text,puppy_id text,target uuid,reason text,payload jsonb,before_value jsonb,after_value jsonb,catalog_version bigint,primary key(actor,operation_id));
+ insert into puppy_exchange.pup_exchange_transfer_policy values ('cocoa',false,true,true,false),('santa',false,true,true,false),('dev_pup',true,false,false,false);
+ create or replace function public.pup_exchange_complete(p_offer uuid,p_actor uuid) returns jsonb language plpgsql as $
+ begin
+  update puppy_game.pup_account_saves set save_data=jsonb_set(save_data,'{stores,puppy_clicker_save,values,unlocked_puppies}',(save_data#>'{stores,puppy_clicker_save,values,unlocked_puppies}')||to_jsonb(o.offered[1])),revision=revision+1
+  from puppy_exchange.pup_exchange_offers o where o.id=p_offer and o.recipient=p_actor and account_uuid=p_actor and o.kind='gift';
+  update puppy_exchange.pup_exchange_offers set state='completed' where id=p_offer;
+  return jsonb_build_object('offerId',p_offer,'state','completed');
+ end $;`);
+ await db.exec(await load("../supabase/migrations/20261119080100_rarity_exchange_gifts.sql"));
+ await db.exec(await load("../supabase/migrations/20261122100500_unify_player_admin_gifts.sql"));
+ const staff=await setup("staff",0);
+ await db.query("update puppy_pupeye.pupeye_players set guild_role='ADMIN' where id=(select player_uuid from puppy_accounts.pup_accounts where id=$1)",[staff]);
+ const target=await scalar("select player_uuid from puppy_accounts.pup_accounts where id=$1",[other]);
+ const giftOp=id();
+ const gift=actor=>scalar("select public.pup_rarity_gift($1,$2,'cocoa',$3,'Test gift')",[actor,target,giftOp]);
+ await assert.rejects(gift(inviter),/STAFF_REQUIRED/);
+ const queued=await gift(staff);assert.equal(queued.queued,true);
+ assert.equal((await gift(staff)).notificationId,queued.notificationId);
+ assert.equal(await scalar("select revision::int from puppy_game.pup_account_saves where account_uuid=$1",[other]),1);
+ assert.equal((await redeem(other,queued.notificationId,1)).status,"saved");
+ assert.equal((await redeem(other,queued.notificationId,1)).status,"duplicate");
+ const resourceOp=id();
+ const resource=actor=>scalar("select public.pup_admin_resource_gift($1,$2,'upgrade_ticket_rare',1,$3,'Test ticket')",[actor,target,resourceOp]);
+ await assert.rejects(resource(inviter),/STAFF_REQUIRED/);
+ const ticket=await resource(staff);assert.equal((await resource(staff)).notificationId,ticket.notificationId);
+ assert.equal((await inbox(other)).length,1);
+ assert.equal((await redeem(other,ticket.notificationId,2)).status,"saved");
+ assert.equal(await scalar("select (save_data#>>'{stores,puppy_clicker_save,values,upgrade_ticket_rare}')::int from puppy_game.pup_account_saves where account_uuid=$1",[other]),1);
+ const offer=id();
+ await db.query("insert into puppy_exchange.pup_exchange_offers(id,sender,recipient,kind,offered) values($1,$2,$3,'gift',array['santa'])",[offer,inviter,other]);
+ await assert.rejects(scalar("select public.pup_exchange_complete($1,$2)",[offer,other]),/EXCHANGE_NOTIFICATION_REQUIRED/);
+ await scalar("select public.pup_player_gift_inbox_sync($1)",[other]);
+ await scalar("select public.pup_player_gift_inbox_sync($1)",[other]);
+ assert.equal((await inbox(other)).length,1);
+ assert.equal((await inbox(other))[0].id,offer);
+ assert.equal((await redeem(inviter,offer,await revision())).status,"REWARD_NOT_FOUND");
+ assert.equal((await redeem(other,offer,3)).status,"saved");
+ assert.equal((await redeem(other,offer,3)).status,"duplicate");
+ assert.equal((await inbox(other)).length,0);
+ const trade=id();
+ await db.query("insert into puppy_exchange.pup_exchange_offers(id,sender,recipient,kind,offered) values($1,$2,$3,'trade',array['cocoa'])",[trade,inviter,other]);
+ assert.equal((await scalar("select public.pup_exchange_complete($1,$2)",[trade,inviter])).state,"completed");
+ console.log("Unified reward inbox, staff permissions, claim-only player gift routing and trade regression tests passed.");
+
 
 }finally{await db.close();}
