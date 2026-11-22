@@ -23,7 +23,7 @@ export function readNotificationUiState(accountId,storage=browserStorage()){
 }
 // Do not hide unclaimed AFK rewards. The claim button is a server-authorized
 // transaction and its notification is the only route to collecting the payout.
-const claimable=n=>n?.action==='afkClaim';
+const claimable=n=>['afkClaim','claimInboxReward'].includes(n?.action);
 export function applyNotificationUiState(game,ui){
  const read=new Set(ui?.read||[]);
  const hidden=new Set(ui?.hidden||[]);
