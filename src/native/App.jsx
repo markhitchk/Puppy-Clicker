@@ -1152,8 +1152,37 @@ export function PuppyApp({betaMode=false}){
   mq.addEventListener('change', update);
   return () => mq.removeEventListener('change', update);
  }, []);
- const [tab,setTab]=useState('play');
- const [secondary,setSecondary]=useState(null);
+ // Keep the browser's in-game history separate from site navigation.
+ const readPlayRoute=entry=>{
+  const route=entry?.puppyPlayRoute;
+  return {tab:TABS.some(item=>item[0]===route?.tab)?route.tab:'play',
+   secondary:['help','inventory','achievements','settings','account-details','prestige','exchange','roster','rewards','gacha','casino'].includes(route?.secondary)?route.secondary:null};
+ };
+ const [tab,setTab]=useState(()=>Platform.OS==='web'?readPlayRoute(window.history.state).tab:'play');
+ const [secondary,setSecondary]=useState(()=>Platform.OS==='web'?readPlayRoute(window.history.state).secondary:null);
+ useEffect(()=>{
+  if(Platform.OS!=='web'||window.location.pathname!=='/play')return;
+  const onPopState=event=>{
+   if(window.location.pathname!=='/play')return;
+   const route=readPlayRoute(event.state);
+   if(!event.state?.puppyPlayRoute){
+    window.history.replaceState({...event.state,puppyPlayRoute:route},'',window.location.href);
+   }
+   setTab(route.tab);setSecondary(route.secondary);
+  };
+  window.addEventListener('popstate',onPopState);
+  return ()=>window.removeEventListener('popstate',onPopState);
+ },[]);
+ useEffect(()=>{
+  if(Platform.OS!=='web'||window.location.pathname!=='/play')return;
+  const previous=window.history.state;
+  const route={tab,secondary};
+  if(!previous?.puppyPlayRoute){
+   window.history.replaceState({...previous,puppyPlayRoute:route},'',window.location.href);
+  }else if(previous.puppyPlayRoute.tab!==tab||previous.puppyPlayRoute.secondary!==secondary){
+   window.history.pushState({...previous,puppyPlayRoute:route},'',window.location.href);
+  }
+ },[tab,secondary]);
  const [bet,setBet]=useState(20);
  const [clock,setClock]=useState(Date.now());
  const [contentHeight,setContentHeight]=useState(600);
