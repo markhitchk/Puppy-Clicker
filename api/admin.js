@@ -314,18 +314,21 @@ export async function action(db,actor,body) {
   }
   if (type==="ban-account"||type==="suspend-account") {
     const id=requireId(body.targetPlayerId);
-    const {reason,expiresAt}=validateRestrictionInput(body);
-    const target=ensure(await db.from("pupeye_players").select("id,guild_role,status").eq("id",id).maybeSingle());
+    const {reason,expiresAt,type:noticeType}=validateRestrictionInput(body);
+    const target=ensure(await db.from("pupeye_players").select("id,guild_role,status,friend_code,player_id").eq("id",id).maybeSingle());
     if (!target) throw new AdminError(404,"TARGET_NOT_FOUND");
     const registered=ensure(await db.from("pup_accounts")
-      .select("id").eq("player_uuid",id).maybeSingle());
+      .select("id,username,display_name,contact_email").eq("player_uuid",id).maybeSingle());
     if (!registered) throw new AdminError(409,"REGISTERED_PUP_ACCOUNT_REQUIRED");
     if (!canSanction(actor.role,target.guild_role,actor.player.id,id))
       throw new AdminError(403,"CANNOT_SANCTION_STAFF");
     // Global ban records are used by PupEye / Android and pup-web-auth.
-    await moderate(db,{p_actor_player_uuid:actor.player.id,p_target_player_uuid:id,p_action:type,
+    const saved=await moderate(db,{p_actor_player_uuid:actor.player.id,p_target_player_uuid:id,p_action:type,
       p_reason:reason,p_expires_at:expiresAt,p_ban_uuid:null});
-    return {created:true};
+    return {created:true,notice:{type:noticeType,banId:saved?.banId||null,
+      username:registered.username,displayName:registered.display_name||registered.username,
+      accountId:target.friend_code||target.player_id||null,contactEmail:registered.contact_email||null,
+      reason,expiresAt}};
   }
   if (type==="unban-account") {
     const id=requireId(body.banId);
