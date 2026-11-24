@@ -81,3 +81,26 @@ test('casino dialog scrolls its actions into view on short screens',async({page}
  await dialog.getByRole('button',{name:'Go Back',exact:true}).click();
  await expect(dialog).toHaveCount(0);
 });
+
+for(const width of [360,1440]){
+ test('browser history stays in gameplay at '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});
+  await page.goto('/');
+  await page.goto('/play');
+  const nav=width>=960?page.getByRole('navigation',{name:'Game navigation'}):page.getByTestId('game-bottom-bar');
+  const tab=label=>width>=960?nav.getByRole('button',{name:label,exact:true}):nav.getByRole('tab',{name:new RegExp(label+'$')});
+  await tab('Roster').click();
+  await expect(page.getByTestId('current-puppy-hero')).toBeVisible();
+  await tab('Shop').click();
+  await expect(page.getByText('Puppy Shop',{exact:true})).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/play(?:[?#].*)?$/);
+  await expect(page.getByTestId('current-puppy-hero')).toBeVisible();
+  await page.goForward();
+  await expect(page.getByText('Puppy Shop',{exact:true})).toBeVisible();
+  await page.goBack();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/play(?:[?#].*)?$/);
+  await expect(page.getByTestId('play-viewport')).toBeVisible();
+ });
+}
