@@ -11,8 +11,11 @@ for(const width of [360,768,1440]){
    await expect(page.getByRole('heading',{name:'Today’s goals',exact:true})).toBeVisible();
    await expect(page.getByRole('heading',{name:'Pup Care Status'})).toBeVisible();
    await page.getByRole('button',{name:'Roster',exact:true}).click();
-   await expect(page.getByTestId('desktop-roster-shop')).toBeVisible();
+   await expect(page.getByText('Puppy Shop',{exact:true})).toHaveCount(0);
+   await page.getByRole('button',{name:'Shop',exact:true}).click();
    await expect(page.getByText('Puppy Shop',{exact:true})).toBeVisible();
+   await expect(page.getByTestId('current-puppy-hero')).toHaveCount(0);
+   await page.getByRole('button',{name:'Roster',exact:true}).click();
   }else await page.getByRole('tab',{name:'🐶 Roster'}).click();
   await expect(page.getByTestId('current-puppy-hero')).toBeVisible();
   const grid=page.getByTestId('puppy-roster-grid');
