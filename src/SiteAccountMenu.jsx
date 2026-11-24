@@ -50,15 +50,21 @@ export default function SiteAccountMenu({active=false,placement="down",compact=f
   const refresh=async()=>{
    const version=++request;
    try{
-    const {data,error}=await client.auth.getUser();
-    if(error||!data?.user){
+    // Local session presence is only a fast preflight; the Edge Function
+    // remains the authoritative identity check before rendering a profile.
+    const {data,error}=await client.auth.getSession();
+    if(error||!data?.session){
      if(mounted.current&&request===version){setAccount(null);setOpen(false);}
      return;
     }
-    // Supabase is shared with other apps. Never show an unverified identity.
     const verified=await verifyPuppySession(client);
-    const enriched=await avatarForAccount(verified);
-    if(mounted.current&&request===version)setAccount(enriched);
+    if(!mounted.current||request!==version)return;
+    // Render the verified identity immediately. Avatar lookup must never
+    // block the account button or its dropdown.
+    setAccount(verified);
+    void avatarForAccount(verified).then(enriched=>{
+     if(mounted.current&&request===version)setAccount(enriched);
+    }).catch(()=>{});
    }catch{
     if(mounted.current&&request===version){setAccount(null);setOpen(false);}
    }
@@ -67,6 +73,8 @@ export default function SiteAccountMenu({active=false,placement="down",compact=f
   const onUpdated=()=>{void refresh();};
   const {data}=client.auth.onAuthStateChange((event)=>{
    if(event==="SIGNED_OUT"){++request;setAccount(null);setOpen(false);return;}
+   // The explicit initial refresh below already handles the initial session.
+   if(event==="INITIAL_SESSION")return;
    // The Supabase auth lock must be released before verifying with Edge Functions.
    setTimeout(()=>{if(mounted.current)void refresh();},0);
   });
