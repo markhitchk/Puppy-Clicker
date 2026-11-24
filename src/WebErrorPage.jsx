@@ -23,7 +23,7 @@ export default function WebErrorPage({code=404,title,description,help,onRetry,sh
    <img src="/assets/logos/puppy_clicker.png" alt="" width="84" height="84"/>
    <p className="eyebrow">🐾 PUPPY CLICKER · ERROR</p>
    <p className="web-error-code" aria-label={"Error "+status}>{status}</p>
-   {status===404?<img src="/assets/errors/lost-puppy.webp" alt="A lost puppy holding a map" width="192" height="192" style={{display:"block",width:"min(160px, 100%)",height:"auto",margin:"0 auto 16px",borderRadius:18}}/>:null}
+   {status===404?<img src="/assets/errors/lost-puppy.webp?v=2" alt="A lost puppy holding a map" width="192" height="192" style={{display:"block",width:"min(160px, 100%)",height:"auto",margin:"0 auto 16px"}}/>:null}
    <h1>{title||details.title}</h1>
    <p className="web-error-subtitle">{description||details.subtitle}</p>
    <p className="web-error-help">{help||details.help}</p>
