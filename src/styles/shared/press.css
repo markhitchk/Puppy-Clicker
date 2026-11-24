@@ -1,0 +1,39 @@
+.press-kit{width:100%;max-width:1200px;margin:0 auto;padding:36px 24px 56px;color:var(--site-text,#effbff);overflow-wrap:anywhere}
+.press-kit h1,.press-kit h2,.press-kit h3{line-height:1.15;margin:0;color:inherit}
+.press-kit h1{font-size:clamp(38px,6vw,76px);letter-spacing:-.055em;font-weight:900}
+.press-kit h1 span{color:var(--site-accent-ink,#83eaff)}
+.press-kit h2{font-size:clamp(24px,3vw,34px);letter-spacing:-.025em}
+.press-kit h3{font-size:18px}
+.press-kit p,.press-kit dd{line-height:1.65;color:var(--site-muted,#b5d0df)}
+.press-kit .press-kicker{margin:0 0 12px;font-size:11px;font-weight:900;letter-spacing:.13em;color:var(--site-accent-ink,#83eaff)}
+.press-hero,.press-panel{border:1px solid var(--site-border,#315466);border-radius:24px;background:var(--site-panel,#152f3e);padding:clamp(20px,3.5vw,42px)}
+.press-hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:24px;align-items:center;background:radial-gradient(ellipse at 90% 15%,color-mix(in srgb,var(--site-accent,#00e5ff) 14%,transparent),transparent 65%),var(--site-panel,#152f3e)}
+.press-lead{font-size:17px;max-width:590px}
+.press-hero-art{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;min-width:0}
+.press-hero-art img{max-width:90%;width:145px;height:100px;object-fit:contain}
+.press-hero-art img.press-mascot{width:100%;height:clamp(170px,23vw,270px);object-fit:contain}
+.press-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:18px}
+.press-nav{margin:18px 0 22px}
+.press-panel{margin:0 0 18px;scroll-margin-top:100px}
+.press-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
+.press-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:24px 0 0}
+.press-facts>div,.press-subcard{border:1px solid var(--site-border,#315466);border-radius:16px;background:var(--site-page,#0b1a24);padding:18px;min-width:0}
+.press-facts dt{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--site-muted,#b5d0df);font-weight:800}
+.press-facts dd{margin:5px 0 0;font-weight:650;color:var(--site-text,#effbff)}
+.press-copy-grid,.press-feature-grid,.press-media-grid{display:grid;gap:14px;margin-top:22px}
+.press-copy-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.press-feature-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.press-media-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.press-subcard{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.press-subcard p{font-size:14px;margin:0}
+.press-subcard .pup-link-button{margin-top:auto;align-self:stretch}
+.press-feature-icon{font-size:29px}
+.press-media-card .press-image{width:100%;height:160px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:repeating-conic-gradient(#e8e9eb 0% 25%,#cdd0d5 0% 50%) 0 0/20px 20px;padding:12px}
+.press-image img{max-width:100%;max-height:100%;object-fit:contain}
+.press-kit .press-note{font-size:13px;margin:18px 0 0}
+.press-kit .press-status{font-size:13px;margin:10px 0 0;min-height:1.4em}
+.press-kit button:disabled{opacity:.6;cursor:wait}
+@media(max-width:959px){.press-kit{padding:20px 16px 36px}.press-hero{grid-template-columns:1fr 1fr}.press-feature-grid,.press-media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.press-kit{padding:12px 12px 28px}.press-hero,.press-panel{border-radius:18px;padding:18px}.press-hero{grid-template-columns:1fr}.press-hero-art{flex-direction:row}.press-hero-art img{width:30%;height:80px}.press-hero-art img.press-mascot{width:60%;height:140px}.press-facts,.press-copy-grid,.press-feature-grid{grid-template-columns:1fr}.press-media-grid{gap:8px}.press-media-card{padding:10px}.press-media-card .press-image{height:110px}.press-media-card h3{font-size:15px}.press-media-card .pup-link-button{font-size:12px;padding:7px}.press-actions>*{flex:1 1 auto}}
+@media(max-width:340px){.press-media-grid{grid-template-columns:1fr}}
+@media print{.press-kit{max-width:none;color:#000;padding:0}.press-kit .press-panel,.press-kit .press-hero,.press-kit .press-subcard,.press-kit .press-facts>div{background:white;color:#000;border-color:#ccc;break-inside:avoid}.press-kit p,.press-kit dd,.press-kit dt,.press-kit .press-kicker,.press-kit h1 span{color:#222}.press-kit .press-actions,.press-kit .pup-link-button,.press-kit .press-status,.site-header,.site-footer{display:none}}
