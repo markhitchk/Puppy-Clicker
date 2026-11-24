@@ -40,6 +40,7 @@ import PasswordField from "./PasswordField.jsx";
 import ConfirmSignOut from "./ConfirmSignOut.jsx";
 import {friendInviteUrl} from "./friendInvite.js";
 import FooterSystemClock from "./FooterSystemClock.jsx";
+import PressKit from "./PressKit.jsx";
 import useEventSettings from "./useEventSettings.js";
 import {christmasEnabled,winterEnabled} from "../supabase/functions/_shared/event-settings.js";
 
@@ -111,6 +112,7 @@ function Header({page,eventSettings}){
    <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>{tr("policies")}</a>
    <a href="/leaderboard" aria-current={page==="leaderboard"?"page":undefined}>🏆 {tr("leaderboard")}</a>
    <a href="/chat" aria-current={page==="chat"?"page":undefined}>💬 {tr("chat")}</a>
+   <a href="/press" aria-current={page==="press"?"page":undefined}>Press Kit</a>
    <a href="/settings" aria-current={page==="browser-settings"?"page":undefined}>⚙ Browser Settings</a>
     </div>
    </details>
@@ -118,6 +120,7 @@ function Header({page,eventSettings}){
    <a href="/legal/privacy" aria-current={page==="legal"?"page":undefined}>{tr("policies")}</a>
    <a href="/leaderboard" aria-current={page==="leaderboard"?"page":undefined}>🏆 {tr("leaderboard")}</a>
    <a href="/chat" aria-current={page==="chat"?"page":undefined}>💬 {tr("chat")}</a>
+   <a href="/press" aria-current={page==="press"?"page":undefined}>Press Kit</a>
    <a href="/settings" aria-current={page==="browser-settings"?"page":undefined}>⚙ Browser Settings</a>
    </div>
    <LanguagePicker compact/>
@@ -679,7 +682,7 @@ export default function App(){
  const callback=path==="/auth/discord/callback";
  const demo=isPlayDemoRoute(path,typeof window!=="undefined"?window.location.search:"");
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
-  const page=/^\/26xmas\/?$/.test(path)?"xmas26":path==="/"?"home":path==="/pupeye"||path==="/pupeye/"?"pupeye":/^\/pupeye\/status\/?$/.test(path)?"pupeye-status":path==="/chat"?"chat":/^\/account\/admin\/rarity\/?$/.test(path)?"admin-rarity":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":/^\/(?:pupdex|puppies)\/?$/.test(path)?"pupdex":
+  const page=/^\/press\/?$/.test(path)?"press":/^\/26xmas\/?$/.test(path)?"xmas26":path==="/"?"home":path==="/pupeye"||path==="/pupeye/"?"pupeye":/^\/pupeye\/status\/?$/.test(path)?"pupeye-status":path==="/chat"?"chat":/^\/account\/admin\/rarity\/?$/.test(path)?"admin-rarity":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":/^\/(?:pupdex|puppies)\/?$/.test(path)?"pupdex":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity|pupeye-web|events))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account/inventory"?"account-inventory":path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   path==="/settings"||path==="/browser/settings"?"browser-settings":
@@ -687,7 +690,7 @@ export default function App(){
  return <div className={"site-frame "+(page==="play"?"site-frame-game":"site-frame-page")}>
   <Header eventSettings={eventSettings} page={callback||page==="admin"||page==="admin-chat"||page==="admin-privacy"||page==="privacy-center"||page==="account-inventory"?"account":page==="demo"?"play":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
-   {page==="home"?<Home/>:page==="pupeye"?<PupEyeOverview/>:page==="pupeye-status"?<WebAccountGate><PupEyeAccountStatus/></WebAccountGate>:
+   {page==="home"?<Home/>:page==="press"?<div className="landing"><PressKit/><BrandFooter/></div>:page==="pupeye"?<PupEyeOverview/>:page==="pupeye-status"?<WebAccountGate><PupEyeAccountStatus/></WebAccountGate>:
     page==="xmas26"?<>{christmasEnabled(eventSettings)?<Christmas2026 winterEffects={winterEnabled(eventSettings)}/>:<div className="landing"><section className="portal-card" role="status"><h1>Christmas 2026</h1><p>{eventSettings?"This event is currently disabled. Your collected gifts are preserved.":"Checking event availability…"}</p></section></div>}<BrandFooter/></>:page==="demo"?<DemoPage/>:page==="pupdex"?<div className="landing"><MeetPuppies/></div>:
     page==="account"?<AccountPortal/>:
     page==="account-inventory"?<WebAccountGate><AccountInventoryPage/></WebAccountGate>:
