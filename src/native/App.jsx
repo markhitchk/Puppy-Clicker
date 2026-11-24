@@ -64,7 +64,7 @@ import {GACHA_MACHINE,gachaMachineFrame} from './src/engine/gachaV6.js';
 
 import {PUPPY_IMAGES} from './src/assets/puppies.js';
 const webExchangeRequest=(operation,fields)=>requestWebPuppyExchange(webClient,operation,fields);
-const TABS=MAIN_TABS;
+const TABS=Platform.OS==='web'?[...MAIN_TABS,['gacha','🎲','Gacha'],['casino','🎰','Casino']]:MAIN_TABS;
 const skillNames={TAP_TRAINING:'Tap Training',AUTO_TRAINING:'Bonus Training',SMART_SHOPPER:'Smart Shopper',TICKET_SENSE:'Ticket Sense'};
 function Txt({children,muted=false,style={},numberOfLines,...textProps}){return <Text {...textProps} numberOfLines={numberOfLines} style={[styles.text,muted&&styles.muted,style]}>{children}</Text>;}
 function Card({title,children,subtitle}){return <View style={styles.card}><View style={styles.cardTitle}><Txt style={styles.heading}>{title}</Txt>{subtitle?<Txt muted style={styles.tiny}>{subtitle}</Txt>:null}</View>{children}</View>;}
@@ -1197,8 +1197,8 @@ export function PuppyApp({betaMode=false}){
    return roster;
   }
   if(secondary==='rewards'||tab==='rewards'&&!secondary)return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} pendingTaps={queuedTaps} readOnly={Platform.OS==='web'?account?.gameplayWritable!==true:betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
-  if(secondary==='gacha')return <GachaScreen g={{...g,gameplayBusy}} act={act} state={state} registry={registry} onBack={()=>openScreen('rewards')}/>;
-  if(secondary==='casino')return <CasinoScreen g={{...g,gameplayBusy}} act={act} bet={bet} setBet={setBet} state={state} onBack={()=>openScreen('rewards')}/>;
+  if(secondary==='gacha'||tab==='gacha'&&!secondary)return <GachaScreen g={{...g,gameplayBusy}} act={act} state={state} registry={registry} onBack={()=>openScreen('rewards')}/>;
+  if(secondary==='casino'||tab==='casino'&&!secondary)return <CasinoScreen g={{...g,gameplayBusy}} act={act} bet={bet} setBet={setBet} state={state} onBack={()=>openScreen('rewards')}/>;
   if(tab==='play')return desktop?<DesktopPlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen} pendingTaps={queuedTaps}/>:<PlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen} pendingTaps={queuedTaps}/>
   if(tab==='care')return <CareScreen g={g} act={act} viewportHeight={contentHeight-6} careBusy={careBusy}/>;
   if(tab==='shop')return <ShopScreen g={g} act={act} onOpen={openScreen}/>;
@@ -1259,12 +1259,12 @@ export function PuppyApp({betaMode=false}){
   {state.ready&&g.onboardingComplete&&!secondary&&tab==='play'?<View testID="play-viewport" onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={{flex:1,minHeight:0,minWidth:0,padding:8}}>{main()}</View>:<>
   <ScrollView key={secondary||tab} onLayout={event=>{const height=event.nativeEvent.layout.height;if(height>0)setContentHeight(height);}} style={styles.scroll} contentContainerStyle={[styles.content,(secondary==='settings'||['play','care','roster'].includes(tab)&&!secondary)&&{paddingTop:2,paddingBottom:0,paddingHorizontal:secondary==='settings'?16:tab==='roster'?12:14,gap:0},{maxWidth:desktop?1800:width>650?700:undefined,paddingHorizontal:desktop?24:14,paddingVertical:desktop?18:12}]} keyboardShouldPersistTaps="handled">
    {secondary&&secondary!=='exchange'&&secondary!=='account-details'?<View style={styles.back}><Button compact secondary onPress={()=>setSecondary(null)}>← Back to {TABS.find(x=>x[0]===tab)?.[2]}</Button><Txt style={styles.heading}>{secondary.toUpperCase()}</Txt></View>:null}
-   {!state.ready?<WebLoading stage="startup" compact/>:!g.onboardingComplete?<OnboardingScreen g={saved} act={act} notifications={notifications}/>:<>{secondary==='casino'?<Wallet game={g}/>:null}{main()}</>}
+   {!state.ready?<WebLoading stage="startup" compact/>:!g.onboardingComplete?<OnboardingScreen g={saved} act={act} notifications={notifications}/>:<>{(secondary==='casino'||tab==='casino'&&!secondary)?<Wallet game={g}/>:null}{main()}</>}
   </ScrollView>
   </>}
   {!desktop&&state.ready&&g.onboardingComplete&&!secondary?<View testID="game-bottom-bar" style={styles.bottomBar}>
-   {TABS.map(([id,icon,label])=><Pressable key={id} accessibilityRole="tab" accessibilityState={{selected:tab===id&&!secondary}} onPress={()=>{setTab(id);setSecondary(null);}} style={[styles.tab,(tab===id&&!secondary)&&styles.tabSelected]}>
-    <Txt style={styles.tabEmoji}>{icon}</Txt><Txt style={[styles.tabLabel,(tab===id&&!secondary)&&{color:C.accentInk}]}>{label}</Txt>
+   {TABS.map(([id,icon,label])=><Pressable key={id} accessibilityRole="tab" accessibilityState={{selected:tab===id&&!secondary}} onPress={()=>{setTab(id);setSecondary(null);}} style={[styles.tab,Platform.OS==='web'&&{minWidth:0,paddingHorizontal:0},(tab===id&&!secondary)&&styles.tabSelected]}>
+    <Txt style={styles.tabEmoji}>{icon}</Txt><Txt numberOfLines={1} style={[styles.tabLabel,Platform.OS==='web'&&width<420&&{fontSize:9},(tab===id&&!secondary)&&{color:C.accentInk}]}>{label}</Txt>
    </Pressable>)}
   </View>:null}
     </View>
