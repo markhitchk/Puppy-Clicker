@@ -1194,7 +1194,7 @@ export function PuppyApp({betaMode=false}){
   if(secondary==='exchange')return <PuppyExchangeScreen game={g} registry={registry} account={account} onBack={()=>setSecondary(null)} onRefresh={refreshAccount} webRequest={webExchangeRequest}/>;
   if(secondary==='roster'||tab==='roster'&&!secondary){
    const roster=<RosterScreen g={g} act={act} registry={registry} onUse={usePuppy} onOpenExchange={()=>setSecondary('exchange')}/>;
-   return desktop?<div className="desktop-roster-shop" data-testid="desktop-roster-shop"><section>{roster}</section><aside><ShopScreen g={g} act={act} onOpen={openScreen}/></aside></div>:roster;
+   return roster;
   }
   if(secondary==='rewards'||tab==='rewards'&&!secondary)return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} pendingTaps={queuedTaps} readOnly={Platform.OS==='web'?account?.gameplayWritable!==true:betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
   if(secondary==='gacha')return <GachaScreen g={{...g,gameplayBusy}} act={act} state={state} registry={registry} onBack={()=>openScreen('rewards')}/>;
