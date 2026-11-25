@@ -32,3 +32,45 @@ test('painting across the entire canvas never colors outside source alpha',async
  const leaks=await c.evaluate(async el=>{const img=new Image();img.src='/assets/test/v2_test_crash_dummy.png';await img.decode();const source=document.createElement('canvas');source.width=el.width;source.height=el.height;const x=source.getContext('2d');x.drawImage(img,0,0);const a=x.getImageData(0,0,el.width,el.height).data,b=el.getContext('2d').getImageData(0,0,el.width,el.height).data;let n=0;for(let i=3;i<a.length;i+=4)if(b[i]>a[i])n++;return n;});
  expect(leaks).toBe(0);
 });
+
+test('signed-in player previews and submits exactly one package, then sees delivery receipt',async({page})=>{
+ let requests=0;
+ await page.route('**/api/creator',async route=>{
+  const body=route.request().postDataJSON();requests++;
+  expect(route.request().headers().authorization).toBe('Bearer e2e-only-token');
+  expect(body.action).toBe('submit');expect(body.acceptTerms).toBe(true);
+  expect(body.project.sourceTemplateId).toBe('test_v1_crash_dummy');
+  expect(body.project.name).toBe('Community test pup');
+  await route.fulfill({json:{ok:true,submission:{id:'00000000-0000-4000-8000-000000000001',delivery:'delivered'}}});
+ });
+ await page.goto('/creator');await ready(page);
+ await page.getByLabel('Puppy name',{exact:true}).fill('Community test pup');
+ await page.getByLabel('Description',{exact:true}).fill('Browser integration fixture');
+ await page.getByRole('button',{name:'Review submission',exact:true}).click();
+ await expect(page.getByRole('img',{name:'Final masked submission preview'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Submit to Discord',exact:true})).toBeDisabled();
+ await page.getByLabel(/I own or have permission to submit/).check();
+ await page.getByRole('button',{name:'Submit to Discord',exact:true}).click();
+ await expect(page.getByText(/Delivered to Discord/)).toBeVisible();
+ expect(requests).toBe(1);
+});
+test('published creator puppy appears in PupDex with official artwork and credit',async({page})=>{
+ const id='v1_creator_'+'a'.repeat(24);
+ await page.addInitScript(row=>localStorage.setItem('e2e_creator_roster',JSON.stringify([row])),{id,name:'Community test pup',description:'Browser test',generation:'v1',creatorCredit:'TestPlayer'});
+ await page.route('**/api/creator-art?id='+id,route=>route.fulfill({status:200,contentType:'image/png',path:'public/assets/test/v1_test_crash_dummy.png'}));
+ await page.goto('/pupdex?pup='+id);
+ const dialog=page.getByRole('dialog');await expect(dialog.getByText('Community test pup',{exact:true})).toBeVisible();
+ await expect(dialog.getByText('Created by @TestPlayer')).toBeVisible();
+ await expect(dialog.getByText('Community reward',{exact:true})).toBeVisible();
+ await expect(dialog.getByRole('img',{name:'Community test pup puppy artwork'})).toHaveAttribute('src','/api/creator-art?id='+id);
+});
+test('touchscreen pointer paints inside V2 silhouette on a phone viewport',async({browser})=>{
+ const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+ const page=await context.newPage();
+ try{
+  await page.goto('/creator/v2');await ready(page);const c=artwork(page);
+  const initial=await c.evaluate(el=>el.toDataURL());const b=await c.boundingBox();
+  await page.touchscreen.tap(b.x+b.width*.5,b.y+b.height*.48);
+  expect(await c.evaluate(el=>el.toDataURL())).not.toBe(initial);
+ }finally{await context.close();}
+});
