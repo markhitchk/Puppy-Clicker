@@ -6,11 +6,14 @@ import {sanitizeCreatorPackage} from "../api/_lib/creatorPackage.js";
 import {sendCreatorDiscord} from "../api/_lib/creatorDiscord.js";
 import {normalizeCreatorRoster,mergeCreatorRoster} from "../src/creatorRoster.js";
 const source=await readFile(new URL("../public/assets/test/v1_test_crash_dummy.png",import.meta.url));
-const fixture={format:"puppy-clicker.pup",version:2,generation:"v1",sourceTemplateId:"test_v1_crash_dummy",templateVersion:1,width:256,height:256,name:"Fixture puppy",description:"Integration fixture",layers:[{id:"paint",name:"Paint",visible:true,opacity:1,artwork:"data:image/png;base64,"+source.toString("base64")}]};
+const cleanPaint=await sharp({create:{width:256,height:256,channels:4,background:{r:0,g:0,b:0,alpha:0}}}).png().toBuffer();
+const fixture={format:"puppy-clicker.pup",version:2,generation:"v1",sourceTemplateId:"test_v1_crash_dummy",templateVersion:1,width:256,height:256,name:"Fixture puppy",description:"Integration fixture",layers:[{id:"paint",name:"Paint",visible:true,opacity:1,artwork:"data:image/png;base64,"+cleanPaint.toString("base64")}]};
 test("server reconstructs actual 256px PNG and sends Discord attachments without exposing credentials or mentions",async()=>{
  const project=await sanitizeCreatorPackage(fixture,sharp,source);
  const meta=await sharp(Buffer.from(project.artwork.slice(22),"base64")).metadata();
  assert.equal(meta.width,256);assert.equal(meta.height,256);
+ assert.equal(project.sourceTemplateId,'creator_v1_clean');assert.equal(project.templateVersion,2);
+ const pixels=await sharp(Buffer.from(project.artwork.slice(22),'base64')).ensureAlpha().raw().toBuffer();assert.equal(pixels[(54*256+126)*4+3],0);
  const id="00000000-0000-4000-8000-000000000001";
  const result=await sendCreatorDiscord({id,project,name:"@everyone",username:"@here",generation:"v1"},"https://discord.com/api/webhooks/example",{transport:async(url,request)=>{
   assert.equal(request.method,"POST");assert.equal(request.redirect,"error");
