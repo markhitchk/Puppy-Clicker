@@ -1,0 +1,13 @@
+import {readFile} from "node:fs/promises";
+import sharp from "sharp";
+import {sanitizeCreatorPackage} from "../api/_lib/creatorPackage.js";
+import {sendCreatorDiscord} from "../api/_lib/creatorDiscord.js";
+if(process.env.VERCEL_ENV!=="preview"||process.env.VERCEL_GIT_COMMIT_REF!=="test/creator-discord-smoke-20261125")throw Error("Discord smoke test must run on the isolated preview branch");
+const url=new URL(process.env.PUP_CREATOR_DISCORD_SMOKE_WEBHOOK_URL||"");
+if(url.protocol!=="https:"||url.hostname!=="discord.com"||!/^\/api\/webhooks\/\d+\/[A-Za-z0-9_-]+$/.test(url.pathname))throw Error("Smoke webhook configuration missing");
+url.search="wait=true";
+const bytes=await readFile(new URL("../public/assets/test/v1_test_crash_dummy.png",import.meta.url));
+const project=await sanitizeCreatorPackage({format:"puppy-clicker.pup",version:2,generation:"v1",sourceTemplateId:"test_v1_crash_dummy",templateVersion:1,width:256,height:256,name:"Creator delivery smoke test",description:"Synthetic integration check; no player submission.",layers:[{id:"test",name:"Test artwork",visible:true,opacity:1,artwork:"data:image/png;base64,"+bytes.toString("base64")}]},sharp,bytes);
+const receipt=await sendCreatorDiscord({name:project.name,username:"System test",generation:"v1",project},url.toString(),{test:true});
+console.log("PUP_CREATOR_DISCORD_SMOKE",receipt.delivery,receipt.messageId||"no-message-id");
+if(receipt.delivery!=="delivered")process.exitCode=1;
