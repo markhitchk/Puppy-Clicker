@@ -28,8 +28,9 @@ async function deliver(db,row,url){
 async function testDiscord(){
  const url=webhook();
  const png=await readFile(new URL("../public/assets/test/v1_test_crash_dummy.png",import.meta.url));
- const artwork="data:image/png;base64,"+png.toString("base64");
- const project=await sanitized({format:"puppy-clicker.pup",version:2,generation:"v1",sourceTemplateId:"test_v1_crash_dummy",templateVersion:1,width:256,height:256,name:"Pup Creator delivery test",description:"Synthetic integration test; not a player submission.",layers:[{id:"test",name:"Test artwork",visible:true,opacity:1,artwork}]});
+ const blank=await sharp({create:{width:256,height:256,channels:4,background:{r:0,g:0,b:0,alpha:0}}}).png().toBuffer();
+ const artwork="data:image/png;base64,"+blank.toString("base64");
+ const project=await sanitized({format:"puppy-clicker.pup",version:2,generation:"v1",sourceTemplateId:"creator_v1_clean",templateVersion:2,width:256,height:256,name:"Pup Creator delivery test",description:"Synthetic integration test; not a player submission.",layers:[{id:"test",name:"Test artwork",visible:true,opacity:1,artwork}]});
  return sendCreatorDiscord({name:project.name,username:"System test",generation:"v1",project},url,{test:true});
 }
 async function submit(db,actor,body,adminImport=false){
