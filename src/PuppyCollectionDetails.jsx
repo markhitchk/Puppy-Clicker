@@ -2,6 +2,7 @@ import React,{useEffect,useId,useRef,useState} from 'react';
 import PuppyArtwork from './native/web/PuppyArtwork.jsx';
 import PuppyAssetViewer from './native/web/PuppyAssetViewer.jsx';
 import {rarityLabels,unlockText,transferText} from './puppyRarity.js';
+import {creatorTemplateHref} from './creatorTemplates.js';
 import {puppyDetailsHref} from './puppyLinks.js';
 import {collectionCapabilities} from './puppyCollectionModes.js';
 import {suggestPuppyName} from './nameSuggestions.js';
@@ -57,6 +58,7 @@ export default function PuppyCollectionDetails({area='pupdex',puppy,name,origina
       </section>
       <div className="meet-detail-actions" aria-label="Puppy tools">
        {caps.copyLink&&<button type="button" className="meet-detail-secondary" onClick={()=>void copyLink()}>Copy Link</button>}
+       {(area==='pupdex'||area==='roster')&&creatorTemplateHref(puppy.id)&&<a className="meet-detail-secondary" href={creatorTemplateHref(puppy.id)}>Create from this puppy</a>}
        {caps.viewAsset&&<button type="button" className="meet-detail-secondary" onClick={()=>setAssetOpen(true)}>View Asset</button>}
       </div>
       {artFailed&&<button type="button" className="meet-detail-retry" onClick={()=>{setArtVersion(v=>v+1);setArtFailed(false);}}>↻ Retry Art</button>}
