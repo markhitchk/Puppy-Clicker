@@ -1,12 +1,13 @@
 // Pure pixel operations shared by the creator and regression tests.
 import {cleanRosterTemplate} from './creatorCleanTemplate.js';
-export const TEMPLATE_VERSION=3;
+import {findCreatorTemplate} from './creatorTemplates.js';
+export const TEMPLATE_VERSION=4;
 export const TEMPLATES=Object.freeze({
  v1:Object.freeze({id:"classic",url:"/assets/creator/v1_roster.png",width:256,height:256}),
  v2:Object.freeze({id:"v2_honey",url:"/assets/creator/v2_roster.png",width:256,height:256})
 });
 export function validTemplateIdentity(generation,id,version){
- return Object.hasOwn(TEMPLATES,generation)&&((version===TEMPLATE_VERSION&&id===TEMPLATES[generation].id)||(version===2&&id==="creator_"+generation+"_clean")||(version===1&&id==="test_"+generation+"_crash_dummy"));
+ return Object.hasOwn(TEMPLATES,generation)&&((version===TEMPLATE_VERSION&&findCreatorTemplate(id)?.generation===generation)||(version===3&&id===TEMPLATES[generation].id)||(version===2&&id==="creator_"+generation+"_clean")||(version===1&&id==="test_"+generation+"_crash_dummy"));
 }
 export function deriveTemplate(source,w,h,generation,version=TEMPLATE_VERSION){
  if(source.length!==w*h*4)throw Error("Invalid template pixels");

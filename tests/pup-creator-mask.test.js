@@ -51,3 +51,11 @@ test('current templates extract original artwork ink without inventing coordinat
  assert.equal(validTemplateIdentity('v2','v2_honey',3),true);
  assert.equal(validTemplateIdentity('v2','classic',3),false);
 });
+
+test('current source IDs are drawn from roster and reject cross-generation or restricted entries',()=>{
+ assert.equal(validTemplateIdentity('v1','golden',4),true);
+ assert.equal(validTemplateIdentity('v2','v2_biscuit',4),true);
+ assert.equal(validTemplateIdentity('v1','v2_biscuit',4),false);
+ assert.equal(validTemplateIdentity('v2','v2_dev_pup',4),false);
+ assert.equal(validTemplateIdentity('v1','../../secret',4),false);
+});

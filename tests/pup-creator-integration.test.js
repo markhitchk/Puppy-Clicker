@@ -63,3 +63,9 @@ test("both generated templates use official roster geometry and canonical server
   for(let i=0;i<t.mask.length;i++)assert.ok(out[i*4+3]<=t.mask[i]);
  }
 });
+
+test("non-default PupDex template keeps its exact selected source ID",async()=>{
+ const bytes=await readFile(new URL('../public/assets/creator/roster_v2_biscuit.png',import.meta.url));
+ const p=await sanitizeCreatorPackage({...fixture,generation:'v2',sourceTemplateId:'v2_biscuit',templateVersion:4},sharp,bytes);
+ assert.equal(p.sourceTemplateId,'v2_biscuit');assert.equal(p.templateVersion,4);
+});

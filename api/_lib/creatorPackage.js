@@ -22,6 +22,6 @@ export async function sanitizeCreatorPackage(input,sharp,templateBytes){
  }
  stack.push({input:await encode(t.outline)});
  const base=await sharp({create:{width:size,height:size,channels:4,background:{r:0,g:0,b:0,alpha:0}}}).composite(stack).raw().toBuffer();
- p.sourceTemplateId=p.templateVersion<3?'creator_'+p.generation+'_clean':TEMPLATES[p.generation].id;p.templateVersion=p.templateVersion<3?2:TEMPLATE_VERSION;
+ if(p.templateVersion<3){p.sourceTemplateId='creator_'+p.generation+'_clean';p.templateVersion=2;}
  p.artwork=dataUri(await encode(constrainPixels(base,t.mask,true)));return p;
 }
