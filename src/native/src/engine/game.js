@@ -233,13 +233,13 @@ export function care(g,kind){
   return true;
 }
 export function switchPuppy(g,id){
-  if(!g.unlockedPuppies.includes(id)||!ROSTER.some(p=>p.id===id))return false;
+  if(!g.unlockedPuppies.includes(id)||(!ROSTER.some(p=>p.id===id)&&!/^v[12]_creator_[a-f0-9]{24}$/.test(id)))return false;
   g.careProfiles[g.puppyStyle]=Object.fromEntries(careFields.map(k=>[k,g[k]]));
   const profile=g.careProfiles[id]||freshProfile();
   for(const key of careFields)g[key]=profile[key];
   if(!g.puppyNames||typeof g.puppyNames!=='object')g.puppyNames={};
   g.puppyNames[g.puppyStyle]=g.puppyName;
-  g.puppyStyle=id;g.puppyName=g.puppyNames[id]||ROSTER.find(p=>p.id===id).name.split(' / ')[0];
+  g.puppyStyle=id;g.puppyName=g.puppyNames[id]||(ROSTER.find(p=>p.id===id)?.name||'Puppy').split(' / ')[0];
   return true;
 }
 export function convertTreatsToChips(g,amount){

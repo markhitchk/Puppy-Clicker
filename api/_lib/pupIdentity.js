@@ -14,7 +14,7 @@ export function ensure(value){
  if(value.error)throw new PupError(503,"PUP_DATA_UNAVAILABLE");
  return value.data;
 }
-export function validateRequest(req,res){
+export function validateRequest(req,res,maxBytes=8192){
  res.setHeader("Cache-Control","private, no-store, max-age=0");
  if(req.method!=="POST")throw new PupError(405,"METHOD_NOT_ALLOWED");
  const origin=req.headers.origin;
@@ -25,7 +25,7 @@ export function validateRequest(req,res){
     (process.env.VERCEL==="1"&&parsed.protocol!=="https:"))throw Error("bad origin");
   }catch{throw new PupError(403,"ORIGIN_NOT_ALLOWED");}
  }
- if(Number(req.headers["content-length"]||0)>8192)throw new PupError(413,"REQUEST_TOO_LARGE");
+ if(Number(req.headers["content-length"]||0)>maxBytes)throw new PupError(413,"REQUEST_TOO_LARGE");
 }
 export async function getPupIdentity(req,db){
  // Opt-in grouped read views only; no writes/upserts or RPC changes.

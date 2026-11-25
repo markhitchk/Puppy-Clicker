@@ -7,6 +7,8 @@ import BrowserSettings from "./BrowserSettings.jsx";
 import CookieConsent from "./privacy/CookieConsent.jsx";
 import RecoveryPage from "./RecoveryPage.jsx";
 import MeetPuppies from "./MeetPuppies.jsx";
+import PupCreator from "./PupCreator.jsx";
+import CreatorSubmissions from "./CreatorSubmissions.jsx";
 import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
 import RarityAdmin from './RarityAdmin.jsx';
@@ -104,6 +106,7 @@ function Header({page,eventSettings}){
    <a href="/" aria-current={page==="home"?"page":undefined}>{tr("home")}</a>
    <a href="/play" aria-current={page==="play"?"page":undefined}>🐾 {tr("play")}</a>
    <a href="/pupdex" aria-current={page==="pupdex"?"page":undefined}>{tr("puppies")}</a>
+   <a href="/creator" aria-current={page==="creator"?"page":undefined}>🎨 Pup Creator</a>
    {christmasEnabled(eventSettings)&&<a href="/26xmas" aria-current={page==="xmas26"?"page":undefined}>🎄 Christmas 2026</a>}
    <details className="site-nav-more" ref={moreRef}>
     <summary>More <span aria-hidden="true">▾</span></summary>
@@ -679,7 +682,7 @@ export default function App(){
  const callback=path==="/auth/discord/callback";
  const demo=isPlayDemoRoute(path,typeof window!=="undefined"?window.location.search:"");
  const errorRoute=path.match(/^\/(?:error\/)?(400|401|403|404|408|409|429|500|502|503|504)\/?$/);
-  const page=/^\/26xmas\/?$/.test(path)?"xmas26":path==="/"?"home":path==="/pupeye"||path==="/pupeye/"?"pupeye":/^\/pupeye\/status\/?$/.test(path)?"pupeye-status":path==="/chat"?"chat":/^\/account\/admin\/rarity\/?$/.test(path)?"admin-rarity":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":/^\/(?:pupdex|puppies)\/?$/.test(path)?"pupdex":
+  const page=path==="/creator/submissions"?"creator-submissions":path==="/account/admin/creator"?"admin-creator":/^\/creator(?:\/v[12])?\/?$/.test(path)?"creator":/^\/26xmas\/?$/.test(path)?"xmas26":path==="/"?"home":path==="/pupeye"||path==="/pupeye/"?"pupeye":/^\/pupeye\/status\/?$/.test(path)?"pupeye-status":path==="/chat"?"chat":/^\/account\/admin\/rarity\/?$/.test(path)?"admin-rarity":path==="/account/admin/privacy"?"admin-privacy":path==="/account/admin/chat"?"admin-chat":path==="/leaderboard"?"leaderboard":path==="/account/privacy"?"privacy-center":path==="/privacy"?"privacy":/^\/legal\/(privacy|terms)\/?$/.test(path)?"legal":/^\/(?:pupdex|puppies)\/?$/.test(path)?"pupdex":
   (/^\/account\/admin(?:\/(?:users|audit|bans|gifts|activity|pupeye-web|events))?\/?$/.test(path)||/^\/account\/bansys\/user=?\/?$/.test(path))?"admin":
   path==="/account/inventory"?"account-inventory":path==="/account"||path==="/register"?"account":path==="/recovery"?"recovery":
   path==="/settings"||path==="/browser/settings"?"browser-settings":
@@ -689,6 +692,7 @@ export default function App(){
   <main className={page==="play"?"game-mount":"page-mount"}>
    {page==="home"?<Home/>:page==="pupeye"?<PupEyeOverview/>:page==="pupeye-status"?<WebAccountGate><PupEyeAccountStatus/></WebAccountGate>:
     page==="xmas26"?<>{christmasEnabled(eventSettings)?<Christmas2026 winterEffects={winterEnabled(eventSettings)}/>:<div className="landing"><section className="portal-card" role="status"><h1>Christmas 2026</h1><p>{eventSettings?"This event is currently disabled. Your collected gifts are preserved.":"Checking event availability…"}</p></section></div>}<BrandFooter/></>:page==="demo"?<DemoPage/>:page==="pupdex"?<div className="landing"><MeetPuppies/></div>:
+    page==="creator-submissions"?<CreatorSubmissions/>:page==="admin-creator"?<WebAccountGate><CreatorSubmissions admin/></WebAccountGate>:page==="creator"?<PupCreator initialGeneration={/^\/creator\/v2\/?$/.test(path)?"v2":"v1"}/>:
     page==="account"?<AccountPortal/>:
     page==="account-inventory"?<WebAccountGate><AccountInventoryPage/></WebAccountGate>:
     page==="browser-settings"?<BrowserSettings/>:

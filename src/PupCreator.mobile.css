@@ -1,0 +1,3 @@
+@media(max-width:900px){.pc-layout{grid-template-columns:160px minmax(0,1fr)}.pc-details{grid-column:1/-1}}
+@media(max-width:620px){.pc-layout{display:flex;flex-direction:column}.pc-layout>*{width:100%;box-sizing:border-box}.pc-workspace{order:-1}.pc-tool-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.pc-palette{grid-template-columns:repeat(12,1fr)}.pc-heading .pc-actions{width:100%}.pc-viewport{padding:4px}.pc-heading button,.pc-actions button{min-height:42px}}
+@media(max-width:620px){.pc-palette{grid-template-columns:repeat(6,1fr)}.pc-panel button{min-height:44px}.pc-viewport{min-height:0}.pc-artboard{flex-shrink:0}}

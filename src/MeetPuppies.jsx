@@ -37,10 +37,10 @@ const artworkCatalog=[...new Set([...roster.map(p=>p.id),...Object.keys(PUPPY_IM
 const featuredIds=["classic","golden","poodle","spotty","v2_frost","v2_honey","v2_dev_pup","test_v1_crash_dummy","test_v2_crash_dummy"];
 const categories=[
  ["all","All puppies"],["v1","V1 classics"],["v2","V2 puppies"],
- ["discord","Community"],["special","Special"],["test","Test puppies"]
+ ["discord","Discord"],["creator","Community Creations"],["special","Special"],["test","Test puppies"]
 ];
 const specialPuppy=p=>p.redeemOnly||p.id.includes("dev_pup")||p.group==="discord";
-const groupLabel=p=>p.group==="v1"?"V1 Puppies":p.group==="v2"?"V2 Puppies":p.group==="discord"?"Community":p.group==="test"?"Test Puppies":"Special Puppies";
+const groupLabel=p=>p.group==="v1"?"V1 Puppies":p.group==="v2"?"V2 Puppies":p.group==="creator"?"Community Creations":p.group==="discord"?"Community":p.group==="test"?"Test Puppies":"Special Puppies";
 const transparentImage=p=>(p.image||'').replace(/^\/assets\/(v1|v2)\//,"/assets/transparent/$1/");
 
 function PuppyCard({p,onSelect}){

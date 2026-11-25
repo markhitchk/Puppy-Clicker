@@ -174,8 +174,8 @@ function DailyGoalCard({g,goal,act,clock,onOpen,readOnly=false,compact=false,pen
  </View>;
 }
 
-function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen,pendingTaps=0}){
- const pup=ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
+function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen,pendingTaps=0,registry}){
+ const pup=registry?.items.find(p=>p.id===g.puppyStyle)||ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
  const layout={...revampedPlayLayout(viewportHeight),portrait:desktop?260:220};
  const next=nextPlayReward(g,schedule,clock,{serverDay:Platform.OS==='web'}),cooldown=v6CooldownSeconds(g,clock),bonus=careTapBonus(g);
  const animate=g.animatedUi!==false&&g.tapAnimationsEnabled!==false;
@@ -209,7 +209,7 @@ function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen,pe
  const label=cooldown?'Fair-play cooldown · '+cooldown+'s':g.energy<=10?g.puppyName+' is tired · Care needed':'Tap '+g.puppyName;
  return <section className={'cyber-play '+(desktop?'desktop-play':'mobile-play')} data-reduced-motion={!g.idleAnimationsEnabled}>
   <div className="play-heading"><div><h1>Play</h1><p>Tap your puppy and earn treats.</p></div><button className="cyber-button secondary small switch-puppy-action" onClick={()=>onOpen('roster')}>⇄ Switch Puppy</button></div>
-  {!desktop?<Wallet game={g}/>:<div className="puppy-identity"><div className="identity-portrait"><Portrait puppy={pup} size={64} accessory={g.accessory}/></div><div><strong>{g.puppyName}</strong><p>{pup.id.startsWith('v2_')?pup.id:'v1_'+pup.id} · {pup.id.startsWith('v2_')?'V2':'V1'} Puppies</p><span className="current-puppy-badge">Current Puppy</span><button className="cyber-button secondary small" aria-label="Rename current puppy" onClick={()=>setRenameOpen(true)}>✎ Rename</button></div></div>}
+  {!desktop?<Wallet game={g}/>:<div className="puppy-identity"><div className="identity-portrait"><Portrait puppy={pup} size={64} accessory={g.accessory}/></div><div><strong>{g.puppyName}</strong><p>{pup.assetId||(pup.id.startsWith('v2_')?pup.id:'v1_'+pup.id)} · {pup.id.startsWith('v2_')?'V2':'V1'} Puppies</p><span className="current-puppy-badge">Current Puppy</span><button className="cyber-button secondary small" aria-label="Rename current puppy" onClick={()=>setRenameOpen(true)}>✎ Rename</button></div></div>}
   {renameOpen?<RenamePuppyDialog name={g.puppyName} onClose={()=>setRenameOpen(false)} onSave={name=>{act({type:'rename',name});setRenameOpen(false);}}/>:null}
   <div className="cyber-play-stage">
    <PuppyPlatform name={g.puppyName}>
@@ -226,10 +226,10 @@ function PlayScreen({g,act,clock,schedule,viewportHeight,desktop=false,onOpen,pe
   {ticketVisible?<View pointerEvents="none" style={[styles.ticketOverlay,{top:2}]}><Txt style={styles.ticketOverlayTitle}>🎟️ {g.lastTicketDrop} UPGRADE TICKET</Txt></View>:null}
  </section>;
 }
-function DesktopPlayScreen({g,act,clock,schedule,viewportHeight,onOpen,pendingTaps=0}){
- const pup=ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
+function DesktopPlayScreen({g,act,clock,schedule,viewportHeight,onOpen,pendingTaps=0,registry}){
+ const pup=registry?.items.find(p=>p.id===g.puppyStyle)||ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
  return <div className="desktop-dashboard desktop-reference">
-  <PlayScreen g={g} act={act} clock={clock} schedule={schedule} viewportHeight={viewportHeight} onOpen={onOpen} pendingTaps={pendingTaps} desktop/>
+  <PlayScreen registry={registry} g={g} act={act} clock={clock} schedule={schedule} viewportHeight={viewportHeight} onOpen={onOpen} pendingTaps={pendingTaps} desktop/>
   <aside className="dashboard-panels">
    <section className="cyber-panel"><h2>Your Resources</h2><Wallet game={g}/></section>
    <section className="cyber-panel daily-goals-panel compact-goals"><div className="panel-heading"><h2>Today’s goals</h2><span>{monthKey(webServerRewardsDate(clock))}</span><button className="cyber-button secondary all-daily-goals" aria-label="🎁 Rewards & daily goals" onClick={()=>onOpen('rewards')}>All goals →</button></div>{goalsForDay(schedule,new Date(clock)).slice(0,3).map(goal=><DailyGoalCard key={goal.id} g={g} goal={goal} act={act} clock={clock} onOpen={onOpen} compact/>)}</section>
@@ -238,8 +238,8 @@ function DesktopPlayScreen({g,act,clock,schedule,viewportHeight,onOpen,pendingTa
  </div>;
 }
 // Shipped PuppyRevampedCareScreen, preserving the existing care reducer effects.
-function CareScreen({g,act,viewportHeight,careBusy=false}){
- const pup=ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
+function CareScreen({g,act,viewportHeight,careBusy=false,registry}){
+ const pup=registry?.items.find(p=>p.id===g.puppyStyle)||ROSTER.find(p=>p.id===g.puppyStyle)||ROSTER[0];
  const tiny=viewportHeight<590,compact=viewportHeight<700;
  const portraitSize=tiny?66:compact?78:92;
  const bonus=careTapBonus(g);
@@ -1228,8 +1228,8 @@ export function PuppyApp({betaMode=false}){
   if(secondary==='rewards'||tab==='rewards'&&!secondary)return <RewardsScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} onOpen={openScreen} onPrestige={()=>openScreen('prestige')} pendingTaps={queuedTaps} readOnly={Platform.OS==='web'?account?.gameplayWritable!==true:betaMode&&!(cloudState==='LIVE_SYNCED'||(cloudState==='NO_CLOUD_SAVE'&&account?.gameplayWritable===true))}/>;
   if(secondary==='gacha'||tab==='gacha'&&!secondary)return <GachaScreen g={{...g,gameplayBusy}} act={act} state={state} registry={registry} onBack={()=>openScreen('rewards')}/>;
   if(secondary==='casino'||tab==='casino'&&!secondary)return <CasinoScreen g={{...g,gameplayBusy}} act={act} bet={bet} setBet={setBet} state={state} onBack={()=>openScreen('rewards')}/>;
-  if(tab==='play')return desktop?<DesktopPlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen} pendingTaps={queuedTaps}/>:<PlayScreen g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen} pendingTaps={queuedTaps}/>
-  if(tab==='care')return <CareScreen g={g} act={act} viewportHeight={contentHeight-6} careBusy={careBusy}/>;
+  if(tab==='play')return desktop?<DesktopPlayScreen registry={registry} g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen} pendingTaps={queuedTaps}/>:<PlayScreen registry={registry} g={g} act={act} clock={clock} schedule={state.monthlySchedule} viewportHeight={contentHeight-6} onOpen={openScreen} pendingTaps={queuedTaps}/>
+  if(tab==='care')return <CareScreen registry={registry} g={g} act={act} viewportHeight={contentHeight-6} careBusy={careBusy}/>;
   if(tab==='shop')return <ShopScreen g={g} act={act} onOpen={openScreen}/>;
   return null;
  };

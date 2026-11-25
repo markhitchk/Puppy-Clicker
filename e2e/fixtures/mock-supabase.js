@@ -4,9 +4,11 @@ import roster from '../../src/data/roster.js';
 const user={id:"e2e-puppy-clicker-user",email:"tester@example.invalid",user_metadata:{full_name:"Test Player"}};
 const pup={id:"6c7998ba-e1cd-4dbb-98f6-001022334455",username:"TestPlayer",displayName:"Test Player",discordUserId:"1547290000000000001"};
 const key="puppy_test_authoritative_kotlin_save_v1";
+const publishedCreations=()=>{try{return JSON.parse(localStorage.getItem("e2e_creator_roster")||"[]");}catch{return [];}};
+const testSession=()=>signedOut?null:{user,access_token:"e2e-only-token"};
 let signedOut=new URLSearchParams(window.location.search).has("signedout");
 const listeners=new Set();
-const emit=event=>{for(const listener of listeners)listener(event,signedOut?null:{user})};
+const emit=event=>{for(const listener of listeners)listener(event,testSession())};
 const fresh=()=>({revision:1,updatedAt:new Date().toISOString(),saveData:{
  format:"puppy-clicker-cloud-save",version:1,savedAtEpochMs:Date.now(),stores:{
   puppy_clicker_save:{values:{
@@ -24,6 +26,7 @@ const failure=code=>({data:null,error:{context:new Response(JSON.stringify({erro
 const save=r=>localStorage.setItem(key,JSON.stringify(r));
 export const client={
  async rpc(name){
+  if(name==='pup_creator_roster')return {data:publishedCreations(),error:null};
   if(name==='pup_event_settings_public')return {data:{all_events:!new URLSearchParams(location.search).has('eventsoff'),christmas_2026:!new URLSearchParams(location.search).has('christmasoff'),winter_effects:!new URLSearchParams(location.search).has('winteroff')},error:null};
   if(name!=='pup_rarity_public')throw Error('Unexpected public RPC');
   // Mirror published rarity/acquisition groups rather than making every
@@ -40,11 +43,11 @@ export const client={
    ['halloween','santa','birthday'].includes(id)?'event':
    ['v2_rory','secret_snoot','classic_forever'].includes(id)?'code':
    id==='v2_discord_pup'?'community':'standard';
-  return {data:roster.map(p=>({puppy_id:p.id,rarity:tier(p.id),published:true,acquisition:acquisition(p.id)}))};
+  return {data:[...roster.map(p=>({puppy_id:p.id,rarity:tier(p.id),published:true,acquisition:acquisition(p.id)})),...publishedCreations().map(p=>({puppy_id:p.id,rarity:"rare",published:true,acquisition:"community",giftable:true,tradeable:false}))]};
  },
  auth:{
-  onAuthStateChange(listener){listeners.add(listener);queueMicrotask(()=>listener('INITIAL_SESSION',signedOut?null:{user}));return {data:{subscription:{unsubscribe(){listeners.delete(listener)}}}}},
-  async getSession(){return{data:{session:signedOut?null:{user}},error:null}},
+  onAuthStateChange(listener){listeners.add(listener);queueMicrotask(()=>listener('INITIAL_SESSION',testSession()));return {data:{subscription:{unsubscribe(){listeners.delete(listener)}}}}},
+  async getSession(){return{data:{session:testSession()},error:null}},
   async getUser(){return{data:{user:signedOut?null:user},error:null}},
   async verifyOtp({type,token_hash}){if(type!=="magiclink"||token_hash!=="test-puppy-token")return{error:new Error("OTP_INVALID")};signedOut=false;emit('SIGNED_IN');return{data:{user},error:null}},
   async exchangeCodeForSession(code){await new Promise(r=>setTimeout(r,50));if(code==='email-code-invalid')return {error:new Error('EXPIRED')};signedOut=false;emit('PASSWORD_RECOVERY');return {error:null}},

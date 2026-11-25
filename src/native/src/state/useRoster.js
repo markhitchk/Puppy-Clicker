@@ -1,3 +1,5 @@
+import {useCreatorRoster} from "../../../useCreatorRoster.js";
+import {mergeCreatorRoster} from "../../../creatorRoster.js";
 import {loadRosterCatalog} from '../../web/rosterLoader.js';
 import {useEffect,useRef,useState} from 'react';
 import {AppState} from 'react-native';
@@ -8,6 +10,7 @@ import {
 } from '../engine/dynamicRoster.js';
 
 export function useRoster(){
+ const creations=useCreatorRoster();
  const controls=useRef({}),remote=useRef([]);
  const [refreshing,setRefreshing]=useState(false),[status,setStatus]=useState('Bundled artwork available offline.');
  const [snapshot,setSnapshot]=useState(()=>({
@@ -62,5 +65,6 @@ export function useRoster(){
   const listener=AppState.addEventListener('change',status=>{if(status==='active')void refresh();});
   return ()=>{alive=false;lifetime.abort();clearInterval(timer);listener.remove();};
  },[]);
- return {...snapshot,refreshing,status,refresh:()=>controls.current.refresh?.(),clearCache:()=>controls.current.clearCache?.()};
+ const items=mergeCreatorRoster(snapshot.items,creations);
+ return {...snapshot,items,categories:categoriesForRoster(items),refreshing,status,refresh:()=>controls.current.refresh?.(),clearCache:()=>controls.current.clearCache?.()};
 }
