@@ -1,0 +1,94 @@
+import {readFile} from "node:fs/promises";
+import {createHash} from "node:crypto";
+import sharp from "sharp";
+import {dbClient,ensure,validateRequest,getPupIdentity,PupError,fail} from "./_lib/pupIdentity.js";
+import {MAX_BODY,validateCreatorPackage,sanitizeCreatorPackage} from "./_lib/creatorPackage.js";
+const table="pup_creator_submissions",metadata="id,username,name,description,generation,status,delivery,created_at,reviewed_at,review_note";
+const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function webhook(){
+ const value=process.env.PUP_CREATOR_DISCORD_WEBHOOK_URL;
+ try{const u=new URL(value);if(u.protocol==="https:"&&u.hostname==="discord.com"&&/^\/api\/webhooks\/\d+\/[A-Za-z0-9_-]+$/.test(u.pathname)){u.search="wait=true";return u.toString();}}catch{}
+ throw new PupError(503,"CREATOR_DISCORD_NOT_CONFIGURED");
+}
+async function ownerOnly(db,actor){
+ const r=await db.rpc("pup_rarity_manage",{p_actor:actor.account.id,p_action:"read",p_body:{}});
+ if(r.error||r.data?.canEdit!==true)throw new PupError(403,"OWNER_REQUIRED");
+}
+async function sanitized(p){
+ try{const clean=validateCreatorPackage(p);const original=clean.generation==="v1"?await readFile(new URL("../public/assets/test/v1_test_crash_dummy.png",import.meta.url)):await readFile(new URL("../public/assets/test/v2_test_crash_dummy.png",import.meta.url));return await sanitizeCreatorPackage(clean,sharp,original);}
+ catch{throw new PupError(400,"INVALID_CREATOR_PACKAGE");}
+}
+const escaped=x=>String(x).replace(/[\\`*_~|<>@]/g,"\\$&").slice(0,240);
+async function deliver(db,row,url){
+ const claim=ensure(await db.from(table).update({delivery:"sending",delivery_attempted_at:new Date().toISOString()}).eq("id",row.id).in("delivery",["pending","failed"]).select("id,project,username,name,generation").maybeSingle());
+ if(!claim)return;
+ let delivery="unknown",messageId=null;
+ try{
+  const form=new FormData();
+  form.set("payload_json",JSON.stringify({allowed_mentions:{parse:[]},embeds:[{title:"🐾 New Puppy Creation",description:"Pending developer review",fields:[{name:"Submission",value:claim.id},{name:"Puppy",value:escaped(claim.name)},{name:"Generation",value:claim.generation.toUpperCase(),inline:true},{name:"Creator",value:escaped(claim.username),inline:true}],image:{url:"attachment://preview.png"},footer:{text:"Pup Creator Studio"}}],attachments:[{id:0,filename:"preview.png"},{id:1,filename:"creation.pup"}]}));
+  form.set("files[0]",new Blob([Buffer.from(claim.project.artwork.slice(22),"base64")],{type:"image/png"}),"preview.png");
+  form.set("files[1]",new Blob([JSON.stringify(claim.project)],{type:"application/json"}),"creation.pup");
+  const response=await fetch(url,{method:"POST",body:form,signal:AbortSignal.timeout(15000),redirect:"error"});
+  if(response.ok){const json=await response.json();if(/^\d+$/.test(json.id)){delivery="delivered";messageId=json.id;}}
+  else if(response.status===429||[400,401,403,404,413].includes(response.status))delivery="failed";
+ }catch{}
+ // Unknown means delivery could have succeeded; do not automatically resend it.
+ ensure(await db.from(table).update({delivery,discord_message_id:messageId}).eq("id",claim.id).eq("delivery","sending"));
+}
+async function submit(db,actor,body,adminImport=false){
+ if(body.acceptTerms!==true)throw new PupError(400,"CREATOR_TERMS_REQUIRED");
+ const url=adminImport?null:webhook();
+ const project=await sanitized(body.project);
+ const hash=createHash("sha256").update(JSON.stringify(project)).digest("hex");
+ let row=ensure(await db.from(table).select(metadata).eq("account_uuid",actor.account.id).eq("content_hash",hash).maybeSingle());
+ if(!row){
+  const inserted=await db.from(table).insert({account_uuid:actor.account.id,username:actor.account.username,content_hash:hash,name:project.name,description:project.description,generation:project.generation,project,delivery:adminImport?"not_required":"pending"}).select(metadata).single();
+  if(inserted.error){
+   if(inserted.error.code!=="23505")throw new PupError(503,"CREATOR_STORAGE_UNAVAILABLE");
+   row=ensure(await db.from(table).select(metadata).eq("account_uuid",actor.account.id).eq("content_hash",hash).maybeSingle());
+   if(!row)throw new PupError(429,"CREATOR_DAILY_LIMIT");
+  }else row=inserted.data;
+ }
+ if(url&&row.delivery==="pending")await deliver(db,row,url);
+ return {submission:ensure(await db.from(table).select(metadata).eq("id",row.id).single())};
+}
+export default async function handler(req,res){
+ try{
+  validateRequest(req,res,MAX_BODY);
+  if(!req.body||typeof req.body!=="object"||Buffer.byteLength(JSON.stringify(req.body))>MAX_BODY)throw new PupError(413,"REQUEST_TOO_LARGE");
+  const db=dbClient(),actor=await getPupIdentity(req,db),body=req.body;
+  const action=body.action;
+  if(action==="submit")return res.status(200).json({ok:true,...await submit(db,actor,body)});
+  if(action==="mine"){
+   const rows=ensure(await db.from(table).select(metadata).eq("account_uuid",actor.account.id).order("created_at",{ascending:false}).limit(60));
+   return res.status(200).json({ok:true,submissions:rows});
+  }
+  await ownerOnly(db,actor);
+  if(action==="import")return res.status(200).json({ok:true,...await submit(db,actor,body,true)});
+  if(action==="review-list"){
+   const rows=ensure(await db.from(table).select(metadata).order("created_at",{ascending:false}).limit(100));
+   return res.status(200).json({ok:true,submissions:rows});
+  }
+  if(!uuid.test(body.id||""))throw new PupError(400,"INVALID_SUBMISSION_ID");
+  const row=ensure(await db.from(table).select(metadata).eq("id",body.id).maybeSingle());
+  if(!row)throw new PupError(404,"SUBMISSION_NOT_FOUND");
+  if(action==="download"){
+   const data=ensure(await db.from(table).select("project").eq("id",row.id).single());
+   return res.status(200).json({ok:true,project:data.project});
+  }
+  if(action==="retry"){
+   if(!["failed","pending"].includes(row.delivery))throw new PupError(409,"CREATOR_DELIVERY_NOT_RETRYABLE");
+   await deliver(db,row,webhook());
+   return res.status(200).json({ok:true,submission:ensure(await db.from(table).select(metadata).eq("id",row.id).single())});
+  }
+  if(action==="review"){
+   const allowed={pending:["approved","rejected","revision","archived"],approved:["archived"],rejected:["archived"],revision:["archived"]};
+   if(!allowed[row.status]?.includes(body.status)||typeof body.note!=="string"||body.note.length>400)throw new PupError(400,"INVALID_REVIEW");
+   const update=ensure(await db.from(table).update({status:body.status,review_note:body.note.trim(),reviewed_at:new Date().toISOString(),reviewed_by:actor.account.id}).eq("id",row.id).eq("status",row.status).select(metadata).maybeSingle());
+   if(!update)throw new PupError(409,"REVIEW_CONFLICT");
+   return res.status(200).json({ok:true,submission:update});
+  }
+  // Deliberately reject publication until canonical roster and ownership migration exists.
+  throw new PupError(400,"INVALID_CREATOR_ACTION");
+ }catch(e){return fail(res,e);}
+}
