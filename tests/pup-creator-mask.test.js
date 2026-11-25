@@ -28,14 +28,26 @@ test('clean templates ignore all crash-test RGB graphics while keeping original 
  const make=(flip)=>rgba(256,256,(x,y)=>[flip?0:255,flip?0:215,0,x>20&&x<235&&y>10&&y<245?255:0]);
  const source=make(false),changed=make(true);
  for(const generation of ['v1','v2']){
-  const a=deriveTemplate(source,256,256,generation),b=deriveTemplate(changed,256,256,generation);
+  const a=deriveTemplate(source,256,256,generation,2),b=deriveTemplate(changed,256,256,generation,2);
   assert.deepEqual(a.outline,b.outline);assert.deepEqual(a.base,b.base);assert.deepEqual(a.mask,b.mask);
   assert.equal(a.outline[(54*256+126)*4+3],0); // former forehead target
   assert.equal(a.outline[(44*256+126)*4+3],0); // former centerline
   assert.equal(a.base[(54*256+126)*4+3],255);
  }
- assert.notDeepEqual(deriveTemplate(source,256,256,'v1').outline,deriveTemplate(source,256,256,'v2').outline);
+ assert.notDeepEqual(deriveTemplate(source,256,256,'v1',2).outline,deriveTemplate(source,256,256,'v2',2).outline);
  assert.equal(validTemplateIdentity('v1','test_v1_crash_dummy',1),true);
  assert.equal(validTemplateIdentity('v1','creator_v1_clean',2),true);
  assert.equal(validTemplateIdentity('v2','creator_v1_clean',2),false);
+});
+
+test('current templates extract original artwork ink without inventing coordinates',()=>{
+ const source=rgba(7,7,(x,y)=>[...(x===3&&y===3?[20,15,10]:[230,180,130]),x>=1&&x<=5&&y>=1&&y<=5?255:0]);
+ const a=deriveTemplate(source,7,7,'v1');
+ assert.equal(a.outline[(3*7+3)*4+3],255);
+ assert.equal(a.outline[(3*7+2)*4+3],0);
+ assert.equal(a.mask[0],0);
+ assert.deepEqual(Array.from(a.base.slice((3*7+2)*4,(3*7+2)*4+4)),[230,180,130,255]);
+ assert.equal(validTemplateIdentity('v1','classic',3),true);
+ assert.equal(validTemplateIdentity('v2','v2_honey',3),true);
+ assert.equal(validTemplateIdentity('v2','classic',3),false);
 });

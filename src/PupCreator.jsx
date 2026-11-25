@@ -43,7 +43,7 @@ export default function PupCreator({initialGeneration="v1"}){
   const original=makeCanvas();context(original).drawImage(img,0,0,SIZE,SIZE);
   const data=pixels(original).data,derived=deriveTemplate(data,SIZE,SIZE,g),outlineCanvas=makeCanvas();
   setPixels(outlineCanvas,derived.outline);
-  // Clean neutral base at full support alpha; final compositor applies source alpha once.
+  // Original roster colors at full support alpha; final compositor applies source alpha once.
   const full=derived.base;
   setPixels(original,full);return {...derived,original,outlineCanvas,generation:g};
  };
@@ -92,6 +92,8 @@ export default function PupCreator({initialGeneration="v1"}){
   if(value.width!==expected||value.height!==expected||(!legacy&&(!validTemplateIdentity(value.generation,value.sourceTemplateId,value.templateVersion))))throw Error("Invalid template or dimensions");
   const entries=legacy?[{id:"legacy",name:"Imported artwork",visible:true,opacity:1,artwork:value.artwork}]:value.layers;
   if(!Array.isArray(entries)||!entries.length||entries.length>MAX_LAYERS)throw Error("Invalid layer count");
+  const oldTemplate=legacy||value.templateVersion<TEMPLATE_VERSION;
+  if(oldTemplate&&!window.confirm("This project uses an older puppy outline. Import its paint layers onto the actual roster template? Artwork outside the new silhouette will be clipped."))return;
   const t=await buildTemplate(value.generation),next=[],ids=new Set();
   for(const l of entries){
    if(!l||typeof l.id!=="string"||l.id.length>80||ids.has(l.id)||typeof l.name!=="string"||l.name.length>60||typeof l.visible!=="boolean"||!Number.isFinite(l.opacity)||l.opacity<0||l.opacity>1||typeof l.artwork!=="string"||l.artwork.length>2_000_000||!pngPattern.test(l.artwork))throw Error("Invalid paint layer");
@@ -100,14 +102,14 @@ export default function PupCreator({initialGeneration="v1"}){
    context(layer.canvas).drawImage(img,0,0,SIZE,SIZE);setPixels(layer.canvas,constrainPixels(pixels(layer.canvas).data,t.mask));next.push(layer);
   }
   if(!canvas.current)return;if(dirty.current&&!window.confirm("Replace unsaved artwork with this project?"))return;
-  loadId.current++;template.current=t;layers.current=next;active.current=next.at(-1).id;setGeneration(value.generation);setName(value.name);setDescription(value.description);setGuide(0);resetHistory();render(canvas.current,0);setReady(true);setStatus(legacy?"Legacy artwork imported and clipped to the official outline":"Puppy package imported");
+  loadId.current++;template.current=t;layers.current=next;active.current=next.at(-1).id;setGeneration(value.generation);setName(value.name);setDescription(value.description);setGuide(0);resetHistory();render(canvas.current,0);setReady(true);setStatus(oldTemplate?"Older artwork imported onto the actual roster outline":"Puppy package imported");
  };
  const importFile=async e=>{const file=e.target.files?.[0];e.target.value="";if(!file)return;try{if(file.size>10_000_000)throw Error("File exceeds 10 MB");if(file.name.toLowerCase().endsWith(".pup")){await importPack(JSON.parse(await file.text()));return;}if(!["image/png","image/jpeg","image/webp"].includes(file.type))throw Error("Use PNG, JPEG, WebP or .pup");if(!ready||stroke.current||!selected()?.visible)throw Error("Select a visible paint layer first");const url=URL.createObjectURL(file);try{const img=await loadImage(url);if(img.width*img.height>16000000)throw Error("Image exceeds 16 megapixels");if(stroke.current||!ready)return;drawFit(ctx(),img);checkpoint();setStatus("Image imported and clipped");}finally{URL.revokeObjectURL(url);}}catch(err){setStatus(err.message||"Import failed");}};
  const saveDraft=()=>{try{localStorage.setItem(DRAFT,JSON.stringify(pack()));dirty.current=false;setStatus("Draft saved on this device");}catch{setStatus("Could not save draft. Export a .pup instead.");}};
  const loadDraft=async()=>{try{const raw=localStorage.getItem(DRAFT)||localStorage.getItem("pup-creator-draft-v1");if(!raw)throw Error("No saved draft on this device");await importPack(JSON.parse(raw));}catch(err){setStatus(err.message||"Could not restore draft");}};
  const deleteDraft=()=>{if(window.confirm("Delete the locally saved draft?")){setAutosave(false);localStorage.removeItem(DRAFT);localStorage.removeItem("pup-creator-draft-v1");setStatus("Local draft deleted");}};
  return <section className="pup-creator landing" aria-label="Pup Creator Studio">
-  <header className="pc-heading"><div><p className="pc-kicker">COMMUNITY CREATIONS</p><h1>Pup Creator Studio</h1><p>Paint freely inside the official V1 or V2 puppy outline.</p></div><div className="pc-actions"><button disabled={!ready} onClick={saveDraft}>Save draft</button><button onClick={loadDraft}>Restore draft</button><button onClick={deleteDraft}>Delete draft</button><button disabled={!ready} onClick={exportPup}>Export .pup</button><button disabled={!ready} onClick={exportPng}>Export PNG</button></div></header>
+  <header className="pc-heading"><div><p className="pc-kicker">COMMUNITY CREATIONS</p><h1>Pup Creator Studio</h1><p>Paint directly on the original Classic V1 or Honey V2 roster puppy outline.</p></div><div className="pc-actions"><button disabled={!ready} onClick={saveDraft}>Save draft</button><button onClick={loadDraft}>Restore draft</button><button onClick={deleteDraft}>Delete draft</button><button disabled={!ready} onClick={exportPup}>Export .pup</button><button disabled={!ready} onClick={exportPng}>Export PNG</button></div></header>
   <div className="pc-layout">
    <aside className="pc-panel pc-tools"><h2>Tools</h2><div className="pc-tool-grid">{tools.map(([id,label])=><button key={id} aria-pressed={tool===id} onClick={()=>setTool(id)}>{label}</button>)}</div>
     <label>Color <input type="color" value={color} onChange={e=>setColor(e.target.value)}/></label><div className="pc-palette">{palette.map(c=><button key={c} aria-label={"Color "+c} aria-pressed={c===color} style={{background:c}} onClick={()=>setColor(c)}/>)}</div>

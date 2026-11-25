@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
 import sharp from "sharp";
+import {deriveTemplate,TEMPLATES} from "../src/pupCreatorMask.js";
 import {sanitizeCreatorPackage} from "../api/_lib/creatorPackage.js";
 import {sendCreatorDiscord} from "../api/_lib/creatorDiscord.js";
 import {normalizeCreatorRoster,mergeCreatorRoster} from "../src/creatorRoster.js";
@@ -40,4 +41,25 @@ test("published roster accepts only valid unique creator IDs and uses controlled
  const rows=normalizeCreatorRoster([valid,valid,{...valid,id:"classic"},{...valid,id:"v1_creator_"+"b".repeat(24)}]);
  assert.equal(rows.length,1);assert.equal(rows[0].image,"/api/creator-art?id="+id);assert.equal(rows[0].free,false);assert.equal(rows[0].redeemOnly,true);
  assert.equal(mergeCreatorRoster([{id}],rows).length,1);
+});
+
+test("both generated templates use official roster geometry and canonical server rendering",async()=>{
+ for(const generation of ['v1','v2']){
+  const spec=TEMPLATES[generation];
+  const bytes=await readFile(new URL('../public'+spec.url,import.meta.url));
+  const {data,info}=await sharp(bytes).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+  assert.equal(info.width,256);assert.equal(info.height,256);
+  const t=deriveTemplate(data,256,256,generation);
+  let dark=0,clear=0;
+  for(let i=0;i<t.mask.length;i++){
+   assert.equal(t.mask[i],data[i*4+3]);
+   if(!t.mask[i])clear++;
+   if(t.mask[i]>240&&.2126*data[i*4]+.7152*data[i*4+1]+.0722*data[i*4+2]<=50){assert.equal(t.outline[i*4+3],255);dark++;}
+  }
+  assert.ok(dark>1000);assert.ok(clear>10000);
+  const p=await sanitizeCreatorPackage({...fixture,generation,sourceTemplateId:spec.id,templateVersion:3},sharp,bytes);
+  assert.equal(p.sourceTemplateId,spec.id);assert.equal(p.templateVersion,3);
+  const out=await sharp(Buffer.from(p.artwork.slice(22),'base64')).ensureAlpha().raw().toBuffer();
+  for(let i=0;i<t.mask.length;i++)assert.ok(out[i*4+3]<=t.mask[i]);
+ }
 });
