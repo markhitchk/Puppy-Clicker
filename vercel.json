@@ -81,7 +81,14 @@
     }
   ],
   "rewrites": [
-    {"source": "/api/gifts", "destination": "/api/gifts"},
+    {
+      "source": "/api/creator",
+      "destination": "/api/creator"
+    },
+    {
+      "source": "/api/gifts",
+      "destination": "/api/gifts"
+    },
     {
       "source": "/api/leaderboard",
       "destination": "/api/leaderboard"
@@ -119,5 +126,10 @@
       "destination": "/legal/terms",
       "permanent": true
     }
-  ]
+  ],
+  "functions": {
+    "api/creator.js": {
+      "includeFiles": "public/assets/test/*_test_crash_dummy.png"
+    }
+  }
 }
