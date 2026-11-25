@@ -16,7 +16,7 @@ async function ownerOnly(db,actor){
  if(r.error||r.data?.canEdit!==true)throw new PupError(403,"OWNER_REQUIRED");
 }
 async function sanitized(p){
- try{const clean=validateCreatorPackage(p);const original=clean.templateVersion>=3?await readFile(new URL("../public/assets/creator/"+clean.generation+"_roster.png",import.meta.url)):await readFile(new URL("../public/assets/test/"+clean.generation+"_test_crash_dummy.png",import.meta.url));return await sanitizeCreatorPackage(clean,sharp,original);}
+ try{const clean=validateCreatorPackage(p);const original=clean.templateVersion===4?await readFile(new URL("../public/assets/creator/roster_"+clean.sourceTemplateId+".png",import.meta.url)):clean.templateVersion===3?await readFile(new URL("../public/assets/creator/"+clean.generation+"_roster.png",import.meta.url)):await readFile(new URL("../public/assets/test/"+clean.generation+"_test_crash_dummy.png",import.meta.url));return await sanitizeCreatorPackage(clean,sharp,original);}
  catch{throw new PupError(400,"INVALID_CREATOR_PACKAGE");}
 }
 async function deliver(db,row,url){
@@ -29,7 +29,7 @@ async function testDiscord(){
  const url=webhook();
  const blank=await sharp({create:{width:256,height:256,channels:4,background:{r:0,g:0,b:0,alpha:0}}}).png().toBuffer();
  const artwork="data:image/png;base64,"+blank.toString("base64");
- const project=await sanitized({format:"puppy-clicker.pup",version:2,generation:"v1",sourceTemplateId:"classic",templateVersion:3,width:256,height:256,name:"Pup Creator delivery test",description:"Synthetic integration test; not a player submission.",layers:[{id:"test",name:"Test artwork",visible:true,opacity:1,artwork}]});
+ const project=await sanitized({format:"puppy-clicker.pup",version:2,generation:"v1",sourceTemplateId:"classic",templateVersion:4,width:256,height:256,name:"Pup Creator delivery test",description:"Synthetic integration test; not a player submission.",layers:[{id:"test",name:"Test artwork",visible:true,opacity:1,artwork}]});
  return sendCreatorDiscord({name:project.name,username:"System test",generation:"v1",project},url,{test:true});
 }
 async function submit(db,actor,body,adminImport=false){
