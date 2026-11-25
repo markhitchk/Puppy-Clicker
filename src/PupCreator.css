@@ -3,3 +3,6 @@
 .pc-layer-list{display:grid;gap:6px}.pc-layer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px}.pc-layer button:first-child{text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pc-artboard canvas{image-rendering:auto}.pc-viewport{overscroll-behavior:contain}.pc-viewport:focus-within{outline:2px solid currentColor}.pup-creator :focus-visible{outline:2px solid #a36ae8;outline-offset:3px}
 
 .pc-roster-picker{display:grid;gap:12px;margin-bottom:12px}.pc-roster-picker label{display:grid;gap:6px}.pc-roster-picker select{width:100%;max-width:100%;min-height:44px}.pc-roster-source{display:flex;align-items:center;gap:12px;min-width:0}.pc-roster-source img{width:80px;height:80px;object-fit:contain;flex:none}.pc-roster-source p{margin:3px 0;font-size:.85rem}.pc-roster-source a{display:inline-flex;padding:6px 10px}
+
+/* Safari touch drawing: suppress long-press callouts and selection on the artboard only. */
+.pc-artboard canvas{-webkit-touch-callout:none;-webkit-user-select:none;touch-action:none}

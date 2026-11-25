@@ -96,3 +96,11 @@ test('PupDex opens creator with the exact selected roster puppy',async({page})=>
  const file=await dl,stream=await file.createReadStream(),chunks=[];for await(const chunk of stream)chunks.push(chunk);
  const p=JSON.parse(Buffer.concat(chunks).toString());expect(p.sourceTemplateId).toBe('v2_biscuit');expect(p.templateVersion).toBe(4);
 });
+
+
+test('dense touch stroke avoids synchronous display readback and keeps undo intact',async({page})=>{
+ await page.goto('/creator');await ready(page);const c=artwork(page);const initial=await c.evaluate(el=>el.toDataURL());
+ const reads=await c.evaluate(el=>{const ctx=el.getContext('2d'),original=ctx.getImageData.bind(ctx);let reads=0;ctx.getImageData=(...args)=>{reads++;return original(...args);};const b=el.getBoundingClientRect();const emit=(type,x,y)=>el.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerId:77,pointerType:'touch',isPrimary:true,button:0,buttons:type==='pointerup'?0:1,clientX:b.x+b.width*x,clientY:b.y+b.height*y}));try{emit('pointerdown',.4,.4);for(let i=0;i<160;i++)emit('pointermove',.4+.2*i/160,.45+.12*Math.sin(i/15));const during=reads;emit('pointerup',.6,.5);return during;}finally{ctx.getImageData=original;}});
+ expect(reads).toBe(0);expect(await c.evaluate(el=>el.toDataURL())).not.toBe(initial);
+ await page.getByRole('button',{name:'Undo',exact:true}).click();expect(await c.evaluate(el=>el.toDataURL())).toBe(initial);
+});

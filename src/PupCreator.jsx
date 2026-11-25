@@ -8,8 +8,10 @@ import {TEMPLATES,TEMPLATE_VERSION,deriveTemplate,constrainPixels,floodRegion,va
 const SIZE=256, LIMIT=12, MAX_LAYERS=8, DRAFT="pup-creator-draft-v2";
 const makeCanvas=()=>Object.assign(document.createElement("canvas"),{width:SIZE,height:SIZE});
 const context=c=>c.getContext("2d",{willReadFrequently:true});
+const releaseCanvas=c=>{if(c){c.width=1;c.height=1;}};
+const releaseTemplate=t=>{if(t){releaseCanvas(t.original);releaseCanvas(t.outlineCanvas);releaseCanvas(t.maskCanvas);}};
 const pixels=c=>context(c).getImageData(0,0,SIZE,SIZE);
-const setPixels=(c,data)=>context(c).putImageData(new ImageData(new Uint8ClampedArray(data),SIZE,SIZE),0,0);
+const setPixels=(c,data)=>context(c).putImageData(new ImageData(data instanceof Uint8ClampedArray?data:new Uint8ClampedArray(data),SIZE,SIZE),0,0);
 const pngPattern=/^data:image\/png;base64,[A-Za-z0-9+/]+={0,2}$/;
 const newLayer=(name="Paint")=>({id:crypto.randomUUID(),name,visible:true,opacity:1,canvas:makeCanvas()});
 const tools=[["brush","Brush"],["soft","Soft brush"],["pencil","Pencil"],["eraser","Eraser"],["fill","Fill"],["picker","Eyedropper"],["line","Line"],["rectangle","Rectangle"],["ellipse","Ellipse"],["text","Text"]];
@@ -21,53 +23,59 @@ function slug(name){return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,"_").
 export default function PupCreator({initialGeneration="v1"}){
  const initial=()=>findCreatorTemplate(new URLSearchParams(window.location.search).get("pup"))||findCreatorTemplate(TEMPLATES[initialGeneration].id);
  const [sourceId,setSourceId]=useState(()=>initial().id);
- const canvas=useRef(null),stroke=useRef(null),history=useRef([]),index=useRef(-1),loadId=useRef(0),fileInput=useRef(null),template=useRef(null),layers=useRef([]),active=useRef(null),dirty=useRef(false);
+ const canvas=useRef(null),stroke=useRef(null),history=useRef([]),index=useRef(-1),loadId=useRef(0),fileInput=useRef(null),template=useRef(null),layers=useRef([]),active=useRef(null),dirty=useRef(false),frame=useRef(0),historyPixels=useRef(new WeakMap());
  const [guide,setGuide]=useState(0),[tolerance,setTolerance]=useState(18),[autosave,setAutosave]=useState(false);
  const [generation,setGeneration]=useState(initialGeneration),[tool,setTool]=useState("brush"),[color,setColor]=useState("#ed497b"),[size,setSize]=useState(18),[opacity,setOpacity]=useState(100),[mirror,setMirror]=useState(false),[zoom,setZoom]=useState(100),[shapeFill,setShapeFill]=useState(false),[text,setText]=useState(""),[name,setName]=useState(""),[description,setDescription]=useState(""),[ready,setReady]=useState(false),[status,setStatus]=useState("Loading canvas…"),[revision,setRevision]=useState(0),[background,setBackground]=useState("checker");
  const selected=()=>layers.current.find(l=>l.id===active.current);
  const ctx=()=>context(selected().canvas);
  const capture=()=>pixels(selected().canvas);
- const render=(target=canvas.current,reference=guide)=>{
+ const render=(target=canvas.current,reference=guide,preview=false)=>{
   if(!template.current||!target)return;
   const c=context(target);c.clearRect(0,0,SIZE,SIZE);
   for(const l of layers.current){if(!l.visible)continue;c.save();c.globalAlpha=l.opacity;c.drawImage(l.canvas,0,0);c.restore();}
   if(reference>0){c.save();c.globalAlpha=reference/100;c.drawImage(template.current.original,0,0);c.restore();}
   c.drawImage(template.current.outlineCanvas,0,0);
-  setPixels(target,constrainPixels(pixels(target).data,template.current.mask,true));
+  if(preview){c.save();c.globalCompositeOperation="destination-in";c.drawImage(template.current.maskCanvas,0,0);c.restore();}
+  else setPixels(target,constrainPixels(pixels(target).data,template.current.mask,true));
  };
- const clip=()=>{const l=selected();if(l&&template.current)setPixels(l.canvas,constrainPixels(pixels(l.canvas).data,template.current.mask));};
- const snapshot=()=>({active:active.current,layers:layers.current.map(({canvas,...meta})=>({...meta,data:pixels(canvas).data}))});
- const checkpoint=()=>{clip();history.current=history.current.slice(0,index.current+1);history.current.push(snapshot());if(history.current.length>LIMIT)history.current.shift();index.current=history.current.length-1;dirty.current=true;render();setRevision(v=>v+1);};
- const resetHistory=()=>{history.current=[];index.current=-1;checkpoint();dirty.current=false;};
- const restore=delta=>{if(!ready||stroke.current)return;const i=index.current+delta;if(i<0||i>=history.current.length)return;index.current=i;const snap=history.current[i];layers.current=snap.layers.map(({data,...meta})=>{const c=makeCanvas();setPixels(c,data);return {...meta,canvas:c};});active.current=snap.active;dirty.current=true;render();setRevision(v=>v+1);};
+ const cancelFrame=()=>{if(frame.current){cancelAnimationFrame(frame.current);frame.current=0;}};
+ const scheduleRender=()=>{if(!frame.current)frame.current=requestAnimationFrame(()=>{frame.current=0;render(canvas.current,guide,true);});};
+ const clip=()=>{const l=selected();if(l&&template.current){setPixels(l.canvas,constrainPixels(pixels(l.canvas).data,template.current.mask));historyPixels.current.delete(l.canvas);}};
+ const snapshot=()=>({active:active.current,layers:layers.current.map(({canvas,...meta})=>{let data=historyPixels.current.get(canvas);if(!data){data=pixels(canvas).data;historyPixels.current.set(canvas,data);}return {...meta,data};})});
+ const checkpoint=(paintChanged=true)=>{cancelFrame();if(paintChanged)clip();history.current=history.current.slice(0,index.current+1);history.current.push(snapshot());if(history.current.length>LIMIT)history.current.shift();index.current=history.current.length-1;dirty.current=true;render();setRevision(v=>v+1);};
+ const resetHistory=()=>{history.current=[];historyPixels.current=new WeakMap();index.current=-1;checkpoint(false);dirty.current=false;};
+ const restore=delta=>{if(!ready||stroke.current)return;const i=index.current+delta;if(i<0||i>=history.current.length)return;cancelFrame();index.current=i;const snap=history.current[i];layers.current.forEach(l=>releaseCanvas(l.canvas));historyPixels.current=new WeakMap();layers.current=snap.layers.map(({data,...meta})=>{const c=makeCanvas();setPixels(c,data);historyPixels.current.set(c,data);return {...meta,canvas:c};});active.current=snap.active;dirty.current=true;render();setRevision(v=>v+1);};
  const buildTemplate=async id=>{
   const spec=findCreatorTemplate(id);if(!spec)throw Error("Unknown template");
   const img=await loadImage(spec.url);if(img.naturalWidth!==spec.width||img.naturalHeight!==spec.height)throw Error("Template dimensions changed");
   const original=makeCanvas();context(original).drawImage(img,0,0,SIZE,SIZE);
   const data=pixels(original).data,derived=deriveTemplate(data,SIZE,SIZE,spec.generation),outlineCanvas=makeCanvas();
   setPixels(outlineCanvas,derived.outline);
+  const maskCanvas=makeCanvas(),alpha=new Uint8ClampedArray(SIZE*SIZE*4);
+  for(let i=0;i<derived.mask.length;i++)alpha[i*4+3]=derived.mask[i];
+  setPixels(maskCanvas,alpha);
   // Original roster colors at full support alpha; final compositor applies source alpha once.
   const full=derived.base;
-  setPixels(original,full);return {...derived,original,outlineCanvas,generation:spec.generation,id:spec.id};
+  setPixels(original,full);return {...derived,original,outlineCanvas,maskCanvas,generation:spec.generation,id:spec.id};
  };
  const loadTemplate=async(source,force=false)=>{
   if(stroke.current)return;
   if(!force&&dirty.current&&!window.confirm("Switch template and discard unsaved artwork?"))return;
   const id=++loadId.current;setReady(false);setStatus("Loading canvas…");
-  try{const t=await buildTemplate(source);if(id!==loadId.current||!canvas.current)return;
-   template.current=t;layers.current=[newLayer()];active.current=layers.current[0].id;setGeneration(t.generation);setSourceId(t.id);setName("");setDescription("");setGuide(0);resetHistory();render(canvas.current,0);setReady(true);setStatus("Canvas ready");
+  try{const t=await buildTemplate(source);if(id!==loadId.current||!canvas.current){releaseTemplate(t);return;}
+   cancelFrame();releaseTemplate(template.current);layers.current.forEach(l=>releaseCanvas(l.canvas));template.current=t;layers.current=[newLayer()];active.current=layers.current[0].id;setGeneration(t.generation);setSourceId(t.id);setName("");setDescription("");setGuide(0);resetHistory();render(canvas.current,0);setReady(true);setStatus("Canvas ready");
   }catch{if(id===loadId.current){setStatus("Template unavailable or missing a transparent silhouette.");setReady(false);}}
  };
- useEffect(()=>{void loadTemplate(initial().id,true);return()=>{loadId.current++;};},[initialGeneration]);
- useEffect(()=>{if(ready)render();},[guide,ready]);
- const addLayer=()=>{if(!ready||stroke.current||layers.current.length>=MAX_LAYERS)return;const l=newLayer("Paint "+(layers.current.length+1));layers.current.push(l);active.current=l.id;checkpoint();};
- const editLayer=(id,patch)=>{if(stroke.current)return;const l=layers.current.find(x=>x.id===id);if(!l)return;Object.assign(l,patch);checkpoint();};
- const removeLayer=()=>{if(stroke.current||layers.current.length<=1||!window.confirm("Delete this paint layer?"))return;layers.current=layers.current.filter(l=>l.id!==active.current);active.current=layers.current.at(-1).id;checkpoint();};
- const duplicateLayer=()=>{const l=selected();if(!l||stroke.current||layers.current.length>=MAX_LAYERS)return;const copy=newLayer((l.name+" copy").slice(0,60));context(copy.canvas).drawImage(l.canvas,0,0);copy.opacity=l.opacity;copy.visible=l.visible;layers.current.splice(layers.current.indexOf(l)+1,0,copy);active.current=copy.id;checkpoint();};
- const moveLayer=delta=>{if(stroke.current)return;const i=layers.current.findIndex(l=>l.id===active.current),j=i+delta;if(i<0||j<0||j>=layers.current.length)return;[layers.current[i],layers.current[j]]=[layers.current[j],layers.current[i]];checkpoint();};
+ useEffect(()=>{void loadTemplate(initial().id,true);return()=>{loadId.current++;cancelFrame();releaseTemplate(template.current);template.current=null;layers.current.forEach(l=>releaseCanvas(l.canvas));layers.current=[];history.current=[];historyPixels.current=new WeakMap();stroke.current=null;};},[initialGeneration]);
+ useEffect(()=>{if(ready){cancelFrame();render();}},[guide,ready]);
+ const addLayer=()=>{if(!ready||stroke.current||layers.current.length>=MAX_LAYERS)return;const l=newLayer("Paint "+(layers.current.length+1));layers.current.push(l);active.current=l.id;checkpoint(false);};
+ const editLayer=(id,patch)=>{if(stroke.current)return;const l=layers.current.find(x=>x.id===id);if(!l)return;Object.assign(l,patch);checkpoint(false);};
+ const removeLayer=()=>{if(stroke.current||layers.current.length<=1||!window.confirm("Delete this paint layer?"))return;releaseCanvas(selected()?.canvas);layers.current=layers.current.filter(l=>l.id!==active.current);active.current=layers.current.at(-1).id;checkpoint(false);};
+ const duplicateLayer=()=>{const l=selected();if(!l||stroke.current||layers.current.length>=MAX_LAYERS)return;const copy=newLayer((l.name+" copy").slice(0,60));context(copy.canvas).drawImage(l.canvas,0,0);copy.opacity=l.opacity;copy.visible=l.visible;layers.current.splice(layers.current.indexOf(l)+1,0,copy);active.current=copy.id;checkpoint(false);};
+ const moveLayer=delta=>{if(stroke.current)return;const i=layers.current.findIndex(l=>l.id===active.current),j=i+delta;if(i<0||j<0||j>=layers.current.length)return;[layers.current[i],layers.current[j]]=[layers.current[j],layers.current[i]];checkpoint(false);};
  const originalColors=()=>{if(!ready||stroke.current)return;const l=selected();if(!l||!window.confirm("Replace the selected paint layer with clean base colors?"))return;ctx().clearRect(0,0,SIZE,SIZE);ctx().drawImage(template.current.original,0,0);checkpoint();};
  useEffect(()=>{const handler=e=>{if(e.target instanceof HTMLElement&&(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable))return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"){e.preventDefault();restore(e.shiftKey?1:-1);}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="y"){e.preventDefault();restore(1);}};window.addEventListener("keydown",handler);return()=>window.removeEventListener("keydown",handler);},[ready,revision]);
- const point=e=>{const r=canvas.current.getBoundingClientRect();return {x:Math.max(0,Math.min(SIZE-1,(e.clientX-r.left)*SIZE/r.width)),y:Math.max(0,Math.min(SIZE-1,(e.clientY-r.top)*SIZE/r.height)),pressure:e.pointerType==="pen"?Math.max(.15,e.pressure||.5):1};};
+ const point=e=>{const r=stroke.current?.bounds||canvas.current.getBoundingClientRect();return {x:Math.max(0,Math.min(SIZE-1,(e.clientX-r.left)*SIZE/r.width)),y:Math.max(0,Math.min(SIZE-1,(e.clientY-r.top)*SIZE/r.height)),pressure:e.pointerType==="pen"?Math.max(.15,e.pressure||.5):1};};
  const both=(a,b,fn)=>{fn(a,b);if(mirror)fn({...a,x:SIZE-1-a.x},{...b,x:SIZE-1-b.x});};
  const setup=(c,erase=false)=>{c.globalCompositeOperation=erase?"destination-out":"source-over";c.globalAlpha=opacity/100;c.strokeStyle=color;c.fillStyle=color;c.lineCap="round";c.lineJoin="round";if(tool==="soft"&&!erase){c.shadowColor=color;c.shadowBlur=Math.max(1,size/2);c.globalAlpha*=.45;}};
  const paint=(a,b)=>{const c=ctx();c.save();setup(c,tool==="eraser");c.lineWidth=(tool==="pencil"?Math.min(size,4):size)*b.pressure;
@@ -77,17 +85,17 @@ export default function PupCreator({initialGeneration="v1"}){
   if(tool==="picker"){const d=context(canvas.current).getImageData(Math.floor(p.x),Math.floor(p.y),1,1).data;setColor("#"+Array.from(d.slice(0,3),v=>v.toString(16).padStart(2,"0")).join(""));setTool("brush");return;}
   if(tool==="fill"){const t=template.current,col=[parseInt(color.slice(1,3),16),parseInt(color.slice(3,5),16),parseInt(color.slice(5,7),16),Math.round(opacity*2.55)];const fill=x=>setPixels(selected().canvas,floodRegion(capture().data,SIZE,SIZE,t.mask,t.barrier,Math.floor(x),Math.floor(p.y),col,tolerance));fill(p.x);if(mirror)fill(SIZE-1-p.x);checkpoint();return;}
   if(tool==="text"){if(!text.trim())return;c.save();setup(c);c.font=Math.max(10,size*2)+"px sans-serif";c.textBaseline="top";c.fillText(text.slice(0,80),p.x,p.y);c.restore();checkpoint();return;}
-  canvas.current.setPointerCapture(e.pointerId);stroke.current={id:e.pointerId,start:p,last:p,before:capture(),shape:["line","rectangle","ellipse"].includes(tool)};if(!stroke.current.shape)paint(p,p);render();
+  try{canvas.current.setPointerCapture(e.pointerId);}catch{}stroke.current={id:e.pointerId,start:p,last:p,bounds:canvas.current.getBoundingClientRect(),before:capture(),shape:["line","rectangle","ellipse"].includes(tool)};if(!stroke.current.shape)paint(p,p);scheduleRender();
  };
- const move=e=>{const s=stroke.current;if(!s||s.id!==e.pointerId)return;const p=point(e);if(s.shape){ctx().putImageData(s.before,0,0);shape(s.start,p);}else paint(s.last,p);s.last=p;render();};
- const finish=(e,cancel=false)=>{const s=stroke.current;if(!s||s.id!==e.pointerId)return;stroke.current=null;if(cancel){ctx().putImageData(s.before,0,0);render();return;}if(s.shape){ctx().putImageData(s.before,0,0);shape(s.start,point(e));}checkpoint();};
+ const move=e=>{const s=stroke.current;if(!s||s.id!==e.pointerId)return;const p=point(e);if(s.shape){ctx().putImageData(s.before,0,0);shape(s.start,p);}else paint(s.last,p);s.last=p;scheduleRender();};
+ const finish=(e,cancel=false)=>{const s=stroke.current;if(!s||s.id!==e.pointerId)return;const p=cancel?null:point(e);stroke.current=null;cancelFrame();if(cancel){ctx().putImageData(s.before,0,0);render();return;}if(s.shape){ctx().putImageData(s.before,0,0);shape(s.start,p);}else if(p.x!==s.last.x||p.y!==s.last.y)paint(s.last,p);checkpoint();};
  const blank=()=>{if(!ready||stroke.current||!window.confirm("Clear selected paint layer?"))return;ctx().clearRect(0,0,SIZE,SIZE);checkpoint();setStatus("Canvas ready");};
  const finalCanvas=()=>{const target=makeCanvas();render(target,0);return target;};
- const pack=()=>({format:"puppy-clicker.pup",version:2,generation,sourceTemplateId:sourceId,templateVersion:TEMPLATE_VERSION,name:name.trim().slice(0,80)||"Custom Puppy",description:description.trim().slice(0,240),width:SIZE,height:SIZE,layers:layers.current.map(({canvas,...meta})=>({...meta,artwork:canvas.toDataURL("image/png")})),artwork:finalCanvas().toDataURL("image/png")});
+ const pack=()=>({format:"puppy-clicker.pup",version:2,generation,sourceTemplateId:sourceId,templateVersion:TEMPLATE_VERSION,name:name.trim().slice(0,80)||"Custom Puppy",description:description.trim().slice(0,240),width:SIZE,height:SIZE,layers:layers.current.map(({canvas,...meta})=>({...meta,artwork:canvas.toDataURL("image/png")})),artwork:(()=>{const c=finalCanvas();try{return c.toDataURL("image/png");}finally{releaseCanvas(c);}})()});
  useEffect(()=>{const handler=e=>{if(dirty.current){e.preventDefault();e.returnValue="";}};window.addEventListener("beforeunload",handler);return()=>window.removeEventListener("beforeunload",handler);},[]);
- useEffect(()=>{if(!autosave||!ready||!dirty.current)return;const timer=setTimeout(()=>{try{localStorage.setItem(DRAFT,JSON.stringify(pack()));setStatus("Draft autosaved on this device");}catch{setStatus("Autosave failed. Export a .pup to keep your artwork.");}},900);return()=>clearTimeout(timer);},[autosave,ready,revision,name,description,generation,sourceId]);
+ useEffect(()=>{if(!autosave||!ready||!dirty.current)return;const timer=setTimeout(()=>{if(stroke.current)return;try{localStorage.setItem(DRAFT,JSON.stringify(pack()));setStatus("Draft autosaved on this device");}catch{setStatus("Autosave failed. Export a .pup to keep your artwork.");}},900);return()=>clearTimeout(timer);},[autosave,ready,revision,name,description,generation,sourceId]);
  const exportPup=()=>download(new Blob([JSON.stringify(pack())],{type:"application/json"}),slug(name)+".pup");
- const exportPng=()=>finalCanvas().toBlob(blob=>{if(blob)download(blob,slug(name)+".png");},"image/png");
+ const exportPng=()=>{const c=finalCanvas();c.toBlob(blob=>{releaseCanvas(c);if(blob)download(blob,slug(name)+".png");},"image/png");};
  const importPack=async value=>{
   if(stroke.current)throw Error("Finish drawing before importing");
   if(!value||value.format!=="puppy-clicker.pup"||![1,2].includes(value.version)||!Object.hasOwn(TEMPLATES,value.generation)||typeof value.name!=="string"||value.name.length>80||typeof value.description!=="string"||value.description.length>240)throw Error("Invalid puppy package");
@@ -106,7 +114,7 @@ export default function PupCreator({initialGeneration="v1"}){
    context(layer.canvas).drawImage(img,0,0,SIZE,SIZE);setPixels(layer.canvas,constrainPixels(pixels(layer.canvas).data,t.mask));next.push(layer);
   }
   if(!canvas.current)return;if(dirty.current&&!window.confirm("Replace unsaved artwork with this project?"))return;
-  loadId.current++;template.current=t;layers.current=next;active.current=next.at(-1).id;setGeneration(t.generation);setSourceId(t.id);setName(value.name);setDescription(value.description);setGuide(0);resetHistory();render(canvas.current,0);setReady(true);setStatus(oldTemplate?"Older artwork imported onto the actual roster outline":"Puppy package imported");
+  loadId.current++;cancelFrame();releaseTemplate(template.current);layers.current.forEach(l=>releaseCanvas(l.canvas));template.current=t;layers.current=next;active.current=next.at(-1).id;setGeneration(t.generation);setSourceId(t.id);setName(value.name);setDescription(value.description);setGuide(0);resetHistory();render(canvas.current,0);setReady(true);setStatus(oldTemplate?"Older artwork imported onto the actual roster outline":"Puppy package imported");
  };
  const importFile=async e=>{const file=e.target.files?.[0];e.target.value="";if(!file)return;try{if(file.size>10_000_000)throw Error("File exceeds 10 MB");if(file.name.toLowerCase().endsWith(".pup")){await importPack(JSON.parse(await file.text()));return;}if(!["image/png","image/jpeg","image/webp"].includes(file.type))throw Error("Use PNG, JPEG, WebP or .pup");if(!ready||stroke.current||!selected()?.visible)throw Error("Select a visible paint layer first");const url=URL.createObjectURL(file);try{const img=await loadImage(url);if(img.width*img.height>16000000)throw Error("Image exceeds 16 megapixels");if(stroke.current||!ready)return;drawFit(ctx(),img);checkpoint();setStatus("Image imported and clipped");}finally{URL.revokeObjectURL(url);}}catch(err){setStatus(err.message||"Import failed");}};
  const saveDraft=()=>{try{localStorage.setItem(DRAFT,JSON.stringify(pack()));dirty.current=false;setStatus("Draft saved on this device");}catch{setStatus("Could not save draft. Export a .pup instead.");}};
