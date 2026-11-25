@@ -52,6 +52,7 @@ export default function PuppyCollectionDetails({area='pupdex',puppy,name,origina
      {stage==='preview'?<>
       <section className="meet-detail-about"><h3>About</h3><p id={aboutId}>{puppy.description||'No additional puppy details are available yet.'}</p>
        {roster&&!owned&&<><h3>Unlock requirement</h3><p>{unlock}</p></>}
+       {puppy.creatorCredit&&<p>Created by @{puppy.creatorCredit}</p>}
        {roster&&name!==originalName&&<p>Original roster name: {originalName}</p>}
       </section>
       <div className="meet-detail-actions" aria-label="Puppy tools">
