@@ -287,6 +287,7 @@ export default function AdminPortal(){
    {[["users","👥 Users"],["bans","🛡️ Restrictions"],["activity","🖥️ Activity & Devices"],["pupeye-web",<PupEyeBrand compact label="PupEye Anticheat"/>],["audit","📋 Audit Log"],["gifts","🎁 Gifts & Requests"],["rarity","Puppy rarities"],["events","🎄 Events & holidays"]].map(([tab,label])=>
     <button key={tab} type="button" className={section===tab?"is-selected":""}
      aria-current={section===tab?"page":undefined} onClick={()=>navigate(tab)}>{label}</button>)}
+   <a className="pup-admin-link pup-link-button" href="/account/admin/creator">🎨 Creator review</a>
    <a className="pup-admin-link pup-link-button" href="/account/admin/chat">💬 Chat moderation</a>
    <a className="pup-admin-link pup-link-button" href="/account/admin/privacy">🔒 Privacy requests</a>
    <button type="button" className="pup-admin-refresh" onClick={()=>void refresh(section)} disabled={busy||tabLoading||section==="gifts"}>↻ Refresh</button>
