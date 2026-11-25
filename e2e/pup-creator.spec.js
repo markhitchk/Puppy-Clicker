@@ -64,12 +64,12 @@ test('published creator puppy appears in PupDex with official artwork and credit
  await expect(dialog.getByText('Community reward',{exact:true})).toBeVisible();
  await expect(dialog.getByRole('img',{name:'Community test pup puppy artwork'})).toHaveAttribute('src','/api/creator-art?id='+id);
 });
-test('touchscreen pointer paints inside V2 silhouette on a phone viewport',async({browser})=>{
- const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+test('touchscreen pointer paints inside V2 silhouette on a phone viewport',async({browser,baseURL})=>{
+ const context=await browser.newContext({baseURL,viewport:{width:390,height:844},hasTouch:true,isMobile:true});
  const page=await context.newPage();
  try{
   await page.goto('/creator/v2');await ready(page);const c=artwork(page);
-  const initial=await c.evaluate(el=>el.toDataURL());const b=await c.boundingBox();
+  const initial=await c.evaluate(el=>el.toDataURL());await c.scrollIntoViewIfNeeded();const b=await c.boundingBox();
   await page.touchscreen.tap(b.x+b.width*.5,b.y+b.height*.48);
   expect(await c.evaluate(el=>el.toDataURL())).not.toBe(initial);
  }finally{await context.close();}
