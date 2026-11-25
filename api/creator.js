@@ -27,7 +27,7 @@ async function deliver(db,row,url){
   const form=new FormData();
   form.set("payload_json",JSON.stringify({allowed_mentions:{parse:[]},embeds:[{title:"🐾 New Puppy Creation",description:"Pending developer review",fields:[{name:"Submission",value:claim.id},{name:"Puppy",value:escaped(claim.name)},{name:"Generation",value:claim.generation.toUpperCase(),inline:true},{name:"Creator",value:escaped(claim.username),inline:true}],image:{url:"attachment://preview.png"},footer:{text:"Pup Creator Studio"}}],attachments:[{id:0,filename:"preview.png"},{id:1,filename:"creation.pup"}]}));
   form.set("files[0]",new Blob([Buffer.from(claim.project.artwork.slice(22),"base64")],{type:"image/png"}),"preview.png");
-  form.set("files[1]",new Blob([JSON.stringify(claim.project)],{type:"application/json"}),"creation.pup");
+  form.set("files[1]",new Blob([JSON.stringify({...claim.project,submissionId:claim.id})],{type:"application/json"}),"creation.pup");
   const response=await fetch(url,{method:"POST",body:form,signal:AbortSignal.timeout(15000),redirect:"error"});
   if(response.ok){const json=await response.json();if(/^\d+$/.test(json.id)){delivery="delivered";messageId=json.id;}}
   else if(response.status===429||[400,401,403,404,413].includes(response.status))delivery="failed";
@@ -38,6 +38,17 @@ async function deliver(db,row,url){
 async function submit(db,actor,body,adminImport=false){
  if(body.acceptTerms!==true)throw new PupError(400,"CREATOR_TERMS_REQUIRED");
  const url=adminImport?null:webhook();
+ // A downloaded Discord package points to the original immutable review row.
+ if(adminImport&&body.project?.submissionId!==undefined){
+  const id=body.project.submissionId;
+  if(typeof id!=="string"||!uuid.test(id))throw new PupError(400,"INVALID_SUBMISSION_ID");
+  const original=ensure(await db.from(table).select(metadata+",project").eq("id",id).maybeSingle());
+  if(!original)throw new PupError(404,"SUBMISSION_NOT_FOUND");
+  const {submissionId,...downloaded}=body.project;
+  const equal=JSON.stringify(validateCreatorPackage(downloaded))===JSON.stringify(validateCreatorPackage(original.project))&&downloaded.artwork===original.project.artwork;
+  if(!equal)throw new PupError(409,"CREATOR_PACKAGE_MISMATCH");
+  delete original.project;return {submission:original};
+ }
  const project=await sanitized(body.project);
  const hash=createHash("sha256").update(JSON.stringify(project)).digest("hex");
  let row=ensure(await db.from(table).select(metadata).eq("account_uuid",actor.account.id).eq("content_hash",hash).maybeSingle());
