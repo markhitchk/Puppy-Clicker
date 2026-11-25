@@ -2,7 +2,7 @@ import React,{useEffect,useRef,useState} from "react";
 import "./PupCreator.css";
 import {CreatorSubmit} from "./CreatorSubmissions.jsx";
 import "./PupCreator.mobile.css";
-import {TEMPLATES,TEMPLATE_VERSION,deriveTemplate,constrainPixels,floodRegion} from "./pupCreatorMask.js";
+import {TEMPLATES,TEMPLATE_VERSION,deriveTemplate,constrainPixels,floodRegion,validTemplateIdentity} from "./pupCreatorMask.js";
 
 const SIZE=256, LIMIT=12, MAX_LAYERS=8, DRAFT="pup-creator-draft-v2";
 const makeCanvas=()=>Object.assign(document.createElement("canvas"),{width:SIZE,height:SIZE});
@@ -41,10 +41,10 @@ export default function PupCreator({initialGeneration="v1"}){
   const spec=TEMPLATES[g];if(!spec)throw Error("Unknown template");
   const img=await loadImage(spec.url);if(img.naturalWidth!==spec.width||img.naturalHeight!==spec.height)throw Error("Template dimensions changed");
   const original=makeCanvas();context(original).drawImage(img,0,0,SIZE,SIZE);
-  const data=pixels(original).data,derived=deriveTemplate(data,SIZE,SIZE),outlineCanvas=makeCanvas();
+  const data=pixels(original).data,derived=deriveTemplate(data,SIZE,SIZE,g),outlineCanvas=makeCanvas();
   setPixels(outlineCanvas,derived.outline);
-  // Store source colors at full support alpha; final compositor applies original alpha exactly once.
-  const full=new Uint8ClampedArray(data);for(let i=0;i<derived.mask.length;i++)if(derived.mask[i])full[i*4+3]=255;
+  // Clean neutral base at full support alpha; final compositor applies source alpha once.
+  const full=derived.base;
   setPixels(original,full);return {...derived,original,outlineCanvas,generation:g};
  };
  const loadTemplate=async(g,force=false)=>{
@@ -62,7 +62,7 @@ export default function PupCreator({initialGeneration="v1"}){
  const removeLayer=()=>{if(stroke.current||layers.current.length<=1||!window.confirm("Delete this paint layer?"))return;layers.current=layers.current.filter(l=>l.id!==active.current);active.current=layers.current.at(-1).id;checkpoint();};
  const duplicateLayer=()=>{const l=selected();if(!l||stroke.current||layers.current.length>=MAX_LAYERS)return;const copy=newLayer((l.name+" copy").slice(0,60));context(copy.canvas).drawImage(l.canvas,0,0);copy.opacity=l.opacity;copy.visible=l.visible;layers.current.splice(layers.current.indexOf(l)+1,0,copy);active.current=copy.id;checkpoint();};
  const moveLayer=delta=>{if(stroke.current)return;const i=layers.current.findIndex(l=>l.id===active.current),j=i+delta;if(i<0||j<0||j>=layers.current.length)return;[layers.current[i],layers.current[j]]=[layers.current[j],layers.current[i]];checkpoint();};
- const originalColors=()=>{if(!ready||stroke.current)return;const l=selected();if(!l||!window.confirm("Replace the selected paint layer with original colors?"))return;ctx().clearRect(0,0,SIZE,SIZE);ctx().drawImage(template.current.original,0,0);checkpoint();};
+ const originalColors=()=>{if(!ready||stroke.current)return;const l=selected();if(!l||!window.confirm("Replace the selected paint layer with clean base colors?"))return;ctx().clearRect(0,0,SIZE,SIZE);ctx().drawImage(template.current.original,0,0);checkpoint();};
  useEffect(()=>{const handler=e=>{if(e.target instanceof HTMLElement&&(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable))return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"){e.preventDefault();restore(e.shiftKey?1:-1);}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="y"){e.preventDefault();restore(1);}};window.addEventListener("keydown",handler);return()=>window.removeEventListener("keydown",handler);},[ready,revision]);
  const point=e=>{const r=canvas.current.getBoundingClientRect();return {x:Math.max(0,Math.min(SIZE-1,(e.clientX-r.left)*SIZE/r.width)),y:Math.max(0,Math.min(SIZE-1,(e.clientY-r.top)*SIZE/r.height)),pressure:e.pointerType==="pen"?Math.max(.15,e.pressure||.5):1};};
  const both=(a,b,fn)=>{fn(a,b);if(mirror)fn({...a,x:SIZE-1-a.x},{...b,x:SIZE-1-b.x});};
@@ -89,7 +89,7 @@ export default function PupCreator({initialGeneration="v1"}){
   if(stroke.current)throw Error("Finish drawing before importing");
   if(!value||value.format!=="puppy-clicker.pup"||![1,2].includes(value.version)||!Object.hasOwn(TEMPLATES,value.generation)||typeof value.name!=="string"||value.name.length>80||typeof value.description!=="string"||value.description.length>240)throw Error("Invalid puppy package");
   const legacy=value.version===1,expected=legacy?512:SIZE;
-  if(value.width!==expected||value.height!==expected||(!legacy&&(value.sourceTemplateId!==TEMPLATES[value.generation].id||value.templateVersion!==TEMPLATE_VERSION)))throw Error("Invalid template or dimensions");
+  if(value.width!==expected||value.height!==expected||(!legacy&&(!validTemplateIdentity(value.generation,value.sourceTemplateId,value.templateVersion))))throw Error("Invalid template or dimensions");
   const entries=legacy?[{id:"legacy",name:"Imported artwork",visible:true,opacity:1,artwork:value.artwork}]:value.layers;
   if(!Array.isArray(entries)||!entries.length||entries.length>MAX_LAYERS)throw Error("Invalid layer count");
   const t=await buildTemplate(value.generation),next=[],ids=new Set();
@@ -118,7 +118,7 @@ export default function PupCreator({initialGeneration="v1"}){
     <label className="pc-check"><input type="checkbox" checked={shapeFill} onChange={e=>setShapeFill(e.target.checked)}/> Filled shapes</label>
     {tool==="text"&&<label>Text to stamp<input maxLength={80} value={text} onChange={e=>setText(e.target.value)}/></label>}
    </aside>
-   <div className="pc-workspace"><div className="pc-actions"><button onClick={()=>loadTemplate("v1")} aria-pressed={generation==="v1"}>V1 template</button><button onClick={()=>loadTemplate("v2")} aria-pressed={generation==="v2"}>V2 template</button><button disabled={!ready} onClick={blank}>Clear paint</button><button disabled={!ready} onClick={originalColors}>Original colors</button><button disabled={!ready} onClick={()=>{if(window.confirm("Reset this puppy template and discard current artwork?"))loadTemplate(generation,true);}}>Reset template</button><button disabled={!ready||index.current<1} onClick={()=>restore(-1)}>Undo</button><button disabled={!ready||index.current>=history.current.length-1} onClick={()=>restore(1)}>Redo</button></div>
+   <div className="pc-workspace"><div className="pc-actions"><button onClick={()=>loadTemplate("v1")} aria-pressed={generation==="v1"}>V1 template</button><button onClick={()=>loadTemplate("v2")} aria-pressed={generation==="v2"}>V2 template</button><button disabled={!ready} onClick={blank}>Clear paint</button><button disabled={!ready} onClick={originalColors}>Base colors</button><button disabled={!ready} onClick={()=>{if(window.confirm("Reset this puppy template and discard current artwork?"))loadTemplate(generation,true);}}>Reset template</button><button disabled={!ready||index.current<1} onClick={()=>restore(-1)}>Undo</button><button disabled={!ready||index.current>=history.current.length-1} onClick={()=>restore(1)}>Redo</button></div>
     <div className="pc-viewport"><div className={"pc-artboard pc-bg-"+background} style={{width:zoom+"%",maxWidth:zoom===100?"512px":undefined}}><canvas width={SIZE} height={SIZE} ref={canvas} aria-label="Puppy artwork" onPointerDown={down} onPointerMove={move} onPointerUp={e=>finish(e)} onPointerCancel={e=>finish(e,true)} onLostPointerCapture={e=>finish(e,true)}/></div></div>
     <div className="pc-actions"><label>Reference {guide}% <input type="range" min="0" max="70" value={guide} onChange={e=>setGuide(+e.target.value)}/></label><label>Zoom {zoom}% <input type="range" min="50" max="200" step="25" value={zoom} onChange={e=>setZoom(+e.target.value)}/></label><button onClick={()=>setZoom(100)}>Fit canvas</button><label>Preview background <select value={background} onChange={e=>setBackground(e.target.value)}><option value="checker">Transparency</option><option value="dark">Dark</option><option value="light">Light</option></select></label></div>
     <p role="status" className="pc-status">{status}</p>

@@ -710,7 +710,7 @@ export default function App(){
     page==="error"?<WebErrorPage code={errorRoute?Number(errorRoute[1]):404}/>:<NativeApp/>}
   </main>
   {page==="play"?<AdaptiveGraphics/>:null}
-  {(page!=="xmas26"||!christmasEnabled(eventSettings))&&winterEnabled(eventSettings)&&<WinterSnow/>}
+  {!/^\/creator(?:\/|$)/.test(path)&&(page!=="xmas26"||!christmasEnabled(eventSettings))&&winterEnabled(eventSettings)&&<WinterSnow/>}
   <NetworkCheckReporter/>
   <AndroidAppBanner/>
   <CookieConsent/>
