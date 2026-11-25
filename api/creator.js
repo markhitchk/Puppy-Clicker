@@ -1,6 +1,7 @@
 import {readFile} from "node:fs/promises";
 import {createHash} from "node:crypto";
 import sharp from "sharp";
+import {sendCreatorDiscord} from "./_lib/creatorDiscord.js";
 import {dbClient,ensure,validateRequest,getPupIdentity,PupError,fail} from "./_lib/pupIdentity.js";
 import {MAX_BODY,validateCreatorPackage,sanitizeCreatorPackage} from "./_lib/creatorPackage.js";
 const table="pup_creator_submissions",metadata="id,username,name,description,generation,status,delivery,created_at,reviewed_at,review_note,published_puppy_id";
@@ -18,22 +19,18 @@ async function sanitized(p){
  try{const clean=validateCreatorPackage(p);const original=clean.generation==="v1"?await readFile(new URL("../public/assets/test/v1_test_crash_dummy.png",import.meta.url)):await readFile(new URL("../public/assets/test/v2_test_crash_dummy.png",import.meta.url));return await sanitizeCreatorPackage(clean,sharp,original);}
  catch{throw new PupError(400,"INVALID_CREATOR_PACKAGE");}
 }
-const escaped=x=>String(x).replace(/[\\`*_~|<>@]/g,"\\$&").slice(0,240);
 async function deliver(db,row,url){
  const claim=ensure(await db.from(table).update({delivery:"sending",delivery_attempted_at:new Date().toISOString()}).eq("id",row.id).in("delivery",["pending","failed"]).select("id,project,username,name,generation").maybeSingle());
  if(!claim)return;
- let delivery="unknown",messageId=null;
- try{
-  const form=new FormData();
-  form.set("payload_json",JSON.stringify({allowed_mentions:{parse:[]},embeds:[{title:"🐾 New Puppy Creation",description:"Pending developer review",fields:[{name:"Submission",value:claim.id},{name:"Puppy",value:escaped(claim.name)},{name:"Generation",value:claim.generation.toUpperCase(),inline:true},{name:"Creator",value:escaped(claim.username),inline:true}],image:{url:"attachment://preview.png"},footer:{text:"Pup Creator Studio"}}],attachments:[{id:0,filename:"preview.png"},{id:1,filename:"creation.pup"}]}));
-  form.set("files[0]",new Blob([Buffer.from(claim.project.artwork.slice(22),"base64")],{type:"image/png"}),"preview.png");
-  form.set("files[1]",new Blob([JSON.stringify({...claim.project,submissionId:claim.id})],{type:"application/json"}),"creation.pup");
-  const response=await fetch(url,{method:"POST",body:form,signal:AbortSignal.timeout(15000),redirect:"error"});
-  if(response.ok){const json=await response.json();if(/^\d+$/.test(json.id)){delivery="delivered";messageId=json.id;}}
-  else if(response.status===429||[400,401,403,404,413].includes(response.status))delivery="failed";
- }catch{}
- // Unknown means delivery could have succeeded; do not automatically resend it.
+ const {delivery,messageId}=await sendCreatorDiscord(claim,url);
  ensure(await db.from(table).update({delivery,discord_message_id:messageId}).eq("id",claim.id).eq("delivery","sending"));
+}
+async function testDiscord(){
+ const url=webhook();
+ const png=await readFile(new URL("../public/assets/test/v1_test_crash_dummy.png",import.meta.url));
+ const artwork="data:image/png;base64,"+png.toString("base64");
+ const project=await sanitized({format:"puppy-clicker.pup",version:2,generation:"v1",sourceTemplateId:"test_v1_crash_dummy",templateVersion:1,width:256,height:256,name:"Pup Creator delivery test",description:"Synthetic integration test; not a player submission.",layers:[{id:"test",name:"Test artwork",visible:true,opacity:1,artwork}]});
+ return sendCreatorDiscord({name:project.name,username:"System test",generation:"v1",project},url,{test:true});
 }
 async function submit(db,actor,body,adminImport=false){
  if(body.acceptTerms!==true)throw new PupError(400,"CREATOR_TERMS_REQUIRED");
@@ -75,6 +72,7 @@ export default async function handler(req,res){
    return res.status(200).json({ok:true,submissions:rows});
   }
   await ownerOnly(db,actor);
+  if(action==="discord-test")return res.status(200).json({ok:true,test:await testDiscord()});
   if(action==="import")return res.status(200).json({ok:true,...await submit(db,actor,body,true)});
   if(action==="review-list"){
    const rows=ensure(await db.from(table).select(metadata).order("created_at",{ascending:false}).limit(100));
@@ -85,7 +83,7 @@ export default async function handler(req,res){
   if(!row)throw new PupError(404,"SUBMISSION_NOT_FOUND");
   if(action==="download"){
    const data=ensure(await db.from(table).select("project").eq("id",row.id).single());
-   return res.status(200).json({ok:true,project:data.project});
+   return res.status(200).json({ok:true,project:{...data.project,submissionId:row.id}});
   }
   if(action==="retry"){
    if(!["failed","pending"].includes(row.delivery))throw new PupError(409,"CREATOR_DELIVERY_NOT_RETRYABLE");
