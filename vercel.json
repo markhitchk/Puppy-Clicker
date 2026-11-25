@@ -110,6 +110,18 @@
       "destination": "/api/network-check"
     },
     {
+      "source": "/creator",
+      "destination": "/creator.html"
+    },
+    {
+      "source": "/creator/v1",
+      "destination": "/creator.html"
+    },
+    {
+      "source": "/creator/v2",
+      "destination": "/creator.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

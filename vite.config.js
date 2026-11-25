@@ -17,6 +17,6 @@ export default defineConfig(({command})=>({
    ]:[])
   ]
  },
- build:{sourcemap:false,minify:true},
+ build:{sourcemap:false,minify:true,rollupOptions:{input:{main:fromHere("./index.html"),creator:fromHere("./creator.html")}}},
  server:{host:true}
 }));

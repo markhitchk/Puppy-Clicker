@@ -215,6 +215,18 @@ function Home(){
     <article className="feature-card"><div className="feature-icon">🎁</div><h3>Rewards &amp; minigames</h3><p>Complete goals, collect rewards and explore puppy-themed games.</p></article>
    </div>
   </section>
+  <section className="home-section split-cta" aria-labelledby="home-creator-title">
+   <div className="home-account-copy">
+    <p className="eyebrow">🎨 PUP CREATOR STUDIO</p>
+    <h2 id="home-creator-title">Create your own puppy</h2>
+    <p>Choose a real V1 or V2 puppy from the Roster or PupDex, then make it your own with brushes, colors, layers and creative tools. Export your artwork or submit your design for review.</p>
+    <div className="home-account-actions">
+     <a href="/creator" className="cta cta-primary">🎨 Open Pup Creator</a>
+     <a href="/pupdex" className="cta cta-secondary">Explore PupDex</a>
+    </div>
+   </div>
+   <div className="account-preview"><span aria-hidden="true">🎨</span><strong>Your puppy. Your design.</strong><p>Real roster templates · Paint &amp; customize · Export &amp; submit</p></div>
+  </section>
   <MeetPuppies preview/>
   <section className="home-section split-cta">
    <div className="home-account-copy">
