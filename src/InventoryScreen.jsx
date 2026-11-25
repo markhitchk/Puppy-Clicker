@@ -5,6 +5,8 @@ import {ROSTER,UPGRADES,RARITIES} from './native/src/engine/game.js';
 import {LEGACY_V6_PUPPIES} from './native/src/engine/rosterV6.js';
 import {PUPPY_IMAGES} from './native/src/assets/puppies.js';
 import PuppyCollectionDetails from './PuppyCollectionDetails.jsx';
+import {useCreatorRoster} from "./useCreatorRoster.js";
+import {mergeCreatorRoster} from "./creatorRoster.js";
 import {usePuppyRarity} from './usePuppyRarity.js';
 import {rarityLabels,rarityOrder,unlockText,transferText} from './puppyRarity.js';
 import {puppyDetailsHref,puppyAssetId} from './puppyLinks.js';
@@ -29,7 +31,7 @@ const sections=[
  ['wallet','🍪','Wallet']
 ];
 const puppyInfo=new Map(LEGACY_V6_PUPPIES.map(p=>[p.id,p]));
-const puppyGroup=p=>p.groupId==='test'||p.id.startsWith('test_')?'Test Puppies':
+const puppyGroup=p=>p.groupId==='creator'?'Community Creations':p.groupId==='test'||p.id.startsWith('test_')?'Test Puppies':
  p.groupId==='v2'||p.id.startsWith('v2_')&&p.id!=='v2_discord_pup'?'V2 Puppies':
  p.id==='v2_discord_pup'?'Community':'V1 Puppies';
 const puppyDisplay=(p,game)=>game.puppyNames?.[p.id]||(p.id===game.puppyStyle?game.puppyName:p.name);
@@ -64,16 +66,18 @@ export default function InventoryScreen({game,origin='account',onBack,updatedAt,
  const [sort,setSort]=useState('roster');
  const [detailsId,setDetailsId]=useState(null);
  const catalog=usePuppyRarity();
+ const creations=useCreatorRoster();
+ const roster=mergeCreatorRoster(ROSTER,creations);
  if(!game)return null;
  const ownedIds=[...new Set(Array.isArray(game.unlockedPuppies)?game.unlockedPuppies:[])].filter(id=>typeof id==='string');
- const knownPuppies=ROSTER.filter(pup=>ownedIds.includes(pup.id)).map(pup=>{
+ const knownPuppies=roster.filter(pup=>ownedIds.includes(pup.id)).map(pup=>{
   const row=catalog.rows.find(item=>item.puppy_id===pup.id);
   const legacy=puppyInfo.get(pup.id);
   return {...pup,...row,description:legacy?.description||pup.description,
    emoji:legacy?.emoji||'🐾',current:pup.id===game.puppyStyle,
    favorite:game.favoritePuppies?.includes(pup.id)||false};
  });
- const otherPuppies=ownedIds.filter(id=>!ROSTER.some(pup=>pup.id===id));
+ const otherPuppies=ownedIds.filter(id=>!roster.some(pup=>pup.id===id));
  const accessories=[...new Set(Array.isArray(game.ownedAccessories)?game.ownedAccessories:[])].filter(name=>typeof name==='string'&&name!=='None');
  const purchasedUpgrades=UPGRADES.filter(upgrade=>numeric(game.upgrades?.[upgrade.id])>0);
  const filter=search.trim().toLowerCase();
