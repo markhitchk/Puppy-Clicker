@@ -82,6 +82,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/creator-art",
+      "destination": "/api/creator-art"
+    },
+    {
       "source": "/api/creator",
       "destination": "/api/creator"
     },
