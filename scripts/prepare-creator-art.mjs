@@ -4,12 +4,19 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 import sharp from 'sharp';
+import {creatorTemplates} from '../src/creatorTemplates.js';
 import {makeLegacyBackgroundTransparent} from './prepare-puppy-art.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
 export const rosterSources={v1:'v1/v1_classic.png',v2:'v2/v2_honey.png'};
 export async function prepareCreatorArt(){
  const output=join(root,'public/assets/creator');
  await mkdir(output,{recursive:true});
+ for(const p of creatorTemplates){
+  const source=await readFile(join(root,'public',p.preview.slice(1)));
+  const raster=await sharp(source).ensureAlpha().toColourspace('srgb').resize(256,256,{fit:'contain',background:{r:0,g:0,b:0,alpha:0}}).png().toBuffer();
+  await writeFile(join(output,'roster_'+p.id+'.png'),raster);
+ }
+ // Preserve previous template images for existing submission compatibility.
  for(const [generation,path] of Object.entries(rosterSources)){
   const source=makeLegacyBackgroundTransparent(await readFile(join(root,'public/assets',path)));
   const {data,info}=await sharp(source).ensureAlpha().toColourspace('srgb').raw().toBuffer({resolveWithObject:true});
