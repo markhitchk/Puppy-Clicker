@@ -3,7 +3,7 @@ import {createHash} from "node:crypto";
 import sharp from "sharp";
 import {dbClient,ensure,validateRequest,getPupIdentity,PupError,fail} from "./_lib/pupIdentity.js";
 import {MAX_BODY,validateCreatorPackage,sanitizeCreatorPackage} from "./_lib/creatorPackage.js";
-const table="pup_creator_submissions",metadata="id,username,name,description,generation,status,delivery,created_at,reviewed_at,review_note";
+const table="pup_creator_submissions",metadata="id,username,name,description,generation,status,delivery,created_at,reviewed_at,review_note,published_puppy_id";
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function webhook(){
  const value=process.env.PUP_CREATOR_DISCORD_WEBHOOK_URL;
@@ -88,7 +88,12 @@ export default async function handler(req,res){
    if(!update)throw new PupError(409,"REVIEW_CONFLICT");
    return res.status(200).json({ok:true,submission:update});
   }
-  // Deliberately reject publication until canonical roster and ownership migration exists.
+  if(action==="publish"){
+   if(!["common","uncommon","rare","epic","legendary"].includes(body.rarity)||typeof body.reward!=="boolean"||typeof body.credit!=="boolean")throw new PupError(400,"INVALID_CREATOR_PUBLICATION");
+   const {data,error}=await db.rpc("pup_creator_publish",{p_actor:actor.account.id,p_submission:row.id,p_rarity:body.rarity,p_reward:body.reward,p_credit:body.credit});
+   if(error){const codes={OWNER_REQUIRED:403,SUBMISSION_NOT_FOUND:404,CREATOR_NOT_APPROVED:409,TARGET_ACCOUNT_NOT_ACTIVE:409,TARGET_CLOUD_SAVE_REQUIRED:409,INVALID_CREATOR_PUBLICATION:400};throw new PupError(codes[error.message]||503,codes[error.message]?error.message:"CREATOR_PUBLICATION_UNAVAILABLE");}
+   return res.status(200).json({ok:true,publication:data,submission:ensure(await db.from(table).select(metadata).eq("id",row.id).single())});
+  }
   throw new PupError(400,"INVALID_CREATOR_ACTION");
  }catch(e){return fail(res,e);}
 }
