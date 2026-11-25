@@ -1,7 +1,7 @@
 {
   "version": 2,
   "framework": "vite",
-  "buildCommand": "npm run build",
+  "buildCommand": "node scripts/creator-discord-smoke.mjs && npm run build",
   "outputDirectory": "dist",
   "headers": [
     {
