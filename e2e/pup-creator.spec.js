@@ -17,7 +17,7 @@ test('V1 outline editor paints, clips, undoes, redoes and exports v2 package',as
  await page.getByRole('button',{name:'Add layer',exact:true}).click();await expect(page.getByRole('button',{name:'Paint 2',exact:true})).toBeVisible();
  const dl=page.waitForEvent('download');await page.getByRole('button',{name:'Export .pup'}).click();const file=await dl;expect(file.suggestedFilename()).toMatch(/\.pup$/);
  const stream=await file.createReadStream();const chunks=[];for await(const chunk of stream)chunks.push(chunk);
- const p=JSON.parse(Buffer.concat(chunks).toString());expect(p.version).toBe(2);expect(p.sourceTemplateId).toBe('test_v1_crash_dummy');expect(p.layers).toHaveLength(2);
+ const p=JSON.parse(Buffer.concat(chunks).toString());expect(p.version).toBe(2);expect(p.sourceTemplateId).toBe('creator_v1_clean');expect(p.layers).toHaveLength(2);
 });
 test('V2 direct route retains immutable outline after clearing paint',async({page})=>{
  await page.goto('/creator/v2');await ready(page);await expect(page.getByRole('button',{name:'V2 template'})).toHaveAttribute('aria-pressed','true');
@@ -39,7 +39,7 @@ test('signed-in player previews and submits exactly one package, then sees deliv
   const body=route.request().postDataJSON();requests++;
   expect(route.request().headers().authorization).toBe('Bearer e2e-only-token');
   expect(body.action).toBe('submit');expect(body.acceptTerms).toBe(true);
-  expect(body.project.sourceTemplateId).toBe('test_v1_crash_dummy');
+  expect(body.project.sourceTemplateId).toBe('creator_v1_clean');
   expect(body.project.name).toBe('Community test pup');
   await route.fulfill({json:{ok:true,submission:{id:'00000000-0000-4000-8000-000000000001',delivery:'delivered'}}});
  });
@@ -73,4 +73,14 @@ test('touchscreen pointer paints inside V2 silhouette on a phone viewport',async
   await page.touchscreen.tap(b.x+b.width*.5,b.y+b.height*.48);
   expect(await c.evaluate(el=>el.toDataURL())).not.toBe(initial);
  }finally{await context.close();}
+});
+
+test('clean V1 and V2 templates omit the crash forehead target and snow',async({page})=>{
+ for(const generation of ['v1','v2']){
+  await page.goto('/creator/'+generation);await ready(page);
+  await expect(page.getByTestId('winter-snow')).toHaveCount(0);
+  const clear=await artwork(page).evaluate(el=>{const c=el.getContext('2d');return [[126,54],[123,51],[126,44]].every(([x,y])=>c.getImageData(x,y,1,1).data[3]===0);});
+  expect(clear).toBe(true);
+ }
+ await page.goto('/');await expect(page.getByTestId('winter-snow')).toBeAttached();
 });
