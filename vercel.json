@@ -133,7 +133,7 @@
   ],
   "functions": {
     "api/creator.js": {
-      "includeFiles": "public/assets/test/*_test_crash_dummy.png"
+      "includeFiles": "public/assets/{test/*_test_crash_dummy.png,creator/*_roster.png}"
     }
   }
 }
