@@ -31,3 +31,5 @@
 @import "./desktop/index.css" (min-width: 960px);
 
 @import "./shared/dropdowns.css";
+
+@import "./shared/touch-compat.css";

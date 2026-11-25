@@ -52,6 +52,7 @@ function Header({page,eventSettings}){
  const {t:tr}=useLanguage();
  const [menuOpen,setMenuOpen]=useState(false);
  const navId=useId(),navRef=useRef(null),menuButton=useRef(null),moreRef=useRef(null);
+ useEffect(()=>{const restored=e=>{if(e.persisted){setMenuOpen(false);if(moreRef.current)moreRef.current.open=false;}};window.addEventListener("pageshow",restored);return()=>window.removeEventListener("pageshow",restored);},[]);
  useEffect(()=>{
   const keyDown=event=>{
    if(event.key==="Escape"&&moreRef.current?.open){
@@ -63,8 +64,8 @@ function Header({page,eventSettings}){
    if(moreRef.current?.open&&!moreRef.current.contains(event.target))moreRef.current.open=false;
   };
   document.addEventListener("keydown",keyDown);
-  document.addEventListener("pointerdown",outside);
-  return()=>{document.removeEventListener("keydown",keyDown);document.removeEventListener("pointerdown",outside);};
+  document.addEventListener("click",outside);
+  return()=>{document.removeEventListener("keydown",keyDown);document.removeEventListener("click",outside);};
  },[]);
  useEffect(()=>{
   if(!menuOpen)return;
@@ -81,11 +82,11 @@ function Header({page,eventSettings}){
   };
   const resized=()=>{if(window.innerWidth>=1280)setMenuOpen(false);};
   document.addEventListener("keydown",keyDown);
-  document.addEventListener("pointerdown",pointerDown);
+  document.addEventListener("click",pointerDown);
   window.addEventListener("resize",resized);
   return()=>{
    document.removeEventListener("keydown",keyDown);
-   document.removeEventListener("pointerdown",pointerDown);
+   document.removeEventListener("click",pointerDown);
    window.removeEventListener("resize",resized);
   };
  },[menuOpen]);
@@ -93,7 +94,7 @@ function Header({page,eventSettings}){
   if(!menuOpen)return;
   const originalOverflow=document.body.style.overflow;
   document.body.style.overflow='hidden';
-  navRef.current?.querySelector('a[href]')?.focus({preventScroll:true});
+  if(window.matchMedia("(hover: hover) and (pointer: fine)").matches)navRef.current?.querySelector('a[href]')?.focus({preventScroll:true});
   return()=>{document.body.style.overflow=originalOverflow;};
  },[menuOpen]);
  return <header className="site-header">
@@ -644,8 +645,8 @@ export default function App(){
   syncSiteAppearance();
   window.addEventListener(WEB_PREFERENCES_CHANGED,syncSiteAppearance);
   window.addEventListener('storage',syncSiteAppearance);
-  systemTheme.addEventListener('change',syncSiteAppearance);
-  mobilePointer.addEventListener('change',syncSiteAppearance);
+  const listenMedia=m=>{if(m.addEventListener){m.addEventListener("change",syncSiteAppearance);return()=>m.removeEventListener("change",syncSiteAppearance);}m.addListener?.(syncSiteAppearance);return()=>m.removeListener?.(syncSiteAppearance);};
+  const stopTheme=listenMedia(systemTheme),stopPointer=listenMedia(mobilePointer);
   window.addEventListener('resize',syncSiteAppearance);
   window.addEventListener('pointerdown',pointerInput,{passive:true});
   window.addEventListener('pointermove',pointerMovement,{passive:true});
@@ -653,8 +654,7 @@ export default function App(){
   return()=>{
    window.removeEventListener(WEB_PREFERENCES_CHANGED,syncSiteAppearance);
    window.removeEventListener('storage',syncSiteAppearance);
-   systemTheme.removeEventListener('change',syncSiteAppearance);
-   mobilePointer.removeEventListener('change',syncSiteAppearance);
+   stopTheme();stopPointer();
    window.removeEventListener('resize',syncSiteAppearance);
    window.removeEventListener('pointerdown',pointerInput);
    window.removeEventListener('pointermove',pointerMovement);

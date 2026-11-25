@@ -43,6 +43,7 @@ export default function SiteAccountMenu({active=false,placement="down",compact=f
  const mounted=useRef(true);
  const container=useRef(null);
  const trigger=useRef(null);
+ useEffect(()=>{const restored=e=>{if(e.persisted){setOpen(false);setConfirmSignOut(false);}};window.addEventListener("pageshow",restored);return()=>window.removeEventListener("pageshow",restored);},[]);
  useEffect(()=>{
   mounted.current=true;
   if(!client)return;
@@ -98,10 +99,10 @@ export default function SiteAccountMenu({active=false,placement="down",compact=f
     trigger.current?.focus();
    }
   };
-  document.addEventListener("pointerdown",onPointerDown);
+  document.addEventListener("click",onPointerDown);
   document.addEventListener("keydown",onKeyDown);
   return ()=>{
-   document.removeEventListener("pointerdown",onPointerDown);
+   document.removeEventListener("click",onPointerDown);
    document.removeEventListener("keydown",onKeyDown);
   };
  },[open]);

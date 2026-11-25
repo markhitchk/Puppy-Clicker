@@ -1149,8 +1149,8 @@ export function PuppyApp({betaMode=false}){
   const mq = window.matchMedia('(min-width: 960px)');
   const update = () => setDesktop(mq.matches);
   update();
-  mq.addEventListener('change', update);
-  return () => mq.removeEventListener('change', update);
+  if(mq.addEventListener){mq.addEventListener('change',update);return()=>mq.removeEventListener('change',update);}
+  mq.addListener?.(update);return()=>mq.removeListener?.(update);
  }, []);
  // Keep the browser's in-game history separate from site navigation.
  const readPlayRoute=entry=>{

@@ -196,7 +196,10 @@ export function mountAdaptiveGraphics(host,{reducedMotion=false,onBackend=()=>{}
  const quality=graphicsQuality({cores:navigator.hardwareConcurrency,
   memory:navigator.deviceMemory,saveData:connection?.saveData,
   coarsePointer:window.matchMedia?.('(pointer: coarse)').matches});
- const order=graphicsBackendOrder({reducedMotion});
+ // Mobile Apple WebKit can lose GPU contexts under memory pressure. The
+ // decorative scene is optional: use the existing CSS backend on iOS/iPadOS.
+ const appleTouch=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ const order=graphicsBackendOrder({reducedMotion:reducedMotion||appleTouch});
  let disposed=false,scene=null,canvas=null,frameId=0,attemptId=0,lastFrame=0,activeBackend='css';
  const announce=name=>{
   activeBackend=name;host.dataset.graphicsBackend=name;

@@ -12,7 +12,8 @@
     "test": "node --experimental-strip-types --test tests/*.test.js && node tests/rarity-postgres.mjs && node tests/referral-postgres.mjs && node tests/pupeye-strict-postgres.mjs",
     "test:e2e": "playwright test",
     "android:export": "npm --prefix mobile run export:android",
-    "android": "npm --prefix mobile run android"
+    "android": "npm --prefix mobile run android",
+    "test:e2e:safari": "playwright test --config=playwright.safari.config.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.1",

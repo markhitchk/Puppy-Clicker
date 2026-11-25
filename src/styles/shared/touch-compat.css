@@ -1,0 +1,18 @@
+/* Keep native click/press semantics; never synthesize a second tap. */
+:where(button,a[href],summary,[role="button"],[role="tab"],[role="menuitem"],input[type="button"],input[type="submit"],input[type="reset"]){touch-action:manipulation}
+@media (hover:none), (pointer:coarse){
+ :where(button,a[href],summary,[role="button"],[role="tab"],[role="menuitem"]){cursor:pointer;-webkit-touch-callout:none}
+ .site-frame .cta:hover{transform:none}
+ .site-frame .cta-primary:hover,.site-frame .browser-settings-action:not(.secondary):hover{filter:none}
+ .site-frame :is(.site-nav,.site-account-dropdown,.puppy-cookie-dialog){-webkit-overflow-scrolling:touch}
+ .site-frame .pc-artboard canvas{touch-action:none}
+ /* Prevent input focus zoom without restricting user pinch zoom. */
+ .site-frame :is(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="hidden"]),textarea,select){font-size:max(16px,1em)}
+}
+@supports not (height:100dvh){
+ .site-frame-game{height:100vh}
+ .site-header .site-nav.is-open{max-height:calc(100vh - 86px)}
+ .site-header-tools .site-account-dropdown{max-height:calc(100vh - 88px)}
+ .puppy-cookie-dialog{max-height:calc(100vh - 32px)}
+ .puppy-cookie-banner{max-height:55vh}
+}

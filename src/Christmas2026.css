@@ -54,7 +54,7 @@ html[data-puppy-reduced-motion="true"] .xmas26-snow-layer{animation:none!importa
 
 /* Real snowfall: 42 individual compositor-animated flakes across the viewport,
    independent of the page height, scrolling, or in-game stacking contexts. */
-body>.xmas26-snow-overlay{position:fixed;inset:0;overflow:hidden;z-index:2147482000;pointer-events:none!important;contain:layout paint;isolation:isolate}
+body>.xmas26-snow-overlay{position:fixed;inset:0;overflow:hidden;z-index:60;pointer-events:none!important;contain:layout paint;isolation:isolate}
 body>.xmas26-snow-overlay *{pointer-events:none!important}
 .xmas26-snow-overlay .xmas26-snow-layer{position:absolute;inset:0;overflow:hidden;animation:xmas26-snow-layer-sway 12s ease-in-out infinite alternate}
 .xmas26-snow-overlay .xmas26-snow-layer-b{animation-duration:17s;animation-direction:alternate-reverse}
@@ -82,3 +82,6 @@ html[data-puppy-reduced-motion="true"] .xmas26-snow-overlay .xmas26-flake{top:ca
 
 .xmas26-jackpot-rewards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.xmas26-jackpot-rewards>div{display:grid;gap:3px;padding:8px 4px;text-align:center;border:1px solid #d8a6bc55;border-radius:9px;background:#18243980;min-width:0}.xmas26-jackpot-rewards strong{font-size:clamp(15px,1.5vw,20px);color:#ffe5f0}.xmas26-jackpot-rewards span{font-size:11px;color:#e5d7e4}.xmas26-rules-list{display:grid;gap:5px;padding-left:18px;margin:0;color:#d0e5ef;font-size:13px;line-height:1.45}
 @media(min-width:960px){.xmas26-layout{grid-template-columns:minmax(0,1fr) minmax(230px,290px);gap:14px}.xmas26-side{gap:8px}.xmas26-side .xmas26-panel{padding:12px;gap:7px;border-radius:12px}.xmas26-side h2{font-size:17px}.xmas26-side p{font-size:12px;line-height:1.4}.xmas26-side button{width:100%;min-height:38px;font-size:12px}.xmas26-rules-list{font-size:12px}}
+
+/* Keep snowfall on phones but reduce compositor layers and GPU pressure. */
+@media (pointer:coarse){.xmas26-snow-overlay .xmas26-flake:nth-child(n+11){display:none}.xmas26-snow-overlay .xmas26-flake{will-change:auto;box-shadow:none}.xmas26-snow-overlay .xmas26-snow-layer{animation:none}}
