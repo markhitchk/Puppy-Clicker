@@ -1,14 +1,19 @@
 // Pure pixel operations shared by the creator and regression tests.
-export const TEMPLATE_VERSION=1;
+import {cleanRosterTemplate} from './creatorCleanTemplate.js';
+export const TEMPLATE_VERSION=2;
 export const TEMPLATES=Object.freeze({
- v1:Object.freeze({id:"test_v1_crash_dummy",url:"/assets/test/v1_test_crash_dummy.png",width:256,height:256}),
- v2:Object.freeze({id:"test_v2_crash_dummy",url:"/assets/test/v2_test_crash_dummy.png",width:256,height:256})
+ v1:Object.freeze({id:"creator_v1_clean",url:"/assets/test/v1_test_crash_dummy.png",width:256,height:256}),
+ v2:Object.freeze({id:"creator_v2_clean",url:"/assets/test/v2_test_crash_dummy.png",width:256,height:256})
 });
-export function deriveTemplate(source,w,h){
+export function validTemplateIdentity(generation,id,version){
+ return Object.hasOwn(TEMPLATES,generation)&&((version===TEMPLATE_VERSION&&id===TEMPLATES[generation].id)||(version===1&&id==="test_"+generation+"_crash_dummy"));
+}
+export function deriveTemplate(source,w,h,generation){
  if(source.length!==w*h*4)throw Error("Invalid template pixels");
  const mask=new Uint8Array(w*h),barrier=new Uint8Array(w*h),outline=new Uint8ClampedArray(w*h*4);
  for(let i=0;i<mask.length;i++)mask[i]=source[i*4+3];
  if(!mask.some(a=>a===0)||!mask.some(a=>a>200))throw Error("Template lacks a transparent silhouette");
+ if(generation!==undefined)return cleanRosterTemplate(mask,w,h,generation);
  const delta=(a,b)=>Math.max(...[0,1,2].map(k=>Math.abs(source[a*4+k]-source[b*4+k])));
  const dark=i=>source[i*4]*.2126+source[i*4+1]*.7152+source[i*4+2]*.0722<105;
  for(let i=0;i<mask.length;i++){
