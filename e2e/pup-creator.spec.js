@@ -91,7 +91,7 @@ test('PupDex opens creator with the exact selected roster puppy',async({page})=>
  await expect(page).toHaveURL(/\/creator\?pup=v2_biscuit$/);
  await ready(page);
  await expect(page.getByRole('combobox',{name:'Roster puppy template'})).toHaveValue('v2_biscuit');
- await expect(page.getByRole('img',{name:'Original roster artwork'})).toHaveAttribute('src','/assets/transparent/v2/v2_biscuit.png');
+ await expect(page.getByRole('img',{name:'Original roster artwork'})).toHaveAttribute('src',/^\/assets\/portraits\/v2_biscuit-[0-9a-f]+-256\.webp$/);
  const dl=page.waitForEvent('download');await page.getByRole('button',{name:'Export .pup'}).click();
  const file=await dl,stream=await file.createReadStream(),chunks=[];for await(const chunk of stream)chunks.push(chunk);
  const p=JSON.parse(Buffer.concat(chunks).toString());expect(p.sourceTemplateId).toBe('v2_biscuit');expect(p.templateVersion).toBe(4);

@@ -8,6 +8,7 @@ import CookieConsent from "./privacy/CookieConsent.jsx";
 import RecoveryPage from "./RecoveryPage.jsx";
 import MeetPuppies from "./MeetPuppies.jsx";
 import PupCreator from "./PupCreator.jsx";
+import {portraitSources} from "./native/web/portraitSources.js";
 import CreatorSubmissions from "./CreatorSubmissions.jsx";
 import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
@@ -201,7 +202,7 @@ function Home(){
    </div>
    <div className="hero-art">
     <div className="art-glow"></div>
-    <div className="hero-pup"><img src="/assets/transparent/v1/v1_classic.png" alt="Classic Puppy Clicker puppy" /></div>
+    <div className="hero-pup"><img {...portraitSources("classic","/assets/transparent/v1/v1_classic.png")} sizes="(max-width:650px) 235px, 370px" width="640" height="640" alt="Classic Puppy Clicker puppy" loading="eager" fetchPriority="high" decoding="async" /></div>
     <span className="art-tag tag-left">🍪 Earn Treats</span>
     <span className="art-tag tag-right">💖 Care for pups</span>
     <span className="hero-art-caption">One puppy world. Your progress.</span>

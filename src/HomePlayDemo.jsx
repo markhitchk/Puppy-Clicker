@@ -1,4 +1,5 @@
 import React,{useReducer} from "react";
+import {portraitSources,portraitThumbnail} from "./native/web/portraitSources.js";
 import {careTapBonus,cost,boneCost,format} from "./native/src/engine/game.js";
 import {
  createHomePlayDemo,reduceHomePlayDemo,HOME_DEMO_PUPPIES,
@@ -42,7 +43,7 @@ export default function HomePlayDemo({standalone=false}){
      </div>
      <div className="home-play-demo__portrait-wrap">
       <button type="button" className="home-play-demo__portrait" onClick={demoTap} aria-label={`Tap ${game.puppyName} to earn ${tapGain} demo Treats`}>
-       <img src={puppy.image.replace("/assets/","/assets/transparent/")} alt={puppy.name} decoding="async" loading="lazy"/>
+       <img {...portraitSources(puppy.id,puppy.image.replace("/assets/","/assets/transparent/"))} sizes="320px" alt={puppy.name} decoding="async" loading="eager" fetchPriority="high"/>
       </button>
       <div className="home-play-demo__orbit" aria-hidden="true"/>
      </div>
@@ -85,7 +86,7 @@ export default function HomePlayDemo({standalone=false}){
      <div className="home-play-demo__puppies">{HOME_DEMO_PUPPIES.map(p=>
       <button key={p.id} type="button" aria-label={`Play with ${p.name}`} aria-pressed={p.id===game.puppyStyle} className={p.id===game.puppyStyle?"selected":""}
        onClick={()=>dispatch({type:"switch",id:p.id,now:Date.now()})}>
-       <img src={p.image.replace("/assets/","/assets/transparent/")} alt="" loading="lazy" decoding="async"/>
+       <img src={portraitThumbnail(p.id)||p.image.replace("/assets/","/assets/transparent/")} alt="" loading="lazy" decoding="async"/>
        <span>{p.name.split(" / ")[0]}</span>
       </button>
      )}</div>

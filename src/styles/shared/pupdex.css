@@ -106,3 +106,8 @@ html .meet-puppy-art{
  background:radial-gradient(ellipse at center,rgba(0,229,255,.12),transparent 73%),#12151F;
 }
 html .meet-puppy-card:hover{border-color:#00E5FF;box-shadow:0 0 18px rgba(0,229,255,.18)}
+/* Placeholder cards while the public PupDex catalog loads. */
+.meet-puppy-skeleton{min-height:300px;animation:meet-skeleton-pulse 1.4s ease-in-out infinite}
+@keyframes meet-skeleton-pulse{50%{opacity:.55}}
+html[data-puppy-reduced-motion="true"] .meet-puppy-skeleton{animation:none}
+@media (prefers-reduced-motion:reduce){.meet-puppy-skeleton{animation:none}}
