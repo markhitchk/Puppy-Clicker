@@ -141,7 +141,7 @@ function Header({page,eventSettings}){
 function TryDemoLink(){
  const {t:tr}=useLanguage();
  const access=useDemoAccess();
- return access==="guest"?<a className="cta cta-secondary" href="/play?=demo">🎮 {tr("heroDemo")}</a>:null;
+ return access==="guest"?<a className="cta cta-secondary" href="/play?demo=1">🎮 {tr("heroDemo")}</a>:null;
 }
 function DemoPage(){
  const access=useDemoAccess();

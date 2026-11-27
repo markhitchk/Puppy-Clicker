@@ -46,13 +46,13 @@ test("homepage demo changes puppies, restores energy, and resets without an acco
  assert.equal(game.treats,20);
 });
 
-test("the demo exists only on /play?=demo and is not embedded in the homepage",()=>{
+test("the demo exists only on /play?demo=1 and is not embedded in the homepage",()=>{
  const app=read("src/App.jsx"),demo=read("src/HomePlayDemo.jsx");
  const state=read("src/homePlayDemoState.js"),styles=read("src/styles/shared/demo.css")+read("src/styles/mobile/demo.css");
  const home=app.slice(app.indexOf("function Home(){"),app.indexOf("const accountRole="));
  assert.match(app,/import HomePlayDemo from "\.\/HomePlayDemo\.jsx"/);
  assert.match(app,/function TryDemoLink\(\)/);
- assert.match(app,/access==="guest"\?<a className="cta cta-secondary" href="\/play\?=demo"/);
+ assert.match(app,/access==="guest"\?<a className="cta cta-secondary" href="\/play\?demo=1"/);
  assert.match(app,/function DemoPage\(\)/);
  assert.match(app,/page==="demo"\?<DemoPage\/>/);
  assert.match(app,/window.location.replace\("\/play"\)/);
@@ -70,11 +70,13 @@ test("the demo exists only on /play?=demo and is not embedded in the homepage",(
  }
 });
 
-test("only the explicit /play?=demo query opens the public demo",()=>{
+test("only the explicit /play?demo=1 query (or the legacy /play?=demo link) opens the public demo",()=>{
+ assert.equal(isPlayDemoRoute("/play","?demo=1"),true);
+ assert.equal(isPlayDemoRoute("/play","?demo=1&source=home"),true);
  assert.equal(isPlayDemoRoute("/play","?=demo"),true);
  assert.equal(isPlayDemoRoute("/play","?=demo&source=home"),true);
  for(const [path,search] of [
-  ["/play",""],["/play","?demo"],["/play","?demo=true"],
+  ["/play",""],["/play","?demo"],["/play","?demo=true"],["/play","?demo=1&demo=1"],["/play","?demo=0"],["/play","?demo=1&=demo"],["/account","?demo=1"],["/play/","?demo=1"],
   ["/play","?=Demo"],["/play","?=demo&=demo"],
   ["/account","?=demo"],["/pupdex","?=demo"],["/puppies","?=demo"],["/play/","?=demo"],
   ["/play","?=demo%20"]
@@ -87,8 +89,8 @@ test("explicit demo route bypasses only its own frontend screen, never the live 
  assert.match(app,/demo\?"demo":path==="\/play"\?"play"/);
  assert.match(app,/page==="demo"\?<DemoPage\/>/);
  assert.match(app,/page==="error"\?<WebErrorPage[^\n]+:<NativeApp\/>/);
- assert.match(app,/href="\/play\?=demo"/);
+ assert.match(app,/href="\/play\?demo=1"/);
  assert.match(demo,/standalone=false/);
- assert.match(demo,/href="\/play\?=demo"/);
+ assert.match(demo,/href="\/play\?demo=1"/);
  assert.doesNotMatch(read("src/playDemoRoute.js"),/(?:import .*AccountGate|verifyPuppySession|signInPupUsername|functions\.invoke)/i);
 });

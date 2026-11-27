@@ -227,7 +227,7 @@ export default function BrowserSettings(){
      }}>Confirm reset</button><button className="browser-settings-action secondary" onClick={()=>setConfirmReset(false)}>Cancel</button>
     </div>}
     <CookiePrivacySettings/>
-    <nav className="browser-settings-links" aria-label="Related pages"><a className="pup-link-button" href="/play">🐾 Play</a><a className="pup-link-button" href="/play?=demo">🎮 Guest demo</a><a className="pup-link-button" href="/account">👤 Pup Account</a><a className="pup-link-button" href="/legal/privacy">Privacy policy</a></nav>
+    <nav className="browser-settings-links" aria-label="Related pages"><a className="pup-link-button" href="/play">🐾 Play</a><a className="pup-link-button" href="/play?demo=1">🎮 Guest demo</a><a className="pup-link-button" href="/account">👤 Pup Account</a><a className="pup-link-button" href="/legal/privacy">Privacy policy</a></nav>
    </section>
   </div>
   {message?<p className="browser-settings-feedback" role="status">{message}</p>:null}
