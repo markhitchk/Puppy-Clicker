@@ -104,3 +104,21 @@ test('dense touch stroke avoids synchronous display readback and keeps undo inta
  expect(reads).toBe(0);expect(await c.evaluate(el=>el.toDataURL())).not.toBe(initial);
  await page.getByRole('button',{name:'Undo',exact:true}).click();expect(await c.evaluate(el=>el.toDataURL())).toBe(initial);
 });
+test('a V2 pup link opens on its own generation and the template buttons keep the pup',async({page})=>{
+ // Slow the template art so the pre-load state is visible, as on a real network.
+ await page.route('**/assets/creator/roster_*.png',async route=>{await new Promise(r=>setTimeout(r,800));await route.continue();});
+ await page.goto('/creator?pup=v2_prism');
+ await expect(page.getByText('Generation: V2 · Prism',{exact:false})).toBeVisible();
+ await expect(page.getByRole('button',{name:'V2 template'})).toHaveAttribute('aria-pressed','true');
+ await ready(page);
+ const picker=page.getByLabel('Roster puppy template');
+ await page.getByRole('button',{name:'V2 template'}).click();
+ await expect(picker).toHaveValue('v2_prism');
+ await page.getByRole('button',{name:'V1 template'}).click();await ready(page);
+ await expect(picker).toHaveValue('classic');
+ await page.getByRole('button',{name:'V2 template'}).click();await ready(page);
+ await expect(picker).toHaveValue('v2_prism');
+ await expect(page.getByText('Generation: V2 · Prism',{exact:false})).toBeVisible();
+ const values=await picker.locator('option').evaluateAll(o=>o.map(x=>x.value));
+ expect(new Set(values).size).toBe(values.length);
+});
