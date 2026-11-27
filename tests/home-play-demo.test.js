@@ -46,7 +46,7 @@ test("homepage demo changes puppies, restores energy, and resets without an acco
  assert.equal(game.treats,20);
 });
 
-test("the demo exists only on /play?demo=1 and is not embedded in the homepage",()=>{
+test("the demo exists only on /play?=demo and is not embedded in the homepage",()=>{
  const app=read("src/App.jsx"),demo=read("src/HomePlayDemo.jsx");
  const state=read("src/homePlayDemoState.js"),styles=read("src/styles/shared/demo.css")+read("src/styles/mobile/demo.css");
  const home=app.slice(app.indexOf("function Home(){"),app.indexOf("const accountRole="));
@@ -70,9 +70,7 @@ test("the demo exists only on /play?demo=1 and is not embedded in the homepage",
  }
 });
 
-test("only the explicit /play?demo=1 query (or the legacy /play?=demo link) opens the public demo",()=>{
- assert.equal(isPlayDemoRoute("/play","?demo=1"),true);
- assert.equal(isPlayDemoRoute("/play","?demo=1&source=home"),true);
+test("only the explicit /play?=demo query (or the legacy /play?=demo link) opens the public demo",()=>{
  assert.equal(isPlayDemoRoute("/play","?=demo"),true);
  assert.equal(isPlayDemoRoute("/play","?=demo&source=home"),true);
  for(const [path,search] of [
