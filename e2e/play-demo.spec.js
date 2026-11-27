@@ -2,7 +2,7 @@ import {test,expect} from "@playwright/test";
 
 test("signed-out visitors can play /play?=demo without Pup Account login",async({page})=>{
  // The fixture's signedout flag simulates a visitor without a Supabase session.
- await page.goto("/play?demo=1&signedout=1");
+ await page.goto("/play?=demo&signedout=1");
  await expect(page.getByRole("heading",{name:"Puppy Clicker · Play Demo"})).toBeVisible();
  await expect(page.locator('[data-testid="home-play-demo"]')).toBeVisible();
  await expect(page.getByRole("button",{name:"Sign in to Pup Account"})).toHaveCount(0);
@@ -21,7 +21,7 @@ test("homepage has no embedded demo, but signed-out visitors see the demo link",
  await page.goto("/?signedout=1");
  await expect(page.locator('[data-testid="home-play-demo"]')).toHaveCount(0);
  await expect(page.getByRole("link",{name:"🎮 Try Demo"})).toBeVisible();
- await expect(page.getByRole("link",{name:"🎮 Try Demo"})).toHaveAttribute("href","/play?demo=1");
+ await expect(page.getByRole("link",{name:"🎮 Try Demo"})).toHaveAttribute("href","/play?=demo");
  await expect(page.getByRole("heading",{name:"Try Puppy Clicker right here"})).toHaveCount(0);
 });
 
@@ -40,7 +40,7 @@ test("signed-out /play without the demo query remains account-gated",async({page
  await expect(page.getByRole("button",{name:"Sign in to Pup Account"})).toBeVisible();
  await expect(page.locator('[data-testid="home-play-demo"]')).toHaveCount(0);
 });
-test("the legacy /play?=demo link still opens the demo",async({page})=>{
+test("/play?=demo link opens the demo",async({page})=>{
  await page.goto("/play?=demo&signedout=1");
  await expect(page.getByTestId("home-play-demo")).toBeVisible();
 });
