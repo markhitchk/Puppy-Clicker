@@ -7,6 +7,8 @@ import {banTargetFromLocation,banAccountUrl} from "./banRoute.js";
 import AdminActivity from "./AdminActivity.jsx";
 import PupEyeBrand from "./PupEyeBrand.jsx";
 import AdminRestrictionDialog from "./AdminRestrictionDialog.jsx";
+import AdminEnforcementNotice from "./AdminEnforcementNotice.jsx";
+import {noticeFromHistory} from "./enforcementEmail.js";
 import {EVENT_SETTINGS} from "../supabase/functions/_shared/event-settings.js";
 import {formatTime,describeDevice,presentAuditEvent} from "./adminPresentation.js";
 
@@ -74,6 +76,7 @@ export default function AdminPortal(){
  const [error,setError] = useState("");
  const [ready,setReady] = useState(false);
  const [showRestriction,setShowRestriction] = useState(null);
+ const [emailNotice,setEmailNotice]=useState(null);
  const [reason,setReason]=useState("");
  const [expiry,setExpiry]=useState("");
  const [activity,setActivity] = useState({sessions:[],events:[],androidDevices:[],summary:{}});
@@ -170,7 +173,8 @@ export default function AdminPortal(){
   if(busy)return;
   setBusy(true);setError("");setMessage("");
   try{
-   await request(body);
+   const result=await request(body);
+   if(result.created===true&&result.notice)setEmailNotice(result.notice);
    setMessage(success);
    setShowRestriction(null);setReason("");setExpiry("");
    await Promise.all([refresh("users",true),refresh("bans",true),refresh("audit",true)]);
@@ -208,7 +212,7 @@ export default function AdminPortal(){
   const success=await run({action:'ban-account',targetPlayerId:target.id,
    reason:reason.trim(),expiresAt:date===null?null:new Date(date).toISOString()},
    'Account ban created. Gameplay is blocked on web and Android; the signed-in ban notice remains available.');
-  if(success&&banTarget!==null)globalThis.location?.assign?.('/account/admin/bans');
+  if(success&&banTarget!==null)setMessage('Account ban created. Review the generated email notice below.');
  };
  const confirmedRole=(user)=>{
   const next=selectedRole[user.id] || user.role;
@@ -235,7 +239,8 @@ export default function AdminPortal(){
    <a className="pup-admin-link pup-link-button" href="/account/admin/users">← Registered Pup Accounts</a>
    <section className="pup-admin-panel pup-admin-ban-editor">
     <p className="pup-admin-kicker">PUPPY CLICKER · STAFF ACCOUNT ACTION</p>
-    {tabLoading&&!target?<p role="status">Loading registered Pup Account…</p>:
+    {emailNotice?<><p role="status" className="pup-admin-success">Account ban created. Email notice prepared, not sent.</p><AdminEnforcementNotice notice={emailNotice}/><a className="pup-link-button" href="/account/admin/bans">View restriction history</a></>:
+     tabLoading&&!target?<p role="status">Loading registered Pup Account…</p>:
      !target?<><h1>Account not found</h1>
       <p role="alert">{error||"Choose a valid registered Pup Account from the user directory."}</p></>:
      <><h1>Ban @{target.username}</h1>
@@ -294,6 +299,7 @@ export default function AdminPortal(){
   </nav>
   {error?<p className="pup-admin-error" role="alert">{error}</p>:null}
   {message?<p className="pup-admin-success" role="status">{message}</p>:null}
+  {emailNotice?<AdminEnforcementNotice key={emailNotice.banId||emailNotice.username} notice={emailNotice} onClose={()=>setEmailNotice(null)}/>:null}
   {tabLoading?<p className="pup-admin-loading" role="status">Loading {section}…</p>:null}
   {section==="users"?<section className="pup-admin-panel" aria-label="Player management">
    <div className="pup-admin-section-heading"><h2>Registered Pup Accounts</h2>
@@ -425,8 +431,9 @@ export default function AdminPortal(){
      <td><strong>{b.reason_code==="WEB_ADMIN_SUSPENSION"?"Suspension":"Ban"}</strong><small>{b.public_reason||"Not provided"}</small></td>
      <td>{b.kind==="permanent"?"Permanent":formatTime(b.expires_at)}</td>
      <td><span className={b.status==="active"?"pup-admin-status danger":"pup-admin-status"}>{b.status}</span></td>
-     <td>{b.status==="active"&&String(b.issued_by||"").startsWith("web_admin:")?
-      <button type="button" disabled={busy} onClick={()=>revoke(b)}>Lift restriction</button>:<small>{b.status==="active"?"Managed externally":"—"}</small>}</td>
+     <td><div className="pup-admin-row-actions">{b.status==="active"&&String(b.issued_by||"").startsWith("web_admin:")?
+      <button type="button" disabled={busy} onClick={()=>revoke(b)}>Lift restriction</button>:<small>{b.status==="active"?"Managed externally":"—"}</small>}
+      {noticeFromHistory(b,users)?<button type="button" onClick={()=>setEmailNotice(noticeFromHistory(b,users))}>Generate email notice</button>:null}</div></td>
     </tr>)}</tbody></table></div>
    {!bans.length?<p className="pup-admin-empty">No restrictions found.</p>:null}
   </section>:null}
