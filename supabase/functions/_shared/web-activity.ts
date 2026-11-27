@@ -40,6 +40,32 @@ async function writeAuthActivity(req:Request,response:Response,db:any,context:an
    p_user_agent:(req.headers.get('user-agent')||'').slice(0,1024),p_error_code:event.errorCode,p_provider:event.provider,p_login_hint:hint
   });
   if(error)console.error('Pup website activity recording unavailable');
+  // Send only successful authentication events to the configured private Discord
+  // webhook. The URL is a server-side secret and is never returned to clients.
+  if(event.outcome==='success'&&['register_success','login_success'].includes(event.event)){
+   const webhook=Deno.env.get('PUP_AUTH_DISCORD_WEBHOOK_URL');
+   if(webhook){
+    const eventLabel=event.event==='register_success'?'New registration':'Successful login';
+    const timestamp=new Date().toISOString();
+    const message={
+     embeds:[{
+      title:'Puppy Clicker · '+eventLabel,
+      color:0x8B5CF6,
+      fields:[
+       {name:'Username',value:hint||'Unavailable',inline:true},
+       {name:'Event',value:event.event,inline:true},
+       {name:'Time (UTC)',value:timestamp,inline:false}
+      ],
+      footer:{text:'Puppy Clicker authentication'}
+     }]
+    };
+    try{
+     const result=await fetch(webhook,{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify(message),signal:AbortSignal.timeout(2500)});
+     if(!result.ok)console.error('Puppy auth Discord notification failed');
+    }catch{console.error('Puppy auth Discord notification unavailable');}
+   }
+  }
  }catch{/* Audit failure must never change a successful authentication result. */}
 }
 export async function auditAuthResponse(req:Request,response:Response,db:any,context:any={},deadlineMs=1800){
