@@ -40,3 +40,7 @@ test("signed-out /play without the demo query remains account-gated",async({page
  await expect(page.getByRole("button",{name:"Sign in to Pup Account"})).toBeVisible();
  await expect(page.locator('[data-testid="home-play-demo"]')).toHaveCount(0);
 });
+test("/play?=demo link opens the demo",async({page})=>{
+ await page.goto("/play?=demo&signedout=1");
+ await expect(page.getByTestId("home-play-demo")).toBeVisible();
+});

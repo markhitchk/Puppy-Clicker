@@ -91,7 +91,7 @@ test('PupDex opens creator with the exact selected roster puppy',async({page})=>
  await expect(page).toHaveURL(/\/creator\?pup=v2_biscuit$/);
  await ready(page);
  await expect(page.getByRole('combobox',{name:'Roster puppy template'})).toHaveValue('v2_biscuit');
- await expect(page.getByRole('img',{name:'Original roster artwork'})).toHaveAttribute('src','/assets/transparent/v2/v2_biscuit.png');
+ await expect(page.getByRole('img',{name:'Original roster artwork'})).toHaveAttribute('src',/^\/assets\/portraits\/v2_biscuit-[0-9a-f]+-256\.webp$/);
  const dl=page.waitForEvent('download');await page.getByRole('button',{name:'Export .pup'}).click();
  const file=await dl,stream=await file.createReadStream(),chunks=[];for await(const chunk of stream)chunks.push(chunk);
  const p=JSON.parse(Buffer.concat(chunks).toString());expect(p.sourceTemplateId).toBe('v2_biscuit');expect(p.templateVersion).toBe(4);
@@ -103,4 +103,22 @@ test('dense touch stroke avoids synchronous display readback and keeps undo inta
  const reads=await c.evaluate(el=>{const ctx=el.getContext('2d'),original=ctx.getImageData.bind(ctx);let reads=0;ctx.getImageData=(...args)=>{reads++;return original(...args);};const b=el.getBoundingClientRect();const emit=(type,x,y)=>el.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerId:77,pointerType:'touch',isPrimary:true,button:0,buttons:type==='pointerup'?0:1,clientX:b.x+b.width*x,clientY:b.y+b.height*y}));try{emit('pointerdown',.4,.4);for(let i=0;i<160;i++)emit('pointermove',.4+.2*i/160,.45+.12*Math.sin(i/15));const during=reads;emit('pointerup',.6,.5);return during;}finally{ctx.getImageData=original;}});
  expect(reads).toBe(0);expect(await c.evaluate(el=>el.toDataURL())).not.toBe(initial);
  await page.getByRole('button',{name:'Undo',exact:true}).click();expect(await c.evaluate(el=>el.toDataURL())).toBe(initial);
+});
+test('a V2 pup link opens on its own generation and the template buttons keep the pup',async({page})=>{
+ // Slow the template art so the pre-load state is visible, as on a real network.
+ await page.route('**/assets/creator/roster_*.png',async route=>{await new Promise(r=>setTimeout(r,800));await route.continue();});
+ await page.goto('/creator?pup=v2_prism');
+ await expect(page.getByText('Generation: V2 · Prism',{exact:false})).toBeVisible();
+ await expect(page.getByRole('button',{name:'V2 template'})).toHaveAttribute('aria-pressed','true');
+ await ready(page);
+ const picker=page.getByLabel('Roster puppy template');
+ await page.getByRole('button',{name:'V2 template'}).click();
+ await expect(picker).toHaveValue('v2_prism');
+ await page.getByRole('button',{name:'V1 template'}).click();await ready(page);
+ await expect(picker).toHaveValue('classic');
+ await page.getByRole('button',{name:'V2 template'}).click();await ready(page);
+ await expect(picker).toHaveValue('v2_prism');
+ await expect(page.getByText('Generation: V2 · Prism',{exact:false})).toBeVisible();
+ const values=await picker.locator('option').evaluateAll(o=>o.map(x=>x.value));
+ expect(new Set(values).size).toBe(values.length);
 });

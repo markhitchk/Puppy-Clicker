@@ -5,6 +5,7 @@ import {createHash} from "node:crypto";
 import {offerDiscordRegistration,registerDiscordWebAccount} from "./discordRegistration.ts";
 import {sanitizeDiscordIdentity} from "./discordSignup.ts";
 import {auditAuthResponse} from "../_shared/web-activity.ts";
+import {notifyAuthResponse} from "../_shared/auth-discord-webhook.ts";
 import {parseJoinSource,recordJoinSource} from "./joinSource.ts";
 
 // This is Puppy Clicker's own public OAuth2 application (same client ID as
@@ -543,8 +544,12 @@ async function handleAuthRequest(req,auditContext){
 }
 Deno.serve(async req=>{
  const auditRequest=req.method==='POST'?req.clone():null;
+ const notifyRequest=req.method==='POST'?req.clone():null;
  const auditContext={};
  const response=await handleAuthRequest(req,auditContext);
+ // Discord auth notifications cover website and Android sign-ins. The webhook
+ // post runs in the background and can never change or delay this response.
+ if(notifyRequest)await notifyAuthResponse(notifyRequest,response,admin,auditContext);
  if(auditRequest&&SAFE_ORIGINS.has(req.headers.get('origin')||''))await auditAuthResponse(auditRequest,response,admin,auditContext);
  return response;
 });

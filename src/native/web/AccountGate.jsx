@@ -133,7 +133,7 @@ export default function WebAccountGate({children,guestFallback=null,compact=fals
    <div className="pup-auth-intro-body">
     <img className="pup-auth-intro-logo" src="/assets/logos/puppy_clicker.png" alt="" />
     <p className="pup-auth-eyebrow">PUPPY CLICKER · PUP ACCOUNT</p>
-    <h1>{recovery?"Recover your Pup Account":mode==="register"?"Your puppy journey starts here.":"Welcome back to your puppy world."}</h1>
+    <h1>{recovery?"Recover your Pup Account":mode==="register"?"Your puppy journey starts here.":"Sign in to your puppy world."}</h1>
     <p>One Pup Account for your puppies, rewards and linked progress across the website and Android.</p>
     <div className="pup-auth-benefits"><span>🐾 Your puppy collection</span><span>🔒 Verified account protection</span><span>☁️ Linked cloud progress</span></div>
    </div>

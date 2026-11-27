@@ -8,6 +8,7 @@ import CookieConsent from "./privacy/CookieConsent.jsx";
 import RecoveryPage from "./RecoveryPage.jsx";
 import MeetPuppies from "./MeetPuppies.jsx";
 import PupCreator from "./PupCreator.jsx";
+import {portraitSources} from "./native/web/portraitSources.js";
 import CreatorSubmissions from "./CreatorSubmissions.jsx";
 import WebLoading from "./WebLoading.jsx";
 import WebErrorPage from "./WebErrorPage.jsx";
@@ -138,6 +139,14 @@ function Header({page,eventSettings}){
   </div>
  </header>;
 }
+// Event settings stay null while loading and when the lookup fails, so show a
+// fallback instead of "Checking…" forever when the lookup never succeeds.
+function EventAvailabilityMessage({settings}){
+ const [slow,setSlow]=useState(false);
+ useEffect(()=>{if(settings)return;const timer=setTimeout(()=>setSlow(true),8000);return()=>clearTimeout(timer);},[settings]);
+ if(settings)return "This event is currently disabled. Your collected gifts are preserved.";
+ return slow?"We couldn't check event availability right now. Please refresh to try again.":"Checking event availability…";
+}
 function TryDemoLink(){
  const {t:tr}=useLanguage();
  const access=useDemoAccess();
@@ -201,7 +210,7 @@ function Home(){
    </div>
    <div className="hero-art">
     <div className="art-glow"></div>
-    <div className="hero-pup"><img src="/assets/transparent/v1/v1_classic.png" alt="Classic Puppy Clicker puppy" /></div>
+    <div className="hero-pup"><img {...portraitSources("classic","/assets/transparent/v1/v1_classic.png")} sizes="(max-width:650px) 235px, 370px" width="640" height="640" alt="Classic Puppy Clicker puppy" loading="eager" fetchPriority="high" decoding="async" /></div>
     <span className="art-tag tag-left">🍪 Earn Treats</span>
     <span className="art-tag tag-right">💖 Care for pups</span>
     <span className="hero-art-caption">One puppy world. Your progress.</span>
@@ -703,7 +712,7 @@ export default function App(){
   <Header eventSettings={eventSettings} page={callback||page==="admin"||page==="admin-chat"||page==="admin-privacy"||page==="privacy-center"||page==="account-inventory"?"account":page==="demo"?"play":page}/>
   <main className={page==="play"?"game-mount":"page-mount"}>
    {page==="home"?<Home/>:page==="pupeye"?<PupEyeOverview/>:page==="pupeye-status"?<WebAccountGate><PupEyeAccountStatus/></WebAccountGate>:
-    page==="xmas26"?<>{christmasEnabled(eventSettings)?<Christmas2026 winterEffects={winterEnabled(eventSettings)}/>:<div className="landing"><section className="portal-card" role="status"><h1>Christmas 2026</h1><p>{eventSettings?"This event is currently disabled. Your collected gifts are preserved.":"Checking event availability…"}</p></section></div>}<BrandFooter/></>:page==="demo"?<DemoPage/>:page==="pupdex"?<div className="landing"><MeetPuppies/></div>:
+    page==="xmas26"?<>{christmasEnabled(eventSettings)?<Christmas2026 winterEffects={winterEnabled(eventSettings)}/>:<div className="landing"><section className="portal-card" role="status"><h1>Christmas 2026</h1><p><EventAvailabilityMessage settings={eventSettings}/></p></section></div>}<BrandFooter/></>:page==="demo"?<DemoPage/>:page==="pupdex"?<div className="landing"><MeetPuppies/></div>:
     page==="creator-submissions"?<CreatorSubmissions/>:page==="admin-creator"?<WebAccountGate><CreatorSubmissions admin/></WebAccountGate>:page==="creator"?<PupCreator initialGeneration={/^\/creator\/v2\/?$/.test(path)?"v2":"v1"}/>:
     page==="account"?<AccountPortal/>:
     page==="account-inventory"?<WebAccountGate><AccountInventoryPage/></WebAccountGate>:

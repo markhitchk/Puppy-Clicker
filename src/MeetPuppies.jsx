@@ -139,11 +139,13 @@ export default function MeetPuppies({preview=false}){
    </div>
    <div className="meet-puppy-counts">
     {owned&&<p className="meet-count">{collectionStats(catalogState.rows,owned)}</p>}
-    <p className="meet-count">{puppies.length} of {publicPuppies.length} puppies</p>
+    <p className="meet-count">{catalogState.loading&&!publicPuppies.length?"Loading puppies…":puppies.length+" of "+publicPuppies.length+" puppies"}</p>
    </div>
   </div>:null}
   <div className="meet-puppy-grid">
    {puppies.map(p=><PuppyCard key={p.id} p={p} onSelect={selectPuppy}/>)}
+   {catalogState.loading&&!publicPuppies.length&&Array.from({length:preview?featuredIds.length:8},(_,i)=>
+    <div key={"skeleton-"+i} className="meet-puppy-card meet-puppy-skeleton" aria-hidden="true"/>)}
   </div>
   {!puppies.length?<p role="status" className="meet-empty">{catalogState.loading?"Loading PupDex…":catalogState.error?"The PupDex is currently unavailable.":"No puppies match your filters."}</p>:null}
   {preview?<div className="meet-more"><a href="/pupdex" className="cta cta-secondary">See the full puppy roster →</a></div>:

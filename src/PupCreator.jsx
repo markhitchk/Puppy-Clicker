@@ -3,6 +3,7 @@ import "./PupCreator.css";
 import {CreatorSubmit} from "./CreatorSubmissions.jsx";
 import "./PupCreator.mobile.css";
 import {creatorTemplates,findCreatorTemplate} from "./creatorTemplates.js";
+import {portraitThumbnail} from "./native/web/portraitSources.js";
 import {TEMPLATES,TEMPLATE_VERSION,deriveTemplate,constrainPixels,floodRegion,validTemplateIdentity} from "./pupCreatorMask.js";
 
 const SIZE=256, LIMIT=12, MAX_LAYERS=8, DRAFT="pup-creator-draft-v2";
@@ -25,7 +26,7 @@ export default function PupCreator({initialGeneration="v1"}){
  const [sourceId,setSourceId]=useState(()=>initial().id);
  const canvas=useRef(null),stroke=useRef(null),history=useRef([]),index=useRef(-1),loadId=useRef(0),fileInput=useRef(null),template=useRef(null),layers=useRef([]),active=useRef(null),dirty=useRef(false),frame=useRef(0),historyPixels=useRef(new WeakMap());
  const [guide,setGuide]=useState(0),[tolerance,setTolerance]=useState(18),[autosave,setAutosave]=useState(false);
- const [generation,setGeneration]=useState(initialGeneration),[tool,setTool]=useState("brush"),[color,setColor]=useState("#ed497b"),[size,setSize]=useState(18),[opacity,setOpacity]=useState(100),[mirror,setMirror]=useState(false),[zoom,setZoom]=useState(100),[shapeFill,setShapeFill]=useState(false),[text,setText]=useState(""),[name,setName]=useState(""),[description,setDescription]=useState(""),[ready,setReady]=useState(false),[status,setStatus]=useState("Loading canvas…"),[revision,setRevision]=useState(0),[background,setBackground]=useState("checker");
+ const [generation,setGeneration]=useState(()=>initial().generation),[tool,setTool]=useState("brush"),[color,setColor]=useState("#ed497b"),[size,setSize]=useState(18),[opacity,setOpacity]=useState(100),[mirror,setMirror]=useState(false),[zoom,setZoom]=useState(100),[shapeFill,setShapeFill]=useState(false),[text,setText]=useState(""),[name,setName]=useState(""),[description,setDescription]=useState(""),[ready,setReady]=useState(false),[status,setStatus]=useState("Loading canvas…"),[revision,setRevision]=useState(0),[background,setBackground]=useState("checker");
  const selected=()=>layers.current.find(l=>l.id===active.current);
  const ctx=()=>context(selected().canvas);
  const capture=()=>pixels(selected().canvas);
@@ -67,7 +68,17 @@ export default function PupCreator({initialGeneration="v1"}){
   }catch{if(id===loadId.current){setStatus("Template unavailable or missing a transparent silhouette.");setReady(false);}}
  };
  useEffect(()=>{void loadTemplate(initial().id,true);return()=>{loadId.current++;cancelFrame();releaseTemplate(template.current);template.current=null;layers.current.forEach(l=>releaseCanvas(l.canvas));layers.current=[];history.current=[];historyPixels.current=new WeakMap();stroke.current=null;};},[initialGeneration]);
- useEffect(()=>{if(ready){cancelFrame();render();}},[guide,ready]);
+ // Redraw whenever the loaded template changes so the outline always matches the label.
+ useEffect(()=>{if(ready){cancelFrame();render();}},[guide,ready,sourceId]);
+ // Each puppy has exactly one generation. The V1/V2 buttons keep the current
+ // puppy when it already uses that template, otherwise return to the last puppy
+ // chosen for that generation (or the generation's default template).
+ const lastByGeneration=useRef({});
+ useEffect(()=>{const t=findCreatorTemplate(sourceId);if(t)lastByGeneration.current[t.generation]=t.id;},[sourceId]);
+ const switchGeneration=next=>{
+  if(findCreatorTemplate(sourceId)?.generation===next){if(ready){cancelFrame();render();}return;}
+  void loadTemplate(lastByGeneration.current[next]||TEMPLATES[next].id);
+ };
  const addLayer=()=>{if(!ready||stroke.current||layers.current.length>=MAX_LAYERS)return;const l=newLayer("Paint "+(layers.current.length+1));layers.current.push(l);active.current=l.id;checkpoint(false);};
  const editLayer=(id,patch)=>{if(stroke.current)return;const l=layers.current.find(x=>x.id===id);if(!l)return;Object.assign(l,patch);checkpoint(false);};
  const removeLayer=()=>{if(stroke.current||layers.current.length<=1||!window.confirm("Delete this paint layer?"))return;releaseCanvas(selected()?.canvas);layers.current=layers.current.filter(l=>l.id!==active.current);active.current=layers.current.at(-1).id;checkpoint(false);};
@@ -132,7 +143,7 @@ export default function PupCreator({initialGeneration="v1"}){
     <label className="pc-check"><input type="checkbox" checked={shapeFill} onChange={e=>setShapeFill(e.target.checked)}/> Filled shapes</label>
     {tool==="text"&&<label>Text to stamp<input maxLength={80} value={text} onChange={e=>setText(e.target.value)}/></label>}
    </aside>
-   <div className="pc-workspace"><div className="pc-roster-picker"><label>Roster / PupDex puppy<select aria-label="Roster puppy template" value={sourceId} onChange={e=>void loadTemplate(e.target.value)}>{["v1","v2"].map(g=><optgroup key={g} label={g.toUpperCase()+" puppies"}>{creatorTemplates.filter(p=>p.generation===g).map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</optgroup>)}</select></label><div className="pc-roster-source"><img src={findCreatorTemplate(sourceId)?.preview} alt="Original roster artwork"/><div><strong>{findCreatorTemplate(sourceId)?.name}</strong><p>Original PupDex artwork</p><a href={"/pupdex?pup="+encodeURIComponent(sourceId)} className="pup-link-button">View in PupDex</a></div></div></div><div className="pc-actions"><button onClick={()=>loadTemplate(TEMPLATES.v1.id)} aria-pressed={generation==="v1"}>V1 template</button><button onClick={()=>loadTemplate(TEMPLATES.v2.id)} aria-pressed={generation==="v2"}>V2 template</button><button disabled={!ready} onClick={blank}>Clear paint</button><button disabled={!ready} onClick={originalColors}>Base colors</button><button disabled={!ready} onClick={()=>{if(window.confirm("Reset this puppy template and discard current artwork?"))loadTemplate(sourceId,true);}}>Reset template</button><button disabled={!ready||index.current<1} onClick={()=>restore(-1)}>Undo</button><button disabled={!ready||index.current>=history.current.length-1} onClick={()=>restore(1)}>Redo</button></div>
+   <div className="pc-workspace"><div className="pc-roster-picker"><label>Roster / PupDex puppy<select aria-label="Roster puppy template" value={sourceId} onChange={e=>void loadTemplate(e.target.value)}>{["v1","v2"].map(g=><optgroup key={g} label={g.toUpperCase()+" puppies"}>{creatorTemplates.filter(p=>p.generation===g).map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</optgroup>)}</select></label><div className="pc-roster-source"><img src={portraitThumbnail(sourceId)||findCreatorTemplate(sourceId)?.preview} alt="Original roster artwork" decoding="async"/><div><strong>{findCreatorTemplate(sourceId)?.name}</strong><p>Original PupDex artwork</p><a href={"/pupdex?pup="+encodeURIComponent(sourceId)} className="pup-link-button">View in PupDex</a></div></div></div><div className="pc-actions"><button onClick={()=>switchGeneration("v1")} aria-pressed={generation==="v1"}>V1 template</button><button onClick={()=>switchGeneration("v2")} aria-pressed={generation==="v2"}>V2 template</button><button disabled={!ready} onClick={blank}>Clear paint</button><button disabled={!ready} onClick={originalColors}>Base colors</button><button disabled={!ready} onClick={()=>{if(window.confirm("Reset this puppy template and discard current artwork?"))loadTemplate(sourceId,true);}}>Reset template</button><button disabled={!ready||index.current<1} onClick={()=>restore(-1)}>Undo</button><button disabled={!ready||index.current>=history.current.length-1} onClick={()=>restore(1)}>Redo</button></div>
     <div className="pc-viewport"><div className={"pc-artboard pc-bg-"+background} style={{width:zoom+"%",maxWidth:zoom===100?"512px":undefined}}><canvas width={SIZE} height={SIZE} ref={canvas} aria-label="Puppy artwork" onPointerDown={down} onPointerMove={move} onPointerUp={e=>finish(e)} onPointerCancel={e=>finish(e,true)} onLostPointerCapture={e=>finish(e,true)}/></div></div>
     <div className="pc-actions"><label>Reference {guide}% <input type="range" min="0" max="70" value={guide} onChange={e=>setGuide(+e.target.value)}/></label><label>Zoom {zoom}% <input type="range" min="50" max="200" step="25" value={zoom} onChange={e=>setZoom(+e.target.value)}/></label><button onClick={()=>setZoom(100)}>Fit canvas</button><label>Preview background <select value={background} onChange={e=>setBackground(e.target.value)}><option value="checker">Transparency</option><option value="dark">Dark</option><option value="light">Light</option></select></label></div>
     <p role="status" className="pc-status">{status}</p>

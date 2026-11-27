@@ -282,3 +282,6 @@ html[data-puppy-theme="light"] .browser-pointer-size-limits{color:var(--site-mut
 .browser-settings-page .puppy-language-picker select{min-height:36px;padding:6px 8px;font-size:12px;max-width:126px}
 .browser-settings-page .browser-settings-intro{align-items:center}
 .browser-settings-page .browser-settings-intro>div{min-width:0}
+/* Keep the page language picker under the intro text, out of the path of the
+   header "More" dropdown, which opens over the top-right of the page. */
+.browser-settings-page .browser-settings-intro{flex-direction:column;align-items:flex-start}

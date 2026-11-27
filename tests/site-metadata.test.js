@@ -36,6 +36,6 @@ test("Open Graph and Twitter social previews match the search metadata",()=>{
  assert.ok(existsSync(new URL("../public/assets/logos/puppy_clicker.png",import.meta.url)));
  assert.match(html,/rel="icon"/);
  assert.match(html,/rel="apple-touch-icon"/);
- // Don't canonicalize /play?=demo, /play or /pupdex to the homepage.
+ // Don't canonicalize /play?demo=1, /play or /pupdex to the homepage.
  assert.doesNotMatch(html,/rel="canonical"/);
 });
